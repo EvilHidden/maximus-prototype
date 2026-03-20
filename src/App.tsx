@@ -67,7 +67,14 @@ export default function App() {
       );
     }
 
-    return <CheckoutScreen orderType={orderType} />;
+    return (
+      <CheckoutScreen
+        selectedCustomer={selectedCustomer}
+        measurementSets={measurementSets}
+        order={state.order}
+        onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+      />
+    );
   }, [state, selectedCustomer, orderType]);
 
   return (

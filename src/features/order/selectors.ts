@@ -70,6 +70,21 @@ export function getPricingSummary(order: OrderWorkflowState): PricingSummary {
   };
 }
 
+export function getCheckoutCollectionAmount(order: OrderWorkflowState) {
+  const pricing = getPricingSummary(order);
+  const orderType = getOrderType(order);
+
+  if (orderType === "custom") {
+    return pricing.depositDue;
+  }
+
+  if (orderType === "mixed") {
+    return pricing.alterationsSubtotal + pricing.taxAmount + pricing.depositDue;
+  }
+
+  return pricing.total;
+}
+
 export function getOrderBagLineItems(order: OrderWorkflowState, measurementSets: MeasurementSet[]): OrderBagLineItem[] {
   const items: OrderBagLineItem[] = order.alteration.items.map((item, index) => ({
     id: `alteration-${item.id}`,
