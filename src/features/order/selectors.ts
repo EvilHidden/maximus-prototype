@@ -1,12 +1,12 @@
 import type {
   Customer,
   MeasurementSet,
-  MeasurementSetOption,
   OrderBagLineItem,
   OrderType,
   OrderWorkflowState,
   PricingSummary,
 } from "../../types";
+import { getMeasurementSetDisplay } from "../measurements/selectors";
 
 function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
@@ -100,8 +100,11 @@ export function getOrderBagLineItems(order: OrderWorkflowState, measurementSets:
   if (order.custom.selectedGarment) {
     const linkedSet = measurementSets.find((set) => set.id === order.custom.linkedMeasurementSetId);
     const selectedGarment = order.custom.selectedGarment;
+    const linkedSetDisplay = linkedSet ? getMeasurementSetDisplay(linkedSet) : null;
     const summaryDetails = [
-      linkedSet ? `${linkedSet.label} • ${linkedSet.note}` : "Measurements required",
+      linkedSetDisplay
+        ? `${linkedSetDisplay.title}${linkedSetDisplay.version ? ` • ${linkedSetDisplay.version}` : ""}`
+        : "Measurements required",
       order.custom.fabric ? `Fabric: ${order.custom.fabric}` : "Fabric required",
       order.custom.buttonType ? `Buttons: ${order.custom.buttonType}` : "Button type required",
       order.custom.lining ? `Lining: ${order.custom.lining}` : "Lining required",
@@ -137,62 +140,6 @@ export function getOrderBagLineItems(order: OrderWorkflowState, measurementSets:
 
   return items;
 }
-
-export function getMeasurementOptions(
-  measurementSets: MeasurementSet[],
-  customer: Customer | null,
-  linkedMeasurementSetId: string | null,
-  hasDraftMeasurements = false,
-): MeasurementSetOption[] {
-  if (!customer) {
-    return [];
-  }
-
-  const customerSets: MeasurementSetOption[] = measurementSets
-    .filter((set) => set.customerId === customer.id)
-    .map((set) => ({ ...set, kind: "history" as const }));
-
-  if (hasDraftMeasurements) {
-    customerSets.unshift({
-      id: linkedMeasurementSetId === "draft-entry" ? "draft-entry" : "draft-measurements",
-      customerId: customer.id,
-      label: "Draft entry",
-      note: "Current unsaved measurements",
-      values: {},
-      kind: "draft",
-    });
-  }
-
-  return customerSets;
-}
-
-export function getSuggestedMeasurementSet(
-  measurementSets: MeasurementSet[],
-  customer: Customer | null,
-): MeasurementSet | null {
-  if (!customer) {
-    return null;
-  }
-
-  return measurementSets.find((set) => set.customerId === customer.id && set.suggested) ?? null;
-}
-
-export function getMeasurementSetLabel(
-  measurementSets: MeasurementSet[],
-  measurementSetId: string | null,
-) {
-  if (!measurementSetId) {
-    return null;
-  }
-
-  if (measurementSetId === "draft-entry" || measurementSetId === "draft-measurements") {
-    return "Draft entry • Current measurement form";
-  }
-
-  const match = measurementSets.find((set) => set.id === measurementSetId);
-  return match ? `${match.label} • ${match.note}` : null;
-}
-
 export function getSummaryGuardrail(order: OrderWorkflowState, selectedCustomer: Customer | null) {
   const selectedGarment = order.custom.selectedGarment;
   const customMissing =

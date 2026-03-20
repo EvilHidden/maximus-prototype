@@ -101,6 +101,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           custom: {
             ...state.order.custom,
             linkedMeasurementSetId: null,
+            measurements: createEmptyMeasurements(),
           },
         },
       };

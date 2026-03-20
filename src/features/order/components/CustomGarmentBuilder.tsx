@@ -70,13 +70,13 @@ export function CustomGarmentBuilder({
   return (
     <>
       <Card className="p-4">
-        <SectionHeader icon={Ruler} title="Custom garment" subtitle="Select order type" />
+        <SectionHeader icon={Ruler} title="Custom garment" subtitle="Select garment" />
         <div className="grid gap-2 md:grid-cols-4">
           {customCatalog.map((item) => (
             <button
               key={item}
               onClick={() => onSelectGarment(item)}
-              className={`flex min-h-11 items-center border px-3 py-2.5 text-left text-sm leading-none ${
+              className={`flex min-h-12 items-center border px-3 py-3 text-left text-sm leading-none ${
                 selectedGarment === item ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
               }`}
             >
@@ -87,7 +87,7 @@ export function CustomGarmentBuilder({
       </Card>
 
       <Card className="p-4">
-        <SectionHeader icon={Shirt} title="Configuration" subtitle="Set garment details" />
+        <SectionHeader icon={Shirt} title="Configuration" subtitle="Garment details" />
 
         {selectedGarment ? (
           <>
@@ -156,7 +156,7 @@ export function CustomGarmentBuilder({
                 <input
                   value={monograms}
                   onChange={(event) => onSetConfiguration({ monograms: event.target.value })}
-                  placeholder="Initials, placement, or skip"
+                  placeholder="Initials or placement"
                   className="app-input"
                 />
               </label>
@@ -216,7 +216,7 @@ export function CustomGarmentBuilder({
                 value={customNotes}
                 onChange={(event) => onSetConfiguration({ customNotes: event.target.value })}
                 rows={3}
-                placeholder="Capture anything that does not fit the preset options."
+                placeholder="Special requests or tailoring notes."
                 className="app-input resize-none"
               />
             </div>
@@ -228,7 +228,7 @@ export function CustomGarmentBuilder({
                   <button
                     key={band}
                     onClick={() => onSetConfiguration({ pricingBand: band })}
-                    className={`border p-3 text-left text-sm ${
+                    className={`border px-3 py-3 text-left text-sm ${
                       pricingBand === band ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
                     }`}
                   >

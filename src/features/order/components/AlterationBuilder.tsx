@@ -25,7 +25,7 @@ export function AlterationBuilder({
 }: AlterationBuilderProps) {
   return (
     <Card className="p-4">
-      <SectionHeader icon={Scissors} title="Alteration intake" subtitle="Build item" />
+      <SectionHeader icon={Scissors} title="Alteration intake" subtitle="Build line item" />
 
       <div className="mb-4">
         <FieldLabel>Select garment</FieldLabel>
@@ -34,7 +34,7 @@ export function AlterationBuilder({
             <button
               key={garment}
               onClick={() => onSelectGarment(garment)}
-              className={`flex min-h-11 items-center border px-3 py-2.5 text-left text-sm leading-none ${
+              className={`flex min-h-12 items-center border px-3 py-3 text-left text-sm leading-none ${
                 selectedGarment === garment ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
               }`}
             >
@@ -54,10 +54,13 @@ export function AlterationBuilder({
               <button
                 key={`${selectedGarment}-${service.name}`}
                 onClick={() => onToggleModifier(service)}
-                className={`border p-3 text-left text-sm ${isSelected ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"}`}
+                className={`border px-3 py-3 text-left text-sm ${isSelected ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"}`}
               >
                 <div className="font-medium text-[var(--app-text)]">{service.name}</div>
-                <div className="mt-1 text-xs text-[var(--app-text-muted)]">${service.price.toFixed(2)}</div>
+                <div className="mt-2 flex items-center justify-between gap-2">
+                  <div className="text-xs text-[var(--app-text-muted)]">Service</div>
+                  <div className="text-sm font-semibold text-[var(--app-text)]">${service.price.toFixed(2)}</div>
+                </div>
               </button>
             );
           })}
@@ -66,8 +69,8 @@ export function AlterationBuilder({
 
       <div className="mt-4 flex items-center justify-between gap-3 app-panel-section">
         <div className="text-sm text-[var(--app-text-muted)]">
-          <div className="font-medium text-[var(--app-text)]">Current item subtotal</div>
-          <div className="text-xs text-[var(--app-text-muted)]">Add item to order.</div>
+          <div className="font-medium text-[var(--app-text)]">Current item</div>
+          <div className="text-xs text-[var(--app-text-muted)]">Ready to add</div>
         </div>
         <div className="flex items-center gap-3">
           <div className="text-lg font-semibold text-[var(--app-text)]">${currentSubtotal.toFixed(2)}</div>

@@ -17,13 +17,13 @@ export function WorkflowSelector({
 }: WorkflowSelectorProps) {
   return (
     <Card className="p-4">
-      <SectionHeader icon={Receipt} title="Create order" subtitle="Select workflow" />
+      <SectionHeader icon={Receipt} title="Start new order" subtitle="Service type" />
 
       <div className="grid grid-cols-2 gap-3">
         <WorkflowToggle
           icon={Scissors}
           title="Alterations"
-          subtitle="Garments and modifiers"
+          subtitle="Intake and services"
           isActive={activeWorkflow === "alteration"}
           isEnabled={hasAlterationContent}
           onClick={() => onActivate("alteration")}
@@ -31,14 +31,14 @@ export function WorkflowSelector({
         <WorkflowToggle
           icon={Shirt}
           title="Custom garment"
-          subtitle="Measurements and pricing"
+          subtitle="Measurements and build"
           isActive={activeWorkflow === "custom"}
           isEnabled={hasCustomContent}
           onClick={() => onActivate("custom")}
         />
       </div>
 
-      {activeWorkflow === null ? <EmptyState className="mt-4">Select a workflow.</EmptyState> : null}
+      {activeWorkflow === null ? <EmptyState className="mt-4">Select a service type to begin.</EmptyState> : null}
     </Card>
   );
 }

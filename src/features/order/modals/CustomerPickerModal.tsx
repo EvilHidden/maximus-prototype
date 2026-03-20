@@ -19,13 +19,13 @@ export function CustomerPickerModal({
 }: CustomerPickerModalProps) {
   return (
     <ModalShell title="Change linked customer" subtitle="Search or create" onClose={onClose} widthClassName="max-w-[560px]">
-      <div className="relative mb-4">
-        <Search className="absolute left-3 top-3.5 h-4 w-4 text-[var(--app-text-soft)]" />
+      <div className="mb-4 flex items-center gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3">
+        <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
         <input
           value={query}
           onChange={(event) => onQueryChange(event.target.value)}
           placeholder="Search name, phone, or note"
-          className="app-input py-3 pl-9 pr-3 text-sm"
+          className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--app-text)] outline-none placeholder:text-[var(--app-text-soft)]"
         />
       </div>
 

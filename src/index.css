@@ -301,6 +301,12 @@ button {
   background: var(--app-surface);
   padding: 1rem;
   text-align: left;
+  transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.app-workflow-toggle:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--app-shadow-sm);
 }
 
 .app-workflow-toggle--active {
@@ -341,6 +347,10 @@ button {
 
 .app-table-row:hover {
   background: var(--app-surface-muted);
+}
+
+.app-quick-action:hover {
+  border-color: var(--app-border-strong);
 }
 
 .app-divider {

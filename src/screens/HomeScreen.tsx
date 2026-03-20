@@ -19,19 +19,19 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
       <Card className="p-4">
         <SectionHeader icon={PanelLeft} title="Front desk" subtitle="Core actions" />
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-          <button onClick={() => onScreenChange("customer")} className="app-workflow-toggle flex min-h-[112px] flex-col">
+          <button onClick={() => onScreenChange("customer")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <UserPlus className="mb-2 h-5 w-5" />
             <div className="font-semibold">Customers</div>
           </button>
-          <button onClick={() => onStartWorkflow("alteration")} className="app-workflow-toggle flex min-h-[112px] flex-col">
+          <button onClick={() => onStartWorkflow("alteration")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <Receipt className="mb-2 h-5 w-5" />
             <div className="font-semibold">Alteration order</div>
           </button>
-          <button onClick={() => onStartWorkflow("custom")} className="app-workflow-toggle flex min-h-[112px] flex-col">
+          <button onClick={() => onStartWorkflow("custom")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <Ruler className="mb-2 h-5 w-5" />
             <div className="font-semibold">Custom garment</div>
           </button>
-          <button onClick={() => onScreenChange("checkout")} className="app-workflow-toggle flex min-h-[112px] flex-col">
+          <button onClick={() => onScreenChange("checkout")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <Package className="mb-2 h-5 w-5" />
             <div className="font-semibold">Order pickup</div>
           </button>

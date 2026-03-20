@@ -108,18 +108,21 @@ export const cuffOptions = ["No cuff", "1.5 inch cuff", "2 inch cuff"];
 export const lapelOptions = ["Notch", "Peak", "Shawl"];
 
 export const measurementFields = [
+  "Back Length",
+  "Shoulder",
+  "Neck",
   "Chest",
+  "Stomach",
   "Waist",
   "Seat",
-  "Shoulder",
-  "Sleeve",
-  "Inseam",
-  "Outseam",
-  "Neck",
-  "Jacket Length",
   "Bicep",
-  "Wrist",
+  "Sleeve Length",
   "Thigh",
+  "Rise",
+  "Bottom",
+  "Length",
+  "Shirt Cuff Left",
+  "Shirt Cuff Right",
 ];
 
 export const pricingBands = ["Starter", "Workday", "Special Occasion", "Premium", "Luxury", "Elite"];

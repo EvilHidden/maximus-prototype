@@ -1,4 +1,4 @@
-import { Search } from "lucide-react";
+import { Search, User } from "lucide-react";
 import { useMemo, useState } from "react";
 import { customerOrders, customers } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
@@ -24,15 +24,15 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
   return (
     <div className="relative">
       <Card className="p-4">
-        <SectionHeader icon={Search} title="Customers" subtitle="Directory" />
+        <SectionHeader icon={User} title="Customers" subtitle="Directory" />
 
-        <div className="relative mb-4">
-          <Search className="absolute left-3 top-3.5 h-4 w-4 text-[var(--app-text-soft)]" />
+        <div className="mb-4 flex items-center gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface)] px-4 py-3">
+          <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
           <input
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by name, phone, or customer ID"
-            className="app-input py-3 pl-9 pr-3 text-sm"
+            className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--app-text)] outline-none placeholder:text-[var(--app-text-soft)]"
           />
         </div>
 

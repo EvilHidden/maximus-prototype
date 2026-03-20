@@ -10,6 +10,11 @@ import { MeasurementsScreen } from "./screens/MeasurementsScreen";
 import { CheckoutScreen } from "./screens/CheckoutScreen";
 import { appReducer, createInitialAppState } from "./state/appState";
 import { getOrderType } from "./features/order/selectors";
+import {
+  createDraftMeasurementSet,
+  deleteMeasurementSetAndPreserveDraft,
+  saveMeasurementSet,
+} from "./features/measurements/service";
 
 export default function App() {
   const [state, dispatch] = useReducer(appReducer, undefined, createInitialAppState);
@@ -27,151 +32,44 @@ export default function App() {
     dispatch({ type: "setScreen", screen: "order" });
   };
 
-  const saveMeasurementSet = (mode: "draft" | "saved", title: string) => {
-    if (!state.selectedCustomerId) {
+  const handleSaveMeasurementSet = (mode: "draft" | "saved", title: string) => {
+    if (!selectedCustomer) {
       return;
     }
 
-    const now = new Date();
-    const dateLabel = new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "2-digit",
-    }).format(now);
+    const result = saveMeasurementSet(
+      measurementSets,
+      selectedCustomer,
+      state.order.custom.linkedMeasurementSetId,
+      state.order.custom.measurements,
+      mode,
+      title,
+    );
 
-    let nextMeasurementSetId: string | null = null;
-
-    setMeasurementSets((currentSets) => {
-      const currentSet = currentSets.find((set) => set.id === state.order.custom.linkedMeasurementSetId) ?? null;
-      const sameCustomerCurrentSet = currentSet?.customerId === state.selectedCustomerId ? currentSet : null;
-      const normalizedTitle = title.trim() || (mode === "draft" ? "Draft set" : "Saved set");
-
-      if (mode === "draft" && sameCustomerCurrentSet?.isDraft) {
-        nextMeasurementSetId = sameCustomerCurrentSet.id;
-        return currentSets.map((set) =>
-          set.id === sameCustomerCurrentSet.id
-            ? {
-                ...set,
-                note: `${dateLabel} • ${normalizedTitle}`,
-                values: { ...state.order.custom.measurements },
-                isDraft: true,
-                suggested: false,
-              }
-            : set,
-        );
-      }
-
-      if (mode === "saved" && sameCustomerCurrentSet && !sameCustomerCurrentSet.isDraft && sameCustomerCurrentSet.label.startsWith("Version ")) {
-        nextMeasurementSetId = sameCustomerCurrentSet.id;
-        return currentSets.map((set) => {
-          if (set.customerId !== state.selectedCustomerId) {
-            return set;
-          }
-
-          if (set.id === sameCustomerCurrentSet.id) {
-            return {
-              ...set,
-              note: `${dateLabel} • ${normalizedTitle}`,
-              values: { ...state.order.custom.measurements },
-              isDraft: false,
-              suggested: true,
-            };
-          }
-
-          return {
-            ...set,
-            suggested: false,
-          };
-        });
-      }
-
-      if (mode === "saved") {
-        const nextVersion =
-          currentSets
-            .filter((set) => set.customerId === state.selectedCustomerId)
-            .reduce((maxVersion, set) => {
-              const match = set.label.match(/^Version (\d+)$/);
-              return match ? Math.max(maxVersion, Number.parseInt(match[1], 10)) : maxVersion;
-            }, 0) + 1;
-
-        if (sameCustomerCurrentSet?.isDraft) {
-          nextMeasurementSetId = sameCustomerCurrentSet.id;
-          return currentSets.map((set) => {
-            if (set.customerId !== state.selectedCustomerId) {
-              return set;
-            }
-
-            if (set.id === sameCustomerCurrentSet.id) {
-              return {
-                ...set,
-                label: `Version ${nextVersion}`,
-                note: `${dateLabel} • ${normalizedTitle}`,
-                values: { ...state.order.custom.measurements },
-                isDraft: false,
-                suggested: true,
-              };
-            }
-
-            return {
-              ...set,
-              suggested: false,
-            };
-          });
-        }
-
-        nextMeasurementSetId = `SET-${state.selectedCustomerId}-V${nextVersion}-${now.getTime()}`;
-
-        const nextSet: MeasurementSet = {
-          id: nextMeasurementSetId,
-          customerId: state.selectedCustomerId,
-          label: `Version ${nextVersion}`,
-          note: `${dateLabel} • ${normalizedTitle}`,
-          values: { ...state.order.custom.measurements },
-          isDraft: false,
-          suggested: true,
-        };
-
-        return [
-          ...currentSets.map((set) =>
-            set.customerId === state.selectedCustomerId
-              ? {
-                  ...set,
-                  suggested: false,
-                }
-              : set,
-          ),
-          nextSet,
-        ];
-      }
-
-      nextMeasurementSetId = `SET-${state.selectedCustomerId}-DRAFT-${now.getTime()}`;
-
-      const draftSet: MeasurementSet = {
-        id: nextMeasurementSetId,
-        customerId: state.selectedCustomerId,
-        label: "Draft",
-        note: `${dateLabel} • ${normalizedTitle}`,
-        values: { ...state.order.custom.measurements },
-        isDraft: true,
-        suggested: false,
-      };
-
-      return [...currentSets, draftSet];
-    });
-
-    if (nextMeasurementSetId) {
-      dispatch({ type: "linkMeasurementSet", measurementSetId: nextMeasurementSetId });
-    }
+    setMeasurementSets(result.measurementSets);
+    dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
   };
 
-  const deleteMeasurementSet = (measurementSetId: string) => {
-    setMeasurementSets((currentSets) => currentSets.filter((set) => set.id !== measurementSetId));
+  const handleCreateDraftMeasurementSet = () => {
+    const result = createDraftMeasurementSet(measurementSets, selectedCustomer);
+    setMeasurementSets(result.measurementSets);
+    dispatch({
+      type: "replaceMeasurements",
+      values: result.values,
+      measurementSetId: result.linkedMeasurementSetId || null,
+    });
+  };
 
-    if (state.order.custom.linkedMeasurementSetId === measurementSetId) {
-      dispatch({
-        type: "linkMeasurementSet",
-        measurementSetId: Object.values(state.order.custom.measurements).some((value) => value.trim().length > 0) ? "draft-entry" : null,
-      });
-    }
+  const handleDeleteMeasurementSet = (measurementSetId: string) => {
+    const result = deleteMeasurementSetAndPreserveDraft(
+      measurementSets,
+      measurementSetId,
+      state.order.custom.linkedMeasurementSetId,
+      selectedCustomer,
+      state.order.custom.measurements,
+    );
+    setMeasurementSets(result.measurementSets);
+    dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
   };
 
   const content = useMemo(() => {
@@ -210,12 +108,12 @@ export default function App() {
           selectedCustomer={selectedCustomer}
           measurementSets={measurementSets}
           order={state.order}
+          onCreateDraftSet={handleCreateDraftMeasurementSet}
           onSelectCustomer={(customerId) => dispatch({ type: "setCustomer", customerId })}
           onUpdateMeasurement={(field, value) => dispatch({ type: "updateMeasurements", field, value })}
           onReplaceMeasurements={(values, measurementSetId) => dispatch({ type: "replaceMeasurements", values, measurementSetId })}
-          onLinkMeasurementSet={(measurementSetId) => dispatch({ type: "linkMeasurementSet", measurementSetId })}
-          onSaveMeasurementSet={saveMeasurementSet}
-          onDeleteMeasurementSet={deleteMeasurementSet}
+          onSaveMeasurementSet={handleSaveMeasurementSet}
+          onDeleteMeasurementSet={handleDeleteMeasurementSet}
           onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
         />
       );

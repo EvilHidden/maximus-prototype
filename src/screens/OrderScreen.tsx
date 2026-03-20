@@ -18,18 +18,15 @@ import {
   filterCustomers,
 } from "../features/customer/selectors";
 import {
-  getCustomConfigured,
   getHasAlterationContent,
   getHasCustomContent,
-  getMeasurementOptions,
-  getMeasurementSetLabel,
   getOrderBagLineItems,
   getOrderType,
   getPickupRequired,
   getPricingSummary,
-  getSuggestedMeasurementSet,
   getSummaryGuardrail,
 } from "../features/order/selectors";
+import { getCustomMeasurementsCardModel, getMeasurementOptions } from "../features/measurements/selectors";
 import { WorkflowSelector } from "../features/order/components/WorkflowSelector";
 import { AlterationBuilder } from "../features/order/components/AlterationBuilder";
 import { MeasurementsCard } from "../features/order/components/MeasurementsCard";
@@ -42,6 +39,7 @@ import { EditAlterationItemModal } from "../features/order/modals/EditAlteration
 import { ConfirmRemoveItemModal } from "../features/order/modals/ConfirmRemoveItemModal";
 import { ConfirmClearBagModal } from "../features/order/modals/ConfirmClearBagModal";
 import type { AppState } from "../state/appState";
+import { useCustomMeasurementDefaults } from "../features/measurements/hooks/useCustomMeasurementDefaults";
 
 type OrderScreenProps = {
   customers: Customer[];
@@ -72,7 +70,6 @@ export function OrderScreen({
   const hasCustomContent = getHasCustomContent(order);
   const orderType = getOrderType(order);
   const pickupRequired = getPickupRequired(order);
-  const customConfigured = getCustomConfigured(order);
   const pricing = getPricingSummary(order);
   const lineItems = getOrderBagLineItems(order, measurementSets);
   const summaryGuardrail = getSummaryGuardrail(order, selectedCustomer);
@@ -85,17 +82,21 @@ export function OrderScreen({
   const currentServices = alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
   const currentAlterationSubtotal = order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
   const filteredCustomers = useMemo(() => filterCustomers(customers, customerQuery), [customers, customerQuery]);
-  const suggestedMeasurementSet = getSuggestedMeasurementSet(measurementSets, selectedCustomer);
-  const suggestedMeasurementSetLabel = suggestedMeasurementSet ? `${suggestedMeasurementSet.label} • ${suggestedMeasurementSet.note}` : null;
-  const linkedMeasurementSetLabel = getMeasurementSetLabel(measurementSets, order.custom.linkedMeasurementSetId);
-  const measurementOptions = getMeasurementOptions(
-    measurementSets,
+  const measurementsCardModel = getCustomMeasurementsCardModel(
     selectedCustomer,
-    order.custom.linkedMeasurementSetId,
-    Object.values(order.custom.measurements).some((value) => value.trim().length > 0),
+    order.custom.linkedMeasurementSetId ? measurementSets.find((set) => set.id === order.custom.linkedMeasurementSetId) ?? null : null,
+    measurementSets,
   );
+  const measurementOptions = getMeasurementOptions(measurementSets, selectedCustomer);
   const editingItem = order.alteration.items.find((item) => item.id === editingItemId) ?? null;
   const editingServices = alterationCatalog.find((garment) => garment.category === editingItem?.garment)?.services ?? [];
+
+  useCustomMeasurementDefaults({
+    measurementSets,
+    selectedCustomerId: selectedCustomer?.id ?? null,
+    order,
+    dispatch,
+  });
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
@@ -123,10 +124,7 @@ export function OrderScreen({
         {order.activeWorkflow === "custom" ? (
           <>
             <MeasurementsCard
-              customer={selectedCustomer}
-              linkedMeasurementSetLabel={linkedMeasurementSetLabel}
-              suggestedMeasurementSetLabel={suggestedMeasurementSetLabel}
-              onUseSuggested={() => dispatch({ type: "linkMeasurementSet", measurementSetId: suggestedMeasurementSet?.id ?? null })}
+              model={measurementsCardModel}
               onChooseAnother={() => setMeasurementPickerOpen(true)}
               onCreateNew={() => onScreenChange("measurements")}
             />

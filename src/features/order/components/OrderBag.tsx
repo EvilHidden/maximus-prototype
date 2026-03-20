@@ -55,12 +55,12 @@ export function OrderBag({
     <Card className="sticky top-0 p-4">
       <SectionHeader
         icon={ShoppingBag}
-        title="Order bag"
-        subtitle="Cart"
+        title="Cart"
+        subtitle={lineItems.length === 1 ? "1 item" : `${lineItems.length} items`}
         action={
           lineItems.length > 0 ? (
             <ActionButton tone="quiet" className="px-3 py-2 text-xs" onClick={onClearCart}>
-              Clear bag
+              Clear cart
             </ActionButton>
           ) : null
         }
@@ -82,7 +82,7 @@ export function OrderBag({
           <div className="mt-1 text-xs text-[var(--app-text-muted)]">{customer?.phone ?? "Customer required"}</div>
         </PanelSection>
 
-        <PanelSection title="Items" action={<span className="text-sm font-medium text-[var(--app-text)]">{lineItems.length}</span>}>
+        <PanelSection title="Items">
           {lineItems.length > 0 ? (
             <div className="max-h-[280px] space-y-2 overflow-auto">
               {lineItems.map((item) => (
@@ -144,7 +144,7 @@ export function OrderBag({
 
         {lineItems.length > 0 ? <PricingSummaryPanel pricing={pricing} /> : <EmptyState>No summary yet.</EmptyState>}
 
-        <div className="grid grid-cols-2 gap-3">
+        <div className="grid grid-cols-2 gap-3 border-t border-[var(--app-border)] pt-3">
           <ActionButton tone="secondary">Save draft</ActionButton>
           <ActionButton tone="primary" disabled={continueDisabled} onClick={onContinue}>
             {continueLabel}

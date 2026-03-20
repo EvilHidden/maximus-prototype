@@ -1,53 +1,33 @@
 import { Ruler } from "lucide-react";
-import type { Customer } from "../../../types";
 import { ActionButton, Card, EmptyState, PanelSection, SectionHeader, StatusPill } from "../../../components/ui/primitives";
+import type { CustomMeasurementsCardModel } from "../../measurements/types";
 
 type MeasurementsCardProps = {
-  customer: Customer | null;
-  linkedMeasurementSetLabel: string | null;
-  suggestedMeasurementSetLabel: string | null;
-  onUseSuggested: () => void;
+  model: CustomMeasurementsCardModel;
   onChooseAnother: () => void;
   onCreateNew: () => void;
 };
 
-function splitMeasurementLabel(label: string | null) {
-  if (!label) {
-    return null;
-  }
-
-  const [version, ...rest] = label.split(" • ");
-  return {
-    version,
-    title: rest.length > 0 ? rest.join(" • ") : version,
-  };
-}
-
 export function MeasurementsCard({
-  customer,
-  linkedMeasurementSetLabel,
-  suggestedMeasurementSetLabel,
-  onUseSuggested,
+  model,
   onChooseAnother,
   onCreateNew,
 }: MeasurementsCardProps) {
-  const linkedSet = splitMeasurementLabel(linkedMeasurementSetLabel);
-  const suggestedSet = splitMeasurementLabel(suggestedMeasurementSetLabel);
-
   return (
     <Card className="p-4">
-      <SectionHeader icon={Ruler} title="Measurements" subtitle="Required for custom" />
+      <SectionHeader icon={Ruler} title="Measurements" subtitle="Linked set" />
 
-      {!customer ? (
+      {model.kind === "no_customer" ? (
         <EmptyState>Select a customer first.</EmptyState>
-      ) : linkedMeasurementSetLabel ? (
+      ) : model.kind === "linked" ? (
         <>
-          <PanelSection title="Linked set">
+          <PanelSection>
             <div className="flex items-start justify-between gap-3">
-              <div className="text-sm font-medium text-[var(--app-text)]">{linkedSet?.title ?? linkedMeasurementSetLabel}</div>
-              {linkedSet?.version ? <StatusPill tone="dark">{linkedSet.version}</StatusPill> : null}
+              <div className="text-sm font-medium text-[var(--app-text)]">{model.set.title}</div>
+              <StatusPill tone="dark">{model.set.version}</StatusPill>
             </div>
-            <div className="mt-1 text-xs text-[var(--app-text-muted)]">Attached to this order.</div>
+            <div className="mt-1 text-xs text-[var(--app-text-muted)]">{model.set.status ?? "Attached to this order."}</div>
+            {model.set.subline ? <div className="mt-1 text-xs text-[var(--app-text-soft)]">{model.set.subline}</div> : null}
           </PanelSection>
           <div className="mt-3 flex items-center gap-2">
             <ActionButton tone="secondary" className="px-3 py-2.5 text-xs" onClick={onChooseAnother}>
@@ -58,19 +38,10 @@ export function MeasurementsCard({
             </ActionButton>
           </div>
         </>
-      ) : suggestedMeasurementSetLabel ? (
+      ) : model.hasHistory ? (
         <>
-          <PanelSection title="Latest on file">
-            <div className="flex items-start justify-between gap-3">
-              <div className="text-sm font-medium text-[var(--app-text)]">{suggestedSet?.title ?? suggestedMeasurementSetLabel}</div>
-              {suggestedSet?.version ? <StatusPill tone="dark">{suggestedSet.version}</StatusPill> : null}
-            </div>
-            <div className="mt-1 text-xs text-[var(--app-text-muted)]">Load this set or choose another one.</div>
-          </PanelSection>
+          <EmptyState>No measurement set linked.</EmptyState>
           <div className="mt-3 flex items-center gap-2">
-            <ActionButton tone="secondary" className="px-3 py-2.5 text-xs" onClick={onUseSuggested}>
-              Load latest
-            </ActionButton>
             <ActionButton tone="secondary" className="px-3 py-2.5 text-xs" onClick={onChooseAnother}>
               Choose set
             </ActionButton>
@@ -81,11 +52,8 @@ export function MeasurementsCard({
         </>
       ) : (
         <>
-          <EmptyState>No measurement set linked.</EmptyState>
+          <EmptyState>No measurements on file.</EmptyState>
           <div className="mt-3 flex items-center gap-2">
-            <ActionButton tone="secondary" className="px-3 py-2.5 text-xs" onClick={onChooseAnother}>
-              Choose set
-            </ActionButton>
             <ActionButton tone="secondary" className="px-3 py-2.5 text-xs" onClick={onCreateNew}>
               New set
             </ActionButton>
