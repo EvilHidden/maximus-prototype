@@ -16,10 +16,10 @@ export function WorkflowSelector({
   onActivate,
 }: WorkflowSelectorProps) {
   return (
-    <Card className="p-4">
+    <Card className="p-3.5">
       <SectionHeader icon={Receipt} title="Start new order" subtitle="Service type" />
 
-      <div className="grid grid-cols-2 gap-3">
+      <div className="grid grid-cols-2 gap-2.5">
         <WorkflowToggle
           icon={Scissors}
           title="Alterations"
@@ -38,7 +38,7 @@ export function WorkflowSelector({
         />
       </div>
 
-      {activeWorkflow === null ? <EmptyState className="mt-4">Select a service type to begin.</EmptyState> : null}
+      {activeWorkflow === null ? <EmptyState className="mt-3">Select a service type to begin.</EmptyState> : null}
     </Card>
   );
 }

@@ -7,6 +7,7 @@ export type OrderType = WorkflowMode | "mixed";
 export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
 export type MeasurementStatus = "on_file" | "needs_update" | "missing";
 export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
+export type CustomGarmentGender = "male" | "female";
 
 export type Customer = {
   id: string;
@@ -96,17 +97,18 @@ export type AlterationBuilderState = {
 };
 
 export type CustomBuilderState = {
+  gender: CustomGarmentGender | null;
   selectedGarment: string | null;
   fabric: string | null;
-  buttonType: string | null;
+  buttons: string | null;
   lining: string | null;
   threads: string | null;
-  monograms: string;
+  monogramLeft: string;
+  monogramCenter: string;
+  monogramRight: string;
   pocketType: string | null;
-  cuffs: string | null;
-  lapels: string | null;
-  customNotes: string;
-  pricingBand: string | null;
+  lapel: string | null;
+  canvas: string | null;
   linkedMeasurementSetId: string | null;
   measurements: Record<string, string>;
 };

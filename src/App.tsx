@@ -122,7 +122,6 @@ export default function App() {
     return (
       <CheckoutScreen
         selectedCustomer={selectedCustomer}
-        measurementSets={measurementSets}
         order={state.order}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       />

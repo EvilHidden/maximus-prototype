@@ -1,4 +1,4 @@
-import type { AlterationCategory } from "../types";
+import type { AlterationCategory, CustomGarmentGender } from "../types";
 
 export const alterationCatalog: AlterationCategory[] = [
   {
@@ -91,21 +91,50 @@ export const alterationCatalog: AlterationCategory[] = [
   },
 ];
 
-export const customCatalog = ["Suit", "Three piece suit", "Sports coat", "Vest", "Overcoat", "Tuxedo", "3 piece tux"];
-
-export const fabricOptions = ["Wool", "Cashmere blend", "Linen", "Cotton", "Velvet", "Performance stretch"];
-
-export const buttonTypeOptions = ["Horn", "Metal", "Mother of pearl", "Covered", "Matte resin"];
-
-export const liningOptions = ["Full lining", "Half lining", "Butterfly lining", "Unlined", "Statement lining"];
-
-export const threadOptions = ["Tonal", "Contrast", "Hand-finished pick stitch", "Bold accent"];
-
-export const pocketTypeOptions = ["Regular", "Slanted"];
-
-export const cuffOptions = ["No cuff", "1.5 inch cuff", "2 inch cuff"];
-
 export const lapelOptions = ["Notch", "Peak", "Shawl"];
+
+export const pocketTypeOptions = [
+  "Regular",
+  "Slanted",
+  "Slanted with slanted ticket pocket",
+  "Regular pockets, no flap",
+  "Regular without flap",
+];
+
+export const canvasOptions = ["Half", "Full", "Fused"];
+
+export const customGarmentOptionsByGender: Record<CustomGarmentGender, string[]> = {
+  male: [
+    "Two-piece suit",
+    "Three-piece suit",
+    "Jacket",
+    "Pants",
+    "Vest",
+    "Shirt",
+    "Overcoat",
+    "Tuxedo jacket",
+    "Three-piece tuxedo",
+  ],
+  female: [
+    "Two-piece suit",
+    "Three-piece suit",
+    "Jacket",
+    "Pants",
+    "Vest",
+    "Shirt",
+    "Overcoat",
+    "Skirt",
+  ],
+};
+
+export const jacketBasedCustomGarments = new Set([
+  "Two-piece suit",
+  "Three-piece suit",
+  "Jacket",
+  "Overcoat",
+  "Tuxedo jacket",
+  "Three-piece tuxedo",
+]);
 
 export const measurementFields = [
   "Back Length",
@@ -124,5 +153,3 @@ export const measurementFields = [
   "Shirt Cuff Left",
   "Shirt Cuff Right",
 ];
-
-export const pricingBands = ["Starter", "Workday", "Special Occasion", "Premium", "Luxury", "Elite"];

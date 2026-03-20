@@ -1,6 +1,8 @@
 import { measurementFields } from "../data";
 import type {
   AlterationService,
+  CustomBuilderState,
+  CustomGarmentGender,
   OrderWorkflowState,
   PickupLocation,
   Screen,
@@ -25,6 +27,25 @@ type SetPickupSchedulePayload = {
   pickupLocation: PickupLocation | "";
 };
 
+function createInitialCustomState(): CustomBuilderState {
+  return {
+    gender: null,
+    selectedGarment: null,
+    fabric: null,
+    buttons: null,
+    lining: null,
+    threads: null,
+    monogramLeft: "",
+    monogramCenter: "",
+    monogramRight: "",
+    pocketType: null,
+    lapel: null,
+    canvas: null,
+    linkedMeasurementSetId: null,
+    measurements: createEmptyMeasurements(),
+  };
+}
+
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "setCustomer"; customerId: string | null }
@@ -35,6 +56,7 @@ export type AppAction =
   | { type: "setAlterationItem"; payload: SetAlterationItemPayload }
   | { type: "removeAlterationItem"; itemId: number }
   | { type: "setPickupSchedule"; payload: SetPickupSchedulePayload }
+  | { type: "selectCustomGender"; gender: CustomGarmentGender | null }
   | { type: "selectCustomGarment"; garment: string | null }
   | { type: "setCustomConfiguration"; patch: Partial<OrderWorkflowState["custom"]> }
   | { type: "updateMeasurements"; field: string; value: string }
@@ -57,21 +79,7 @@ export function createInitialOrderState(): OrderWorkflowState {
       selectedModifiers: [],
       items: [],
     },
-    custom: {
-      selectedGarment: null,
-      fabric: null,
-      buttonType: null,
-      lining: null,
-      threads: null,
-      monograms: "",
-      pocketType: null,
-      cuffs: null,
-      lapels: null,
-      customNotes: "",
-      pricingBand: null,
-      linkedMeasurementSetId: null,
-      measurements: createEmptyMeasurements(),
-    },
+    custom: createInitialCustomState(),
     fulfillment: {
       pickupDate: "",
       pickupTime: "",
@@ -210,6 +218,20 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           fulfillment: action.payload,
         },
       };
+    case "selectCustomGender":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...createInitialCustomState(),
+            gender: action.gender,
+            linkedMeasurementSetId: state.order.custom.linkedMeasurementSetId,
+            measurements: state.order.custom.measurements,
+          },
+        },
+      };
     case "selectCustomGarment":
       return {
         ...state,
@@ -220,15 +242,15 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             ...state.order.custom,
             selectedGarment: action.garment,
             fabric: null,
-            buttonType: null,
+            buttons: null,
             lining: null,
             threads: null,
-            monograms: "",
+            monogramLeft: "",
+            monogramCenter: "",
+            monogramRight: "",
             pocketType: null,
-            cuffs: null,
-            lapels: null,
-            customNotes: "",
-            pricingBand: null,
+            lapel: null,
+            canvas: null,
           },
         },
       };

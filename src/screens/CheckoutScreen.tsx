@@ -1,5 +1,5 @@
 import { CreditCard } from "lucide-react";
-import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
+import type { Customer, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, Card, EmptyState, EntityRow, PanelSection, SectionHeader, StatusPill } from "../components/ui/primitives";
 import {
   getCheckoutCollectionAmount,
@@ -14,18 +14,17 @@ import {
 
 type CheckoutScreenProps = {
   selectedCustomer: Customer | null;
-  measurementSets: MeasurementSet[];
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
 };
 
-export function CheckoutScreen({ selectedCustomer, measurementSets, order, onScreenChange }: CheckoutScreenProps) {
+export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: CheckoutScreenProps) {
   const orderType = getOrderType(order);
   const hasAlterations = orderType === "alteration" || orderType === "mixed";
   const hasCustom = orderType === "custom" || orderType === "mixed";
   const pickupRequired = getPickupRequired(order);
   const summaryGuardrail = getSummaryGuardrail(order, selectedCustomer);
-  const lineItems = getOrderBagLineItems(order, measurementSets);
+  const lineItems = getOrderBagLineItems(order);
   const pricing = getPricingSummary(order);
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
   const formattedPickup = formatPickupSchedule(order.fulfillment.pickupDate, order.fulfillment.pickupTime);

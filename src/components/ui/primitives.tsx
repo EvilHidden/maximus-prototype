@@ -244,8 +244,8 @@ export function WorkflowToggle({ icon: Icon, title, subtitle, isActive, isEnable
       )}
     >
       <Icon className="mb-3 h-5 w-5" />
-      <div className="font-semibold text-[var(--app-text)]">{title}</div>
-      <div className="mt-1 text-sm text-[var(--app-text-muted)]">{subtitle}</div>
+      <div className="text-base font-semibold tracking-[-0.01em] text-[var(--app-text)]">{title}</div>
+      <div className="mt-1 text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">{subtitle}</div>
     </button>
   );
 }

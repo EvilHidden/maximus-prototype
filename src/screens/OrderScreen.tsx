@@ -1,15 +1,10 @@
 import { useMemo, useState } from "react";
 import {
   alterationCatalog,
-  buttonTypeOptions,
-  cuffOptions,
-  customCatalog,
-  fabricOptions,
+  canvasOptions,
+  customGarmentOptionsByGender,
   lapelOptions,
-  liningOptions,
   pocketTypeOptions,
-  pricingBands,
-  threadOptions,
 } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import type { Dispatch } from "react";
@@ -71,7 +66,7 @@ export function OrderScreen({
   const orderType = getOrderType(order);
   const pickupRequired = getPickupRequired(order);
   const pricing = getPricingSummary(order);
-  const lineItems = getOrderBagLineItems(order, measurementSets);
+  const lineItems = getOrderBagLineItems(order);
   const summaryGuardrail = getSummaryGuardrail(order, selectedCustomer);
   const continueLabel =
     order.activeWorkflow === "custom" && !order.custom.linkedMeasurementSetId
@@ -99,8 +94,8 @@ export function OrderScreen({
   });
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.25fr_0.75fr]">
-      <div className="space-y-4">
+    <div className="grid gap-3.5 xl:grid-cols-[1.25fr_0.75fr]">
+      <div className="space-y-3.5">
         <WorkflowSelector
           activeWorkflow={order.activeWorkflow}
           hasAlterationContent={hasAlterationContent}
@@ -122,41 +117,38 @@ export function OrderScreen({
         ) : null}
 
         {order.activeWorkflow === "custom" ? (
-          <>
+          <div className="space-y-3.5">
             <MeasurementsCard
               model={measurementsCardModel}
               onChooseAnother={() => setMeasurementPickerOpen(true)}
               onCreateNew={() => onScreenChange("measurements")}
             />
             <CustomGarmentBuilder
-              customCatalog={customCatalog}
-              fabricOptions={fabricOptions}
-              buttonTypeOptions={buttonTypeOptions}
-              liningOptions={liningOptions}
-              threadOptions={threadOptions}
+              garmentOptionsByGender={customGarmentOptionsByGender}
               pocketTypeOptions={pocketTypeOptions}
-              cuffOptions={cuffOptions}
               lapelOptions={lapelOptions}
-              pricingBands={pricingBands}
+              canvasOptions={canvasOptions}
+              selectedGender={order.custom.gender}
               selectedGarment={order.custom.selectedGarment}
               fabric={order.custom.fabric}
-              buttonType={order.custom.buttonType}
+              buttons={order.custom.buttons}
               lining={order.custom.lining}
               threads={order.custom.threads}
-              monograms={order.custom.monograms}
+              monogramLeft={order.custom.monogramLeft}
+              monogramCenter={order.custom.monogramCenter}
+              monogramRight={order.custom.monogramRight}
               pocketType={order.custom.pocketType}
-              cuffs={order.custom.cuffs}
-              lapels={order.custom.lapels}
-              customNotes={order.custom.customNotes}
-              pricingBand={order.custom.pricingBand}
+              lapel={order.custom.lapel}
+              canvas={order.custom.canvas}
+              onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
               onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
               onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
             />
-          </>
+          </div>
         ) : null}
       </div>
 
-      <div className="space-y-4">
+      <div className="space-y-3.5">
         <OrderBag
           customer={selectedCustomer}
           lineItems={lineItems}

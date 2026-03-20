@@ -1,19 +1,27 @@
 import type {
   Customer,
-  MeasurementSet,
   OrderBagLineItem,
   OrderType,
   OrderWorkflowState,
   PricingSummary,
 } from "../../types";
-import { getMeasurementSetDisplay } from "../measurements/selectors";
+import { jacketBasedCustomGarments } from "../../data";
 
 function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
 }
 
-const jacketOrderTypes = new Set(["Suit", "Three piece suit", "Sports coat", "Overcoat", "Tuxedo", "3 piece tux"]);
-const cuffOrderTypes = new Set(["Suit", "Three piece suit", "Tuxedo", "3 piece tux"]);
+function getCustomGarmentPrice(garment: string | null) {
+  if (!garment) {
+    return 0;
+  }
+
+  if (garment === "Three-piece suit" || garment === "Three-piece tuxedo") {
+    return 2495;
+  }
+
+  return 1495;
+}
 
 export function getHasAlterationContent(order: OrderWorkflowState) {
   return order.alteration.items.length > 0;
@@ -52,11 +60,7 @@ export function getCustomConfigured(order: OrderWorkflowState) {
 
 export function getPricingSummary(order: OrderWorkflowState): PricingSummary {
   const alterationsSubtotal = order.alteration.items.reduce((sum, item) => sum + item.subtotal, 0);
-  const customSubtotal = !order.custom.selectedGarment
-    ? 0
-    : order.custom.selectedGarment === "Three piece suit" || order.custom.selectedGarment === "3 piece tux"
-      ? 2495
-      : 1495;
+  const customSubtotal = getCustomGarmentPrice(order.custom.selectedGarment);
   const subtotal = alterationsSubtotal + customSubtotal;
   const taxAmount = subtotal * 0.08875;
   const depositDue = customSubtotal > 0 ? Math.round(customSubtotal * 0.5 * 100) / 100 : 0;
@@ -85,7 +89,7 @@ export function getCheckoutCollectionAmount(order: OrderWorkflowState) {
   return pricing.total;
 }
 
-export function getOrderBagLineItems(order: OrderWorkflowState, measurementSets: MeasurementSet[]): OrderBagLineItem[] {
+export function getOrderBagLineItems(order: OrderWorkflowState): OrderBagLineItem[] {
   const items: OrderBagLineItem[] = order.alteration.items.map((item, index) => ({
     id: `alteration-${item.id}`,
     kind: "alteration",
@@ -98,35 +102,12 @@ export function getOrderBagLineItems(order: OrderWorkflowState, measurementSets:
   }));
 
   if (order.custom.selectedGarment) {
-    const linkedSet = measurementSets.find((set) => set.id === order.custom.linkedMeasurementSetId);
     const selectedGarment = order.custom.selectedGarment;
-    const linkedSetDisplay = linkedSet ? getMeasurementSetDisplay(linkedSet) : null;
+    const showJacketStyleOptions = jacketBasedCustomGarments.has(selectedGarment);
     const summaryDetails = [
-      linkedSetDisplay
-        ? `${linkedSetDisplay.title}${linkedSetDisplay.version ? ` • ${linkedSetDisplay.version}` : ""}`
-        : "Measurements required",
-      order.custom.fabric ? `Fabric: ${order.custom.fabric}` : "Fabric required",
-      order.custom.buttonType ? `Buttons: ${order.custom.buttonType}` : "Button type required",
-      order.custom.lining ? `Lining: ${order.custom.lining}` : "Lining required",
-      order.custom.threads ? `Threads: ${order.custom.threads}` : null,
-      jacketOrderTypes.has(selectedGarment)
-        ? order.custom.pocketType
-          ? `Pockets: ${order.custom.pocketType}`
-          : "Pocket type required"
-        : null,
-      jacketOrderTypes.has(selectedGarment)
-        ? order.custom.lapels
-          ? `Lapels: ${order.custom.lapels}`
-          : "Lapel required"
-        : null,
-      cuffOrderTypes.has(selectedGarment)
-        ? order.custom.cuffs
-          ? `Cuffs: ${order.custom.cuffs}`
-          : "Cuff required"
-        : null,
-      order.custom.monograms ? `Monogram: ${order.custom.monograms}` : null,
-      order.custom.customNotes ? `Notes: ${order.custom.customNotes}` : null,
-      order.custom.pricingBand ? `Pricing: ${order.custom.pricingBand}` : "Pricing required",
+      showJacketStyleOptions ? (order.custom.lapel ? `Lap: ${order.custom.lapel}` : "Lap: req") : null,
+      showJacketStyleOptions ? (order.custom.pocketType ? `Pkt: ${order.custom.pocketType}` : "Pkt: req") : null,
+      showJacketStyleOptions ? (order.custom.canvas ? `Canv: ${order.custom.canvas}` : "Canv: req") : null,
     ].filter(Boolean);
 
     items.push({
@@ -142,15 +123,16 @@ export function getOrderBagLineItems(order: OrderWorkflowState, measurementSets:
 }
 export function getSummaryGuardrail(order: OrderWorkflowState, selectedCustomer: Customer | null) {
   const selectedGarment = order.custom.selectedGarment;
+  const needsJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
   const customMissing =
     Boolean(selectedGarment) &&
     (!order.custom.linkedMeasurementSetId ||
+      !order.custom.gender ||
       !order.custom.fabric ||
-      !order.custom.buttonType ||
+      !order.custom.buttons ||
       !order.custom.lining ||
-      !order.custom.pricingBand ||
-      (jacketOrderTypes.has(selectedGarment) && (!order.custom.pocketType || !order.custom.lapels)) ||
-      (cuffOrderTypes.has(selectedGarment) && !order.custom.cuffs));
+      !order.custom.threads ||
+      (needsJacketStyleOptions && (!order.custom.pocketType || !order.custom.lapel || !order.custom.canvas)));
 
   return {
     missingCustomer: !selectedCustomer,
