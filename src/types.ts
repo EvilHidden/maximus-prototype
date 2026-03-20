@@ -96,7 +96,7 @@ export type AlterationBuilderState = {
   items: AlterationItem[];
 };
 
-export type CustomBuilderState = {
+export type CustomGarmentDraft = {
   gender: CustomGarmentGender | null;
   selectedGarment: string | null;
   fabric: string | null;
@@ -109,6 +109,15 @@ export type CustomBuilderState = {
   pocketType: string | null;
   lapel: string | null;
   canvas: string | null;
+};
+
+export type CustomGarmentItem = CustomGarmentDraft & {
+  id: number;
+};
+
+export type CustomBuilderState = {
+  draft: CustomGarmentDraft;
+  items: CustomGarmentItem[];
   linkedMeasurementSetId: string | null;
   measurements: Record<string, string>;
 };

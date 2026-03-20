@@ -15,6 +15,7 @@ import { PricingSummary as PricingSummaryPanel } from "./PricingSummary";
 type OrderBagProps = {
   customer: Customer | null;
   lineItems: OrderBagLineItem[];
+  customDraft: OrderBagLineItem | null;
   pricing: PricingSummary;
   activeWorkflow: WorkflowMode | null;
   continueLabel: string;
@@ -25,7 +26,7 @@ type OrderBagProps = {
   onOpenCustomerModal: () => void;
   onOpenPickupModal: () => void;
   onEditAlterationItem: (itemId: number) => void;
-  onRequestRemoveItem: (itemId: number) => void;
+  onRequestRemoveItem: (kind: WorkflowMode, itemId: number) => void;
   onClearCart: () => void;
   onContinue: () => void;
   continueDisabled: boolean;
@@ -34,6 +35,7 @@ type OrderBagProps = {
 export function OrderBag({
   customer,
   lineItems,
+  customDraft,
   pricing,
   activeWorkflow,
   continueLabel,
@@ -50,7 +52,6 @@ export function OrderBag({
   continueDisabled,
 }: OrderBagProps) {
   const formattedPickupSchedule = formatPickupSchedule(pickupDate, pickupTime);
-  const customItem = lineItems.find((item) => item.kind === "custom");
 
   return (
     <Card className="sticky top-0 p-3.5">
@@ -68,15 +69,15 @@ export function OrderBag({
       />
 
       <SummaryStack className="text-sm">
-        {customItem ? (
+        {customDraft ? (
           <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2">
             <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">Active custom build</div>
             <div className="mt-1 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="truncate text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{customItem.title.replace("Custom Garment - ", "")}</div>
-                {customItem.subtitle ? <div className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">{customItem.subtitle}</div> : null}
+                <div className="truncate text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{customDraft.title.replace("Draft custom garment - ", "")}</div>
+                {customDraft.subtitle ? <div className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">{customDraft.subtitle}</div> : null}
               </div>
-              <div className="shrink-0 text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{`$${customItem.amount.toFixed(2)}`}</div>
+              <div className="shrink-0 text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{`$${customDraft.amount.toFixed(2)}`}</div>
             </div>
           </div>
         ) : null}
@@ -120,7 +121,7 @@ export function OrderBag({
                       <button
                         onClick={(event) => {
                           event.stopPropagation();
-                          onRequestRemoveItem(item.itemId!);
+                          onRequestRemoveItem(item.kind, item.itemId!);
                         }}
                         className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--app-danger-text)] hover:opacity-80"
                       >

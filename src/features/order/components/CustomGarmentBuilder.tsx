@@ -1,5 +1,5 @@
 import { CheckSquare, Layers3, Shirt, Type } from "lucide-react";
-import { Card, EmptyState, FieldLabel, SectionHeader, cx } from "../../../components/ui/primitives";
+import { ActionButton, Card, EmptyState, FieldLabel, SectionHeader, cx } from "../../../components/ui/primitives";
 import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
 
@@ -20,8 +20,10 @@ type CustomGarmentBuilderProps = {
   pocketType: string | null;
   lapel: string | null;
   canvas: string | null;
+  canAddToOrder: boolean;
   onSelectGender: (gender: CustomGarmentGender) => void;
   onSelectGarment: (garment: string | null) => void;
+  onAddToOrder: () => void;
   onSetConfiguration: (patch: {
     fabric?: string | null;
     buttons?: string | null;
@@ -114,8 +116,10 @@ export function CustomGarmentBuilder({
   pocketType,
   lapel,
   canvas,
+  canAddToOrder,
   onSelectGender,
   onSelectGarment,
+  onAddToOrder,
   onSetConfiguration,
 }: CustomGarmentBuilderProps) {
   const garmentOptions = selectedGender ? garmentOptionsByGender[selectedGender] : [];
@@ -296,6 +300,12 @@ export function CustomGarmentBuilder({
             <EmptyState>Select a garment first.</EmptyState>
           )}
         </Card>
+
+        <div className="flex justify-end">
+          <ActionButton tone="primary" disabled={!canAddToOrder} className="min-w-[180px]" onClick={onAddToOrder}>
+            Add to order
+          </ActionButton>
+        </div>
       </div>
     </>
   );

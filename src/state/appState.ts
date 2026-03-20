@@ -2,6 +2,7 @@ import { measurementFields } from "../data";
 import type {
   AlterationService,
   CustomBuilderState,
+  CustomGarmentDraft,
   CustomGarmentGender,
   OrderWorkflowState,
   PickupLocation,
@@ -27,7 +28,7 @@ type SetPickupSchedulePayload = {
   pickupLocation: PickupLocation | "";
 };
 
-function createInitialCustomState(): CustomBuilderState {
+function createInitialCustomDraft(): CustomGarmentDraft {
   return {
     gender: null,
     selectedGarment: null,
@@ -41,6 +42,13 @@ function createInitialCustomState(): CustomBuilderState {
     pocketType: null,
     lapel: null,
     canvas: null,
+  };
+}
+
+function createInitialCustomState(): CustomBuilderState {
+  return {
+    draft: createInitialCustomDraft(),
+    items: [],
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(),
   };
@@ -58,7 +66,9 @@ export type AppAction =
   | { type: "setPickupSchedule"; payload: SetPickupSchedulePayload }
   | { type: "selectCustomGender"; gender: CustomGarmentGender | null }
   | { type: "selectCustomGarment"; garment: string | null }
-  | { type: "setCustomConfiguration"; patch: Partial<OrderWorkflowState["custom"]> }
+  | { type: "setCustomConfiguration"; patch: Partial<OrderWorkflowState["custom"]["draft"]> }
+  | { type: "addCustomItem" }
+  | { type: "removeCustomItem"; itemId: number }
   | { type: "updateMeasurements"; field: string; value: string }
   | { type: "replaceMeasurements"; values: Record<string, string>; measurementSetId: string | null }
   | { type: "linkMeasurementSet"; measurementSetId: string | null }
@@ -225,8 +235,11 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...state.order,
           activeWorkflow: "custom",
           custom: {
-            ...createInitialCustomState(),
-            gender: action.gender,
+            ...state.order.custom,
+            draft: {
+              ...createInitialCustomDraft(),
+              gender: action.gender,
+            },
             linkedMeasurementSetId: state.order.custom.linkedMeasurementSetId,
             measurements: state.order.custom.measurements,
           },
@@ -240,17 +253,20 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           activeWorkflow: "custom",
           custom: {
             ...state.order.custom,
-            selectedGarment: action.garment,
-            fabric: null,
-            buttons: null,
-            lining: null,
-            threads: null,
-            monogramLeft: "",
-            monogramCenter: "",
-            monogramRight: "",
-            pocketType: null,
-            lapel: null,
-            canvas: null,
+            draft: {
+              ...state.order.custom.draft,
+              selectedGarment: action.garment,
+              fabric: null,
+              buttons: null,
+              lining: null,
+              threads: null,
+              monogramLeft: "",
+              monogramCenter: "",
+              monogramRight: "",
+              pocketType: null,
+              lapel: null,
+              canvas: null,
+            },
           },
         },
       };
@@ -261,7 +277,48 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...state.order,
           custom: {
             ...state.order.custom,
-            ...action.patch,
+            draft: {
+              ...state.order.custom.draft,
+              ...action.patch,
+            },
+          },
+        },
+      };
+    case "addCustomItem": {
+      const draft = state.order.custom.draft;
+      if (!draft.selectedGarment) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            items: [
+              ...state.order.custom.items,
+              {
+                id: Date.now(),
+                ...draft,
+              },
+            ],
+            draft: {
+              ...createInitialCustomDraft(),
+              gender: draft.gender,
+            },
+          },
+        },
+      };
+    }
+    case "removeCustomItem":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            items: state.order.custom.items.filter((item) => item.id !== action.itemId),
           },
         },
       };

@@ -13,6 +13,8 @@ import {
   filterCustomers,
 } from "../features/customer/selectors";
 import {
+  getCanAddCustomDraftToOrder,
+  getCustomDraftLineItem,
   getHasAlterationContent,
   getHasCustomContent,
   getOrderBagLineItems,
@@ -67,6 +69,8 @@ export function OrderScreen({
   const pickupRequired = getPickupRequired(order);
   const pricing = getPricingSummary(order);
   const lineItems = getOrderBagLineItems(order);
+  const customDraft = getCustomDraftLineItem(order);
+  const canAddCustomDraftToOrder = getCanAddCustomDraftToOrder(order);
   const summaryGuardrail = getSummaryGuardrail(order, selectedCustomer);
   const continueLabel =
     order.activeWorkflow === "custom" && !order.custom.linkedMeasurementSetId
@@ -128,20 +132,22 @@ export function OrderScreen({
               pocketTypeOptions={pocketTypeOptions}
               lapelOptions={lapelOptions}
               canvasOptions={canvasOptions}
-              selectedGender={order.custom.gender}
-              selectedGarment={order.custom.selectedGarment}
-              fabric={order.custom.fabric}
-              buttons={order.custom.buttons}
-              lining={order.custom.lining}
-              threads={order.custom.threads}
-              monogramLeft={order.custom.monogramLeft}
-              monogramCenter={order.custom.monogramCenter}
-              monogramRight={order.custom.monogramRight}
-              pocketType={order.custom.pocketType}
-              lapel={order.custom.lapel}
-              canvas={order.custom.canvas}
+              selectedGender={order.custom.draft.gender}
+              selectedGarment={order.custom.draft.selectedGarment}
+              fabric={order.custom.draft.fabric}
+              buttons={order.custom.draft.buttons}
+              lining={order.custom.draft.lining}
+              threads={order.custom.draft.threads}
+              monogramLeft={order.custom.draft.monogramLeft}
+              monogramCenter={order.custom.draft.monogramCenter}
+              monogramRight={order.custom.draft.monogramRight}
+              pocketType={order.custom.draft.pocketType}
+              lapel={order.custom.draft.lapel}
+              canvas={order.custom.draft.canvas}
+              canAddToOrder={canAddCustomDraftToOrder}
               onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
               onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
+              onAddToOrder={() => dispatch({ type: "addCustomItem" })}
               onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
             />
           </div>
@@ -152,6 +158,7 @@ export function OrderScreen({
         <OrderBag
           customer={selectedCustomer}
           lineItems={lineItems}
+          customDraft={customDraft}
           pricing={pricing}
           activeWorkflow={order.activeWorkflow}
           continueLabel={continueLabel}
@@ -162,7 +169,14 @@ export function OrderScreen({
           onOpenCustomerModal={() => setCustomerModalOpen(true)}
           onOpenPickupModal={() => setPickupModalOpen(true)}
           onEditAlterationItem={(itemId) => setEditingItemId(itemId)}
-          onRequestRemoveItem={(itemId) => setPendingDeleteItemId(itemId)}
+          onRequestRemoveItem={(kind, itemId) => {
+            if (kind === "alteration") {
+              setPendingDeleteItemId(itemId);
+              return;
+            }
+
+            dispatch({ type: "removeCustomItem", itemId });
+          }}
           onClearCart={() => setClearBagConfirmOpen(true)}
           onContinue={() => onScreenChange(order.activeWorkflow === "custom" && !order.custom.linkedMeasurementSetId ? "measurements" : "checkout")}
           continueDisabled={
