@@ -1,5 +1,5 @@
 import { Clock, ShoppingBag, Trash2 } from "lucide-react";
-import type { Customer, OrderBagLineItem, PricingSummary, WorkflowMode } from "../../../types";
+import type { Customer, OrderBagLineItem, PickupLocation, PricingSummary, WorkflowMode } from "../../../types";
 import {
   ActionButton,
   Card,
@@ -9,6 +9,7 @@ import {
   SectionHeader,
   SummaryStack,
 } from "../../../components/ui/primitives";
+import { formatPickupSchedule } from "../selectors";
 import { PricingSummary as PricingSummaryPanel } from "./PricingSummary";
 
 type OrderBagProps = {
@@ -20,6 +21,7 @@ type OrderBagProps = {
   pickupRequired: boolean;
   pickupDate: string;
   pickupTime: string;
+  pickupLocation: PickupLocation | "";
   onOpenCustomerModal: () => void;
   onOpenPickupModal: () => void;
   onEditAlterationItem: (itemId: number) => void;
@@ -38,6 +40,7 @@ export function OrderBag({
   pickupRequired,
   pickupDate,
   pickupTime,
+  pickupLocation,
   onOpenCustomerModal,
   onOpenPickupModal,
   onEditAlterationItem,
@@ -46,6 +49,8 @@ export function OrderBag({
   onContinue,
   continueDisabled,
 }: OrderBagProps) {
+  const formattedPickupSchedule = formatPickupSchedule(pickupDate, pickupTime);
+
   return (
     <Card className="sticky top-0 p-4">
       <SectionHeader
@@ -55,7 +60,7 @@ export function OrderBag({
         action={
           lineItems.length > 0 ? (
             <ActionButton tone="quiet" className="px-3 py-2 text-xs" onClick={onClearCart}>
-              Clear cart
+              Clear bag
             </ActionButton>
           ) : null
         }
@@ -117,20 +122,22 @@ export function OrderBag({
                 onClick={onOpenPickupModal}
                 className="text-xs font-medium text-[var(--app-text-muted)] underline decoration-[var(--app-border-strong)] underline-offset-2 hover:text-[var(--app-text)]"
               >
-                {pickupDate && pickupTime ? "Change" : "Set"}
+                {pickupDate && pickupTime && pickupLocation ? "Change" : "Set"}
               </button>
             }
           >
             <div className="space-y-2">
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--app-text-muted)]">Date</span>
-                <span className="font-medium text-[var(--app-text)]">{pickupDate || "Required"}</span>
+                <span className="text-[var(--app-text-muted)]">Schedule</span>
+                <span className="text-right font-medium text-[var(--app-text)]">{formattedPickupSchedule || "Required"}</span>
               </div>
               <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--app-text-muted)]">Time</span>
-                <span className="font-medium text-[var(--app-text)]">{pickupTime || "Required"}</span>
+                <span className="text-[var(--app-text-muted)]">Location</span>
+                <span className="font-medium text-[var(--app-text)]">{pickupLocation || "Required"}</span>
               </div>
-              {!pickupDate || !pickupTime ? <EmptyState className="text-xs">Pickup date and time required.</EmptyState> : null}
+              {!pickupDate || !pickupTime || !pickupLocation ? (
+                <EmptyState className="text-xs">Pickup date, time, and location required.</EmptyState>
+              ) : null}
             </div>
           </PanelSection>
         ) : null}

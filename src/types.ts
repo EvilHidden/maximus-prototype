@@ -6,6 +6,7 @@ export type WorkflowMode = "alteration" | "custom";
 export type OrderType = WorkflowMode | "mixed";
 export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
 export type MeasurementStatus = "on_file" | "needs_update" | "missing";
+export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 
 export type Customer = {
   id: string;
@@ -94,8 +95,15 @@ export type AlterationBuilderState = {
 
 export type CustomBuilderState = {
   selectedGarment: string | null;
-  construction: string | null;
-  bundleType: string | null;
+  fabric: string | null;
+  buttonType: string | null;
+  lining: string | null;
+  threads: string | null;
+  monograms: string;
+  pocketType: string | null;
+  cuffs: string | null;
+  lapels: string | null;
+  customNotes: string;
   pricingBand: string | null;
   linkedMeasurementSetId: string | null;
   measurements: Record<string, string>;
@@ -108,6 +116,7 @@ export type OrderWorkflowState = {
   fulfillment: {
     pickupDate: string;
     pickupTime: string;
+    pickupLocation: PickupLocation | "";
   };
 };
 

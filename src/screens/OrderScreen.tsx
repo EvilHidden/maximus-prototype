@@ -1,5 +1,16 @@
 import { useMemo, useState } from "react";
-import { alterationCatalog, customCatalog, pricingBands } from "../data";
+import {
+  alterationCatalog,
+  buttonTypeOptions,
+  cuffOptions,
+  customCatalog,
+  fabricOptions,
+  lapelOptions,
+  liningOptions,
+  pocketTypeOptions,
+  pricingBands,
+  threadOptions,
+} from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import type { Dispatch } from "react";
 import type { AppAction } from "../state/appState";
@@ -29,6 +40,7 @@ import { PickupScheduleModal } from "../features/order/modals/PickupScheduleModa
 import { MeasurementSetModal } from "../features/order/modals/MeasurementSetModal";
 import { EditAlterationItemModal } from "../features/order/modals/EditAlterationItemModal";
 import { ConfirmRemoveItemModal } from "../features/order/modals/ConfirmRemoveItemModal";
+import { ConfirmClearBagModal } from "../features/order/modals/ConfirmClearBagModal";
 import type { AppState } from "../state/appState";
 
 type OrderScreenProps = {
@@ -54,6 +66,7 @@ export function OrderScreen({
   const [measurementPickerOpen, setMeasurementPickerOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<number | null>(null);
+  const [clearBagConfirmOpen, setClearBagConfirmOpen] = useState(false);
 
   const hasAlterationContent = getHasAlterationContent(order);
   const hasCustomContent = getHasCustomContent(order);
@@ -119,10 +132,24 @@ export function OrderScreen({
             />
             <CustomGarmentBuilder
               customCatalog={customCatalog}
+              fabricOptions={fabricOptions}
+              buttonTypeOptions={buttonTypeOptions}
+              liningOptions={liningOptions}
+              threadOptions={threadOptions}
+              pocketTypeOptions={pocketTypeOptions}
+              cuffOptions={cuffOptions}
+              lapelOptions={lapelOptions}
               pricingBands={pricingBands}
               selectedGarment={order.custom.selectedGarment}
-              construction={order.custom.construction}
-              bundleType={order.custom.bundleType}
+              fabric={order.custom.fabric}
+              buttonType={order.custom.buttonType}
+              lining={order.custom.lining}
+              threads={order.custom.threads}
+              monograms={order.custom.monograms}
+              pocketType={order.custom.pocketType}
+              cuffs={order.custom.cuffs}
+              lapels={order.custom.lapels}
+              customNotes={order.custom.customNotes}
               pricingBand={order.custom.pricingBand}
               onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
               onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
@@ -141,11 +168,12 @@ export function OrderScreen({
           pickupRequired={pickupRequired}
           pickupDate={order.fulfillment.pickupDate}
           pickupTime={order.fulfillment.pickupTime}
+          pickupLocation={order.fulfillment.pickupLocation}
           onOpenCustomerModal={() => setCustomerModalOpen(true)}
           onOpenPickupModal={() => setPickupModalOpen(true)}
           onEditAlterationItem={(itemId) => setEditingItemId(itemId)}
           onRequestRemoveItem={(itemId) => setPendingDeleteItemId(itemId)}
-          onClearCart={() => dispatch({ type: "clearOrder" })}
+          onClearCart={() => setClearBagConfirmOpen(true)}
           onContinue={() => onScreenChange(order.activeWorkflow === "custom" && !order.custom.linkedMeasurementSetId ? "measurements" : "checkout")}
           continueDisabled={
             orderType === null ||
@@ -174,6 +202,7 @@ export function OrderScreen({
         <PickupScheduleModal
           pickupDate={order.fulfillment.pickupDate}
           pickupTime={order.fulfillment.pickupTime}
+          pickupLocation={order.fulfillment.pickupLocation}
           onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: patch })}
           onClose={() => setPickupModalOpen(false)}
         />
@@ -229,6 +258,18 @@ export function OrderScreen({
             setPendingDeleteItemId(null);
           }}
           onClose={() => setPendingDeleteItemId(null)}
+        />
+      ) : null}
+
+      {clearBagConfirmOpen ? (
+        <ConfirmClearBagModal
+          onConfirm={() => {
+            dispatch({ type: "clearOrder" });
+            setEditingItemId(null);
+            setPendingDeleteItemId(null);
+            setClearBagConfirmOpen(false);
+          }}
+          onClose={() => setClearBagConfirmOpen(false)}
         />
       ) : null}
     </div>

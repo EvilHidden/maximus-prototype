@@ -2,6 +2,7 @@ import { measurementFields } from "../data";
 import type {
   AlterationService,
   OrderWorkflowState,
+  PickupLocation,
   Screen,
   WorkflowMode,
 } from "../types";
@@ -21,6 +22,7 @@ type SetAlterationItemPayload = {
 type SetPickupSchedulePayload = {
   pickupDate: string;
   pickupTime: string;
+  pickupLocation: PickupLocation | "";
 };
 
 export type AppAction =
@@ -56,8 +58,15 @@ export function createInitialOrderState(): OrderWorkflowState {
     },
     custom: {
       selectedGarment: null,
-      construction: null,
-      bundleType: null,
+      fabric: null,
+      buttonType: null,
+      lining: null,
+      threads: null,
+      monograms: "",
+      pocketType: null,
+      cuffs: null,
+      lapels: null,
+      customNotes: "",
       pricingBand: null,
       linkedMeasurementSetId: null,
       measurements: createEmptyMeasurements(),
@@ -65,6 +74,7 @@ export function createInitialOrderState(): OrderWorkflowState {
     fulfillment: {
       pickupDate: "",
       pickupTime: "",
+      pickupLocation: "",
     },
   };
 }
@@ -207,8 +217,15 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           custom: {
             ...state.order.custom,
             selectedGarment: action.garment,
-            construction: null,
-            bundleType: null,
+            fabric: null,
+            buttonType: null,
+            lining: null,
+            threads: null,
+            monograms: "",
+            pocketType: null,
+            cuffs: null,
+            lapels: null,
+            customNotes: "",
             pricingBand: null,
           },
         },

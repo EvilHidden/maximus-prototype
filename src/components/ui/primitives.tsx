@@ -37,6 +37,7 @@ type ModalShellProps = {
   title: string;
   subtitle?: string;
   onClose: () => void;
+  showCloseButton?: boolean;
   widthClassName?: string;
   children: ReactNode;
   footer?: ReactNode;
@@ -160,7 +161,15 @@ export function DefinitionList({ items, className = "" }: DefinitionListProps) {
   );
 }
 
-export function ModalShell({ title, subtitle, onClose, widthClassName = "max-w-[520px]", children, footer }: ModalShellProps) {
+export function ModalShell({
+  title,
+  subtitle,
+  onClose,
+  showCloseButton = true,
+  widthClassName = "max-w-[520px]",
+  children,
+  footer,
+}: ModalShellProps) {
   return (
     <div className="fixed inset-0 z-50">
       <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
@@ -170,9 +179,11 @@ export function ModalShell({ title, subtitle, onClose, widthClassName = "max-w-[
             <div className="app-section-title">{title}</div>
             {subtitle ? <div className="app-section-copy">{subtitle}</div> : null}
           </div>
-          <ActionButton tone="secondary" onClick={onClose} className="px-3 py-2 text-xs">
-            Close
-          </ActionButton>
+          {showCloseButton ? (
+            <ActionButton tone="secondary" onClick={onClose} className="px-3 py-2 text-xs">
+              Close
+            </ActionButton>
+          ) : null}
         </div>
         <div>{children}</div>
         {footer ? <div className="mt-4 border-t border-[var(--app-border)] pt-4">{footer}</div> : null}

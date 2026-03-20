@@ -1,15 +1,15 @@
 import { ActionButton, ModalShell } from "../../../components/ui/primitives";
 
-type ConfirmRemoveItemModalProps = {
+type ConfirmClearBagModalProps = {
   onConfirm: () => void;
   onClose: () => void;
 };
 
-export function ConfirmRemoveItemModal({ onConfirm, onClose }: ConfirmRemoveItemModalProps) {
+export function ConfirmClearBagModal({ onConfirm, onClose }: ConfirmClearBagModalProps) {
   return (
     <ModalShell
-      title="Remove item"
-      subtitle="Remove this line item from the order?"
+      title="Clear bag"
+      subtitle="Remove all line items from the current order?"
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[420px]"
@@ -19,12 +19,14 @@ export function ConfirmRemoveItemModal({ onConfirm, onClose }: ConfirmRemoveItem
             Cancel
           </ActionButton>
           <ActionButton tone="primary" onClick={onConfirm}>
-            Remove
+            Clear bag
           </ActionButton>
         </div>
       }
     >
-      <div className="text-sm text-[var(--app-text-muted)]">This removes the selected item from the current order bag.</div>
+      <div className="text-sm text-[var(--app-text-muted)]">
+        This clears the current order bag, including pickup details and any linked custom configuration.
+      </div>
     </ModalShell>
   );
 }

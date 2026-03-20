@@ -56,7 +56,7 @@ export function CheckoutScreen({ orderType }: CheckoutScreenProps) {
           <div className="mb-3 font-semibold text-slate-900">Checks</div>
           <div className="space-y-2 text-sm text-slate-700">
             <div className="app-panel-section">Check in the appointment first.</div>
-            {hasAlterations ? <div className="app-panel-section">Alterations require pickup date and time.</div> : null}
+            {hasAlterations ? <div className="app-panel-section">Alterations require pickup date, time, and location.</div> : null}
             {hasCustom ? <div className="app-panel-section">Custom orders require measurements and pricing.</div> : null}
           </div>
         </Card>

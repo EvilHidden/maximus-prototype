@@ -91,7 +91,21 @@ export const alterationCatalog: AlterationCategory[] = [
   },
 ];
 
-export const customCatalog = ["Suit", "Tuxedo", "Jacket", "Trousers", "Vest", "Shirt", "Bundle"];
+export const customCatalog = ["Suit", "Three piece suit", "Sports coat", "Vest", "Overcoat", "Tuxedo", "3 piece tux"];
+
+export const fabricOptions = ["Wool", "Cashmere blend", "Linen", "Cotton", "Velvet", "Performance stretch"];
+
+export const buttonTypeOptions = ["Horn", "Metal", "Mother of pearl", "Covered", "Matte resin"];
+
+export const liningOptions = ["Full lining", "Half lining", "Butterfly lining", "Unlined", "Statement lining"];
+
+export const threadOptions = ["Tonal", "Contrast", "Hand-finished pick stitch", "Bold accent"];
+
+export const pocketTypeOptions = ["Regular", "Slanted"];
+
+export const cuffOptions = ["No cuff", "1.5 inch cuff", "2 inch cuff"];
+
+export const lapelOptions = ["Notch", "Peak", "Shawl"];
 
 export const measurementFields = [
   "Chest",
