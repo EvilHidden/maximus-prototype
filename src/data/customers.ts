@@ -1,5 +1,50 @@
 import type { Customer, CustomerOrder, MeasurementSet } from "../types";
 
+const baseValues = {
+  Chest: "40.5",
+  Waist: "34",
+  Seat: "39.5",
+  Shoulder: "18",
+  Sleeve: "25",
+  Inseam: "31",
+  Outseam: "41.25",
+  Neck: "15.5",
+  "Jacket Length": "29.5",
+  Bicep: "14",
+  Wrist: "8",
+  Thigh: "23.5",
+};
+
+const mariaValues = {
+  Chest: "36",
+  Waist: "30.5",
+  Seat: "40",
+  Shoulder: "15.5",
+  Sleeve: "22.75",
+  Inseam: "29.5",
+  Outseam: "39.5",
+  Neck: "13.5",
+  "Jacket Length": "26.75",
+  Bicep: "12.5",
+  Wrist: "6.75",
+  Thigh: "22",
+};
+
+const davidValues = {
+  Chest: "38.5",
+  Waist: "32",
+  Seat: "37.5",
+  Shoulder: "17.5",
+  Sleeve: "24.75",
+  Inseam: "30.5",
+  Outseam: "40.25",
+  Neck: "15",
+  "Jacket Length": "28.75",
+  Bicep: "13.5",
+  Wrist: "7.75",
+  Thigh: "22.75",
+};
+
 export const customers: Customer[] = [
   {
     id: "C-1042",
@@ -50,6 +95,7 @@ export const measurementSets: MeasurementSet[] = [
     customerId: "C-1042",
     label: "Version 4",
     note: "Latest on file",
+    values: baseValues,
     suggested: true,
   },
   {
@@ -57,18 +103,21 @@ export const measurementSets: MeasurementSet[] = [
     customerId: "C-1042",
     label: "Version 3",
     note: "Jan 22 • Tuxedo order",
+    values: { ...baseValues, Chest: "40.25", Waist: "34.25", Sleeve: "24.75" },
   },
   {
     id: "SET-C1042-V2",
     customerId: "C-1042",
     label: "Version 2",
     note: "Sep 14 • Alteration profile",
+    values: { ...baseValues, Chest: "39.75", Waist: "33.75", "Jacket Length": "29.25" },
   },
   {
     id: "SET-C1078-V4",
     customerId: "C-1078",
     label: "Version 4",
     note: "Review before use",
+    values: mariaValues,
     suggested: true,
   },
   {
@@ -76,12 +125,14 @@ export const measurementSets: MeasurementSet[] = [
     customerId: "C-1078",
     label: "Version 3",
     note: "Wedding party fit",
+    values: { ...mariaValues, Waist: "30.25", Seat: "39.75", Sleeve: "22.5" },
   },
   {
     id: "SET-C1116-V4",
     customerId: "C-1116",
     label: "Version 4",
     note: "Latest on file",
+    values: davidValues,
     suggested: true,
   },
   {
@@ -89,5 +140,6 @@ export const measurementSets: MeasurementSet[] = [
     customerId: "C-1116",
     label: "Version 3",
     note: "Rush suit baseline",
+    values: { ...davidValues, Chest: "38.25", Waist: "31.75", Inseam: "30.25" },
   },
 ];

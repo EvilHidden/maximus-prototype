@@ -158,6 +158,7 @@ export function getMeasurementOptions(
       customerId: customer.id,
       label: "Draft entry",
       note: "Current unsaved measurements",
+      values: {},
       kind: "draft",
     });
   }

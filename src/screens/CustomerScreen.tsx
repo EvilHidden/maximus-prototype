@@ -1,18 +1,19 @@
 import { Search } from "lucide-react";
 import { useMemo, useState } from "react";
-import { customerOrders, customers, measurementSets } from "../data";
-import type { Customer, Screen } from "../types";
+import { customerOrders, customers } from "../data";
+import type { Customer, MeasurementSet, Screen } from "../types";
 import { Card, SectionHeader, StatusPill } from "../components/ui/primitives";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
 import { filterCustomers, getMeasurementStatusLabel } from "../features/customer/selectors";
 
 type CustomerScreenProps = {
+  measurementSets: MeasurementSet[];
   selectedCustomer: Customer | null;
   onSelectCustomer: (customer: Customer) => void;
   onScreenChange: (screen: Screen) => void;
 };
 
-export function CustomerScreen({ selectedCustomer, onSelectCustomer, onScreenChange }: CustomerScreenProps) {
+export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCustomer, onScreenChange }: CustomerScreenProps) {
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
 

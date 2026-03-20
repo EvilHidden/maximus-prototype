@@ -38,6 +38,7 @@ export type AppAction =
   | { type: "selectCustomGarment"; garment: string | null }
   | { type: "setCustomConfiguration"; patch: Partial<OrderWorkflowState["custom"]> }
   | { type: "updateMeasurements"; field: string; value: string }
+  | { type: "replaceMeasurements"; values: Record<string, string>; measurementSetId: string | null }
   | { type: "linkMeasurementSet"; measurementSetId: string | null }
   | { type: "clearOrder" };
 
@@ -251,6 +252,21 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             measurements: {
               ...state.order.custom.measurements,
               [action.field]: action.value,
+            },
+          },
+        },
+      };
+    case "replaceMeasurements":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            linkedMeasurementSetId: action.measurementSetId,
+            measurements: {
+              ...createEmptyMeasurements(),
+              ...action.values,
             },
           },
         },

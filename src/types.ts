@@ -61,6 +61,8 @@ export type MeasurementSet = {
   customerId: string;
   label: string;
   note: string;
+  values: Record<string, string>;
+  isDraft?: boolean;
   suggested?: boolean;
 };
 
