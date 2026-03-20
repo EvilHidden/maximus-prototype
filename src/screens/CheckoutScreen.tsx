@@ -1,4 +1,4 @@
-import { CreditCard, PackageCheck, Receipt, UserRound } from "lucide-react";
+import { CreditCard } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, Card, EmptyState, EntityRow, PanelSection, SectionHeader, StatusPill } from "../components/ui/primitives";
 import {
@@ -50,7 +50,7 @@ export function CheckoutScreen({ selectedCustomer, measurementSets, order, onScr
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[1.15fr_0.85fr]">
+    <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
       <Card className="p-4">
         <SectionHeader
           icon={CreditCard}
@@ -101,96 +101,86 @@ export function CheckoutScreen({ selectedCustomer, measurementSets, order, onScr
             <PanelSection title="Line items" action={<span className="text-sm font-medium text-[var(--app-text)]">{lineItems.length}</span>}>
               <div className="space-y-2">
                 {lineItems.map((item) => (
-                  <EntityRow
-                    key={item.id}
-                    title={item.title}
-                    subtitle={item.subtitle}
-                    meta={<div className="text-sm font-semibold text-[var(--app-text)]">{formatSummaryCurrency(item.amount)}</div>}
-                  />
+                  <div key={item.id} className="app-entity-row">
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-[var(--app-text)]">{item.title}</div>
+                      <div className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{item.subtitle}</div>
+                    </div>
+                    <div className="shrink-0 self-start pl-4 text-sm font-semibold text-[var(--app-text)]">
+                      {formatSummaryCurrency(item.amount)}
+                    </div>
+                  </div>
                 ))}
               </div>
             </PanelSection>
 
-            <PanelSection title="Checkout sequence">
-              <div className="space-y-3 text-sm text-[var(--app-text-muted)]">
-                <div className="app-panel-section">
-                  <div className="mb-1 flex items-center gap-2 font-semibold text-[var(--app-text)]">
-                    <UserRound className="h-4 w-4" />
-                    1. Confirm customer and pickup
-                  </div>
-                  <div>Make sure the bag is linked to the right client and pickup handoff before syncing downstream systems.</div>
-                </div>
-                <div className="app-panel-section">
-                  <div className="mb-1 flex items-center gap-2 font-semibold text-[var(--app-text)]">
-                    <Receipt className="h-4 w-4" />
-                    2. Save operational records
-                  </div>
-                  <div>Write the order, line items, measurements, and pickup metadata into Airtable.</div>
-                </div>
-                <div className="app-panel-section">
-                  <div className="mb-1 flex items-center gap-2 font-semibold text-[var(--app-text)]">
-                    <PackageCheck className="h-4 w-4" />
-                    3. Send to Square and collect
-                  </div>
-                  <div>
-                    {hasCustom
-                      ? `Collect ${formatSummaryCurrency(checkoutCollectionAmount)} now, then sync the order to Square.`
-                      : "Push the order to Square and complete payment at the terminal."}
-                  </div>
-                </div>
+            <Card className="p-4">
+              <div className="mb-3 font-semibold text-[var(--app-text)]">Financials</div>
+              <div className="mb-4 space-y-2 text-sm">
+                <EntityRow title="Alterations" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.alterationsSubtotal)}</span>} />
+                <EntityRow title="Custom garments" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.customSubtotal)}</span>} />
+                <EntityRow title="Tax" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.taxAmount)}</span>} />
+                <EntityRow title="Deposit due today" meta={<StatusPill tone={hasCustom ? "dark" : "default"}>{hasCustom ? formatSummaryCurrency(pricing.depositDue) : "None"}</StatusPill>} />
+                <EntityRow title="Order total" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.total)}</span>} />
               </div>
-            </PanelSection>
+              <div className="grid grid-cols-2 gap-3">
+                <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
+                  Revise order
+                </ActionButton>
+                <ActionButton tone="primary" disabled={checkoutBlocked}>
+                  {`Send ${formatSummaryCurrency(checkoutCollectionAmount)} to Square`}
+                </ActionButton>
+              </div>
+            </Card>
           </div>
         )}
       </Card>
 
       <div className="space-y-4">
-        <Card className="p-4">
-          <div className="mb-3 font-semibold text-[var(--app-text)]">Readiness</div>
-          <div className="space-y-2">
-            {checklist.map((item) => (
-              <EntityRow
-                key={item.label}
-                title={item.label}
-                subtitle={item.value}
-                meta={<StatusPill tone={item.ready ? "dark" : "warn"}>{item.ready ? "Ready" : "Needs work"}</StatusPill>}
-              />
+        <Card className="border-dashed p-3 opacity-90">
+          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--app-text-soft)]">Ops checks</div>
+          <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]">
+            <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--app-text-soft)]">
+              <span>Check</span>
+              <span>Detail</span>
+              <span>Status</span>
+            </div>
+            {[
+              ...checklist.map((item) => ({
+                label: item.label,
+                detail: item.value,
+                tone: item.ready ? "dark" : "warn",
+                status: item.ready ? "Ready" : "Needs work",
+              })),
+              {
+                label: "Airtable write",
+                detail: checkoutBlocked ? "Blocked by missing checkout data" : "Order payload ready",
+                tone: checkoutBlocked ? "warn" : "dark",
+                status: checkoutBlocked ? "Blocked" : "Ready",
+              },
+              {
+                label: "Square order",
+                detail: checkoutBlocked ? "Waiting on order setup" : `Queue ${formatSummaryCurrency(checkoutCollectionAmount)} to collect`,
+                tone: checkoutBlocked ? "warn" : "default",
+                status: checkoutBlocked ? "Pending" : "Pending send",
+              },
+              {
+                label: "Payment collection",
+                detail: hasCustom ? "Deposit due today" : orderType === "alteration" ? "Collect at terminal" : "Not ready",
+                tone: hasCustom || orderType === "alteration" ? "default" : "warn",
+                status: hasCustom ? "Deposit due" : orderType === "alteration" ? "At terminal" : "Blocked",
+              },
+            ].map((row) => (
+              <div
+                key={row.label}
+                className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-b border-[var(--app-border)] px-3 py-2 text-xs last:border-b-0"
+              >
+                <span className="font-medium text-[var(--app-text)]">{row.label}</span>
+                <span className="text-[var(--app-text-muted)]">{row.detail}</span>
+                <StatusPill tone={row.tone as "default" | "dark" | "warn"}>{row.status}</StatusPill>
+              </div>
             ))}
           </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="mb-3 font-semibold text-[var(--app-text)]">Financials</div>
-          <div className="mb-4 space-y-2 text-sm">
-            <EntityRow title="Alterations" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.alterationsSubtotal)}</span>} />
-            <EntityRow title="Custom garments" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.customSubtotal)}</span>} />
-            <EntityRow title="Tax" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.taxAmount)}</span>} />
-            <EntityRow title="Deposit due today" meta={<StatusPill tone={hasCustom ? "dark" : "default"}>{hasCustom ? formatSummaryCurrency(pricing.depositDue) : "None"}</StatusPill>} />
-            <EntityRow title="Order total" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.total)}</span>} />
-          </div>
-          <div className="grid grid-cols-2 gap-3">
-            <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
-              Revise order
-            </ActionButton>
-            <ActionButton tone="primary" disabled={checkoutBlocked}>
-              {`Send ${formatSummaryCurrency(checkoutCollectionAmount)} to Square`}
-            </ActionButton>
-          </div>
-        </Card>
-
-        <Card className="p-4">
-          <div className="mb-3 font-semibold text-[var(--app-text)]">Sync status</div>
-          <div className="mb-4 space-y-2 text-sm">
-            <EntityRow title="Airtable write" meta={<StatusPill tone={checkoutBlocked ? "warn" : "dark"}>{checkoutBlocked ? "Blocked" : "Ready"}</StatusPill>} />
-            <EntityRow title="Square order" meta={<StatusPill tone={checkoutBlocked ? "warn" : "default"}>{checkoutBlocked ? "Pending setup" : "Pending send"}</StatusPill>} />
-            <EntityRow
-              title="Payment collection"
-              meta={<StatusPill>{hasCustom ? "Deposit due" : orderType === "alteration" ? "At terminal" : "Blocked"}</StatusPill>}
-            />
-          </div>
-          <ActionButton tone="secondary" fullWidth>
-            Save draft
-          </ActionButton>
         </Card>
       </div>
     </div>
