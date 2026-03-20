@@ -1,60 +1,82 @@
-import { useMemo, useState } from "react";
-import { createInitialWorkflowDraft, customers } from "./data/fixtures";
+import { useMemo, useReducer } from "react";
+import { customers, measurementSets } from "./data";
 import { useThemePreference } from "./hooks/useThemePreference";
-import type { Customer, OrderType, Screen, WorkflowDraft } from "./types";
+import type { Customer, WorkflowMode } from "./types";
 import { AppShell } from "./components/layout/AppShell";
 import { HomeScreen } from "./screens/HomeScreen";
 import { CustomerScreen } from "./screens/CustomerScreen";
 import { OrderScreen } from "./screens/OrderScreen";
 import { MeasurementsScreen } from "./screens/MeasurementsScreen";
 import { CheckoutScreen } from "./screens/CheckoutScreen";
+import { appReducer, createInitialAppState } from "./state/appState";
+import { getOrderType } from "./features/order/selectors";
 
 export default function App() {
-  const [screen, setScreen] = useState<Screen>("home");
-  const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
-  const [draft, setDraft] = useState<WorkflowDraft>(() => createInitialWorkflowDraft());
+  const [state, dispatch] = useReducer(appReducer, undefined, createInitialAppState);
   const { theme, setTheme } = useThemePreference();
+  const selectedCustomer = useMemo<Customer | null>(
+    () => customers.find((customer) => customer.id === state.selectedCustomerId) ?? null,
+    [state.selectedCustomerId],
+  );
+  const orderType = getOrderType(state.order);
 
-  const updateDraft = (patch: Partial<WorkflowDraft>) => {
-    setDraft((currentDraft) => ({ ...currentDraft, ...patch }));
+  const startWorkflow = (workflow: WorkflowMode) => {
+    dispatch({ type: "clearOrder" });
+    dispatch({ type: "activateWorkflow", workflow });
+    dispatch({ type: "setScreen", screen: "order" });
   };
 
   const content = useMemo(() => {
-    if (screen === "home") {
-      return <HomeScreen onScreenChange={setScreen} onOrderTypeChange={(orderType) => updateDraft({ orderType, activeWorkflow: orderType })} />;
+    if (state.screen === "home") {
+      return <HomeScreen onScreenChange={(screen) => dispatch({ type: "setScreen", screen })} onStartWorkflow={startWorkflow} />;
     }
 
-    if (screen === "customer") {
-      return <CustomerScreen selectedCustomer={selectedCustomer} onSelectCustomer={setSelectedCustomer} onScreenChange={setScreen} />;
-    }
-
-    if (screen === "order") {
+    if (state.screen === "customer") {
       return (
-        <OrderScreen
-          draft={draft}
+        <CustomerScreen
           selectedCustomer={selectedCustomer}
-          onSelectCustomer={setSelectedCustomer}
-          onDraftChange={updateDraft}
-          onScreenChange={setScreen}
-          onOrderTypeChange={(orderType: OrderType) => updateDraft({ orderType, activeWorkflow: orderType === "mixed" ? draft.activeWorkflow : orderType })}
+          onSelectCustomer={(customer) => dispatch({ type: "setCustomer", customerId: customer.id })}
+          onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
         />
       );
     }
 
-    if (screen === "measurements") {
-      return <MeasurementsScreen selectedCustomer={selectedCustomer} draft={draft} onDraftChange={updateDraft} onScreenChange={setScreen} />;
+    if (state.screen === "order") {
+      return (
+        <OrderScreen
+          customers={customers}
+          measurementSets={measurementSets}
+          selectedCustomer={selectedCustomer}
+          order={state.order}
+          dispatch={dispatch}
+          onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        />
+      );
     }
 
-    return <CheckoutScreen orderType={draft.orderType} />;
-  }, [draft, screen, selectedCustomer]);
+    if (state.screen === "measurements") {
+      return (
+        <MeasurementsScreen
+          selectedCustomer={selectedCustomer}
+          measurementSets={measurementSets}
+          order={state.order}
+          onUpdateMeasurement={(field, value) => dispatch({ type: "updateMeasurements", field, value })}
+          onLinkMeasurementSet={(measurementSetId) => dispatch({ type: "linkMeasurementSet", measurementSetId })}
+          onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        />
+      );
+    }
+
+    return <CheckoutScreen orderType={orderType} />;
+  }, [state, selectedCustomer, orderType]);
 
   return (
     <div data-theme={theme}>
       <AppShell
         themeLabel={theme}
         onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"))}
-        screen={screen}
-        onScreenChange={setScreen}
+        screen={state.screen}
+        onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       >
         {content}
       </AppShell>

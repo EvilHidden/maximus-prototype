@@ -1,17 +1,31 @@
 import { Ruler } from "lucide-react";
-import type { Customer, Screen, WorkflowDraft } from "../types";
-import { ActionButton, Card, SectionHeader, StatusPill } from "../components/ui/primitives";
-import { measurementFields } from "../data/fixtures";
+import type { Customer, MeasurementSet, Screen } from "../types";
+import { ActionButton, Card, EmptyState, FieldLabel, PanelSection, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { measurementFields } from "../data";
+import type { OrderWorkflowState } from "../types";
+import { getMeasurementSetLabel, getSuggestedMeasurementSet } from "../features/order/selectors";
 
 type MeasurementsScreenProps = {
   selectedCustomer: Customer | null;
-  draft: WorkflowDraft;
-  onDraftChange: (patch: Partial<WorkflowDraft>) => void;
+  measurementSets: MeasurementSet[];
+  order: OrderWorkflowState;
+  onUpdateMeasurement: (field: string, value: string) => void;
+  onLinkMeasurementSet: (measurementSetId: string | null) => void;
   onScreenChange: (screen: Screen) => void;
 };
 
-export function MeasurementsScreen({ selectedCustomer, draft, onDraftChange, onScreenChange }: MeasurementsScreenProps) {
-  const enteredMeasurementCount = Object.values(draft.measurements).filter((value) => value.trim().length > 0).length;
+export function MeasurementsScreen({
+  selectedCustomer,
+  measurementSets,
+  order,
+  onUpdateMeasurement,
+  onLinkMeasurementSet,
+  onScreenChange,
+}: MeasurementsScreenProps) {
+  const enteredMeasurementCount = Object.values(order.custom.measurements).filter((value) => value.trim().length > 0).length;
+  const customerHistory = selectedCustomer ? measurementSets.filter((set) => set.customerId === selectedCustomer.id) : [];
+  const suggestedMeasurementSet = getSuggestedMeasurementSet(measurementSets, selectedCustomer);
+  const linkedMeasurementSetLabel = getMeasurementSetLabel(measurementSets, order.custom.linkedMeasurementSetId);
 
   return (
     <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
@@ -19,53 +33,75 @@ export function MeasurementsScreen({ selectedCustomer, draft, onDraftChange, onS
         <SectionHeader icon={Ruler} title="Measurements" subtitle="Entry and history" />
 
         <div className="mb-4 grid grid-cols-2 gap-3">
-          <ActionButton tone="primary">Use latest on file</ActionButton>
-          <ActionButton tone="secondary">Create new measurement set</ActionButton>
+          <ActionButton tone="primary" disabled={!suggestedMeasurementSet} onClick={() => onLinkMeasurementSet(suggestedMeasurementSet?.id ?? null)}>
+            Use latest on file
+          </ActionButton>
+          <ActionButton tone="secondary" onClick={() => onLinkMeasurementSet("draft-entry")}>
+            Create new measurement set
+          </ActionButton>
         </div>
 
         <div className="grid gap-3 md:grid-cols-4">
           {measurementFields.map((field) => (
             <label key={field} className="text-sm">
-              <div className="mb-1 text-slate-600">{field}</div>
+              <FieldLabel>{field}</FieldLabel>
               <input
-                value={draft.measurements[field]}
-                onChange={(event) => onDraftChange({ measurements: { ...draft.measurements, [field]: event.target.value } })}
+                value={order.custom.measurements[field]}
+                onChange={(event) => onUpdateMeasurement(field, event.target.value)}
                 placeholder="in"
-                className="w-full rounded-2xl border border-slate-300 px-3 py-3 outline-none"
+                className="app-input"
               />
             </label>
           ))}
         </div>
 
-        <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-sm text-slate-600">Save as history and attach to the order.</div>
+        <PanelSection title="Order linkage" className="mt-4">
+          <div className="text-sm text-[var(--app-text-muted)]">{linkedMeasurementSetLabel ?? "Save as history and attach to the order."}</div>
+        </PanelSection>
       </Card>
 
       <div className="space-y-4">
         <Card className="p-4">
           <div className="mb-3 flex items-center justify-between">
             <div>
-              <div className="font-semibold text-slate-900">Measurement history</div>
-              <div className="text-sm text-slate-500">{selectedCustomer?.name ?? "No customer selected"}</div>
+              <div className="font-semibold text-[var(--app-text)]">Measurement history</div>
+              <div className="text-sm text-[var(--app-text-muted)]">{selectedCustomer?.name ?? "No customer selected"}</div>
             </div>
-            <StatusPill tone="dark">Version 4</StatusPill>
+            <StatusPill tone="dark">{customerHistory[0]?.label ?? "No sets"}</StatusPill>
           </div>
 
-          <div className="space-y-2 text-sm text-slate-700">
-            <div className="rounded-2xl border border-slate-200 p-3">Version 4 • Mar 10 • Wedding party fitting</div>
-            <div className="rounded-2xl border border-slate-200 p-3">Version 3 • Jan 22 • Tuxedo order</div>
-            <div className="rounded-2xl border border-slate-200 p-3">Version 2 • Sep 14 • Alteration profile</div>
-          </div>
+          {customerHistory.length > 0 ? (
+            <div className="space-y-2 text-sm">
+              {customerHistory.map((set) => (
+                <button
+                  key={set.id}
+                  onClick={() => onLinkMeasurementSet(set.id)}
+                  className="app-entity-row w-full text-left"
+                >
+                  <div>
+                    <div className="text-sm font-medium text-[var(--app-text)]">{set.label}</div>
+                    <div className="mt-1 text-xs text-[var(--app-text-muted)]">{set.note}</div>
+                  </div>
+                  {order.custom.linkedMeasurementSetId === set.id ? <StatusPill tone="dark">Current</StatusPill> : null}
+                </button>
+              ))}
+            </div>
+          ) : (
+            <EmptyState>No saved measurement history.</EmptyState>
+          )}
         </Card>
 
         <Card className="p-4">
-          <div className="mb-2 font-semibold text-slate-900">Order linkage</div>
-          <div className="mb-4 text-sm text-slate-600">Attach this version to the current order.</div>
-          <div className="mb-4 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-sm">
-            <div className="text-slate-500">Fields entered</div>
-            <div className="text-lg font-semibold text-slate-900">{enteredMeasurementCount} / {measurementFields.length}</div>
+          <div className="mb-2 font-semibold text-[var(--app-text)]">Order linkage</div>
+          <div className="mb-4 text-sm text-[var(--app-text-muted)]">Attach this version to the current order.</div>
+          <div className="app-panel-section mb-4 text-sm">
+            <div className="text-[var(--app-text-muted)]">Fields entered</div>
+            <div className="text-lg font-semibold text-[var(--app-text)]">{enteredMeasurementCount} / {measurementFields.length}</div>
           </div>
           <div className="grid grid-cols-2 gap-3">
-            <ActionButton tone="secondary">Save version</ActionButton>
+            <ActionButton tone="secondary" onClick={() => onLinkMeasurementSet("draft-entry")} disabled={enteredMeasurementCount === 0}>
+              Save version
+            </ActionButton>
             <ActionButton tone="primary" onClick={() => onScreenChange("checkout")}>Continue to checkout</ActionButton>
           </div>
         </Card>

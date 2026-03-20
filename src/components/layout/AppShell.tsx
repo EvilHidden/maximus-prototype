@@ -1,6 +1,6 @@
 import { Moon, Sun } from "lucide-react";
 import type { ReactNode } from "react";
-import { navItems } from "../../data/fixtures";
+import { navItems } from "../../data";
 import type { Screen } from "../../types";
 import { ActionButton, cx } from "../ui/primitives";
 
@@ -14,13 +14,13 @@ type AppShellProps = {
 
 export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, children }: AppShellProps) {
   return (
-    <div className="h-screen overflow-hidden bg-slate-100 text-slate-900 transition-colors">
+    <div className="app-shell">
       <div className="grid h-full grid-cols-[220px_minmax(0,1fr)]">
-        <aside className="flex h-full w-52 shrink-0 flex-col gap-2 border-r border-slate-200 bg-white p-3">
-          <div className="mb-1 flex items-center justify-between gap-2 border-b border-slate-200 px-3 py-2">
+        <aside className="app-sidebar flex h-full w-52 shrink-0 flex-col gap-2 p-3">
+          <div className="mb-1 flex items-center justify-between gap-2 border-b border-[var(--app-border)] px-3 py-2">
             <div>
-              <div className="text-sm font-semibold text-slate-900">SAMEpage Tailor OS</div>
-              <div className="text-xs text-slate-500">Operations</div>
+              <div className="text-sm font-semibold text-[var(--app-text)]">SAMEpage Tailor OS</div>
+              <div className="text-xs text-[var(--app-text-muted)]">Operations</div>
             </div>
             <ActionButton tone="secondary" onClick={onToggleTheme} className="flex items-center gap-1.5 px-2.5 py-2 text-xs shadow-none">
               {themeLabel === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
@@ -32,8 +32,8 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
               key={item.key}
               onClick={() => onScreenChange(item.key)}
               className={cx(
-                "w-full rounded-2xl px-3 py-3 text-left text-sm font-medium transition",
-                screen === item.key ? "bg-slate-900 text-white" : "text-slate-600 hover:bg-slate-100",
+                "w-full px-3 py-3 text-left text-sm font-medium transition",
+                screen === item.key ? "app-btn app-btn--primary" : "app-btn app-btn--quiet",
               )}
             >
               {item.label}
@@ -41,7 +41,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
           ))}
         </aside>
 
-        <main className="h-full overflow-auto bg-slate-100 p-4 md:p-5">{children}</main>
+        <main className="app-main h-full overflow-auto p-4 md:p-5">{children}</main>
       </div>
     </div>
   );

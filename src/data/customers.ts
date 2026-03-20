@@ -1,0 +1,93 @@
+import type { Customer, CustomerOrder, MeasurementSet } from "../types";
+
+export const customers: Customer[] = [
+  {
+    id: "C-1042",
+    name: "James Carter",
+    phone: "(555) 201-9044",
+    lastVisit: "Feb 28",
+    measurementsStatus: "on_file",
+    notes: "Prefers slim fit",
+    isVip: true,
+  },
+  {
+    id: "C-1078",
+    name: "Maria Ellis",
+    phone: "(555) 884-7712",
+    lastVisit: "Mar 10",
+    measurementsStatus: "needs_update",
+    notes: "Wedding party order",
+  },
+  {
+    id: "C-1116",
+    name: "David Nguyen",
+    phone: "(555) 490-1162",
+    lastVisit: "Mar 14",
+    measurementsStatus: "on_file",
+    notes: "Rush alterations",
+  },
+];
+
+export const customerOrders: Record<string, CustomerOrder[]> = {
+  "C-1042": [
+    { id: "ORD-8821", label: "Custom navy suit", date: "Feb 28", status: "Delivered", total: "$1,495" },
+    { id: "ORD-8610", label: "Trouser hem + taper", date: "Jan 17", status: "Picked up", total: "$65" },
+    { id: "ORD-8443", label: "Dinner jacket consult", date: "Dec 05", status: "Quoted", total: "$0" },
+  ],
+  "C-1078": [
+    { id: "ORD-8904", label: "Wedding party alteration set", date: "Mar 10", status: "In progress", total: "$320" },
+    { id: "ORD-8732", label: "Bridesmaid dress fitting", date: "Feb 12", status: "Picked up", total: "$95" },
+  ],
+  "C-1116": [
+    { id: "ORD-8940", label: "Rush suit sleeve adjustment", date: "Mar 14", status: "Ready today", total: "$80" },
+    { id: "ORD-8528", label: "Pant waist suppression", date: "Jan 08", status: "Delivered", total: "$35" },
+  ],
+};
+
+export const measurementSets: MeasurementSet[] = [
+  {
+    id: "SET-C1042-V4",
+    customerId: "C-1042",
+    label: "Version 4",
+    note: "Latest on file",
+    suggested: true,
+  },
+  {
+    id: "SET-C1042-V3",
+    customerId: "C-1042",
+    label: "Version 3",
+    note: "Jan 22 • Tuxedo order",
+  },
+  {
+    id: "SET-C1042-V2",
+    customerId: "C-1042",
+    label: "Version 2",
+    note: "Sep 14 • Alteration profile",
+  },
+  {
+    id: "SET-C1078-V4",
+    customerId: "C-1078",
+    label: "Version 4",
+    note: "Review before use",
+    suggested: true,
+  },
+  {
+    id: "SET-C1078-V3",
+    customerId: "C-1078",
+    label: "Version 3",
+    note: "Wedding party fit",
+  },
+  {
+    id: "SET-C1116-V4",
+    customerId: "C-1116",
+    label: "Version 4",
+    note: "Latest on file",
+    suggested: true,
+  },
+  {
+    id: "SET-C1116-V3",
+    customerId: "C-1116",
+    label: "Version 3",
+    note: "Rush suit baseline",
+  },
+];

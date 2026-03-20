@@ -28,30 +28,78 @@ type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   fullWidth?: boolean;
 };
 
-type MetricTileProps = {
-  label: string;
-  value: ReactNode;
-};
-
 type DefinitionListProps = {
   items: DefinitionItem[];
   className?: string;
 };
 
+type ModalShellProps = {
+  title: string;
+  subtitle?: string;
+  onClose: () => void;
+  widthClassName?: string;
+  children: ReactNode;
+  footer?: ReactNode;
+};
+
+type PanelSectionProps = {
+  title?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+};
+
+type EntityRowProps = {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  meta?: ReactNode;
+  action?: ReactNode;
+  onClick?: () => void;
+  className?: string;
+};
+
+type EmptyStateProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+type WorkflowToggleProps = {
+  icon: LucideIcon;
+  title: string;
+  subtitle: string;
+  isActive: boolean;
+  isEnabled?: boolean;
+  onClick: () => void;
+};
+
+type SummaryStackProps = {
+  children: ReactNode;
+  className?: string;
+};
+
+type FieldLabelProps = {
+  children: ReactNode;
+};
+
+type InspectorListProps = {
+  items: DefinitionItem[];
+  className?: string;
+};
+
 export function Card({ children, className = "" }: CardProps) {
-  return <div className={cx("rounded-3xl border border-slate-200 bg-white shadow-sm", className)}>{children}</div>;
+  return <section className={cx("app-card", className)}>{children}</section>;
 }
 
 export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHeaderProps) {
   return (
     <div className="mb-4 flex items-start justify-between gap-3">
       <div className="flex items-start gap-3">
-        <div className="rounded-2xl border border-slate-200 bg-slate-100 p-1.5">
+        <div className="app-icon-chip">
           <Icon className="h-4 w-4" />
         </div>
         <div>
-          <h2 className="formal-section-title text-lg font-semibold text-slate-900">{title}</h2>
-          {subtitle ? <p className="formal-section-copy text-sm text-slate-500">{subtitle}</p> : null}
+          <h2 className="app-section-title">{title}</h2>
+          {subtitle ? <p className="app-section-copy">{subtitle}</p> : null}
         </div>
       </div>
       {action ?? null}
@@ -61,12 +109,14 @@ export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHe
 
 export function StatusPill({ children, tone = "default" }: StatusPillProps) {
   const tones: Record<StatusTone, string> = {
-    default: "border-slate-200 bg-slate-100 text-slate-700",
-    dark: "border-slate-900 bg-slate-900 text-white",
-    warn: "border-amber-200 bg-amber-50 text-amber-700",
+    default: "app-pill app-pill--default",
+    dark: "app-pill app-pill--dark",
+    warn: "app-pill app-pill--warn",
+    success: "app-pill app-pill--success",
+    danger: "app-pill app-pill--danger",
   };
 
-  return <span className={cx("rounded-full border px-2.5 py-1 text-xs font-medium", tones[tone])}>{children}</span>;
+  return <span className={tones[tone]}>{children}</span>;
 }
 
 export function ActionButton({
@@ -77,17 +127,16 @@ export function ActionButton({
   ...props
 }: ActionButtonProps) {
   const tones = {
-    primary: "bg-slate-900 text-white border border-slate-900",
-    secondary: "border border-slate-300 text-slate-700 bg-white",
-    quiet: "border border-slate-200 text-slate-600 bg-slate-50",
+    primary: "app-btn app-btn--primary",
+    secondary: "app-btn app-btn--secondary",
+    quiet: "app-btn app-btn--quiet",
   };
 
   return (
     <button
       className={cx(
-        "rounded-2xl px-4 py-3 text-sm font-medium transition hover:bg-slate-50",
+        "text-sm font-medium",
         tones[tone],
-        tone === "primary" && "hover:bg-slate-800",
         fullWidth && "w-full",
         className,
       )}
@@ -98,22 +147,113 @@ export function ActionButton({
   );
 }
 
-export function MetricTile({ label, value }: MetricTileProps) {
+export function DefinitionList({ items, className = "" }: DefinitionListProps) {
   return (
-    <div className="profile-stat rounded-2xl bg-white p-3 text-sm">
-      <div className="profile-stat-label text-slate-500">{label}</div>
-      <div className="profile-stat-value font-semibold">{value}</div>
+    <div className={cx("app-definition-list", className)}>
+      {items.map((item) => (
+        <div key={item.label} className="contents">
+          <div>{item.label}</div>
+          <div className="text-right font-medium text-[var(--app-text)]">{item.value}</div>
+        </div>
+      ))}
     </div>
   );
 }
 
-export function DefinitionList({ items, className = "" }: DefinitionListProps) {
+export function ModalShell({ title, subtitle, onClose, widthClassName = "max-w-[520px]", children, footer }: ModalShellProps) {
   return (
-    <div className={cx("grid grid-cols-2 gap-x-3 gap-y-2 rounded-2xl border border-slate-200 bg-slate-50 p-3 text-xs text-slate-600", className)}>
+    <div className="fixed inset-0 z-50">
+      <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
+      <div className={cx("app-modal absolute left-1/2 top-1/2 w-full -translate-x-1/2 -translate-y-1/2", widthClassName)}>
+        <div className="mb-4 flex items-start justify-between gap-4">
+          <div>
+            <div className="app-section-title">{title}</div>
+            {subtitle ? <div className="app-section-copy">{subtitle}</div> : null}
+          </div>
+          <ActionButton tone="secondary" onClick={onClose} className="px-3 py-2 text-xs">
+            Close
+          </ActionButton>
+        </div>
+        <div>{children}</div>
+        {footer ? <div className="mt-4 border-t border-[var(--app-border)] pt-4">{footer}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+export function PanelSection({ title, action, children, className = "" }: PanelSectionProps) {
+  return (
+    <div className={cx("app-panel-section", className)}>
+      {title || action ? (
+        <div className="mb-3 flex items-center justify-between gap-3">
+          {title ? <div className="app-kicker">{title}</div> : <span />}
+          {action ?? null}
+        </div>
+      ) : null}
+      {children}
+    </div>
+  );
+}
+
+export function EntityRow({ title, subtitle, meta, action, onClick, className = "" }: EntityRowProps) {
+  const content = (
+    <div className={cx("app-entity-row", className)}>
+      <div className="min-w-0 flex-1">
+        <div className="truncate font-medium text-[var(--app-text)]">{title}</div>
+        {subtitle ? <div className="mt-1 text-xs text-[var(--app-text-muted)]">{subtitle}</div> : null}
+      </div>
+      {meta ? <div className="shrink-0 text-right">{meta}</div> : null}
+      {action ? <div className="shrink-0">{action}</div> : null}
+    </div>
+  );
+
+  if (!onClick) {
+    return content;
+  }
+
+  return (
+    <button className="w-full text-left" onClick={onClick}>
+      {content}
+    </button>
+  );
+}
+
+export function EmptyState({ children, className = "" }: EmptyStateProps) {
+  return <div className={cx("app-empty-state", className)}>{children}</div>;
+}
+
+export function WorkflowToggle({ icon: Icon, title, subtitle, isActive, isEnabled, onClick }: WorkflowToggleProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cx(
+        "app-workflow-toggle",
+        isActive && "app-workflow-toggle--active",
+        !isActive && isEnabled && "app-workflow-toggle--enabled",
+      )}
+    >
+      <Icon className="mb-3 h-5 w-5" />
+      <div className="font-semibold text-[var(--app-text)]">{title}</div>
+      <div className="mt-1 text-sm text-[var(--app-text-muted)]">{subtitle}</div>
+    </button>
+  );
+}
+
+export function SummaryStack({ children, className = "" }: SummaryStackProps) {
+  return <div className={cx("space-y-3", className)}>{children}</div>;
+}
+
+export function FieldLabel({ children }: FieldLabelProps) {
+  return <div className="app-field-label">{children}</div>;
+}
+
+export function InspectorList({ items, className = "" }: InspectorListProps) {
+  return (
+    <div className={cx("space-y-2", className)}>
       {items.map((item) => (
-        <div key={item.label} className="contents">
-          <div>{item.label}</div>
-          <div className="text-right font-medium text-slate-900">{item.value}</div>
+        <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
+          <span className="text-[var(--app-text-muted)]">{item.label}</span>
+          <span className="font-medium text-[var(--app-text)]">{item.value}</span>
         </div>
       ))}
     </div>
