@@ -81,6 +81,13 @@ Use this structure in your merge notes or PR body:
 
 Keep it short and operational.
 
+Apply the repo labels when they help route work clearly, especially:
+
+- `workflow`
+- `ui`
+- `logic`
+- subsystem labels like `appointments`, `measurements`, or `order-builder`
+
 ## When to split work into a new branch
 
 Create a new branch instead of piling on if:
