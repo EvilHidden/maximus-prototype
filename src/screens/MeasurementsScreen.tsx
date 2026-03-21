@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
-import { Card, ModalShell, SectionHeader, ActionButton, PanelSection } from "../components/ui/primitives";
+import { Card, ModalShell, SectionHeader, ActionButton } from "../components/ui/primitives";
 import { filterCustomers } from "../features/customer/selectors";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import {
@@ -83,60 +83,73 @@ export function MeasurementsScreen({
 
   return (
     <>
-      <div className="grid gap-4 xl:grid-cols-[1.35fr_0.65fr]">
+      <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <Card className="p-4">
-          <SectionHeader icon={Ruler} title="Measurements" />
+          <SectionHeader icon={Ruler} title="Measurements" subtitle="Capture, review, and attach the active set." />
           <MeasurementStatusCard title={status.title} detail={status.detail} />
 
-          <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
-            <MeasurementFieldGrid
-              activeField={activeField}
-              values={order.custom.draft.measurements}
-              onSelectField={setActiveField}
-            />
-
-            <PanelSection>
-              <div className="grid min-h-full grid-rows-[1fr_auto] gap-4">
-                <div className="flex min-h-[360px] items-center justify-center">
-                  <MeasurementBodyMap activeField={activeField} />
-                </div>
-
-                <MeasurementValueEditor
-                  focusKey={activeField}
-                  value={activeFieldValue}
-                  fraction={parsedActiveValue.fraction}
-                  fractions={fractions}
-                  onChangeValue={(value) => onUpdateMeasurement(activeField, value)}
-                  onStepInches={(delta) => setActiveMeasurementValue(parsedActiveValue.inches + delta, parsedActiveValue.fraction)}
-                  onSetFraction={(value) => setActiveMeasurementValue(parsedActiveValue.inches, value)}
-                  onClear={() => onUpdateMeasurement(activeField, "")}
+          <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
+            <div className="app-text-overline mb-3">Measurement worksheet</div>
+            <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
+              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/14 p-3">
+                <MeasurementFieldGrid
+                  activeField={activeField}
+                  values={order.custom.draft.measurements}
+                  onSelectField={setActiveField}
                 />
               </div>
-            </PanelSection>
+
+              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/14 p-4">
+                <div className="grid min-h-full grid-rows-[1fr_auto] gap-4">
+                  <div className="flex min-h-[360px] items-center justify-center rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/18 px-4 py-5">
+                    <MeasurementBodyMap activeField={activeField} />
+                  </div>
+
+                  <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/18 p-4">
+                    <MeasurementValueEditor
+                      focusKey={activeField}
+                      value={activeFieldValue}
+                      fraction={parsedActiveValue.fraction}
+                      fractions={fractions}
+                      onChangeValue={(value) => onUpdateMeasurement(activeField, value)}
+                      onStepInches={(delta) => setActiveMeasurementValue(parsedActiveValue.inches + delta, parsedActiveValue.fraction)}
+                      onSetFraction={(value) => setActiveMeasurementValue(parsedActiveValue.inches, value)}
+                      onClear={() => onUpdateMeasurement(activeField, "")}
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
           </div>
         </Card>
 
-        <div className="space-y-4">
-          <SavedMeasurementsRail
-            customer={selectedCustomer}
-            customerHistory={customerHistory}
-            linkedMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
-            onCreateDraftSet={onCreateDraftSet}
-            onOpenCustomerModal={() => setCustomerModalOpen(true)}
-            onApplySet={(set) => onReplaceMeasurements(set.values, set.id)}
-            onDeleteSet={setPendingDeleteSetId}
-          />
+        <Card className="p-4">
+          <SectionHeader icon={Ruler} title="Measurement rail" subtitle="Saved sets and active order linkage." />
 
-          <CurrentOrderMeasurementCard
-            customer={selectedCustomer}
-            activeSetDisplay={activeSet ? getMeasurementSetDisplay(activeSet) : null}
-            hasEnteredMeasurements={hasEnteredMeasurements}
-            onOpenSaveDraft={() => openSaveModal("draft")}
-            onOpenSaveSet={() => openSaveModal("saved")}
-            onOpenCustomerModal={() => setCustomerModalOpen(true)}
-            onCheckout={() => onScreenChange("checkout")}
-          />
-        </div>
+          <div className="space-y-5">
+            <div className="border-b border-[var(--app-border)]/45 pb-5">
+              <SavedMeasurementsRail
+                customer={selectedCustomer}
+                customerHistory={customerHistory}
+                linkedMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
+                onCreateDraftSet={onCreateDraftSet}
+                onOpenCustomerModal={() => setCustomerModalOpen(true)}
+                onApplySet={(set) => onReplaceMeasurements(set.values, set.id)}
+                onDeleteSet={setPendingDeleteSetId}
+              />
+            </div>
+
+            <CurrentOrderMeasurementCard
+              customer={selectedCustomer}
+              activeSetDisplay={activeSet ? getMeasurementSetDisplay(activeSet) : null}
+              hasEnteredMeasurements={hasEnteredMeasurements}
+              onOpenSaveDraft={() => openSaveModal("draft")}
+              onOpenSaveSet={() => openSaveModal("saved")}
+              onOpenCustomerModal={() => setCustomerModalOpen(true)}
+              onCheckout={() => onScreenChange("checkout")}
+            />
+          </div>
+        </Card>
       </div>
 
       {customerModalOpen ? (

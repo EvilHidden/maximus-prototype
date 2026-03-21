@@ -15,7 +15,7 @@ export function MeasurementFieldGrid({ activeField, values, onSelectField }: Mea
           <button
             key={field}
             onClick={() => onSelectField(field)}
-            className={`border px-3 py-3 text-left ${isActive ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"}`}
+            className={`min-h-16 border px-3 py-3 text-left ${isActive ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"}`}
           >
             <div className="app-text-overline">{field}</div>
             <div className="app-text-value mt-2">{values[field] || "--"}</div>

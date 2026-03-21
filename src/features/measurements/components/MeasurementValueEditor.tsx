@@ -36,10 +36,10 @@ export function MeasurementValueEditor({
   }, [focusKey]);
 
   return (
-    <div className="grid gap-3">
+    <div className="grid gap-4">
       <div>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <div className="text-xs uppercase tracking-[0.12em] text-[var(--app-text-soft)]">Measurement value</div>
+          <div className="app-text-overline">Measurement value</div>
           <button
             onClick={onClear}
             className="inline-flex h-8 items-center gap-1 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-2 text-xs font-medium text-[var(--app-text-soft)] transition hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-text)]"
@@ -48,10 +48,9 @@ export function MeasurementValueEditor({
             Clear
           </button>
         </div>
-        <div className="grid grid-cols-[76px_minmax(0,1fr)_76px] items-stretch gap-3">
+        <div className="grid grid-cols-[56px_minmax(0,1fr)_56px] items-stretch gap-2">
           <ActionButton tone="secondary" className="min-h-16 px-0 text-lg font-semibold" onClick={() => onStepInches(-1)}>
             <Minus className="h-4 w-4" />
-            1
           </ActionButton>
           <div className="flex min-w-0">
             <input
@@ -67,13 +66,12 @@ export function MeasurementValueEditor({
           </div>
           <ActionButton tone="secondary" className="min-h-16 px-0 text-lg font-semibold" onClick={() => onStepInches(1)}>
             <Plus className="h-4 w-4" />
-            1
           </ActionButton>
         </div>
       </div>
 
       <div>
-        <div className="mb-2 text-xs uppercase tracking-[0.12em] text-[var(--app-text-soft)]">Quarter step</div>
+        <div className="mb-2 app-text-overline">Quarter step</div>
         <div className="grid grid-cols-4 gap-2">
           {fractions.map((fractionOption) => (
             <button

@@ -5,9 +5,9 @@ type MeasurementStatusCardProps = {
 
 export function MeasurementStatusCard({ title, detail }: MeasurementStatusCardProps) {
   return (
-    <div className="mb-4 border-b border-[var(--app-border)] pb-3">
-      <div className="text-base font-semibold text-[var(--app-text)]">{title}</div>
-      <div className="mt-1 text-sm text-[var(--app-text-muted)]">{detail}</div>
+    <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/18 px-4 py-3">
+      <div className="app-text-value">{title}</div>
+      <div className="app-text-caption mt-1">{detail}</div>
     </div>
   );
 }
