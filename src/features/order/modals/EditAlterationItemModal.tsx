@@ -1,5 +1,6 @@
 import type { AlterationService } from "../../../types";
 import { ActionButton, FieldLabel, ModalShell } from "../../../components/ui/primitives";
+import { getAlterationServiceIcon, getAlterationServiceIconClassName } from "../alterationServiceVisuals";
 
 type EditAlterationItemModalProps = {
   garment: string;
@@ -65,19 +66,25 @@ export function EditAlterationItemModal({
 
       <div>
         <FieldLabel>Modifiers</FieldLabel>
-        <div className="grid max-h-[240px] gap-2 overflow-auto pr-1 md:grid-cols-2">
+        <div className="grid max-h-[240px] auto-rows-[7.5rem] gap-2 overflow-auto pr-1 md:grid-cols-2">
           {services.map((service) => {
             const isSelected = selectedModifiers.some((modifier) => modifier.name === service.name);
+            const ServiceIcon = getAlterationServiceIcon(service.name);
             return (
               <button
                 key={`${garment}-${service.name}`}
                 onClick={() => onToggleModifier(service)}
-                className={`border p-3 text-left text-sm ${
+                className={`flex h-full min-h-[7.5rem] flex-col border p-3 text-left text-sm ${
                   isSelected ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
                 }`}
               >
-                <div className="font-medium text-[var(--app-text)]">{service.name}</div>
-                <div className="mt-1 text-xs text-[var(--app-text-muted)]">${service.price.toFixed(2)}</div>
+                <div className="mb-2 flex min-h-[2.75rem] items-start justify-between gap-2">
+                  <div className="font-medium leading-snug text-[var(--app-text)]">{service.name}</div>
+                  <div className={getAlterationServiceIconClassName(service.name)}>
+                    <ServiceIcon className="h-3.5 w-3.5" />
+                  </div>
+                </div>
+                <div className="mt-auto text-xs text-[var(--app-text-muted)]">${service.price.toFixed(2)}</div>
               </button>
             );
           })}
