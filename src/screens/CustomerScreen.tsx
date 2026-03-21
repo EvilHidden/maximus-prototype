@@ -32,12 +32,12 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
             value={query}
             onChange={(event) => setQuery(event.target.value)}
             placeholder="Search by name, phone, or customer ID"
-            className="min-w-0 flex-1 border-0 bg-transparent p-0 text-sm text-[var(--app-text)] outline-none placeholder:text-[var(--app-text-soft)]"
+            className="min-w-0 flex-1 border-0 bg-transparent p-0 app-text-body outline-none placeholder:text-[var(--app-text-soft)]"
           />
         </div>
 
         <div className="app-table-shell">
-          <div className="app-table-head grid grid-cols-[minmax(0,1.4fr)_170px_150px_150px_48px] gap-3 px-4 py-3 text-xs font-semibold uppercase tracking-wide">
+          <div className="app-table-head app-text-overline grid grid-cols-[minmax(0,1.4fr)_170px_150px_150px_48px] gap-3 px-4 py-3">
             <div>Customer</div>
             <div>Phone</div>
             <div>Measurements</div>
@@ -53,18 +53,18 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
                   onSelectCustomer(customer);
                   setDrawerOpen(true);
                 }}
-                className="app-table-row grid w-full grid-cols-[minmax(0,1.4fr)_170px_150px_150px_48px] items-center gap-3 px-4 py-3 text-left text-sm"
+                className="app-table-row grid w-full grid-cols-[minmax(0,1.4fr)_170px_150px_150px_48px] items-center gap-3 px-4 py-3 text-left"
               >
                 <div className="min-w-0">
                   <div className="flex items-center gap-2">
-                    <div className="truncate font-semibold text-[var(--app-text)]">{customer.name}</div>
+                    <div className="app-text-strong truncate">{customer.name}</div>
                     {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
                   </div>
-                  <div className="truncate text-xs text-[var(--app-text-muted)]">{customer.notes}</div>
+                  <div className="app-text-caption truncate">{customer.notes}</div>
                 </div>
-                <div className="truncate text-[var(--app-text-muted)]">{customer.phone}</div>
-                <div className="text-[var(--app-text-muted)]">{getMeasurementStatusLabel(customer.measurementsStatus)}</div>
-                <div className="text-[var(--app-text-muted)]">{customer.lastVisit}</div>
+                <div className="app-text-body-muted truncate">{customer.phone}</div>
+                <div className="app-text-body-muted">{getMeasurementStatusLabel(customer.measurementsStatus)}</div>
+                <div className="app-text-body-muted">{customer.lastVisit}</div>
                 <div className="flex justify-end text-[var(--app-text-soft)]">›</div>
               </button>
             ))}

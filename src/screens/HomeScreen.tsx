@@ -21,19 +21,19 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           <button onClick={() => onScreenChange("customer")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <UserPlus className="mb-2 h-5 w-5" />
-            <div className="font-semibold">Customers</div>
+            <div className="app-text-value">Customers</div>
           </button>
           <button onClick={() => onStartWorkflow("alteration")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <Receipt className="mb-2 h-5 w-5" />
-            <div className="font-semibold">Alteration order</div>
+            <div className="app-text-value">Alteration order</div>
           </button>
           <button onClick={() => onStartWorkflow("custom")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <Ruler className="mb-2 h-5 w-5" />
-            <div className="font-semibold">Custom garment</div>
+            <div className="app-text-value">Custom garment</div>
           </button>
           <button onClick={() => onScreenChange("checkout")} className="app-workflow-toggle app-quick-action flex min-h-[112px] flex-col">
             <Package className="mb-2 h-5 w-5" />
-            <div className="font-semibold">Order pickup</div>
+            <div className="app-text-value">Order pickup</div>
           </button>
         </div>
       </Card>
@@ -47,10 +47,10 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
                 key={appointment.id}
                 title={
                   <div className="flex items-center gap-4">
-                    <div className="w-20 text-sm font-medium text-[var(--app-text)]">{appointment.time}</div>
+                    <div className="w-20 app-text-body font-medium">{appointment.time}</div>
                     <div>
-                      <div className="text-sm font-semibold text-[var(--app-text)]">{appointment.customer}</div>
-                      <div className="text-xs text-[var(--app-text-muted)]">{appointment.type}</div>
+                      <div className="app-text-strong">{appointment.customer}</div>
+                      <div className="app-text-caption">{appointment.type}</div>
                     </div>
                   </div>
                 }
@@ -78,10 +78,10 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
                 key={appointment.id}
                 title={
                   <div className="flex items-center gap-4">
-                    <div className="w-20 text-sm font-medium text-[var(--app-text)]">{appointment.time}</div>
+                    <div className="w-20 app-text-body font-medium">{appointment.time}</div>
                     <div>
-                      <div className="text-sm font-semibold text-[var(--app-text)]">{appointment.customer}</div>
-                      <div className="text-xs text-[var(--app-text-muted)]">{appointment.type}</div>
+                      <div className="app-text-strong">{appointment.customer}</div>
+                      <div className="app-text-caption">{appointment.type}</div>
                     </div>
                   </div>
                 }
@@ -110,10 +110,10 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
               key={appointment.id}
               title={
                 <div className="flex items-center gap-4">
-                  <div className="w-20 text-sm font-medium text-[var(--app-text)]">{appointment.time}</div>
+                  <div className="w-20 app-text-body font-medium">{appointment.time}</div>
                   <div>
-                    <div className="text-sm font-semibold text-[var(--app-text)]">{appointment.customer}</div>
-                    <div className="text-xs text-[var(--app-text-muted)]">{appointment.type}</div>
+                    <div className="app-text-strong">{appointment.customer}</div>
+                    <div className="app-text-caption">{appointment.type}</div>
                   </div>
                 </div>
               }

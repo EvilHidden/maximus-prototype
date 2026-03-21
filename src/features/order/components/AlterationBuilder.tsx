@@ -34,11 +34,11 @@ export function AlterationBuilder({
             <button
               key={garment}
               onClick={() => onSelectGarment(garment)}
-              className={`flex min-h-12 items-center border px-3 py-3 text-left text-sm leading-none ${
+              className={`flex min-h-12 items-center border px-3 py-3 text-left leading-none ${
                 selectedGarment === garment ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
               }`}
             >
-              <span>{garment}</span>
+              <span className="app-text-body font-medium">{garment}</span>
             </button>
           ))}
         </div>
@@ -54,12 +54,12 @@ export function AlterationBuilder({
               <button
                 key={`${selectedGarment}-${service.name}`}
                 onClick={() => onToggleModifier(service)}
-                className={`border px-3 py-3 text-left text-sm ${isSelected ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"}`}
+                className={`border px-3 py-3 text-left ${isSelected ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"}`}
               >
-                <div className="font-medium text-[var(--app-text)]">{service.name}</div>
+                <div className="app-text-body font-medium">{service.name}</div>
                 <div className="mt-2 flex items-center justify-between gap-2">
-                  <div className="text-xs text-[var(--app-text-muted)]">Service</div>
-                  <div className="text-sm font-semibold text-[var(--app-text)]">${service.price.toFixed(2)}</div>
+                  <div className="app-text-caption">Service</div>
+                  <div className="app-text-strong">${service.price.toFixed(2)}</div>
                 </div>
               </button>
             );
@@ -68,12 +68,12 @@ export function AlterationBuilder({
       ) : null}
 
       <div className="mt-4 flex items-center justify-between gap-3 app-panel-section">
-        <div className="text-sm text-[var(--app-text-muted)]">
-          <div className="font-medium text-[var(--app-text)]">Current item</div>
-          <div className="text-xs text-[var(--app-text-muted)]">Ready to add</div>
+        <div>
+          <div className="app-text-body font-medium">Current item</div>
+          <div className="app-text-caption">Ready to add</div>
         </div>
         <div className="flex items-center gap-3">
-          <div className="text-lg font-semibold text-[var(--app-text)]">${currentSubtotal.toFixed(2)}</div>
+          <div className="app-text-value">${currentSubtotal.toFixed(2)}</div>
           <ActionButton tone="primary" disabled={!selectedGarment || selectedModifiers.length === 0} onClick={onAddItem}>
             Add to order
           </ActionButton>

@@ -18,8 +18,8 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
       <div className="grid h-full grid-cols-[220px_minmax(0,1fr)]">
         <aside className="app-sidebar flex h-full w-52 shrink-0 flex-col gap-2 p-3">
           <div className="mb-1 border-b border-[var(--app-border)] px-3 py-2">
-            <div className="text-sm font-semibold text-[var(--app-text)]">SAMEpage Tailor OS</div>
-            <div className="text-xs text-[var(--app-text-muted)]">Operations</div>
+            <div className="app-text-strong">SAMEpage Tailor OS</div>
+            <div className="app-text-overline mt-1">Operations</div>
           </div>
 
           <div className="flex-1 space-y-2">
@@ -28,7 +28,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
                 key={item.key}
                 onClick={() => onScreenChange(item.key)}
                 className={cx(
-                  "w-full px-3 py-3 text-left text-sm font-medium transition",
+                  "w-full px-3 py-3 text-left app-text-body font-medium transition",
                   screen === item.key ? "app-btn app-btn--primary" : "app-btn app-btn--quiet",
                 )}
               >

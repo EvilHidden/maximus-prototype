@@ -71,13 +71,13 @@ export function OrderBag({
       <SummaryStack className="text-sm">
         {customDraft ? (
           <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2">
-            <div className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">Active custom build</div>
+            <div className="app-text-overline">Active custom build</div>
             <div className="mt-1 flex items-center justify-between gap-3">
               <div className="min-w-0">
-                <div className="truncate text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{customDraft.title.replace("Draft custom garment - ", "")}</div>
-                {customDraft.subtitle ? <div className="mt-0.5 text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">{customDraft.subtitle}</div> : null}
+                <div className="app-text-value truncate">{customDraft.title.replace("Draft custom garment - ", "")}</div>
+                {customDraft.subtitle ? <div className="app-text-overline mt-0.5">{customDraft.subtitle}</div> : null}
               </div>
-              <div className="shrink-0 text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{`$${customDraft.amount.toFixed(2)}`}</div>
+              <div className="app-text-value shrink-0">{`$${customDraft.amount.toFixed(2)}`}</div>
             </div>
           </div>
         ) : null}
@@ -93,8 +93,8 @@ export function OrderBag({
             </button>
           }
         >
-          <div className="font-semibold text-[var(--app-text)]">{customer?.name ?? "Customer required"}</div>
-          <div className="mt-0.5 text-xs text-[var(--app-text-muted)]">{customer?.phone ?? "Customer required"}</div>
+          <div className="app-text-strong">{customer?.name ?? "Customer required"}</div>
+          <div className="app-text-caption mt-0.5">{customer?.phone ?? "Customer required"}</div>
         </PanelSection>
 
         <PanelSection title="Items">
@@ -111,10 +111,10 @@ export function OrderBag({
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
-                      <div className="font-medium text-[var(--app-text)]">{item.title}</div>
-                      {item.subtitle ? <div className="mt-1 text-[11px] uppercase tracking-[0.08em] leading-relaxed text-[var(--app-text-soft)]">{item.subtitle}</div> : null}
+                      <div className="app-text-body font-medium">{item.title}</div>
+                      {item.subtitle ? <div className="app-text-overline mt-1 leading-relaxed">{item.subtitle}</div> : null}
                     </div>
-                    <div className="shrink-0 text-sm font-semibold text-[var(--app-text)]">${item.amount.toFixed(2)}</div>
+                    <div className="app-text-strong shrink-0">${item.amount.toFixed(2)}</div>
                   </div>
                   {item.removable && item.itemId ? (
                     <div className="mt-2 flex justify-end">
@@ -151,13 +151,13 @@ export function OrderBag({
             }
           >
             <div className="space-y-2">
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--app-text-muted)]">Schedule</span>
-                <span className="text-right font-medium text-[var(--app-text)]">{formattedPickupSchedule || "Required"}</span>
+              <div className="flex items-center justify-between">
+                <span className="app-text-body-muted">Schedule</span>
+                <span className="app-text-body text-right font-medium">{formattedPickupSchedule || "Required"}</span>
               </div>
-              <div className="flex items-center justify-between text-sm">
-                <span className="text-[var(--app-text-muted)]">Location</span>
-                <span className="font-medium text-[var(--app-text)]">{pickupLocation || "Required"}</span>
+              <div className="flex items-center justify-between">
+                <span className="app-text-body-muted">Location</span>
+                <span className="app-text-body font-medium">{pickupLocation || "Required"}</span>
               </div>
               {!pickupDate || !pickupTime || !pickupLocation ? (
                 <EmptyState className="text-xs">Pickup date, time, and location required.</EmptyState>

@@ -136,7 +136,7 @@ export function ActionButton({
   return (
     <button
       className={cx(
-        "text-sm font-medium",
+        "app-text-body font-medium",
         tones[tone],
         fullWidth && "w-full",
         className,
@@ -153,8 +153,8 @@ export function DefinitionList({ items, className = "" }: DefinitionListProps) {
     <div className={cx("app-definition-list", className)}>
       {items.map((item) => (
         <div key={item.label} className="contents">
-          <div>{item.label}</div>
-          <div className="text-right font-medium text-[var(--app-text)]">{item.value}</div>
+          <div className="app-text-caption">{item.label}</div>
+          <div className="app-text-body text-right font-medium">{item.value}</div>
         </div>
       ))}
     </div>
@@ -210,8 +210,8 @@ export function EntityRow({ title, subtitle, meta, action, onClick, className = 
   const content = (
     <div className={cx("app-entity-row", className)}>
       <div className="min-w-0 flex-1">
-        <div className="truncate font-medium text-[var(--app-text)]">{title}</div>
-        {subtitle ? <div className="mt-1 text-xs text-[var(--app-text-muted)]">{subtitle}</div> : null}
+        <div className="app-text-strong truncate">{title}</div>
+        {subtitle ? <div className="app-text-caption mt-1">{subtitle}</div> : null}
       </div>
       {meta ? <div className="shrink-0 text-right">{meta}</div> : null}
       {action ? <div className="shrink-0">{action}</div> : null}
@@ -244,8 +244,8 @@ export function WorkflowToggle({ icon: Icon, title, subtitle, isActive, isEnable
       )}
     >
       <Icon className="mb-3 h-5 w-5" />
-      <div className="text-base font-semibold tracking-[-0.01em] text-[var(--app-text)]">{title}</div>
-      <div className="mt-1 text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">{subtitle}</div>
+      <div className="app-text-value">{title}</div>
+      <div className="app-text-overline mt-1">{subtitle}</div>
     </button>
   );
 }
@@ -262,9 +262,9 @@ export function InspectorList({ items, className = "" }: InspectorListProps) {
   return (
     <div className={cx("space-y-2", className)}>
       {items.map((item) => (
-        <div key={item.label} className="flex items-center justify-between gap-3 text-sm">
-          <span className="text-[var(--app-text-muted)]">{item.label}</span>
-          <span className="font-medium text-[var(--app-text)]">{item.value}</span>
+        <div key={item.label} className="flex items-center justify-between gap-3">
+          <span className="app-text-body-muted">{item.label}</span>
+          <span className="app-text-body font-medium">{item.value}</span>
         </div>
       ))}
     </div>

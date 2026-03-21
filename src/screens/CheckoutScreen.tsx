@@ -77,7 +77,7 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
         ) : (
           <div className="space-y-4">
             <PanelSection title="Customer handoff">
-              <div className="space-y-2 text-sm">
+              <div className="space-y-2">
                 <EntityRow
                   title={selectedCustomer?.name ?? "Customer required"}
                   subtitle={selectedCustomer ? `${selectedCustomer.phone} • ${selectedCustomer.lastVisit}` : "Link a customer before checkout."}
@@ -97,15 +97,15 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
               </div>
             </PanelSection>
 
-            <PanelSection title="Line items" action={<span className="text-sm font-medium text-[var(--app-text)]">{lineItems.length}</span>}>
+            <PanelSection title="Line items" action={<span className="app-text-body font-medium">{lineItems.length}</span>}>
               <div className="space-y-2">
                 {lineItems.map((item) => (
                   <div key={item.id} className="app-entity-row">
                     <div className="min-w-0 flex-1">
-                      <div className="font-medium text-[var(--app-text)]">{item.title}</div>
-                      <div className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">{item.subtitle}</div>
+                      <div className="app-text-body font-medium">{item.title}</div>
+                      <div className="app-text-caption mt-1 leading-relaxed">{item.subtitle}</div>
                     </div>
-                    <div className="shrink-0 self-start pl-4 text-sm font-semibold text-[var(--app-text)]">
+                    <div className="app-text-strong shrink-0 self-start pl-4">
                       {formatSummaryCurrency(item.amount)}
                     </div>
                   </div>
@@ -114,13 +114,13 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
             </PanelSection>
 
             <Card className="p-4">
-              <div className="mb-3 font-semibold text-[var(--app-text)]">Financials</div>
-              <div className="mb-4 space-y-2 text-sm">
-                <EntityRow title="Alterations" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.alterationsSubtotal)}</span>} />
-                <EntityRow title="Custom garments" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.customSubtotal)}</span>} />
-                <EntityRow title="Tax" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.taxAmount)}</span>} />
+              <div className="app-text-strong mb-3">Financials</div>
+              <div className="mb-4 space-y-2">
+                <EntityRow title="Alterations" meta={<span className="app-text-strong">{formatSummaryCurrency(pricing.alterationsSubtotal)}</span>} />
+                <EntityRow title="Custom garments" meta={<span className="app-text-strong">{formatSummaryCurrency(pricing.customSubtotal)}</span>} />
+                <EntityRow title="Tax" meta={<span className="app-text-strong">{formatSummaryCurrency(pricing.taxAmount)}</span>} />
                 <EntityRow title="Deposit due today" meta={<StatusPill tone={hasCustom ? "dark" : "default"}>{hasCustom ? formatSummaryCurrency(pricing.depositDue) : "None"}</StatusPill>} />
-                <EntityRow title="Order total" meta={<span className="font-semibold text-[var(--app-text)]">{formatSummaryCurrency(pricing.total)}</span>} />
+                <EntityRow title="Order total" meta={<span className="app-text-strong">{formatSummaryCurrency(pricing.total)}</span>} />
               </div>
               <div className="grid grid-cols-2 gap-3">
                 <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
@@ -137,9 +137,9 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
 
       <div className="space-y-4">
         <Card className="border-dashed p-3 opacity-90">
-          <div className="mb-2 text-xs font-semibold uppercase tracking-[0.14em] text-[var(--app-text-soft)]">Ops checks</div>
+          <div className="app-text-overline mb-2">Ops checks</div>
           <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]">
-            <div className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2 text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--app-text-soft)]">
+            <div className="app-text-overline grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-b border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2">
               <span>Check</span>
               <span>Detail</span>
               <span>Status</span>
@@ -172,10 +172,10 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
             ].map((row) => (
               <div
                 key={row.label}
-                className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-b border-[var(--app-border)] px-3 py-2 text-xs last:border-b-0"
+                className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-b border-[var(--app-border)] px-3 py-2 last:border-b-0"
               >
-                <span className="font-medium text-[var(--app-text)]">{row.label}</span>
-                <span className="text-[var(--app-text-muted)]">{row.detail}</span>
+                <span className="app-text-body font-medium">{row.label}</span>
+                <span className="app-text-caption">{row.detail}</span>
                 <StatusPill tone={row.tone as "default" | "dark" | "warn"}>{row.status}</StatusPill>
               </div>
             ))}

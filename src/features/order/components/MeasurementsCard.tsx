@@ -24,13 +24,13 @@ export function MeasurementsCard({
           <PanelSection className="bg-[var(--app-surface)]">
             <div className="flex items-start justify-between gap-3">
               <div>
-                <div className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">Measurement set</div>
-                <div className="mt-1 text-[15px] font-semibold tracking-[-0.01em] text-[var(--app-text)]">{model.set.title}</div>
+                <div className="app-text-overline">Measurement set</div>
+                <div className="app-text-value mt-1">{model.set.title}</div>
               </div>
               <StatusPill tone="dark">{model.set.version}</StatusPill>
             </div>
-            <div className="mt-1.5 text-xs text-[var(--app-text-muted)]">{model.set.status ?? "Attached to this order."}</div>
-            {model.set.subline ? <div className="mt-1 text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">{model.set.subline}</div> : null}
+            <div className="app-text-caption mt-1.5">{model.set.status ?? "Attached to this order."}</div>
+            {model.set.subline ? <div className="app-text-overline mt-1">{model.set.subline}</div> : null}
           </PanelSection>
           <div className="mt-2.5 flex items-center gap-2">
             <ActionButton tone="secondary" className="px-3 py-2.5 text-xs" onClick={onChooseAnother}>

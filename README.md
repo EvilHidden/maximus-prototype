@@ -25,6 +25,39 @@ This repo is structured for fast two-person prototyping:
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching
 
+## Typography standard
+
+Use the shared typography roles from `src/index.css` instead of inventing new one-off text combinations in feature code:
+
+- `app-text-overline`
+  - small uppercase structural labels and section metadata
+- `app-text-caption`
+  - short helper copy and secondary supporting text
+- `app-text-body`
+  - default operational body text
+- `app-text-body-muted`
+  - muted body text in tables, summaries, and support rows
+- `app-text-strong`
+  - row titles, emphasized labels, and important inline values
+- `app-text-value`
+  - key values, selected states, and primary emphasis in cards
+
+Prefer these roles first, then add Tailwind layout utilities around them. Avoid ad hoc mixes of `text-xs`, `text-sm`, `font-semibold`, and `tracking-*` unless there is a strong local reason.
+
+## Prototype constraint check
+
+This repo is a client signoff prototype, not a production foundation and not a true MVP.
+
+Before adding a new framework, dependency, design system layer, or abstraction, do a quick yes/no check:
+
+- Does this directly help the client validate workflow logic right now?
+- Will this save more iteration time over the next 1-2 weeks than it costs to introduce?
+- Are we repeating the same pattern enough times that not extracting it is now the bigger risk?
+
+If the answer is `no`, keep the change local, minimal, and prototype-scoped.
+
+If the answer is `yes`, pause first and explicitly call out the tradeoff before implementing. The default should be to avoid overbuilding.
+
 ## Commands
 
 ```bash

@@ -15,6 +15,16 @@ Secondary goal:
 - Optimize for collaboration safety first, then visual polish.
 - Preserve the current direction: operational/internal tooling, not luxury/client-facing design.
 
+## Prototype Constraint Rule
+- Treat this repo as a signoff prototype only. It is not a production app and not the beginning of a true MVP unless the user explicitly changes that direction.
+- Before introducing a new framework, dependency, abstraction layer, or system-level refactor, do a fast yes/no evaluation:
+  - Does it directly help the client validate workflow logic now?
+  - Will it save more iteration time in the next 1-2 weeks than it costs to add?
+  - Are we repeating a pattern often enough that not extracting it is now the bigger risk?
+- If the answer is `no`, keep the work local, minimal, and prototype-scoped.
+- If the answer is `yes`, stop and warn the user before proceeding. Call out that this is a scope/formalization step, explain the tradeoff briefly, and wait for confirmation before overbuilding.
+- Default bias: prefer one-off prototype solutions with light reuse over new framework adoption.
+
 ## Branching Rules
 - Do not work directly on `main` for normal feature work.
 - Create short-lived branches with the prefix `codex/`.
@@ -66,8 +76,16 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
 - Reuse primitives from `src/components/ui/primitives.tsx` before inventing new one-off markup patterns.
 - If a pattern appears more than once, promote it into the UI layer or a feature component.
 - Use semantic app classes and tokens from `src/index.css`.
+- Use the shared typography roles from `src/index.css` for text hierarchy:
+  - `app-text-overline` for structural labels and metadata
+  - `app-text-caption` for helper copy
+  - `app-text-body` / `app-text-body-muted` for default text
+  - `app-text-strong` for emphasized labels
+  - `app-text-value` for key values and selected states
+- Prefer those roles plus Tailwind layout utilities over ad hoc text styling in feature files.
 - Do not bring back broad global overrides that target generic Tailwind utility classes like `.bg-white` or `.text-slate-500`.
 - Radius, hierarchy, and dark-mode behavior should stay consistent with the operational UI system already in place.
+- Do not add another component framework or design-system layer just to make the prototype feel more formal. Only do this after the prototype constraint rule above is satisfied.
 
 ## Repo Hygiene
 - Remove dead files and stale styles when replacing old architecture.
@@ -93,6 +111,7 @@ Before implementing:
 - identify the subsystem
 - confirm the reducer actions/selectors needed
 - avoid putting new behavior directly into a screen if a feature module already exists
+- run the prototype constraint rule quickly; if the work looks like framework adoption, architecture formalization, or reusable-system building, stop and warn the user before proceeding
 
 Before committing:
 - remove dead code introduced by the change

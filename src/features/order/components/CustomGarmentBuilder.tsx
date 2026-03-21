@@ -146,8 +146,8 @@ export function CustomGarmentBuilder({
                       : "border border-transparent bg-transparent text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
                   )}
                 >
-                  <span className="text-[11px] uppercase tracking-[0.08em] text-[var(--app-text-soft)]">Cut</span>
-                  <div className="mt-1 text-base font-semibold tracking-[-0.01em]">{genderLabels[gender]}</div>
+                  <span className="app-text-overline">Cut</span>
+                  <div className="app-text-value mt-1">{genderLabels[gender]}</div>
                 </button>
               ))}
             </div>
@@ -166,7 +166,7 @@ export function CustomGarmentBuilder({
                       selectedGarment === item && "app-workflow-toggle--active",
                     )}
                   >
-                    <span className="text-[13px] font-medium leading-snug">{item}</span>
+                    <span className="app-text-body font-medium leading-snug">{item}</span>
                   </button>
                 ))}
               </div>
@@ -258,7 +258,7 @@ export function CustomGarmentBuilder({
             </div>
           ) : showConfiguration ? (
             <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-4 text-sm text-[var(--app-text-muted)]">
-              Canvas not needed for this garment.
+              <span className="app-text-body-muted">Canvas not needed for this garment.</span>
             </div>
           ) : (
             <EmptyState>Select a garment first.</EmptyState>
@@ -294,7 +294,7 @@ export function CustomGarmentBuilder({
             </div>
           ) : showConfiguration ? (
             <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-4 text-sm text-[var(--app-text-muted)]">
-              Lapel and pocket selections are only needed for jacket-based garments.
+              <span className="app-text-body-muted">Lapel and pocket selections are only needed for jacket-based garments.</span>
             </div>
           ) : (
             <EmptyState>Select a garment first.</EmptyState>

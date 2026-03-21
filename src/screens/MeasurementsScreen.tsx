@@ -191,15 +191,15 @@ export function MeasurementsScreen({
           }
         >
           <label className="block">
-            <div className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">Set name</div>
+            <div className="app-field-label mb-2">Set name</div>
             <input
               value={saveTitle}
               onChange={(event) => setSaveTitle(event.target.value)}
               placeholder={saveMode === "draft" ? "Draft name" : "Saved set name"}
-              className="app-input py-3 text-sm"
+              className="app-input app-text-body py-3"
             />
           </label>
-          <div className="mt-3 text-sm text-[var(--app-text-muted)]">
+          <div className="app-text-body-muted mt-3">
             {saveMode === "draft"
               ? "Drafts stay editable and can be promoted to a saved version later."
               : activeSet?.isDraft
@@ -232,7 +232,7 @@ export function MeasurementsScreen({
             </div>
           }
         >
-          <div className="text-sm text-[var(--app-text-muted)]">
+          <div className="app-text-body-muted">
             Remove this set from the customer history. If it is the current linked set, the order will keep the measurements as a draft.
           </div>
         </ModalShell>
