@@ -8,7 +8,7 @@ Usage:
   npm run ship -- "Short PR title"
 
 What it does:
-  1. Verifies you are not on main
+  1. Verifies you are on a codex/ branch and not on main
   2. Runs npm run build
   3. Stages all changes and commits them with the provided title
   4. Pushes the current branch
@@ -32,6 +32,11 @@ if [[ "$current_branch" == "$base_branch" ]]; then
   exit 1
 fi
 
+if [[ "$current_branch" != codex/* ]]; then
+  echo "Refusing to ship from ${current_branch}. Use a codex/ branch for shippable topic work."
+  exit 1
+fi
+
 if [[ -z "$(git status --short)" ]]; then
   echo "No local changes to ship."
   exit 1
@@ -44,6 +49,11 @@ npm run build
 
 echo "Staging changes..."
 git add -A
+
+staged_file_count="$(git diff --cached --name-only | wc -l | tr -d ' ')"
+if [[ "${staged_file_count}" -gt 12 ]]; then
+  echo "Warning: ${staged_file_count} files are staged. Double-check that this branch is still one shippable slice."
+fi
 
 if git diff --cached --quiet; then
   echo "Nothing staged after git add -A."

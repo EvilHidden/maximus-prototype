@@ -18,10 +18,12 @@ The goal is not heavyweight process. The goal is fewer collisions, clearer hando
 For the fast path, use:
 
 ```bash
+npm run start-topic -- "short topic name"
 npm run ship -- "Short PR title"
 ```
 
 That command runs the build, stages and commits the branch, pushes it, opens or reuses a PR to `main`, and enables auto-merge so GitHub closes it out as soon as the required check passes.
+The `start-topic` command checks that your tree is clean, updates `main`, and creates a fresh `codex/` branch for the new idea.
 
 ## Branch naming
 
@@ -128,6 +130,7 @@ git checkout main
 git pull --ff-only origin main
 git checkout -b codex/your-branch-name
 npm run build
+npm run start-topic -- "short topic name"
 npm run ship -- "Short PR title"
 ```
 
