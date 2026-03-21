@@ -100,22 +100,24 @@ export function MeasurementsScreen({
               </div>
 
               <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/14 p-4">
-                <div className="grid min-h-full grid-rows-[1fr_auto] gap-4">
+                <div className="grid min-h-full gap-4">
                   <div className="flex min-h-[360px] items-center justify-center rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/18 px-4 py-5">
                     <MeasurementBodyMap activeField={activeField} />
                   </div>
 
                   <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/18 p-4">
-                    <MeasurementValueEditor
-                      focusKey={activeField}
-                      value={activeFieldValue}
-                      fraction={parsedActiveValue.fraction}
-                      fractions={fractions}
-                      onChangeValue={(value) => onUpdateMeasurement(activeField, value)}
-                      onStepInches={(delta) => setActiveMeasurementValue(parsedActiveValue.inches + delta, parsedActiveValue.fraction)}
-                      onSetFraction={(value) => setActiveMeasurementValue(parsedActiveValue.inches, value)}
-                      onClear={() => onUpdateMeasurement(activeField, "")}
-                    />
+                    <div className="mx-auto max-w-[420px]">
+                      <MeasurementValueEditor
+                        focusKey={activeField}
+                        value={activeFieldValue}
+                        fraction={parsedActiveValue.fraction}
+                        fractions={fractions}
+                        onChangeValue={(value) => onUpdateMeasurement(activeField, value)}
+                        onStepInches={(delta) => setActiveMeasurementValue(parsedActiveValue.inches + delta, parsedActiveValue.fraction)}
+                        onSetFraction={(value) => setActiveMeasurementValue(parsedActiveValue.inches, value)}
+                        onClear={() => onUpdateMeasurement(activeField, "")}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>

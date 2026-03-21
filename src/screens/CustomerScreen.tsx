@@ -23,17 +23,13 @@ function CustomerRow({
   onOpen: () => void;
 }) {
   const statusTone = getMeasurementStatusTone(customer.measurementsStatus);
-  const statusClasses =
-    statusTone === "success"
-      ? "border-emerald-500/45 bg-emerald-500/10 text-emerald-200"
-      : "border-amber-500/45 bg-amber-500/10 text-amber-200";
 
   return (
     <button
       onClick={onOpen}
       className="w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/24 px-4 py-4 text-left transition hover:bg-[var(--app-surface)]/38"
     >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.55fr)_220px_220px_120px] xl:items-center">
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.8fr)_220px_140px] xl:items-center">
         <div className="min-w-0 space-y-3">
           <div className="flex items-center gap-2">
             <div className="app-text-value truncate">{customer.name}</div>
@@ -46,25 +42,21 @@ function CustomerRow({
           </div>
         </div>
 
-        <div className="space-y-1">
-          <div className="app-text-overline">Phone</div>
-          <div className="app-text-body font-medium">{customer.phone}</div>
-        </div>
-
-        <div className="space-y-2">
+        <div className="space-y-2 xl:justify-self-start">
           <div className="space-y-1">
             <div className="app-text-overline">Measurements</div>
-            <div className="flex flex-col items-start gap-2">
-              <div
-                className={`inline-flex min-h-11 min-w-[132px] items-center justify-center gap-2 rounded-full border px-3 py-2 text-sm font-medium ${statusClasses}`}
-              >
-                {customer.measurementsStatus === "on_file" ? <Ruler className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                <span className="leading-tight">{getMeasurementStatusLabel(customer.measurementsStatus)}</span>
-              </div>
-              <div className="pl-2 app-text-caption">{measurementCount} sets</div>
+            <div className="flex flex-col items-start gap-1.5">
+              <StatusPill tone={statusTone}>
+                {customer.measurementsStatus === "on_file" ? (
+                  <Ruler className="h-3.5 w-3.5" />
+                ) : (
+                  <AlertCircle className="h-3.5 w-3.5" />
+                )}
+                {getMeasurementStatusLabel(customer.measurementsStatus)}
+              </StatusPill>
+              <div className="app-text-caption">{measurementCount} sets</div>
             </div>
           </div>
-
         </div>
 
         <div className="flex items-center justify-between gap-4 xl:block xl:justify-self-end xl:text-right">
