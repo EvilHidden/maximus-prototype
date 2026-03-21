@@ -10,6 +10,23 @@ export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
 export type AlterationCheckoutIntent = "pay_later" | "prepay_now" | null;
 export type OpenOrderPaymentStatus = "pay_later" | "prepaid";
+export type CustomOrderEventType = "none" | "wedding" | "prom";
+export type PickupSchedule = {
+  pickupDate: string;
+  pickupTime: string;
+  pickupLocation: PickupLocation | "";
+  eventType: CustomOrderEventType;
+  eventDate: string;
+};
+
+export type OpenOrderPickup = PickupSchedule & {
+  id: string;
+  scope: WorkflowMode;
+  label: string;
+  itemSummary: string[];
+  itemCount: number;
+  readyForPickup: boolean;
+};
 
 export type Customer = {
   id: string;
@@ -141,9 +158,8 @@ export type OrderWorkflowState = {
   alteration: AlterationBuilderState;
   custom: CustomBuilderState;
   fulfillment: {
-    pickupDate: string;
-    pickupTime: string;
-    pickupLocation: PickupLocation | "";
+    alteration: PickupSchedule;
+    custom: PickupSchedule;
   };
 };
 
@@ -154,13 +170,20 @@ export type OpenOrder = {
   orderType: OrderType;
   itemCount: number;
   itemSummary: string[];
-  pickupDate: string;
-  pickupTime: string;
-  pickupLocation: PickupLocation | "";
+  pickupSchedules: OpenOrderPickup[];
   paymentStatus: OpenOrderPaymentStatus;
   collectedToday: number;
   total: number;
   createdAtLabel: string;
+};
+
+export type ClosedOrderHistoryItem = {
+  id: string;
+  customerName: string;
+  label: string;
+  date: string;
+  status: string;
+  total: string;
 };
 
 export type NavItem = {

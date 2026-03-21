@@ -4,6 +4,9 @@ import { ActionButton, Card, EmptyState, EntityRow, PanelSection, SectionHeader,
 import {
   getCheckoutCollectionAmount,
   formatPickupSchedule,
+  getCustomFulfillmentSummary,
+  getPickupScheduleForScope,
+  getRequiredPickupScopes,
   formatSummaryCurrency,
   getOrderBagLineItems,
   getOrderType,
@@ -16,10 +19,10 @@ type CheckoutScreenProps = {
   payerCustomer: Customer | null;
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
-  onCompleteAlterationOrder: (paymentStatus: "pay_later" | "prepaid") => void;
+  onCompleteOrder: (paymentStatus: "pay_later" | "prepaid") => void;
 };
 
-export function CheckoutScreen({ payerCustomer, order, onScreenChange, onCompleteAlterationOrder }: CheckoutScreenProps) {
+export function CheckoutScreen({ payerCustomer, order, onScreenChange, onCompleteOrder }: CheckoutScreenProps) {
   const orderType = getOrderType(order);
   const hasAlterations = orderType === "alteration" || orderType === "mixed";
   const hasCustom = orderType === "custom" || orderType === "mixed";
@@ -28,14 +31,26 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange, onComplet
   const lineItems = getOrderBagLineItems(order, []);
   const pricing = getPricingSummary(order);
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
-  const formattedPickup = formatPickupSchedule(order.fulfillment.pickupDate, order.fulfillment.pickupTime);
+  const requiredPickupScopes = getRequiredPickupScopes(order);
+  const formattedPickup = requiredPickupScopes
+    .map((scope) => {
+      const schedule = getPickupScheduleForScope(order, scope);
+      const scopeLabel = scope === "alteration" ? "Alterations" : "Custom";
+      if (scope === "custom") {
+        return `${scopeLabel}: ${getCustomFulfillmentSummary(schedule.eventType, schedule.eventDate, schedule.pickupLocation)}`;
+      }
+
+      const formatted = formatPickupSchedule(schedule.pickupDate, schedule.pickupTime);
+      return formatted && schedule.pickupLocation ? `${scopeLabel}: ${formatted} • ${schedule.pickupLocation}` : `${scopeLabel}: Required`;
+    })
+    .join(requiredPickupScopes.length > 1 ? "\n" : "");
   const isAlterationPrepayFlow = orderType === "alteration" && order.checkoutIntent === "prepay_now";
   const checklist = [
     { label: "Payer linked", ready: !summaryGuardrail.missingCustomer, value: payerCustomer?.name ?? "Required" },
     {
       label: "Pickup scheduled",
       ready: !summaryGuardrail.missingPickup,
-      value: pickupRequired ? `${formattedPickup ?? "Required"}${order.fulfillment.pickupLocation ? ` • ${order.fulfillment.pickupLocation}` : ""}` : "Not needed",
+      value: pickupRequired ? formattedPickup || "Required" : "Not needed",
     },
     {
       label: "Wearers assigned",
@@ -90,11 +105,7 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange, onComplet
                 {pickupRequired ? (
                   <EntityRow
                     title="Pickup handoff"
-                    subtitle={
-                      formattedPickup && order.fulfillment.pickupLocation
-                        ? `${formattedPickup} • ${order.fulfillment.pickupLocation}`
-                        : "Pickup date, time, and location required."
-                    }
+                    subtitle={formattedPickup || "Alteration pickup details or custom order event details required."}
                     meta={<StatusPill tone={!summaryGuardrail.missingPickup ? "dark" : "warn"}>{!summaryGuardrail.missingPickup ? "Ready" : "Missing"}</StatusPill>}
                   />
                 ) : null}
@@ -134,9 +145,15 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange, onComplet
                   tone="primary"
                   disabled={checkoutBlocked}
                   onClick={() => {
-                    if (isAlterationPrepayFlow) {
-                      onCompleteAlterationOrder("prepaid");
+                    if (!orderType) {
+                      return;
                     }
+
+                    if (orderType === "alteration" && !isAlterationPrepayFlow) {
+                      return;
+                    }
+
+                    onCompleteOrder("prepaid");
                   }}
                 >
                   {isAlterationPrepayFlow

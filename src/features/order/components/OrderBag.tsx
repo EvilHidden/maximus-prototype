@@ -1,5 +1,5 @@
 import { CalendarClock, MapPin, ShoppingBag, Trash2 } from "lucide-react";
-import type { Customer, OrderBagLineItem, OrderType, PickupLocation, PricingSummary, WorkflowMode } from "../../../types";
+import type { Customer, OrderBagLineItem, OrderType, PickupSchedule, PricingSummary, WorkflowMode } from "../../../types";
 import {
   ActionButton,
   Card,
@@ -9,7 +9,7 @@ import {
   SummaryStack,
   cx,
 } from "../../../components/ui/primitives";
-import { formatPickupSchedule } from "../selectors";
+import { formatPickupSchedule, getCustomFulfillmentSummary } from "../selectors";
 import { PricingSummary as PricingSummaryPanel } from "./PricingSummary";
 
 type OrderBagProps = {
@@ -20,11 +20,9 @@ type OrderBagProps = {
   activeWorkflow: WorkflowMode | null;
   continueLabel: string;
   pickupRequired: boolean;
-  pickupDate: string;
-  pickupTime: string;
-  pickupLocation: PickupLocation | "";
+  pickupSchedules: Record<WorkflowMode, PickupSchedule>;
   onOpenCustomerModal: () => void;
-  onOpenPickupModal: () => void;
+  onOpenPickupModal: (scope: WorkflowMode) => void;
   onEditAlterationItem: (itemId: number) => void;
   onEditCustomItem: (itemId: number) => void;
   onRequestRemoveItem: (kind: WorkflowMode, itemId: number) => void;
@@ -45,9 +43,7 @@ export function OrderBag({
   activeWorkflow,
   continueLabel,
   pickupRequired,
-  pickupDate,
-  pickupTime,
-  pickupLocation,
+  pickupSchedules,
   onOpenCustomerModal,
   onOpenPickupModal,
   onEditAlterationItem,
@@ -61,8 +57,18 @@ export function OrderBag({
   continueDisabledReason,
   onShowDisabledReason,
 }: OrderBagProps) {
-  const formattedPickupSchedule = formatPickupSchedule(pickupDate, pickupTime);
+  const visiblePickupScopes = orderType === "mixed"
+    ? (["alteration", "custom"] as WorkflowMode[])
+    : orderType === "alteration"
+      ? (["alteration"] as WorkflowMode[])
+      : orderType === "custom"
+        ? (["custom"] as WorkflowMode[])
+        : [];
   const showAlterationSchedulingCtas = orderType === "alteration";
+  const pickupSectionTitles: Record<WorkflowMode, string> = {
+    alteration: orderType === "mixed" ? "Alteration pickup" : "Pickup",
+    custom: orderType === "mixed" ? "Custom pickup" : "Pickup",
+  };
 
   return (
     <Card className="sticky top-0 p-3.5">
@@ -152,22 +158,27 @@ export function OrderBag({
           )}
         </PanelSection>
 
-        {pickupRequired ? (
-          <PanelSection
-            title="Pickup"
-            className="border-0 bg-transparent p-0"
-            action={
-              <ActionButton
-                tone="quiet"
-                onClick={onOpenPickupModal}
-                className="min-h-8 px-3 py-1.5 text-xs"
-              >
-                {pickupDate && pickupTime && pickupLocation ? "Edit" : "Set pickup"}
-              </ActionButton>
-            }
-          >
-            <div>
-              {pickupDate && pickupTime && pickupLocation ? (
+        {pickupRequired ? visiblePickupScopes.map((scope) => {
+          const schedule = pickupSchedules[scope];
+          const hasPickup = Boolean(schedule.pickupDate && schedule.pickupTime && schedule.pickupLocation);
+          const formattedPickupSchedule = hasPickup ? formatPickupSchedule(schedule.pickupDate, schedule.pickupTime) : null;
+
+          return (
+            <PanelSection
+              key={scope}
+              title={pickupSectionTitles[scope]}
+              className="border-0 bg-transparent p-0"
+              action={
+                <ActionButton
+                  tone="quiet"
+                  onClick={() => onOpenPickupModal(scope)}
+                  className="min-h-8 px-3 py-1.5 text-xs"
+                >
+                  {hasPickup ? "Edit" : "Set pickup"}
+                </ActionButton>
+              }
+            >
+              {hasPickup ? (
                 <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
                   <div className="flex items-start gap-3">
                     <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] p-2">
@@ -185,19 +196,27 @@ export function OrderBag({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="app-text-overline">Pickup location</div>
-                      <div className="app-text-body mt-1 font-medium leading-[1.45]">{pickupLocation}</div>
+                      <div className="app-text-body mt-1 font-medium leading-[1.45]">{schedule.pickupLocation}</div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
-                  <div className="app-text-body font-medium">Pickup details needed</div>
-                  <div className="app-text-caption mt-1">Set the pickup date, time, and location before moving this order forward.</div>
+                  <div className="app-text-body font-medium">
+                    {scope === "custom" ? "Custom order timing" : "Pickup details needed"}
+                  </div>
+                  <div className="app-text-caption mt-1">
+                    {scope === "custom"
+                      ? (
+                        getCustomFulfillmentSummary(schedule.eventType, schedule.eventDate, schedule.pickupLocation)
+                      )
+                      : "Set the pickup date, time, and location before moving this order forward."}
+                  </div>
                 </div>
               )}
-            </div>
-          </PanelSection>
-        ) : null}
+            </PanelSection>
+          );
+        }) : null}
 
         {lineItems.length > 0 ? (
           <PricingSummaryPanel pricing={pricing} />

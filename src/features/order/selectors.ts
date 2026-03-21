@@ -1,13 +1,18 @@
 import type {
+  ClosedOrderHistoryItem,
+  CustomOrderEventType,
   CustomGarmentDraft,
   Customer,
+  CustomerOrder,
   MeasurementSet,
   OpenOrder,
+  OpenOrderPickup,
   OpenOrderPaymentStatus,
   OrderBagLineItem,
   OrderType,
   OrderWorkflowState,
   PricingSummary,
+  WorkflowMode,
 } from "../../types";
 import { jacketBasedCustomGarments } from "../../data";
 import { getMeasurementSetDisplay, getLinkedMeasurementSet } from "../measurements/selectors";
@@ -16,7 +21,24 @@ function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
 }
 
-function getCustomGarmentPrice(garment: string | null) {
+function formatDateLabel(value: string) {
+  if (!value) {
+    return value;
+  }
+
+  const parsed = new Date(`${value}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsed);
+}
+
+export function getCustomGarmentPrice(garment: string | null) {
   if (!garment) {
     return 0;
   }
@@ -73,7 +95,41 @@ export function getOrderType(order: OrderWorkflowState): OrderType | null {
 }
 
 export function getPickupRequired(order: OrderWorkflowState) {
-  return order.activeWorkflow === "alteration" || getHasAlterationContent(order);
+  return getOrderType(order) !== null;
+}
+
+export function getCustomEventTypeLabel(eventType: CustomOrderEventType) {
+  if (eventType === "wedding") {
+    return "Wedding";
+  }
+
+  if (eventType === "prom") {
+    return "Prom";
+  }
+
+  return "No event";
+}
+
+export function getRequiredPickupScopes(order: OrderWorkflowState): WorkflowMode[] {
+  const orderType = getOrderType(order);
+
+  if (orderType === "mixed") {
+    return ["alteration", "custom"];
+  }
+
+  if (orderType === "alteration") {
+    return ["alteration"];
+  }
+
+  if (orderType === "custom") {
+    return ["custom"];
+  }
+
+  return [];
+}
+
+export function getPickupScheduleForScope(order: OrderWorkflowState, scope: WorkflowMode) {
+  return order.fulfillment[scope];
 }
 
 export function getCustomConfigured(order: OrderWorkflowState) {
@@ -180,14 +236,43 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
 
 export function getSummaryGuardrail(order: OrderWorkflowState, payerCustomer: Customer | null) {
   const customMissing = order.custom.items.length === 0 && getCustomDraftStarted(order.custom.draft) && !getCustomDraftReady(order);
+  const requiredPickupScopes = getRequiredPickupScopes(order);
 
   return {
     missingCustomer: !payerCustomer,
-    missingPickup:
-      getPickupRequired(order) &&
-      (!order.fulfillment.pickupDate || !order.fulfillment.pickupTime || !order.fulfillment.pickupLocation),
+    missingPickup: requiredPickupScopes.some((scope) => {
+      const schedule = getPickupScheduleForScope(order, scope);
+      if (scope === "custom") {
+        return !schedule.pickupLocation || (schedule.eventType !== "none" && !schedule.eventDate);
+      }
+
+      return !schedule.pickupDate || !schedule.pickupTime || !schedule.pickupLocation;
+    }),
     customIncomplete: customMissing,
   };
+}
+
+export function getCustomFulfillmentSummary(eventType: CustomOrderEventType, eventDate: string, pickupLocation: string) {
+  const eventLabel = getCustomEventTypeLabel(eventType);
+  const formattedEventDate = formatDateLabel(eventDate);
+
+  if (eventType === "none") {
+    return pickupLocation ? `No event deadline • ${pickupLocation}` : "No event deadline";
+  }
+
+  if (formattedEventDate && pickupLocation) {
+    return `${eventLabel} by ${formattedEventDate} • ${pickupLocation}`;
+  }
+
+  if (formattedEventDate) {
+    return `${eventLabel} by ${formattedEventDate}`;
+  }
+
+  if (pickupLocation) {
+    return `${eventLabel} • ${pickupLocation}`;
+  }
+
+  return eventLabel;
 }
 
 export function getCanAddCustomDraftToOrder(order: OrderWorkflowState) {
@@ -228,19 +313,38 @@ export function formatPickupSchedule(pickupDate: string, pickupTime: string) {
   return `${date}. ${time}`;
 }
 
-export function buildAlterationOpenOrder(
+export function buildOpenOrder(
   order: OrderWorkflowState,
   customers: Customer[],
   paymentStatus: OpenOrderPaymentStatus,
 ): OpenOrder | null {
   const orderType = getOrderType(order);
-  if (orderType !== "alteration") {
+  if (!orderType) {
     return null;
   }
 
   const lineItems = getOrderBagLineItems(order, customers);
   const pricing = getPricingSummary(order);
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
+  const collectedToday = paymentStatus === "prepaid" ? getCheckoutCollectionAmount(order) : 0;
+  const pickupSchedules: OpenOrderPickup[] = getRequiredPickupScopes(order).map((scope) => {
+    const schedule = getPickupScheduleForScope(order, scope);
+    const matchingItems = lineItems.filter((item) => item.kind === scope);
+
+    return {
+      id: `${Date.now()}-${scope}`,
+      scope,
+      label: scope === "alteration" ? "Alteration pickup" : "Custom pickup",
+      itemSummary: matchingItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
+      itemCount: matchingItems.length,
+      pickupDate: schedule.pickupDate,
+      pickupTime: schedule.pickupTime,
+      pickupLocation: schedule.pickupLocation,
+      eventType: schedule.eventType,
+      eventDate: schedule.eventDate,
+      readyForPickup: false,
+    };
+  });
 
   return {
     id: Date.now(),
@@ -249,11 +353,9 @@ export function buildAlterationOpenOrder(
     orderType,
     itemCount: lineItems.length,
     itemSummary: lineItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
-    pickupDate: order.fulfillment.pickupDate,
-    pickupTime: order.fulfillment.pickupTime,
-    pickupLocation: order.fulfillment.pickupLocation,
+    pickupSchedules,
     paymentStatus,
-    collectedToday: paymentStatus === "prepaid" ? pricing.total : 0,
+    collectedToday,
     total: pricing.total,
     createdAtLabel: new Intl.DateTimeFormat("en-US", {
       month: "short",
@@ -262,4 +364,26 @@ export function buildAlterationOpenOrder(
       minute: "2-digit",
     }).format(new Date()),
   };
+}
+
+export function getClosedOrderHistory(
+  customers: Customer[],
+  ordersByCustomer: Record<string, CustomerOrder[]>,
+): ClosedOrderHistoryItem[] {
+  const closedStatuses = new Set(["Delivered", "Picked up"]);
+
+  return Object.entries(ordersByCustomer).flatMap(([customerId, orders]) => {
+    const customerName = customers.find((customer) => customer.id === customerId)?.name ?? "Unknown customer";
+
+    return orders
+      .filter((order) => closedStatuses.has(order.status))
+      .map((order) => ({
+        id: order.id,
+        customerName,
+        label: order.label,
+        date: order.date,
+        status: order.status,
+        total: order.total,
+      }));
+  });
 }

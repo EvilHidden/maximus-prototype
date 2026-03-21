@@ -2,6 +2,7 @@ import { measurementFields } from "../data";
 import type {
   AlterationCheckoutIntent,
   AlterationService,
+  CustomOrderEventType,
   CustomBuilderState,
   CustomGarmentDraft,
   CustomGarmentGender,
@@ -26,9 +27,12 @@ type SetAlterationItemPayload = {
 };
 
 type SetPickupSchedulePayload = {
+  scope: WorkflowMode;
   pickupDate: string;
   pickupTime: string;
   pickupLocation: PickupLocation | "";
+  eventType: CustomOrderEventType;
+  eventDate: string;
 };
 
 type AddCustomItemPayload = {
@@ -73,7 +77,8 @@ export type AppAction =
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
-  | { type: "completeAlterationOpenOrder"; openOrder: OpenOrder }
+  | { type: "completeOpenOrder"; openOrder: OpenOrder }
+  | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
   | { type: "addAlterationItem" }
@@ -113,9 +118,20 @@ export function createInitialOrderState(): OrderWorkflowState {
     },
     custom: createInitialCustomState(),
     fulfillment: {
-      pickupDate: "",
-      pickupTime: "",
-      pickupLocation: "",
+      alteration: {
+        pickupDate: "",
+        pickupTime: "",
+        pickupLocation: "",
+        eventType: "none",
+        eventDate: "",
+      },
+      custom: {
+        pickupDate: "",
+        pickupTime: "",
+        pickupLocation: "",
+        eventType: "none",
+        eventDate: "",
+      },
     },
   };
 }
@@ -174,12 +190,33 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           checkoutIntent: action.intent,
         },
       };
-    case "completeAlterationOpenOrder":
+    case "completeOpenOrder":
       return {
         ...state,
         screen: "openOrders",
         openOrders: [action.openOrder, ...state.openOrders],
         order: createInitialOrderState(),
+      };
+    case "markOpenOrderPickupReady":
+      return {
+        ...state,
+        openOrders: state.openOrders.map((openOrder) => (
+          openOrder.id === action.openOrderId
+            ? {
+                ...openOrder,
+                pickupSchedules: openOrder.pickupSchedules.map((pickup) => (
+                  pickup.id === action.pickupId
+                    ? {
+                        ...pickup,
+                        readyForPickup: true,
+                        pickupDate: pickup.pickupDate || new Date().toISOString().slice(0, 10),
+                        pickupTime: pickup.pickupTime || new Date().toTimeString().slice(0, 5),
+                      }
+                    : pickup
+                )),
+              }
+            : openOrder
+        )),
       };
     case "selectAlterationGarment":
       return {
@@ -275,7 +312,16 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         ...state,
         order: {
           ...state.order,
-          fulfillment: action.payload,
+          fulfillment: {
+            ...state.order.fulfillment,
+            [action.payload.scope]: {
+              pickupDate: action.payload.pickupDate,
+              pickupTime: action.payload.pickupTime,
+              pickupLocation: action.payload.pickupLocation,
+              eventType: action.payload.eventType,
+              eventDate: action.payload.eventDate,
+            },
+          },
         },
       };
     case "selectCustomGender":

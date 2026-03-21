@@ -9,12 +9,13 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useEffect, useState } from "react";
-import { appointments } from "../data";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
 import { ActionButton, Card, StatusPill, cx } from "../components/ui/primitives";
-import { getPickupAppointments, getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
+import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
 
 type HomeScreenProps = {
+  appointments: Appointment[];
+  pickupAppointments: Appointment[];
   onScreenChange: (screen: Screen) => void;
   onStartWorkflow: (workflow: WorkflowMode) => void;
   onOpenAppointment: (appointment: Appointment) => void;
@@ -239,13 +240,13 @@ function PickupLane({
   );
 }
 
-export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment }: HomeScreenProps) {
+export function HomeScreen({ appointments, pickupAppointments, onScreenChange, onStartWorkflow, onOpenAppointment }: HomeScreenProps) {
   const [actionToast, setActionToast] = useState<string | null>(null);
   const [activeLocations, setActiveLocations] = useState<PickupLocation[]>(locationOptions);
   const filteredAppointments = appointments.filter((appointment) => activeLocations.includes(appointment.location));
   const todayAppointments = getTodayAppointments(filteredAppointments);
   const tomorrowAppointments = getTomorrowAppointments(filteredAppointments);
-  const pickups = getPickupAppointments(filteredAppointments);
+  const pickups = pickupAppointments.filter((appointment) => activeLocations.includes(appointment.location));
   const now = new Date();
   const tomorrowDate = new Date(now);
   tomorrowDate.setDate(now.getDate() + 1);

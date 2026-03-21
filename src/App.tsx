@@ -1,5 +1,5 @@
 import { useMemo, useReducer, useState } from "react";
-import { appointments, customers, measurementSets as initialMeasurementSets } from "./data";
+import { appointments, customerOrders, customers, measurementSets as initialMeasurementSets } from "./data";
 import { useThemePreference } from "./hooks/useThemePreference";
 import type { Appointment, Customer, MeasurementSet, WorkflowMode } from "./types";
 import { AppShell } from "./components/layout/AppShell";
@@ -11,8 +11,8 @@ import { CheckoutScreen } from "./screens/CheckoutScreen";
 import { OpenOrdersScreen } from "./screens/OpenOrdersScreen";
 import { AppointmentsScreen } from "./screens/AppointmentsScreen";
 import { appReducer, createInitialAppState } from "./state/appState";
-import { buildAlterationOpenOrder, getOrderType } from "./features/order/selectors";
-import { getPickupAppointments } from "./features/home/selectors";
+import { buildOpenOrder, getClosedOrderHistory, getOrderType } from "./features/order/selectors";
+import { getOpenOrderPickupAppointments, getPickupAppointments } from "./features/home/selectors";
 import {
   createDraftMeasurementSet,
   deleteMeasurementSetAndPreserveDraft,
@@ -33,6 +33,12 @@ export default function App() {
   );
   const orderType = getOrderType(state.order);
   const pickupAppointments = useMemo(() => getPickupAppointments(appointments), []);
+  const openOrderPickupAppointments = useMemo(() => getOpenOrderPickupAppointments(state.openOrders), [state.openOrders]);
+  const homePickupAppointments = useMemo(
+    () => [...pickupAppointments, ...openOrderPickupAppointments],
+    [pickupAppointments, openOrderPickupAppointments],
+  );
+  const closedOrderHistory = useMemo(() => getClosedOrderHistory(customers, customerOrders), []);
 
   const startWorkflow = (workflow: WorkflowMode) => {
     dispatch({ type: "clearOrder" });
@@ -94,19 +100,21 @@ export default function App() {
     dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
   };
 
-  const handleCompleteAlterationOrder = (paymentStatus: "pay_later" | "prepaid") => {
-    const openOrder = buildAlterationOpenOrder(state.order, customers, paymentStatus);
+  const handleCompleteOrder = (paymentStatus: "pay_later" | "prepaid") => {
+    const openOrder = buildOpenOrder(state.order, customers, paymentStatus);
     if (!openOrder) {
       return;
     }
 
-    dispatch({ type: "completeAlterationOpenOrder", openOrder });
+    dispatch({ type: "completeOpenOrder", openOrder });
   };
 
   const content = useMemo(() => {
     if (state.screen === "home") {
       return (
         <HomeScreen
+          appointments={appointments}
+          pickupAppointments={homePickupAppointments}
           onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
           onStartWorkflow={startWorkflow}
           onOpenAppointment={handleOpenAppointment}
@@ -134,7 +142,7 @@ export default function App() {
           order={state.order}
           dispatch={dispatch}
           onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
-          onCompleteAlterationOrder={handleCompleteAlterationOrder}
+          onCompleteOrder={handleCompleteOrder}
         />
       );
     }
@@ -166,7 +174,9 @@ export default function App() {
       return (
         <OpenOrdersScreen
           openOrders={state.openOrders}
+          closedOrderHistory={closedOrderHistory}
           pickupAppointments={pickupAppointments}
+          onMarkOpenOrderPickupReady={(openOrderId, pickupId) => dispatch({ type: "markOpenOrderPickupReady", openOrderId, pickupId })}
           onStartNewOrder={() => startWorkflow("alteration")}
         />
       );
@@ -181,7 +191,7 @@ export default function App() {
         payerCustomer={payerCustomer}
         order={state.order}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
-        onCompleteAlterationOrder={handleCompleteAlterationOrder}
+        onCompleteOrder={handleCompleteOrder}
       />
     );
   }, [measurementSets, state, selectedCustomer, payerCustomer, orderType, pickupAppointments]);

@@ -1,13 +1,12 @@
 import { useEffect, useState } from "react";
 import { pickupLocations } from "../../../data";
-import type { PickupLocation } from "../../../types";
+import type { CustomOrderEventType, PickupLocation, PickupSchedule, WorkflowMode } from "../../../types";
 import { ActionButton, FieldLabel, ModalShell } from "../../../components/ui/primitives";
 
 type PickupScheduleModalProps = {
-  pickupDate: string;
-  pickupTime: string;
-  pickupLocation: PickupLocation | "";
-  onChange: (patch: { pickupDate: string; pickupTime: string; pickupLocation: PickupLocation | "" }) => void;
+  scope: WorkflowMode;
+  schedule: PickupSchedule;
+  onChange: (patch: PickupSchedule) => void;
   onClose: () => void;
 };
 
@@ -71,7 +70,13 @@ function buildTimeOptions(now: Date, isToday: boolean) {
   return options;
 }
 
-export function PickupScheduleModal({ pickupDate, pickupTime, pickupLocation, onChange, onClose }: PickupScheduleModalProps) {
+const customEventOptions: Array<{ value: CustomOrderEventType; label: string }> = [
+  { value: "none", label: "None" },
+  { value: "wedding", label: "Wedding" },
+  { value: "prom", label: "Prom" },
+];
+
+export function PickupScheduleModal({ scope, schedule, onChange, onClose }: PickupScheduleModalProps) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {
@@ -80,29 +85,34 @@ export function PickupScheduleModal({ pickupDate, pickupTime, pickupLocation, on
   }, []);
 
   const minPickupDate = formatDateInputValue(now);
-  const isTodayPickup = pickupDate === minPickupDate;
+  const isAlterationScope = scope === "alteration";
+  const isTodayPickup = schedule.pickupDate === minPickupDate;
   const selectedPickupDateTime =
-    pickupDate && pickupTime
-      ? new Date(`${pickupDate}T${pickupTime}`)
+    schedule.pickupDate && schedule.pickupTime
+      ? new Date(`${schedule.pickupDate}T${schedule.pickupTime}`)
       : null;
   const hasPastPickupSelection =
     selectedPickupDateTime !== null && !Number.isNaN(selectedPickupDateTime.getTime()) && selectedPickupDateTime < now;
-  const timeOptions = pickupDate ? buildTimeOptions(now, isTodayPickup) : [];
-  const selectedTimeIsUnavailable = !!pickupTime && !timeOptions.includes(pickupTime);
-  const pickupInvalid = !pickupDate || !pickupTime || !pickupLocation || hasPastPickupSelection || selectedTimeIsUnavailable;
+  const timeOptions = schedule.pickupDate ? buildTimeOptions(now, isTodayPickup) : [];
+  const selectedTimeIsUnavailable = !!schedule.pickupTime && !timeOptions.includes(schedule.pickupTime);
+  const pickupInvalid = isAlterationScope
+    ? !schedule.pickupDate || !schedule.pickupTime || !schedule.pickupLocation || hasPastPickupSelection || selectedTimeIsUnavailable
+    : !schedule.pickupLocation || (schedule.eventType !== "none" && !schedule.eventDate);
 
   return (
     <ModalShell
-      title="Set pickup schedule"
-      subtitle="Set date, time, and location"
+      title={scope === "alteration" ? "Set alteration pickup" : "Set custom order details"}
+      subtitle={isAlterationScope ? "Set date, time, and location" : "Set pickup location and any event deadline"}
       onClose={onClose}
       widthClassName="max-w-[720px]"
       footer={
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-[var(--app-text-muted)]">
-            {hasPastPickupSelection || selectedTimeIsUnavailable
+            {isAlterationScope && (hasPastPickupSelection || selectedTimeIsUnavailable)
               ? "Pickup must be scheduled for an available future time."
-              : "Required for alterations."}
+              : isAlterationScope
+                ? "Required before moving the order forward."
+                : "Custom orders only need an event deadline if there is a real occasion."}
           </div>
           <ActionButton tone="primary" onClick={onClose} disabled={pickupInvalid}>
             Save pickup
@@ -111,55 +121,121 @@ export function PickupScheduleModal({ pickupDate, pickupTime, pickupLocation, on
       }
     >
       <div className="space-y-5">
-        <label className="block text-sm">
-          <FieldLabel>Pickup date</FieldLabel>
-          <input
-            value={pickupDate}
-            onChange={(event) =>
-              onChange({
-                pickupDate: event.target.value,
-                pickupTime:
-                  event.target.value === pickupDate && !selectedTimeIsUnavailable
-                    ? pickupTime
-                    : "",
-                pickupLocation,
-              })
-            }
-            type="date"
-            min={minPickupDate}
-            className="app-input min-h-12 text-base"
-          />
-        </label>
+        {isAlterationScope ? (
+          <>
+            <label className="block text-sm">
+              <FieldLabel>Pickup date</FieldLabel>
+              <input
+                value={schedule.pickupDate}
+                onChange={(event) =>
+                  onChange({
+                    pickupDate: event.target.value,
+                    pickupTime:
+                      event.target.value === schedule.pickupDate && !selectedTimeIsUnavailable
+                        ? schedule.pickupTime
+                        : "",
+                    pickupLocation: schedule.pickupLocation,
+                    eventType: schedule.eventType,
+                    eventDate: schedule.eventDate,
+                  })
+                }
+                type="date"
+                min={minPickupDate}
+                className="app-input min-h-12 text-base"
+              />
+            </label>
 
-        <div>
-          <FieldLabel>Pickup time</FieldLabel>
-          {pickupDate ? (
-            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-              {timeOptions.map((timeOption) => {
-                const isSelected = pickupTime === timeOption;
-                return (
+            <div>
+              <FieldLabel>Pickup time</FieldLabel>
+              {schedule.pickupDate ? (
+                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+                  {timeOptions.map((timeOption) => {
+                    const isSelected = schedule.pickupTime === timeOption;
+                    return (
+                      <button
+                        key={timeOption}
+                        type="button"
+                        onClick={() => onChange({
+                          pickupDate: schedule.pickupDate,
+                          pickupTime: timeOption,
+                          pickupLocation: schedule.pickupLocation,
+                          eventType: schedule.eventType,
+                          eventDate: schedule.eventDate,
+                        })}
+                        className={[
+                          "min-h-12 rounded-[var(--app-radius-md)] border px-3 py-2 text-sm font-medium transition",
+                          isSelected
+                            ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                            : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
+                        ].join(" ")}
+                      >
+                        {formatTimeLabel(timeOption)}
+                      </button>
+                    );
+                  })}
+                </div>
+              ) : (
+                <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
+                  <div className="app-text-caption">Choose a pickup date first to see available times.</div>
+                </div>
+              )}
+            </div>
+          </>
+        ) : (
+          <>
+            <div>
+              <FieldLabel>Event type</FieldLabel>
+              <div className="mt-2 grid grid-cols-3 gap-2">
+                {customEventOptions.map((option) => (
                   <button
-                    key={timeOption}
+                    key={option.value}
                     type="button"
-                    onClick={() => onChange({ pickupDate, pickupTime: timeOption, pickupLocation })}
+                    onClick={() => onChange({
+                      pickupDate: "",
+                      pickupTime: "",
+                      pickupLocation: schedule.pickupLocation,
+                      eventType: option.value,
+                      eventDate: option.value === "none" ? "" : schedule.eventDate,
+                    })}
                     className={[
-                      "min-h-12 rounded-[var(--app-radius-md)] border px-3 py-2 text-sm font-medium transition",
-                      isSelected
+                      "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-sm font-medium transition",
+                      schedule.eventType === option.value
                         ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
                         : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
                     ].join(" ")}
                   >
-                    {formatTimeLabel(timeOption)}
+                    {option.label}
                   </button>
-                );
-              })}
+                ))}
+              </div>
             </div>
-          ) : (
-            <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
-              <div className="app-text-caption">Choose a pickup date first to see available times.</div>
-            </div>
-          )}
-        </div>
+
+            {schedule.eventType !== "none" ? (
+              <label className="block text-sm">
+                <FieldLabel>Event date</FieldLabel>
+                <input
+                  value={schedule.eventDate}
+                  onChange={(event) =>
+                    onChange({
+                      pickupDate: "",
+                      pickupTime: "",
+                      pickupLocation: schedule.pickupLocation,
+                      eventType: schedule.eventType,
+                      eventDate: event.target.value,
+                    })
+                  }
+                  type="date"
+                  min={minPickupDate}
+                  className="app-input min-h-12 text-base"
+                />
+              </label>
+            ) : (
+              <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
+                <div className="app-text-caption">No event deadline set. This custom order will be ready when production is complete.</div>
+              </div>
+            )}
+          </>
+        )}
 
         <div>
           <FieldLabel>Pickup location</FieldLabel>
@@ -168,10 +244,16 @@ export function PickupScheduleModal({ pickupDate, pickupTime, pickupLocation, on
               <button
                 key={location}
                 type="button"
-                onClick={() => onChange({ pickupDate, pickupTime, pickupLocation: location })}
+                onClick={() => onChange({
+                  pickupDate: isAlterationScope ? schedule.pickupDate : "",
+                  pickupTime: isAlterationScope ? schedule.pickupTime : "",
+                  pickupLocation: location,
+                  eventType: schedule.eventType,
+                  eventDate: schedule.eventDate,
+                })}
                 className={[
                   "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left text-sm font-medium transition",
-                  pickupLocation === location
+                  schedule.pickupLocation === location
                     ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
                     : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
                 ].join(" ")}

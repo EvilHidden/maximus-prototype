@@ -46,7 +46,7 @@ type OrderScreenProps = {
   order: AppState["order"];
   dispatch: Dispatch<AppAction>;
   onScreenChange: (screen: Screen) => void;
-  onCompleteAlterationOrder: (paymentStatus: "pay_later" | "prepaid") => void;
+  onCompleteOrder: (paymentStatus: "pay_later" | "prepaid") => void;
 };
 
 export function OrderScreen({
@@ -56,13 +56,13 @@ export function OrderScreen({
   order,
   dispatch,
   onScreenChange,
-  onCompleteAlterationOrder,
+  onCompleteOrder,
 }: OrderScreenProps) {
   const [actionToast, setActionToast] = useState<string | null>(null);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [wearerModalOpen, setWearerModalOpen] = useState(false);
   const [customerQuery, setCustomerQuery] = useState("");
-  const [pickupModalOpen, setPickupModalOpen] = useState(false);
+  const [pickupModalScope, setPickupModalScope] = useState<"alteration" | "custom" | null>(null);
   const [measurementPickerOpen, setMeasurementPickerOpen] = useState(false);
   const [editingItemId, setEditingItemId] = useState<number | null>(null);
   const [editingCustomItemId, setEditingCustomItemId] = useState<number | null>(null);
@@ -112,7 +112,9 @@ export function OrderScreen({
       : summaryGuardrail.missingCustomer
         ? "Link a paying customer before moving this order forward."
         : summaryGuardrail.missingPickup
-          ? "Set the pickup date, time, and location before moving this order forward."
+          ? orderType === "mixed"
+            ? "Set both the alteration pickup and custom pickup before moving this order forward."
+            : "Set the pickup date, time, and location before moving this order forward."
           : summaryGuardrail.customIncomplete
             ? "Finish the custom garment configuration before continuing to checkout."
             : undefined;
@@ -250,6 +252,7 @@ export function OrderScreen({
               onShowDisabledReason={setActionToast}
               isEditing={editingCustomItemId !== null}
               editingLabel={editingCustomItem?.selectedGarment ?? null}
+              wearerName={wearerCustomer?.name ?? null}
               onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
               onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
               onAddToOrder={() => {
@@ -295,11 +298,9 @@ export function OrderScreen({
           activeWorkflow={order.activeWorkflow}
           continueLabel={continueLabel}
           pickupRequired={pickupRequired}
-          pickupDate={order.fulfillment.pickupDate}
-          pickupTime={order.fulfillment.pickupTime}
-          pickupLocation={order.fulfillment.pickupLocation}
+          pickupSchedules={order.fulfillment}
           onOpenCustomerModal={() => setCustomerModalOpen(true)}
-          onOpenPickupModal={() => setPickupModalOpen(true)}
+          onOpenPickupModal={(scope) => setPickupModalScope(scope)}
           onEditAlterationItem={(itemId) => setEditingItemId(itemId)}
           onEditCustomItem={(itemId) => {
             setEditingItemId(null);
@@ -320,7 +321,7 @@ export function OrderScreen({
           }}
           onClearCart={() => setClearBagConfirmOpen(true)}
           onSchedulePayLater={() => {
-            onCompleteAlterationOrder("pay_later");
+            onCompleteOrder("pay_later");
           }}
           onSchedulePrepay={() => {
             dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
@@ -374,13 +375,12 @@ export function OrderScreen({
         />
       ) : null}
 
-      {pickupModalOpen ? (
+      {pickupModalScope ? (
         <PickupScheduleModal
-          pickupDate={order.fulfillment.pickupDate}
-          pickupTime={order.fulfillment.pickupTime}
-          pickupLocation={order.fulfillment.pickupLocation}
-          onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: patch })}
-          onClose={() => setPickupModalOpen(false)}
+          scope={pickupModalScope}
+          schedule={order.fulfillment[pickupModalScope]}
+          onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: { scope: pickupModalScope, ...patch } })}
+          onClose={() => setPickupModalScope(null)}
         />
       ) : null}
 

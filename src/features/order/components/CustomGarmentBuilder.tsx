@@ -2,6 +2,7 @@ import { CheckSquare, Layers3, Shirt, Type } from "lucide-react";
 import { ActionButton, Card, EmptyState, FieldLabel, SectionHeader, cx } from "../../../components/ui/primitives";
 import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
+import { getCustomGarmentPrice } from "../selectors";
 
 type CustomGarmentBuilderProps = {
   garmentOptionsByGender: Record<CustomGarmentGender, string[]>;
@@ -25,6 +26,7 @@ type CustomGarmentBuilderProps = {
   onShowDisabledReason?: (reason: string) => void;
   isEditing: boolean;
   editingLabel?: string | null;
+  wearerName?: string | null;
   onSelectGender: (gender: CustomGarmentGender) => void;
   onSelectGarment: (garment: string | null) => void;
   onAddToOrder: () => void;
@@ -96,28 +98,37 @@ function ChoiceGrid({
   selectedValue,
   onSelect,
   columnsClassName,
+  showSelectedLabel = false,
 }: {
   options: string[];
   selectedValue: string | null;
   onSelect: (value: string) => void;
   columnsClassName?: string;
+  showSelectedLabel?: boolean;
 }) {
   return (
     <div className={cx("grid gap-2.5 md:grid-cols-3", columnsClassName)}>
-      {options.map((option) => (
-        <button
-          key={option}
-          onClick={() => onSelect(option)}
-          className={cx(
-            "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition",
-            selectedValue === option && "app-workflow-toggle--active",
-            selectedValue !== option &&
-              "border-[var(--app-border)]/55 bg-[var(--app-surface)]/34 text-[var(--app-text)] hover:bg-[var(--app-surface)]/48",
-          )}
-        >
-          <span className="app-text-body font-medium leading-snug">{option}</span>
-        </button>
-      ))}
+      {options.map((option) => {
+        const isSelected = selectedValue === option;
+
+        return (
+          <button
+            key={option}
+            onClick={() => onSelect(option)}
+            className={cx(
+              "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition",
+              isSelected && "app-workflow-toggle--active",
+              !isSelected &&
+                "border-[var(--app-border)]/55 bg-[var(--app-surface)]/34 text-[var(--app-text)] hover:bg-[var(--app-surface)]/48",
+            )}
+          >
+            <div className="flex items-center justify-between gap-3">
+              <span className="app-text-body font-medium leading-snug">{option}</span>
+              {isSelected && showSelectedLabel ? <span className="app-text-overline text-[var(--app-text)]">Selected</span> : null}
+            </div>
+          </button>
+        );
+      })}
     </div>
   );
 }
@@ -178,6 +189,7 @@ export function CustomGarmentBuilder({
   onShowDisabledReason,
   isEditing,
   editingLabel,
+  wearerName,
   onSelectGender,
   onSelectGarment,
   onAddToOrder,
@@ -187,6 +199,8 @@ export function CustomGarmentBuilder({
   const garmentOptions = selectedGender ? garmentOptionsByGender[selectedGender] : [];
   const showConfiguration = Boolean(selectedGarment);
   const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
+  const currentSubtotal = getCustomGarmentPrice(selectedGarment);
+  const summaryParts = [selectedGarment, wearerName, lapel].filter(Boolean) as string[];
 
   return (
     <>
@@ -336,6 +350,7 @@ export function CustomGarmentBuilder({
                           selectedValue={lapel}
                           onSelect={(value) => onSetConfiguration({ lapel: value })}
                           columnsClassName="grid-cols-1 sm:grid-cols-3"
+                          showSelectedLabel
                         />
                       </div>
                     </div>
@@ -366,22 +381,34 @@ export function CustomGarmentBuilder({
         </div>
       </Card>
 
-      <div className="flex justify-end gap-2">
-        {isEditing ? (
-          <ActionButton tone="secondary" className="min-h-12 px-5 text-sm" onClick={onCancelEdit}>
-            Cancel edit
+      <div className="flex items-center justify-between gap-4 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)]/38 px-4 py-3.5">
+        <div className="min-w-0 flex-1">
+          <div className="app-text-overline">{isEditing ? "Current garment" : "Ready to add"}</div>
+          <div className="app-text-caption mt-1">
+            {summaryParts.length > 0 ? summaryParts.join(" • ") : "Select the garment details to build the order summary."}
+          </div>
+        </div>
+        <div className="flex items-center gap-2">
+          <div className="text-right">
+            <div className="app-text-overline">Subtotal</div>
+            <div className="app-text-strong mt-1">${currentSubtotal.toFixed(2)}</div>
+          </div>
+          {isEditing ? (
+            <ActionButton tone="secondary" className="min-h-12 px-5 text-sm" onClick={onCancelEdit}>
+              Cancel edit
+            </ActionButton>
+          ) : null}
+          <ActionButton
+            tone="primary"
+            disabled={!canAddToOrder}
+            disabledReason={addDisabledReason}
+            onDisabledPress={onShowDisabledReason}
+            className="min-h-12 min-w-[200px] px-5 text-sm"
+            onClick={onAddToOrder}
+          >
+            {isEditing ? "Save changes" : "Add to Cart"}
           </ActionButton>
-        ) : null}
-        <ActionButton
-          tone="primary"
-          disabled={!canAddToOrder}
-          disabledReason={addDisabledReason}
-          onDisabledPress={onShowDisabledReason}
-          className="min-h-12 min-w-[200px] px-5 text-sm"
-          onClick={onAddToOrder}
-        >
-          {isEditing ? "Save changes" : "Add to order"}
-        </ActionButton>
+        </div>
       </div>
     </>
   );
