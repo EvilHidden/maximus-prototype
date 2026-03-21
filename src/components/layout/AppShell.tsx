@@ -79,7 +79,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
           </ActionButton>
         </aside>
 
-        <main className="app-main h-full overflow-auto rounded-[14px] border border-[var(--app-border)]/55 p-4 md:p-5">
+        <main className="app-main h-full overflow-x-hidden overflow-y-auto rounded-[14px] border border-[var(--app-border)]/55 p-4 [scrollbar-gutter:stable] md:p-5">
           {children}
         </main>
       </div>
