@@ -126,35 +126,27 @@ export function CustomerProfileDrawer({
             <div className="app-text-overline">{measurementSets.length} sets</div>
           </div>
 
-          <div className="mt-3 divide-y divide-[var(--app-border)]/35 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/16">
-            <div className="px-2 py-1">
-              <ToolTile
-                icon={Ruler}
-                label="Open measurements"
-                subtitle="Review or update saved measurement sets."
-                onClick={() => {
-                  onClose();
-                  onScreenChange("measurements");
-                }}
-              />
-            </div>
-            <div className="px-2 py-1">
-              <ToolTile
-                icon={PencilRuler}
-                label="Add new set"
-                subtitle="Capture a fresh measurement profile."
-                onClick={() => {
-                  onClose();
-                  onScreenChange("measurements");
-                }}
-              />
-            </div>
-            <div className="px-2 py-1">
-              <ToolTile icon={MessageSquare} label="Message customer" subtitle="Prepare outreach or follow-up." />
-            </div>
-            <div className="px-2 py-1">
-              <ToolTile icon={History} label="Review history" subtitle="Check previous work and service notes." />
-            </div>
+          <div className="mt-3 divide-y divide-[var(--app-border)]/28">
+            <ToolTile
+              icon={Ruler}
+              label="Open measurements"
+              subtitle="Review or update saved measurement sets."
+              onClick={() => {
+                onClose();
+                onScreenChange("measurements");
+              }}
+            />
+            <ToolTile
+              icon={PencilRuler}
+              label="Add new set"
+              subtitle="Capture a fresh measurement profile."
+              onClick={() => {
+                onClose();
+                onScreenChange("measurements");
+              }}
+            />
+            <ToolTile icon={MessageSquare} label="Message customer" subtitle="Prepare outreach or follow-up." />
+            <ToolTile icon={History} label="Review history" subtitle="Check previous work and service notes." />
           </div>
         </div>
 
@@ -167,11 +159,11 @@ export function CustomerProfileDrawer({
             <div className="app-text-overline">{orders.length} orders</div>
           </div>
 
-          <div className="mt-3 divide-y divide-[var(--app-border)]/35 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/16">
+          <div className="mt-3 divide-y divide-[var(--app-border)]/28">
             {orders.map((order) => (
               <EntityRow
                 key={order.id}
-                className="rounded-none border-0 bg-transparent px-4 py-3 hover:bg-[var(--app-surface)]/28"
+                className="rounded-none border-0 bg-transparent px-0 py-3 hover:bg-transparent"
                 title={order.label}
                 subtitle={`${order.id} • ${order.date}`}
                 meta={<StatusPill>{order.status}</StatusPill>}
@@ -190,11 +182,11 @@ export function CustomerProfileDrawer({
             <div className="app-text-overline">{measurementSets.length} saved</div>
           </div>
 
-          <div className="mt-3 divide-y divide-[var(--app-border)]/35 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/16">
+          <div className="mt-3 divide-y divide-[var(--app-border)]/28">
             {measurementSets.map((set) => (
               <div
                 key={set.id}
-                className="px-4 py-3"
+                className="py-3"
               >
                 <div className="flex items-center justify-between gap-3">
                   <div className="app-text-strong">{set.label}</div>
