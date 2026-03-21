@@ -1,7 +1,7 @@
 import { useMemo, useReducer, useState } from "react";
 import { appointments, customers, measurementSets as initialMeasurementSets } from "./data";
 import { useThemePreference } from "./hooks/useThemePreference";
-import type { Customer, MeasurementSet, WorkflowMode } from "./types";
+import type { Appointment, Customer, MeasurementSet, WorkflowMode } from "./types";
 import { AppShell } from "./components/layout/AppShell";
 import { HomeScreen } from "./screens/HomeScreen";
 import { CustomerScreen } from "./screens/CustomerScreen";
@@ -36,6 +36,20 @@ export default function App() {
   const startWorkflow = (workflow: WorkflowMode) => {
     dispatch({ type: "clearOrder" });
     dispatch({ type: "activateWorkflow", workflow });
+    dispatch({ type: "setScreen", screen: "order" });
+  };
+
+  const handleOpenAppointment = (appointment: Appointment) => {
+    if (appointment.route !== "alteration" && appointment.route !== "custom") {
+      return;
+    }
+
+    dispatch({ type: "clearOrder" });
+    if (appointment.customerId) {
+      dispatch({ type: "setCustomer", customerId: appointment.customerId });
+      dispatch({ type: "setOrderPayer", customerId: appointment.customerId });
+    }
+    dispatch({ type: "activateWorkflow", workflow: appointment.route });
     dispatch({ type: "setScreen", screen: "order" });
   };
 
@@ -90,7 +104,13 @@ export default function App() {
 
   const content = useMemo(() => {
     if (state.screen === "home") {
-      return <HomeScreen onScreenChange={(screen) => dispatch({ type: "setScreen", screen })} onStartWorkflow={startWorkflow} />;
+      return (
+        <HomeScreen
+          onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+          onStartWorkflow={startWorkflow}
+          onOpenAppointment={handleOpenAppointment}
+        />
+      );
     }
 
     if (state.screen === "customer") {

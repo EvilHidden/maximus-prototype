@@ -8,7 +8,7 @@ type ConfirmClearBagModalProps = {
 export function ConfirmClearBagModal({ onConfirm, onClose }: ConfirmClearBagModalProps) {
   return (
     <ModalShell
-      title="Clear bag"
+      title="Clear cart"
       subtitle="Remove all line items from the current order?"
       onClose={onClose}
       showCloseButton={false}
@@ -19,13 +19,13 @@ export function ConfirmClearBagModal({ onConfirm, onClose }: ConfirmClearBagModa
             Cancel
           </ActionButton>
           <ActionButton tone="primary" onClick={onConfirm}>
-            Clear bag
+            Clear cart
           </ActionButton>
         </div>
       }
     >
       <div className="text-sm text-[var(--app-text-muted)]">
-        This clears the current order bag, including pickup details and any linked custom configuration.
+        This clears the current order cart, including pickup details and any linked custom configuration.
       </div>
     </ModalShell>
   );
