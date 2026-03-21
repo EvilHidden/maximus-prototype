@@ -1,12 +1,14 @@
-import { Mail, MapPin, Phone, Plus, Ruler, Search, User, Users } from "lucide-react";
+import { ChevronRight, Mail, Phone, Plus, Search, Users } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { customerOrders, customers } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
-import { ActionButton, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SectionHeader, StatusPill } from "../components/ui/primitives";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
 import {
   filterCustomers,
+  getMeasurementStatusLabel,
+  getMeasurementStatusTone,
   getCustomerLastOrderSummary,
 } from "../features/customer/selectors";
 
@@ -26,8 +28,6 @@ function CustomerRow({
   lastOrderSummary: string | null;
   onOpen: () => void;
 }) {
-  const hasMeasurementsOnFile = customer.measurementsStatus === "on_file";
-  const hasVisitHistory = Boolean(customer.lastVisit && customer.lastVisit !== "New");
   const lastOrderParts = lastOrderSummary?.split(" • ", 2) ?? [];
   const lastOrderLabel = lastOrderParts.length === 2 ? lastOrderParts[0] : lastOrderSummary;
   const lastOrderDate = lastOrderParts.length === 2 ? lastOrderParts[1] : null;
@@ -35,78 +35,53 @@ function CustomerRow({
   return (
     <button
       onClick={onOpen}
-      className="w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface)]"
+      className="grid w-full gap-3 border-b border-[var(--app-border)]/45 px-4 py-3 text-left transition hover:bg-[var(--app-surface-muted)]/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-border-strong)] sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.7fr)_180px_140px_180px_24px] xl:items-center"
     >
-      <div className="space-y-3">
-        <div className="flex min-w-0 items-center gap-3">
-          <div className="app-icon-chip">
-            <User className="h-4 w-4" />
-          </div>
-          <div className="min-w-0">
-            <div className="flex items-center gap-2">
-              <div className="app-text-value truncate">{customer.name}</div>
-              {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
-            </div>
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="app-text-strong truncate">{customer.name}</div>
+          {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
+        </div>
+        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+          <div className="app-text-caption flex items-center gap-1.5">
+            <Phone className="h-3.5 w-3.5" />
+            {customer.phone}
           </div>
         </div>
+        <div className="app-text-caption mt-1 flex items-center gap-1.5 truncate">
+          <Mail className="h-3.5 w-3.5 shrink-0" />
+          <span className="truncate">{customer.email || "No email on file"}</span>
+        </div>
+      </div>
 
-        <div className="grid gap-x-5 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
-          <div className="min-w-0 py-1">
-            <div className="flex items-center gap-2">
-              <Phone className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-              <div className="app-text-overline">Phone</div>
-            </div>
-            <div className="app-text-body mt-1 font-medium">{customer.phone}</div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="flex items-center gap-2">
-              <Mail className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-              <div className="app-text-overline">Email</div>
-            </div>
-            <div className="app-text-body mt-1 truncate font-medium">{customer.email}</div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="flex items-center gap-2">
-              <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-              <div className="app-text-overline">Address</div>
-            </div>
-            <div className="app-text-body mt-1 font-medium">{customer.address}</div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="app-text-overline">Notes</div>
-            <div className="app-text-caption mt-0.5">{customer.notes}</div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="app-text-overline">Preferred location</div>
-            <div className="app-text-body mt-0.5 font-medium">{customer.preferredLocation}</div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="app-text-overline">Last visit</div>
-            <div className={hasVisitHistory ? "app-text-body mt-0.5 font-medium" : "app-text-caption mt-0.5"}>
-              {hasVisitHistory ? customer.lastVisit : "No visit history yet"}
-            </div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="app-text-overline">Measurements</div>
-            <div className="mt-1 flex flex-wrap items-center gap-2">
-              <StatusPill tone={hasMeasurementsOnFile ? "success" : "default"}>
-                <Ruler className="h-3.5 w-3.5" />
-                {hasMeasurementsOnFile ? "On file" : "Not on file"}
-              </StatusPill>
-            </div>
-          </div>
-          <div className="min-w-0 py-1">
-            <div className="app-text-overline">Last order</div>
-            {lastOrderSummary ? (
-              <>
-                <div className="app-text-body mt-0.5 font-medium">{lastOrderDate ?? "Recent"}</div>
-                <div className="app-text-caption mt-0.5">{lastOrderLabel}</div>
-              </>
-            ) : (
-              <div className="app-text-caption mt-0.5">No order history yet</div>
-            )}
-          </div>
+      <div className="min-w-0">
+        <div className="app-text-overline">Measurements</div>
+        <div className="mt-1">
+          <StatusPill tone={getMeasurementStatusTone(customer.measurementsStatus)}>
+            {getMeasurementStatusLabel(customer.measurementsStatus)}
+          </StatusPill>
         </div>
+      </div>
+
+      <div className="min-w-0">
+        <div className="app-text-overline">Location</div>
+        <div className="app-text-body mt-1 font-medium">{customer.preferredLocation}</div>
+      </div>
+
+      <div className="min-w-0">
+        <div className="app-text-overline">Last order</div>
+        {lastOrderSummary ? (
+          <>
+            <div className="app-text-body mt-1 font-medium">{lastOrderDate ?? "Recent"}</div>
+            <div className="app-text-caption mt-1 truncate">{lastOrderLabel}</div>
+          </>
+        ) : (
+          <div className="app-text-caption mt-1">No order history</div>
+        )}
+      </div>
+
+      <div className="hidden justify-self-end xl:block">
+        <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)]" />
       </div>
     </button>
   );
@@ -172,29 +147,46 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
         <div className="border-t border-[var(--app-border)]/55 pt-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="app-text-value">Customer board</div>
-              <div className="app-text-caption mt-1">Tap any profile to open service history, measurements, and actions.</div>
+              <div className="app-text-value">Customer directory</div>
+              <div className="app-text-caption mt-1">Scan the essentials here. Open a row for profile history, measurements, and actions.</div>
             </div>
             <div className="app-text-overline">{filteredCustomers.length} customers</div>
           </div>
 
-          <div className="mt-4 grid gap-3 xl:grid-cols-2">
-            {filteredCustomers.map((customer) => {
-              const lastOrderSummary = getCustomerLastOrderSummary(customerOrders[customer.id] ?? []);
+          <div className="mt-4 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
+            <div className="hidden gap-3 border-b border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/85 px-4 py-2 xl:grid xl:grid-cols-[minmax(0,1.7fr)_180px_140px_180px_24px]">
+              <div className="app-text-overline">Customer</div>
+              <div className="app-text-overline">Measurements</div>
+              <div className="app-text-overline">Location</div>
+              <div className="app-text-overline">Last order</div>
+              <div />
+            </div>
 
-              return (
-                <CustomerRow
-                  key={customer.id}
-                  customer={customer}
-                  lastOrderSummary={lastOrderSummary}
-                  onOpen={() => {
-                    setActiveCustomerId(customer.id);
-                    onSelectCustomer(customer);
-                    setDrawerOpen(true);
-                  }}
-                />
-              );
-            })}
+            {filteredCustomers.length ? (
+              <div className="divide-y divide-[var(--app-border)]/35">
+                {filteredCustomers.map((customer) => {
+                  const lastOrderSummary = getCustomerLastOrderSummary(customerOrders[customer.id] ?? []);
+
+                  return (
+                    <CustomerRow
+                      key={customer.id}
+                      customer={customer}
+                      lastOrderSummary={lastOrderSummary}
+                      onOpen={() => {
+                        setActiveCustomerId(customer.id);
+                        onSelectCustomer(customer);
+                        setDrawerOpen(true);
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ) : (
+              <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
+                <div className="app-text-body">No customers match this search.</div>
+                <div className="app-text-caption mt-1">Try a name, phone number, customer ID, or note.</div>
+              </EmptyState>
+            )}
           </div>
         </div>
       </div>
