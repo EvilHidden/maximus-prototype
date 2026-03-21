@@ -37,9 +37,9 @@ function CustomerRow({
     >
       <div className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_340px] xl:items-stretch">
         <div className="min-w-0">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="app-icon-chip mt-0.5">
+          <div className="flex items-center gap-3">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="app-icon-chip">
                 <User className="h-4 w-4" />
               </div>
               <div className="min-w-0">
@@ -49,10 +49,9 @@ function CustomerRow({
                 </div>
               </div>
             </div>
-            <div className="app-text-caption shrink-0">{customer.id}</div>
           </div>
 
-          <div className="mt-2 grid gap-x-5 gap-y-3 md:grid-cols-2">
+          <div className="mt-3 grid gap-x-5 gap-y-3 md:grid-cols-2">
             <div className="min-w-0 py-1">
               <div className="flex items-center gap-2">
                 <Phone className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
