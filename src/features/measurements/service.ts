@@ -59,6 +59,7 @@ export function createDraftMeasurementSet(
     id: nextMeasurementSetId,
     customerId: customer.id,
     label: "Draft",
+    takenAt: formatDateLabel(now),
     note: `${formatDateLabel(now)} • ${customer.name} draft`,
     values,
     isDraft: true,
@@ -93,6 +94,7 @@ export function saveMeasurementSet(
         set.id === sameCustomerCurrentSet.id
           ? {
               ...set,
+              takenAt: dateLabel,
               note: `${dateLabel} • ${normalizedTitle}`,
               values: { ...measurements },
               isDraft: true,
@@ -114,6 +116,7 @@ export function saveMeasurementSet(
         if (set.id === sameCustomerCurrentSet.id) {
           return {
             ...set,
+            takenAt: dateLabel,
             note: `${dateLabel} • ${normalizedTitle}`,
             values: { ...measurements },
             isDraft: false,
@@ -150,6 +153,7 @@ export function saveMeasurementSet(
             return {
               ...set,
               label: `Version ${nextVersion}`,
+              takenAt: dateLabel,
               note: `${dateLabel} • ${normalizedTitle}`,
               values: { ...measurements },
               isDraft: false,
@@ -170,6 +174,7 @@ export function saveMeasurementSet(
       id: nextMeasurementSetId,
       customerId: customer.id,
       label: `Version ${nextVersion}`,
+      takenAt: dateLabel,
       note: `${dateLabel} • ${normalizedTitle}`,
       values: { ...measurements },
       isDraft: false,
@@ -197,6 +202,7 @@ export function saveMeasurementSet(
     id: nextMeasurementSetId,
     customerId: customer.id,
     label: "Draft",
+    takenAt: dateLabel,
     note: `${dateLabel} • ${normalizedTitle}`,
     values: { ...measurements },
     isDraft: true,
@@ -243,6 +249,7 @@ export function deleteMeasurementSetAndPreserveDraft(
     id: nextMeasurementSetId,
     customerId: customer.id,
     label: "Draft",
+    takenAt: formatDateLabel(now),
     note: `${formatDateLabel(now)} • ${customer.name} draft`,
     values: { ...measurements },
     isDraft: true,
