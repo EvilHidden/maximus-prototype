@@ -8,6 +8,7 @@ type CustomerProfileDrawerProps = {
   orders: CustomerOrder[];
   measurementSets: MeasurementSet[];
   onClose: () => void;
+  onEditCustomer: () => void;
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -48,6 +49,7 @@ export function CustomerProfileDrawer({
   orders,
   measurementSets,
   onClose,
+  onEditCustomer,
   onScreenChange,
 }: CustomerProfileDrawerProps) {
   return (
@@ -69,7 +71,7 @@ export function CustomerProfileDrawer({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm">
+              <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-12 px-4 py-2.5 text-sm">
                 Edit
               </ActionButton>
               <ActionButton tone="secondary" onClick={onClose} className="min-h-12 px-4 py-2.5 text-sm">

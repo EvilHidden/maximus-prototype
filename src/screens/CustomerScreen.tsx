@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from "react";
 import { customerOrders, customers } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import { ActionButton, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
 import {
   filterCustomers,
@@ -33,63 +34,56 @@ function CustomerRow({
   return (
     <button
       onClick={onOpen}
-      className="w-full rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface)]"
+      className="w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface)]"
     >
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_340px] xl:items-stretch">
-        <div className="min-w-0">
-          <div className="flex items-center gap-3">
-            <div className="flex min-w-0 items-center gap-3">
-              <div className="app-icon-chip">
-                <User className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="app-text-value truncate">{customer.name}</div>
-                  {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
-                </div>
-              </div>
-            </div>
+      <div className="space-y-3">
+        <div className="flex min-w-0 items-center gap-3">
+          <div className="app-icon-chip">
+            <User className="h-4 w-4" />
           </div>
-
-          <div className="mt-3 grid gap-x-5 gap-y-3 md:grid-cols-2">
-            <div className="min-w-0 py-1">
-              <div className="flex items-center gap-2">
-                <Phone className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                <div className="app-text-overline">Phone</div>
-              </div>
-              <div className="app-text-body mt-1 font-medium">{customer.phone}</div>
-            </div>
-            <div className="min-w-0 py-1">
-              <div className="flex items-center gap-2">
-                <Mail className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                <div className="app-text-overline">Email</div>
-              </div>
-              <div className="app-text-body mt-1 truncate font-medium">{customer.email}</div>
-            </div>
-            <div className="min-w-0 py-1">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                <div className="app-text-overline">Address</div>
-              </div>
-              <div className="app-text-body mt-1 font-medium">{customer.address}</div>
-            </div>
-            <div className="min-w-0 py-1">
-              <div className="app-text-overline">Notes</div>
-              <div className="app-text-caption mt-0.5">{customer.notes}</div>
+          <div className="min-w-0">
+            <div className="flex items-center gap-2">
+              <div className="app-text-value truncate">{customer.name}</div>
+              {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
             </div>
           </div>
         </div>
 
-        <div className="grid h-full gap-x-4 gap-y-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/16 px-3 py-2.5 sm:grid-cols-2">
-          <div className="min-w-0 self-start">
+        <div className="grid gap-x-5 gap-y-3 md:grid-cols-2 xl:grid-cols-4">
+          <div className="min-w-0 py-1">
+            <div className="flex items-center gap-2">
+              <Phone className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+              <div className="app-text-overline">Phone</div>
+            </div>
+            <div className="app-text-body mt-1 font-medium">{customer.phone}</div>
+          </div>
+          <div className="min-w-0 py-1">
+            <div className="flex items-center gap-2">
+              <Mail className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+              <div className="app-text-overline">Email</div>
+            </div>
+            <div className="app-text-body mt-1 truncate font-medium">{customer.email}</div>
+          </div>
+          <div className="min-w-0 py-1">
+            <div className="flex items-center gap-2">
+              <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+              <div className="app-text-overline">Address</div>
+            </div>
+            <div className="app-text-body mt-1 font-medium">{customer.address}</div>
+          </div>
+          <div className="min-w-0 py-1">
+            <div className="app-text-overline">Notes</div>
+            <div className="app-text-caption mt-0.5">{customer.notes}</div>
+          </div>
+          <div className="min-w-0 py-1">
             <div className="app-text-overline">Preferred location</div>
             <div className="app-text-body mt-0.5 font-medium">{customer.preferredLocation}</div>
           </div>
-          <div className="min-w-0 self-start">
+          <div className="min-w-0 py-1">
             <div className="app-text-overline">Last visit</div>
             <div className="app-text-body mt-0.5 font-medium">{customer.lastVisit}</div>
           </div>
-          <div className="min-w-0 self-start">
+          <div className="min-w-0 py-1">
             <div className="app-text-overline">Measurements</div>
             <div className="mt-1 flex flex-wrap items-center gap-2">
               <StatusPill tone={hasMeasurementsOnFile ? "success" : "default"}>
@@ -98,7 +92,7 @@ function CustomerRow({
               </StatusPill>
             </div>
           </div>
-          <div className="min-w-0 self-start">
+          <div className="min-w-0 py-1">
             <div className="app-text-overline">Last order</div>
             {lastOrderSummary ? (
               <>
@@ -116,11 +110,18 @@ function CustomerRow({
 }
 
 export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCustomer, onScreenChange }: CustomerScreenProps) {
+  const [customerRecords, setCustomerRecords] = useState<Customer[]>(customers);
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [activeCustomerId, setActiveCustomerId] = useState<string | null>(selectedCustomer?.id ?? null);
   const [actionToast, setActionToast] = useState<string | null>(null);
+  const [editorMode, setEditorMode] = useState<"add" | "edit" | null>(null);
 
-  const filteredCustomers = useMemo(() => filterCustomers(customers, query), [query]);
+  const filteredCustomers = useMemo(() => filterCustomers(customerRecords, query), [customerRecords, query]);
+  const activeCustomer = useMemo(
+    () => customerRecords.find((customer) => customer.id === activeCustomerId) ?? null,
+    [customerRecords, activeCustomerId],
+  );
 
   useEffect(() => {
     if (!actionToast) {
@@ -158,7 +159,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
           <ActionButton
             tone="primary"
             className="min-h-[3.625rem] px-4 py-2.5 text-sm"
-            onClick={() => setActionToast("New customer intake is ready to be connected next.")}
+            onClick={() => setEditorMode("add")}
           >
             <Plus className="h-4 w-4" />
             Add customer
@@ -184,6 +185,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
                   customer={customer}
                   lastOrderSummary={lastOrderSummary}
                   onOpen={() => {
+                    setActiveCustomerId(customer.id);
                     onSelectCustomer(customer);
                     setDrawerOpen(true);
                   }}
@@ -202,11 +204,47 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
 
       {drawerOpen ? (
         <CustomerProfileDrawer
-          customer={selectedCustomer}
-          orders={selectedCustomer ? customerOrders[selectedCustomer.id] ?? [] : []}
-          measurementSets={selectedCustomer ? measurementSets.filter((set) => set.customerId === selectedCustomer.id) : []}
+          customer={activeCustomer}
+          orders={activeCustomer ? customerOrders[activeCustomer.id] ?? [] : []}
+          measurementSets={activeCustomer ? measurementSets.filter((set) => set.customerId === activeCustomer.id) : []}
           onClose={() => setDrawerOpen(false)}
+          onEditCustomer={() => setEditorMode("edit")}
           onScreenChange={onScreenChange}
+        />
+      ) : null}
+
+      {editorMode ? (
+        <CustomerEditorModal
+          mode={editorMode}
+          customer={editorMode === "edit" ? activeCustomer : null}
+          onClose={() => setEditorMode(null)}
+          onSave={(draft) => {
+            if (editorMode === "add") {
+              const nextCustomer: Customer = {
+                ...draft,
+                id: `C-${Math.floor(1000 + Math.random() * 9000)}`,
+                lastVisit: "New",
+                measurementsStatus: "missing",
+              };
+              setCustomerRecords((current) => [nextCustomer, ...current]);
+              setActiveCustomerId(nextCustomer.id);
+              onSelectCustomer(nextCustomer);
+              setActionToast(`${nextCustomer.name} added.`);
+            } else if (activeCustomer) {
+              const updatedCustomer: Customer = {
+                ...activeCustomer,
+                ...draft,
+              };
+              setCustomerRecords((current) =>
+                current.map((customer) => (customer.id === updatedCustomer.id ? updatedCustomer : customer)),
+              );
+              setActiveCustomerId(updatedCustomer.id);
+              onSelectCustomer(updatedCustomer);
+              setActionToast(`${updatedCustomer.name} updated.`);
+            }
+
+            setEditorMode(null);
+          }}
         />
       ) : null}
     </div>
