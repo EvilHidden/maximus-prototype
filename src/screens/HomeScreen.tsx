@@ -182,7 +182,11 @@ function PickupRow({
       </div>
       <div className="min-w-0">
         <div className="app-text-value">{appointment.customer}</div>
-        <div className="app-text-caption mt-1">{appointment.type} • {appointment.location}</div>
+        <div className="app-text-caption mt-1">
+          {appointment.pickupSummary ?? appointment.type}
+          {" • "}
+          {appointment.location}
+        </div>
       </div>
       <div className="flex items-center gap-2">
         <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onEditPickup}>
@@ -335,7 +339,7 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
             <div className="app-text-overline">View locations</div>
             <div className="app-text-caption mt-1">Filter appointments and pickups.</div>
           </div>
-          <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/18 px-2.5 py-2.5">
+          <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
             <button
               onClick={() => setActiveLocations(allLocationsActive ? [] : locationOptions)}
               className={cx(

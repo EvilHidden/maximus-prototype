@@ -38,6 +38,7 @@ export type Appointment = {
   customerId?: string;
   customer: string;
   type: string;
+  pickupSummary?: string;
   status: string;
   missing: string;
   route: WorkflowMode | "pickup";
