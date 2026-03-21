@@ -15,6 +15,14 @@ The goal is not heavyweight process. The goal is fewer collisions, clearer hando
 7. Push `main`.
 8. Delete the finished branch.
 
+For the fast path, use:
+
+```bash
+npm run ship -- "Short PR title"
+```
+
+That command runs the build, stages and commits the branch, pushes it, opens or reuses a PR to `main`, and enables auto-merge so GitHub closes it out as soon as the required check passes.
+
 ## Branch naming
 
 Use branch names like:
@@ -120,6 +128,7 @@ git checkout main
 git pull --ff-only origin main
 git checkout -b codex/your-branch-name
 npm run build
+npm run ship -- "Short PR title"
 ```
 
 ## What not to do
