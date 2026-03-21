@@ -73,6 +73,7 @@ If the answer is `yes`, pause first and explicitly call out the tradeoff before 
 
 ```bash
 npm run dev
+npm run check
 npm run build
 npm run preview
 npm run start-topic -- "short topic name"
@@ -85,4 +86,4 @@ This repo includes a lightweight GitHub Actions build check that runs on pushes 
 
 For the local side of the rapid loop, start each new idea with `npm run start-topic -- "short topic name"`. That keeps contributors anchored on fresh `codex/` branches from current `main`.
 
-For the rapid branch-to-main loop, use `npm run ship -- "Short PR title"` from a `codex/` branch. It runs the build, commits and pushes the branch, opens or reuses a PR, and enables auto-merge so the branch lands back on `main` as soon as the build passes.
+For the rapid branch-to-main loop, use `npm run ship -- "Short PR title"` from a `codex/` branch. It runs `npm run check` locally for a faster preflight, commits and pushes the branch, opens or reuses a PR, and enables auto-merge so the branch lands back on `main` after the full GitHub build passes.
