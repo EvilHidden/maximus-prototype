@@ -22,6 +22,11 @@ type FrontDeskAction = {
   label: string;
   subtitle: string;
   icon: typeof UserPlus;
+  iconStyle: {
+    borderColor: string;
+    backgroundColor: string;
+    color: string;
+  };
   onClick: () => void;
 };
 
@@ -39,6 +44,7 @@ function FrontDeskActionTile({
   label,
   subtitle,
   icon: Icon,
+  iconStyle,
   onClick,
 }: FrontDeskAction) {
   return (
@@ -47,7 +53,7 @@ function FrontDeskActionTile({
       className="group flex min-h-[112px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/18 px-4 py-4 text-left transition hover:bg-[var(--app-surface)]/34"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="app-icon-chip transition group-hover:border-[var(--app-border-strong)]">
+        <div className="app-icon-chip transition group-hover:border-[var(--app-border-strong)]" style={iconStyle}>
           <Icon className="h-4 w-4" />
         </div>
         <span className="app-text-overline">Open</span>
@@ -238,24 +244,44 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
       label: "Customers",
       subtitle: "Search profiles and start front-desk work",
       icon: UserPlus,
+      iconStyle: {
+        borderColor: "#d8b4fe",
+        backgroundColor: "#faf5ff",
+        color: "#7e22ce",
+      },
       onClick: () => onScreenChange("customer"),
     },
     {
       label: "Alteration order",
       subtitle: "Start intake and capture services",
       icon: Receipt,
+      iconStyle: {
+        borderColor: "#fdba74",
+        backgroundColor: "#fff7ed",
+        color: "#c2410c",
+      },
       onClick: () => onStartWorkflow("alteration"),
     },
     {
       label: "Custom garment",
       subtitle: "Open measurements and build flow",
       icon: Ruler,
+      iconStyle: {
+        borderColor: "#93c5fd",
+        backgroundColor: "#eff6ff",
+        color: "#1d4ed8",
+      },
       onClick: () => onStartWorkflow("custom"),
     },
     {
       label: "Order pickup",
       subtitle: "Prepare checkout and release orders",
       icon: Package,
+      iconStyle: {
+        borderColor: "#86efac",
+        backgroundColor: "#f0fdf4",
+        color: "#15803d",
+      },
       onClick: () => onScreenChange("openOrders"),
     },
   ];
@@ -279,7 +305,14 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="app-icon-chip">
+            <div
+              className="app-icon-chip"
+              style={{
+                borderColor: "#bae6fd",
+                backgroundColor: "#f0f9ff",
+                color: "#0369a1",
+              }}
+            >
               <CalendarDays className="h-4 w-4" />
             </div>
             <div>
@@ -287,9 +320,11 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
               <div className="app-section-copy">Today and tomorrow</div>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-[var(--app-border)]/55 bg-[var(--app-surface)]/28 px-3 py-1.5">
-            <CalendarDays className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-            <span className="app-text-overline">{todayAppointments.length + tomorrowAppointments.length} appointments</span>
+          <div className="flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sky-700">
+            <CalendarDays className="h-3.5 w-3.5" />
+            <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-sky-700">
+              {todayAppointments.length + tomorrowAppointments.length} appointments
+            </span>
           </div>
         </div>
 
@@ -314,7 +349,14 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-start gap-3">
-            <div className="app-icon-chip">
+            <div
+              className="app-icon-chip"
+              style={{
+                borderColor: "#a7f3d0",
+                backgroundColor: "#ecfdf5",
+                color: "#047857",
+              }}
+            >
               <Package className="h-4 w-4" />
             </div>
             <div>
@@ -322,9 +364,11 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
               <div className="app-section-copy">Today and tomorrow</div>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-[var(--app-border)]/55 bg-[var(--app-surface)]/28 px-3 py-1.5">
-            <Package className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-            <span className="app-text-overline">{pickups.length} pickups</span>
+          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700">
+            <Package className="h-3.5 w-3.5" />
+            <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
+              {pickups.length} pickups
+            </span>
           </div>
         </div>
 
