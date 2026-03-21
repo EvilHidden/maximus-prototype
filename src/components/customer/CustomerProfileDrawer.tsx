@@ -28,21 +28,39 @@ function ToolTile({
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/18 px-3 py-3 text-left transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface)]/30"
+      className="flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/85 px-3 py-3 text-left transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]"
     >
       <div className="flex min-w-0 items-center gap-3">
-        <div className="flex items-center gap-3">
-          <div className="app-icon-chip">
-            <Icon className="h-4 w-4" />
-          </div>
-          <div className="min-w-0">
-            <div className="app-text-strong">{label}</div>
-            <div className="app-text-caption mt-0.5">{subtitle}</div>
-          </div>
+        <div className="app-icon-chip">
+          <Icon className="h-4 w-4" />
+        </div>
+        <div className="min-w-0">
+          <div className="app-text-strong">{label}</div>
+          <div className="app-text-caption mt-0.5">{subtitle}</div>
         </div>
       </div>
       <ArrowRight className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
     </button>
+  );
+}
+
+function SectionHeading({
+  title,
+  subtitle,
+  meta,
+}: {
+  title: string;
+  subtitle: string;
+  meta?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3">
+      <div>
+        <div className="app-text-value">{title}</div>
+        <div className="app-text-caption mt-1">{subtitle}</div>
+      </div>
+      {meta ? <div className="app-text-overline">{meta}</div> : null}
+    </div>
   );
 }
 
@@ -63,7 +81,7 @@ export function CustomerProfileDrawer({
       <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
       <div className="absolute right-0 top-0 flex h-full w-[460px] flex-col border-l border-[var(--app-border)] bg-[var(--app-surface)] shadow-[var(--app-shadow-lg)]">
         <div className="flex-1 overflow-auto p-4">
-        <div className="border-b border-[var(--app-border)]/45 pb-4">
+        <div className="border-b border-[var(--app-border)]/45 pb-5">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
               <div className="app-icon-chip mt-0.5">
@@ -78,9 +96,6 @@ export function CustomerProfileDrawer({
               </div>
             </div>
             <div className="flex items-center gap-2">
-              <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-12 px-4 py-2.5 text-sm">
-                Edit
-              </ActionButton>
               <ActionButton tone="secondary" onClick={onClose} className="min-h-12 px-4 py-2.5 text-sm">
                 Close
               </ActionButton>
@@ -111,13 +126,11 @@ export function CustomerProfileDrawer({
           </div>
         </div>
 
-        <div className="mt-5 border-b border-[var(--app-border)]/45 pb-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="app-text-value">Quick actions</div>
-              <div className="app-text-caption mt-1">Most common customer-service actions.</div>
-            </div>
-          </div>
+        <div className="mt-6">
+          <SectionHeading
+            title="Quick actions"
+            subtitle="Most common customer-service actions."
+          />
 
           <div className="mt-3 space-y-2">
             <ToolTile
@@ -152,43 +165,38 @@ export function CustomerProfileDrawer({
           </div>
         </div>
 
-        <div className="mt-5 border-b border-[var(--app-border)]/45 pb-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="app-text-value">Recent orders</div>
-              <div className="app-text-caption mt-1">Most recent work associated with this profile.</div>
-            </div>
-            <div className="app-text-overline">{orders.length} orders</div>
-          </div>
+        <div className="mt-6 border-t border-[var(--app-border)]/45 pt-5">
+          <SectionHeading
+            title="Recent orders"
+            subtitle="Most recent work associated with this profile."
+            meta={`${orders.length} orders`}
+          />
 
-          <div className="mt-3 space-y-2">
+          <div className="mt-3 divide-y divide-[var(--app-border)]/28">
             {orders.map((order) => (
               <div
                 key={order.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto_72px] items-center gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/30 bg-[var(--app-surface)]/14 px-3 py-4"
+                className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3.5"
               >
                 <div className="min-w-0">
-                  <div className="app-text-strong truncate">{order.label}</div>
-                  <div className="app-text-caption mt-1">{`${order.id} • ${order.date}`}</div>
+                  <div className="flex min-w-0 items-center gap-2">
+                    <div className="app-text-strong truncate">{order.label}</div>
+                    <StatusPill>{order.status}</StatusPill>
+                  </div>
+                  <div className="app-text-caption mt-1 truncate">{`${order.id} • ${order.date}`}</div>
                 </div>
-                <div className="justify-self-start">
-                  <StatusPill>{order.status}</StatusPill>
-                </div>
-                <div className="app-text-body justify-self-end text-right font-medium">{order.total}</div>
+                <div className="app-text-body self-start justify-self-end text-right font-medium">{order.total}</div>
               </div>
             ))}
           </div>
         </div>
 
-        <div className="mt-5">
-          <div className="flex items-center justify-between gap-3">
-            <div>
-              <div className="app-text-value">Measurement history</div>
-              <div className="app-text-caption mt-1">Saved sets available for tailoring work.</div>
-            </div>
-            <div className="app-text-overline">{measurementSets.length} saved</div>
-          </div>
-
+        <div className="mt-6 border-t border-[var(--app-border)]/45 pt-5">
+          <SectionHeading
+            title="Measurement history"
+            subtitle="Saved sets available for tailoring work."
+            meta={`${measurementSets.length} saved`}
+          />
           <div className="mt-3 divide-y divide-[var(--app-border)]/28">
             {measurementSets.map((set) => (
               <div
@@ -206,14 +214,25 @@ export function CustomerProfileDrawer({
           </div>
         </div>
         </div>
-        <div className="border-t border-[var(--app-border)]/45 p-4">
-          <button
-            onClick={() => setConfirmDeleteOpen(true)}
-            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 hover:text-red-800"
-          >
-            <Trash2 className="h-4 w-4" />
-            Delete customer
-          </button>
+        <div className="border-t border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/75 p-4">
+          <div className="flex items-center justify-between gap-3">
+            <div>
+              <div className="app-text-overline">Profile actions</div>
+              <div className="app-text-caption mt-1">Edit or remove this customer record.</div>
+            </div>
+            <div className="flex items-center gap-2">
+              <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-12 px-4 py-2.5 text-sm">
+                Edit
+              </ActionButton>
+              <button
+                onClick={() => setConfirmDeleteOpen(true)}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 hover:text-red-800"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete
+              </button>
+            </div>
+          </div>
         </div>
       </div>
       {confirmDeleteOpen ? (
