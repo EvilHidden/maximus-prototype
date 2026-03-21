@@ -105,12 +105,13 @@ export function getCustomMeasurementsCardModel(
   measurementSets: MeasurementSet[],
 ): CustomMeasurementsCardModel {
   if (!customer) {
-    return { kind: "no_customer" };
+    return { kind: "no_wearer" };
   }
 
   if (linkedSet) {
     return {
       kind: "linked",
+      customer,
       set: getMeasurementSetDisplay(linkedSet),
     };
   }

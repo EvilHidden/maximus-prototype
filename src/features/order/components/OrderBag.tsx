@@ -1,4 +1,4 @@
-import { Clock, ShoppingBag, Trash2 } from "lucide-react";
+import { CalendarClock, MapPin, ShoppingBag, Trash2 } from "lucide-react";
 import type { Customer, OrderBagLineItem, PickupLocation, PricingSummary, WorkflowMode } from "../../../types";
 import {
   ActionButton,
@@ -15,7 +15,6 @@ import { PricingSummary as PricingSummaryPanel } from "./PricingSummary";
 type OrderBagProps = {
   customer: Customer | null;
   lineItems: OrderBagLineItem[];
-  customDraft: OrderBagLineItem | null;
   pricing: PricingSummary;
   activeWorkflow: WorkflowMode | null;
   continueLabel: string;
@@ -26,6 +25,7 @@ type OrderBagProps = {
   onOpenCustomerModal: () => void;
   onOpenPickupModal: () => void;
   onEditAlterationItem: (itemId: number) => void;
+  onEditCustomItem: (itemId: number) => void;
   onRequestRemoveItem: (kind: WorkflowMode, itemId: number) => void;
   onClearCart: () => void;
   onContinue: () => void;
@@ -35,7 +35,6 @@ type OrderBagProps = {
 export function OrderBag({
   customer,
   lineItems,
-  customDraft,
   pricing,
   activeWorkflow,
   continueLabel,
@@ -46,6 +45,7 @@ export function OrderBag({
   onOpenCustomerModal,
   onOpenPickupModal,
   onEditAlterationItem,
+  onEditCustomItem,
   onRequestRemoveItem,
   onClearCart,
   onContinue,
@@ -68,22 +68,10 @@ export function OrderBag({
         }
       />
 
-      <SummaryStack className="text-sm">
-        {customDraft ? (
-          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] px-3 py-2">
-            <div className="app-text-overline">Active custom build</div>
-            <div className="mt-1 flex items-center justify-between gap-3">
-              <div className="min-w-0">
-                <div className="app-text-value truncate">{customDraft.title.replace("Draft custom garment - ", "")}</div>
-                {customDraft.subtitle ? <div className="app-text-overline mt-0.5">{customDraft.subtitle}</div> : null}
-              </div>
-              <div className="app-text-value shrink-0">{`$${customDraft.amount.toFixed(2)}`}</div>
-            </div>
-          </div>
-        ) : null}
-
+      <SummaryStack className="space-y-4 text-sm">
         <PanelSection
-          title="Customer"
+          title="Payer"
+          className="border-0 bg-transparent p-0"
           action={
             <button
               onClick={onOpenCustomerModal}
@@ -93,43 +81,58 @@ export function OrderBag({
             </button>
           }
         >
-          <div className="app-text-strong">{customer?.name ?? "Customer required"}</div>
-          <div className="app-text-caption mt-0.5">{customer?.phone ?? "Customer required"}</div>
+          <div className="px-1 py-0.5">
+            <div className="app-text-strong">{customer?.name ?? "Payer required"}</div>
+            <div className="app-text-caption mt-1">{customer?.phone ?? "Link the paying customer"}</div>
+          </div>
         </PanelSection>
 
-        <PanelSection title="Items">
+        <PanelSection title="Items" className="border-0 bg-transparent p-0">
           {lineItems.length > 0 ? (
-            <div className="max-h-[280px] space-y-2 overflow-auto">
-              {lineItems.map((item) => (
+            <div className="max-h-[280px] overflow-auto">
+              {lineItems.map((item, index) => (
                 <div
                   key={item.id}
-                  onClick={item.editable && item.itemId ? () => onEditAlterationItem(item.itemId!) : undefined}
+                  onClick={
+                    item.itemId
+                      ? () => {
+                          if (item.kind === "alteration" && item.editable) {
+                            onEditAlterationItem(item.itemId);
+                          }
+
+                          if (item.kind === "custom") {
+                            onEditCustomItem(item.itemId);
+                          }
+                        }
+                      : undefined
+                  }
                   className={cx(
-                    "rounded-[var(--app-radius-md)] border border-[var(--app-border)] bg-[var(--app-surface)] px-3 py-3",
-                    item.editable && item.itemId && "cursor-pointer transition-colors hover:bg-[var(--app-surface-muted)]",
+                    "group rounded-[var(--app-radius-sm)] px-1 py-3.5",
+                    index > 0 && "border-t border-[var(--app-border)]/45",
+                    item.itemId && "cursor-pointer transition-colors hover:bg-[var(--app-surface-muted)]/45",
                   )}
                 >
-                  <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start justify-between gap-3 px-3">
                     <div className="min-w-0 flex-1">
                       <div className="app-text-body font-medium">{item.title}</div>
-                      {item.subtitle ? <div className="app-text-overline mt-1 leading-relaxed">{item.subtitle}</div> : null}
+                      {item.subtitle ? <div className="app-text-caption mt-2 whitespace-pre-line leading-[1.7]">{item.subtitle}</div> : null}
                     </div>
-                    <div className="app-text-strong shrink-0">${item.amount.toFixed(2)}</div>
+                    <div className="flex min-w-[104px] shrink-0 flex-col items-end gap-2.5 pl-3 pt-0.5 text-right">
+                      <div className="app-text-strong">${item.amount.toFixed(2)}</div>
+                      {item.removable && item.itemId ? (
+                        <button
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onRequestRemoveItem(item.kind, item.itemId!);
+                          }}
+                          className="inline-flex min-h-8 items-center gap-1 rounded-[var(--app-radius-sm)] border border-transparent px-2 text-[12px] font-medium text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-danger-text)] focus:bg-[var(--app-surface-muted)] focus:text-[var(--app-danger-text)]"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                          Remove
+                        </button>
+                      ) : null}
+                    </div>
                   </div>
-                  {item.removable && item.itemId ? (
-                    <div className="mt-2 flex justify-end">
-                      <button
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onRequestRemoveItem(item.kind, item.itemId!);
-                        }}
-                        className="inline-flex items-center gap-1 text-[11px] font-medium text-[var(--app-danger-text)] hover:opacity-80"
-                      >
-                        <Trash2 className="h-3.5 w-3.5" />
-                        Remove
-                      </button>
-                    </div>
-                  ) : null}
                 </div>
               ))}
             </div>
@@ -141,32 +144,55 @@ export function OrderBag({
         {pickupRequired ? (
           <PanelSection
             title="Pickup"
+            className="border-0 bg-transparent p-0"
             action={
-              <button
+              <ActionButton
+                tone="quiet"
                 onClick={onOpenPickupModal}
-                className="text-xs font-medium text-[var(--app-text-muted)] underline decoration-[var(--app-border-strong)] underline-offset-2 hover:text-[var(--app-text)]"
+                className="min-h-8 px-3 py-1.5 text-xs"
               >
-                {pickupDate && pickupTime && pickupLocation ? "Change" : "Set"}
-              </button>
+                {pickupDate && pickupTime && pickupLocation ? "Edit" : "Set pickup"}
+              </ActionButton>
             }
           >
-            <div className="space-y-2">
-              <div className="flex items-center justify-between">
-                <span className="app-text-body-muted">Schedule</span>
-                <span className="app-text-body text-right font-medium">{formattedPickupSchedule || "Required"}</span>
-              </div>
-              <div className="flex items-center justify-between">
-                <span className="app-text-body-muted">Location</span>
-                <span className="app-text-body font-medium">{pickupLocation || "Required"}</span>
-              </div>
-              {!pickupDate || !pickupTime || !pickupLocation ? (
-                <EmptyState className="text-xs">Pickup date, time, and location required.</EmptyState>
-              ) : null}
+            <div>
+              {pickupDate && pickupTime && pickupLocation ? (
+                <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] p-2">
+                      <CalendarClock className="h-4 w-4 text-[var(--app-text-soft)]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="app-text-overline">Pickup schedule</div>
+                      <div className="app-text-body mt-1 font-medium leading-[1.45]">{formattedPickupSchedule}</div>
+                    </div>
+                  </div>
+                  <div className="my-3 border-t border-[var(--app-border)]/70" />
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] p-2">
+                      <MapPin className="h-4 w-4 text-[var(--app-text-soft)]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="app-text-overline">Pickup location</div>
+                      <div className="app-text-body mt-1 font-medium leading-[1.45]">{pickupLocation}</div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
+                  <div className="app-text-body font-medium">Pickup details needed</div>
+                  <div className="app-text-caption mt-1">Set the pickup date, time, and location before checkout.</div>
+                </div>
+              )}
             </div>
           </PanelSection>
         ) : null}
 
-        {lineItems.length > 0 ? <PricingSummaryPanel pricing={pricing} /> : <EmptyState>No summary yet.</EmptyState>}
+        {lineItems.length > 0 ? (
+          <PricingSummaryPanel pricing={pricing} />
+        ) : (
+          <EmptyState>No summary yet.</EmptyState>
+        )}
 
         <div className="grid grid-cols-2 gap-2 border-t border-[var(--app-border)] pt-3">
           <ActionButton tone="secondary">Save draft</ActionButton>

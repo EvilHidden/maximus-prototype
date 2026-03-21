@@ -13,32 +13,32 @@ import {
 } from "../features/order/selectors";
 
 type CheckoutScreenProps = {
-  selectedCustomer: Customer | null;
+  payerCustomer: Customer | null;
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
 };
 
-export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: CheckoutScreenProps) {
+export function CheckoutScreen({ payerCustomer, order, onScreenChange }: CheckoutScreenProps) {
   const orderType = getOrderType(order);
   const hasAlterations = orderType === "alteration" || orderType === "mixed";
   const hasCustom = orderType === "custom" || orderType === "mixed";
   const pickupRequired = getPickupRequired(order);
-  const summaryGuardrail = getSummaryGuardrail(order, selectedCustomer);
-  const lineItems = getOrderBagLineItems(order);
+  const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
+  const lineItems = getOrderBagLineItems(order, []);
   const pricing = getPricingSummary(order);
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
   const formattedPickup = formatPickupSchedule(order.fulfillment.pickupDate, order.fulfillment.pickupTime);
   const checklist = [
-    { label: "Customer linked", ready: !summaryGuardrail.missingCustomer, value: selectedCustomer?.name ?? "Required" },
+    { label: "Payer linked", ready: !summaryGuardrail.missingCustomer, value: payerCustomer?.name ?? "Required" },
     {
       label: "Pickup scheduled",
       ready: !summaryGuardrail.missingPickup,
       value: pickupRequired ? `${formattedPickup ?? "Required"}${order.fulfillment.pickupLocation ? ` • ${order.fulfillment.pickupLocation}` : ""}` : "Not needed",
     },
     {
-      label: "Measurements attached",
-      ready: !hasCustom || Boolean(order.custom.linkedMeasurementSetId),
-      value: hasCustom ? (order.custom.linkedMeasurementSetId ? "Linked" : "Required") : "Not needed",
+      label: "Wearers assigned",
+      ready: !hasCustom || order.custom.items.every((item) => Boolean(item.wearerCustomerId && item.linkedMeasurementLabel)),
+      value: hasCustom ? `${order.custom.items.length} garments assigned` : "Not needed",
     },
     {
       label: "Custom configuration",
@@ -79,9 +79,9 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
             <PanelSection title="Customer handoff">
               <div className="space-y-2">
                 <EntityRow
-                  title={selectedCustomer?.name ?? "Customer required"}
-                  subtitle={selectedCustomer ? `${selectedCustomer.phone} • ${selectedCustomer.lastVisit}` : "Link a customer before checkout."}
-                  meta={<StatusPill tone={selectedCustomer ? "dark" : "warn"}>{selectedCustomer ? "Linked" : "Missing"}</StatusPill>}
+                  title={payerCustomer?.name ?? "Payer required"}
+                  subtitle={payerCustomer ? `${payerCustomer.phone} • ${payerCustomer.lastVisit}` : "Link the paying customer before checkout."}
+                  meta={<StatusPill tone={payerCustomer ? "dark" : "warn"}>{payerCustomer ? "Linked" : "Missing"}</StatusPill>}
                 />
                 {pickupRequired ? (
                   <EntityRow
@@ -103,7 +103,7 @@ export function CheckoutScreen({ selectedCustomer, order, onScreenChange }: Chec
                   <div key={item.id} className="app-entity-row">
                     <div className="min-w-0 flex-1">
                       <div className="app-text-body font-medium">{item.title}</div>
-                      <div className="app-text-caption mt-1 leading-relaxed">{item.subtitle}</div>
+                      <div className="app-text-caption mt-1 whitespace-pre-line leading-relaxed">{item.subtitle}</div>
                     </div>
                     <div className="app-text-strong shrink-0 self-start pl-4">
                       {formatSummaryCurrency(item.amount)}

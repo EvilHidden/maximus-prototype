@@ -98,7 +98,10 @@ export type AlterationBuilderState = {
 
 export type CustomGarmentDraft = {
   gender: CustomGarmentGender | null;
+  wearerCustomerId: string | null;
   selectedGarment: string | null;
+  linkedMeasurementSetId: string | null;
+  measurements: Record<string, string>;
   fabric: string | null;
   buttons: string | null;
   lining: string | null;
@@ -113,17 +116,19 @@ export type CustomGarmentDraft = {
 
 export type CustomGarmentItem = CustomGarmentDraft & {
   id: number;
+  wearerName: string | null;
+  linkedMeasurementLabel: string | null;
+  measurementSnapshot: Record<string, string>;
 };
 
 export type CustomBuilderState = {
   draft: CustomGarmentDraft;
   items: CustomGarmentItem[];
-  linkedMeasurementSetId: string | null;
-  measurements: Record<string, string>;
 };
 
 export type OrderWorkflowState = {
   activeWorkflow: WorkflowMode | null;
+  payerCustomerId: string | null;
   alteration: AlterationBuilderState;
   custom: CustomBuilderState;
   fulfillment: {

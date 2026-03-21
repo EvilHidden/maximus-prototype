@@ -24,6 +24,10 @@ export default function App() {
     () => customers.find((customer) => customer.id === state.selectedCustomerId) ?? null,
     [state.selectedCustomerId],
   );
+  const payerCustomer = useMemo<Customer | null>(
+    () => customers.find((customer) => customer.id === state.order.payerCustomerId) ?? null,
+    [state.order.payerCustomerId],
+  );
   const orderType = getOrderType(state.order);
 
   const startWorkflow = (workflow: WorkflowMode) => {
@@ -40,8 +44,8 @@ export default function App() {
     const result = saveMeasurementSet(
       measurementSets,
       selectedCustomer,
-      state.order.custom.linkedMeasurementSetId,
-      state.order.custom.measurements,
+      state.order.custom.draft.linkedMeasurementSetId,
+      state.order.custom.draft.measurements,
       mode,
       title,
     );
@@ -64,9 +68,9 @@ export default function App() {
     const result = deleteMeasurementSetAndPreserveDraft(
       measurementSets,
       measurementSetId,
-      state.order.custom.linkedMeasurementSetId,
+      state.order.custom.draft.linkedMeasurementSetId,
       selectedCustomer,
-      state.order.custom.measurements,
+      state.order.custom.draft.measurements,
     );
     setMeasurementSets(result.measurementSets);
     dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
@@ -93,7 +97,7 @@ export default function App() {
         <OrderScreen
           customers={customers}
           measurementSets={measurementSets}
-          selectedCustomer={selectedCustomer}
+          payerCustomer={payerCustomer}
           order={state.order}
           dispatch={dispatch}
           onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
@@ -109,7 +113,12 @@ export default function App() {
           measurementSets={measurementSets}
           order={state.order}
           onCreateDraftSet={handleCreateDraftMeasurementSet}
-          onSelectCustomer={(customerId) => dispatch({ type: "setCustomer", customerId })}
+          onSelectCustomer={(customerId) => {
+            dispatch({ type: "setCustomer", customerId });
+            if (state.order.activeWorkflow === "custom") {
+              dispatch({ type: "selectCustomWearer", customerId });
+            }
+          }}
           onUpdateMeasurement={(field, value) => dispatch({ type: "updateMeasurements", field, value })}
           onReplaceMeasurements={(values, measurementSetId) => dispatch({ type: "replaceMeasurements", values, measurementSetId })}
           onSaveMeasurementSet={handleSaveMeasurementSet}
@@ -121,12 +130,12 @@ export default function App() {
 
     return (
       <CheckoutScreen
-        selectedCustomer={selectedCustomer}
+        payerCustomer={payerCustomer}
         order={state.order}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       />
     );
-  }, [measurementSets, state, selectedCustomer, orderType]);
+  }, [measurementSets, state, selectedCustomer, payerCustomer, orderType]);
 
   return (
     <div data-theme={theme}>

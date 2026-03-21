@@ -51,7 +51,7 @@ export function MeasurementsScreen({
   onDeleteMeasurementSet,
   onScreenChange,
 }: MeasurementsScreenProps) {
-  const fieldNames = Object.keys(order.custom.measurements);
+  const fieldNames = Object.keys(order.custom.draft.measurements);
   const [activeField, setActiveField] = useState(fieldNames[0] ?? "");
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerQuery, setCustomerQuery] = useState("");
@@ -61,10 +61,10 @@ export function MeasurementsScreen({
 
   const customerHistory = selectedCustomer ? measurementSets.filter((set) => set.customerId === selectedCustomer.id) : [];
   const filteredCustomers = useMemo(() => filterCustomers(customers, customerQuery), [customers, customerQuery]);
-  const activeFieldValue = order.custom.measurements[activeField] ?? "";
+  const activeFieldValue = order.custom.draft.measurements[activeField] ?? "";
   const parsedActiveValue = parseMeasurementValue(activeFieldValue);
-  const hasEnteredMeasurements = Object.values(order.custom.measurements).some((value) => value.trim().length > 0);
-  const activeSet = getLinkedMeasurementSet(measurementSets, order.custom.linkedMeasurementSetId);
+  const hasEnteredMeasurements = Object.values(order.custom.draft.measurements).some((value) => value.trim().length > 0);
+  const activeSet = getLinkedMeasurementSet(measurementSets, order.custom.draft.linkedMeasurementSetId);
   const status = getMeasurementStatusModel(activeSet, hasEnteredMeasurements);
   const pendingDeleteSet = pendingDeleteSetId ? measurementSets.find((set) => set.id === pendingDeleteSetId) ?? null : null;
 
@@ -91,7 +91,7 @@ export function MeasurementsScreen({
           <div className="grid gap-4 xl:grid-cols-[0.9fr_1.1fr]">
             <MeasurementFieldGrid
               activeField={activeField}
-              values={order.custom.measurements}
+              values={order.custom.draft.measurements}
               onSelectField={setActiveField}
             />
 
@@ -120,7 +120,7 @@ export function MeasurementsScreen({
           <SavedMeasurementsRail
             customer={selectedCustomer}
             customerHistory={customerHistory}
-            linkedMeasurementSetId={order.custom.linkedMeasurementSetId}
+            linkedMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
             onCreateDraftSet={onCreateDraftSet}
             onOpenCustomerModal={() => setCustomerModalOpen(true)}
             onApplySet={(set) => onReplaceMeasurements(set.values, set.id)}

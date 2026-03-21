@@ -15,8 +15,8 @@ export type MeasurementStatusModel = {
 };
 
 export type CustomMeasurementsCardModel =
-  | { kind: "no_customer" }
-  | { kind: "linked"; set: MeasurementSetDisplay }
+  | { kind: "no_wearer" }
+  | { kind: "linked"; customer: Customer; set: MeasurementSetDisplay }
   | { kind: "empty"; customer: Customer; hasHistory: boolean };
 
 export type MeasurementSaveResult = {

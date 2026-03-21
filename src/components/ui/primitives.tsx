@@ -196,7 +196,7 @@ export function PanelSection({ title, action, children, className = "" }: PanelS
   return (
     <div className={cx("app-panel-section", className)}>
       {title || action ? (
-        <div className="mb-3 flex items-center justify-between gap-3">
+        <div className="mb-3 flex items-start justify-between gap-3">
           {title ? <div className="app-kicker">{title}</div> : <span />}
           {action ?? null}
         </div>
@@ -238,14 +238,14 @@ export function WorkflowToggle({ icon: Icon, title, subtitle, isActive, isEnable
     <button
       onClick={onClick}
       className={cx(
-        "app-workflow-toggle",
+        "app-workflow-toggle min-h-[104px] px-4 py-3.5 text-left",
         isActive && "app-workflow-toggle--active",
         !isActive && isEnabled && "app-workflow-toggle--enabled",
       )}
     >
-      <Icon className="mb-3 h-5 w-5" />
+      <Icon className="mb-2.5 h-4.5 w-4.5" />
       <div className="app-text-value">{title}</div>
-      <div className="app-text-overline mt-1">{subtitle}</div>
+      <div className="app-text-caption mt-1.5">{subtitle}</div>
     </button>
   );
 }

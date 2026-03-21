@@ -24,7 +24,7 @@ export function AlterationBuilder({
   onAddItem,
 }: AlterationBuilderProps) {
   return (
-    <Card className="p-4">
+    <Card className="flex h-full min-h-0 flex-col p-4">
       <SectionHeader icon={Scissors} title="Alteration intake" subtitle="Build line item" />
 
       <div className="mb-4">
@@ -46,7 +46,7 @@ export function AlterationBuilder({
       </div>
 
       {selectedGarment ? (
-        <div className="grid max-h-[360px] gap-2 overflow-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid min-h-0 flex-1 auto-rows-fr gap-2 overflow-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
           {currentServices.map((service) => {
             const isSelected = selectedModifiers.some((modifier) => modifier.name === service.name);
 
@@ -67,7 +67,7 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <div className="mt-4 flex items-center justify-between gap-3 app-panel-section">
+      <div className="app-panel-section mt-4 xl:mt-5 flex items-end justify-between gap-3">
         <div>
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption">Ready to add</div>

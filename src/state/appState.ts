@@ -28,10 +28,22 @@ type SetPickupSchedulePayload = {
   pickupLocation: PickupLocation | "";
 };
 
+type AddCustomItemPayload = {
+  wearerName: string | null;
+  linkedMeasurementLabel: string | null;
+};
+
+type SaveCustomItemPayload = AddCustomItemPayload & {
+  itemId: number;
+};
+
 function createInitialCustomDraft(): CustomGarmentDraft {
   return {
     gender: null,
+    wearerCustomerId: null,
     selectedGarment: null,
+    linkedMeasurementSetId: null,
+    measurements: createEmptyMeasurements(),
     fabric: null,
     buttons: null,
     lining: null,
@@ -49,14 +61,13 @@ function createInitialCustomState(): CustomBuilderState {
   return {
     draft: createInitialCustomDraft(),
     items: [],
-    linkedMeasurementSetId: null,
-    measurements: createEmptyMeasurements(),
   };
 }
 
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "setCustomer"; customerId: string | null }
+  | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
@@ -65,9 +76,13 @@ export type AppAction =
   | { type: "removeAlterationItem"; itemId: number }
   | { type: "setPickupSchedule"; payload: SetPickupSchedulePayload }
   | { type: "selectCustomGender"; gender: CustomGarmentGender | null }
+  | { type: "selectCustomWearer"; customerId: string | null }
   | { type: "selectCustomGarment"; garment: string | null }
   | { type: "setCustomConfiguration"; patch: Partial<OrderWorkflowState["custom"]["draft"]> }
-  | { type: "addCustomItem" }
+  | { type: "addCustomItem"; payload: AddCustomItemPayload }
+  | { type: "loadCustomItemForEdit"; itemId: number }
+  | { type: "saveCustomItem"; payload: SaveCustomItemPayload }
+  | { type: "resetCustomDraft" }
   | { type: "removeCustomItem"; itemId: number }
   | { type: "updateMeasurements"; field: string; value: string }
   | { type: "replaceMeasurements"; values: Record<string, string>; measurementSetId: string | null }
@@ -84,6 +99,7 @@ function createEmptyMeasurements() {
 export function createInitialOrderState(): OrderWorkflowState {
   return {
     activeWorkflow: null,
+    payerCustomerId: null,
     alteration: {
       selectedGarment: "",
       selectedModifiers: [],
@@ -114,13 +130,13 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       return {
         ...state,
         selectedCustomerId: action.customerId,
+      };
+    case "setOrderPayer":
+      return {
+        ...state,
         order: {
           ...state.order,
-          custom: {
-            ...state.order.custom,
-            linkedMeasurementSetId: null,
-            measurements: createEmptyMeasurements(),
-          },
+          payerCustomerId: action.customerId,
         },
       };
     case "activateWorkflow":
@@ -129,6 +145,17 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         order: {
           ...state.order,
           activeWorkflow: action.workflow,
+          payerCustomerId: state.order.payerCustomerId ?? state.selectedCustomerId,
+          custom:
+            action.workflow === "custom" && !state.order.custom.draft.wearerCustomerId
+              ? {
+                  ...state.order.custom,
+                  draft: {
+                    ...state.order.custom.draft,
+                    wearerCustomerId: state.order.payerCustomerId ?? state.selectedCustomerId,
+                  },
+                }
+              : state.order.custom,
         },
       };
     case "selectAlterationGarment":
@@ -239,9 +266,25 @@ export function appReducer(state: AppState, action: AppAction): AppState {
             draft: {
               ...createInitialCustomDraft(),
               gender: action.gender,
+              wearerCustomerId: state.order.custom.draft.wearerCustomerId ?? state.order.payerCustomerId ?? state.selectedCustomerId,
             },
-            linkedMeasurementSetId: state.order.custom.linkedMeasurementSetId,
-            measurements: state.order.custom.measurements,
+          },
+        },
+      };
+    case "selectCustomWearer":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              wearerCustomerId: action.customerId,
+              linkedMeasurementSetId: null,
+              measurements: createEmptyMeasurements(),
+            },
           },
         },
       };
@@ -286,7 +329,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
       };
     case "addCustomItem": {
       const draft = state.order.custom.draft;
-      if (!draft.selectedGarment) {
+      if (!draft.selectedGarment || !draft.wearerCustomerId) {
         return state;
       }
 
@@ -301,6 +344,9 @@ export function appReducer(state: AppState, action: AppAction): AppState {
               {
                 id: Date.now(),
                 ...draft,
+                wearerName: action.payload.wearerName,
+                linkedMeasurementLabel: action.payload.linkedMeasurementLabel,
+                measurementSnapshot: { ...draft.measurements },
               },
             ],
             draft: {
@@ -311,6 +357,69 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         },
       };
     }
+    case "loadCustomItemForEdit": {
+      const item = state.order.custom.items.find((customItem) => customItem.id === action.itemId);
+      if (!item) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...item,
+              measurements: { ...item.measurementSnapshot },
+            },
+          },
+        },
+      };
+    }
+    case "saveCustomItem": {
+      const draft = state.order.custom.draft;
+      if (!draft.selectedGarment || !draft.wearerCustomerId) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            items: state.order.custom.items.map((item) =>
+              item.id === action.payload.itemId
+                ? {
+                    ...item,
+                    ...draft,
+                    wearerName: action.payload.wearerName,
+                    linkedMeasurementLabel: action.payload.linkedMeasurementLabel,
+                    measurementSnapshot: { ...draft.measurements },
+                  }
+                : item,
+            ),
+            draft: {
+              ...createInitialCustomDraft(),
+              gender: draft.gender,
+            },
+          },
+        },
+      };
+    }
+    case "resetCustomDraft":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: createInitialCustomDraft(),
+          },
+        },
+      };
     case "removeCustomItem":
       return {
         ...state,
@@ -329,9 +438,12 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...state.order,
           custom: {
             ...state.order.custom,
-            measurements: {
-              ...state.order.custom.measurements,
-              [action.field]: action.value,
+            draft: {
+              ...state.order.custom.draft,
+              measurements: {
+                ...state.order.custom.draft.measurements,
+                [action.field]: action.value,
+              },
             },
           },
         },
@@ -343,10 +455,13 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...state.order,
           custom: {
             ...state.order.custom,
-            linkedMeasurementSetId: action.measurementSetId,
-            measurements: {
-              ...createEmptyMeasurements(),
-              ...action.values,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: action.measurementSetId,
+              measurements: {
+                ...createEmptyMeasurements(),
+                ...action.values,
+              },
             },
           },
         },
@@ -358,7 +473,10 @@ export function appReducer(state: AppState, action: AppAction): AppState {
           ...state.order,
           custom: {
             ...state.order.custom,
-            linkedMeasurementSetId: action.measurementSetId,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: action.measurementSetId,
+            },
           },
         },
       };

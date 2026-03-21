@@ -6,28 +6,28 @@ import { getSuggestedMeasurementSet } from "../selectors";
 
 type UseCustomMeasurementDefaultsArgs = {
   measurementSets: MeasurementSet[];
-  selectedCustomerId: string | null;
+  wearerCustomerId: string | null;
   order: OrderWorkflowState;
   dispatch: Dispatch<AppAction>;
 };
 
 export function useCustomMeasurementDefaults({
   measurementSets,
-  selectedCustomerId,
+  wearerCustomerId,
   order,
   dispatch,
 }: UseCustomMeasurementDefaultsArgs) {
   useEffect(() => {
-    if (order.activeWorkflow !== "custom" || !selectedCustomerId || order.custom.linkedMeasurementSetId) {
+    if (order.activeWorkflow !== "custom" || !wearerCustomerId || order.custom.draft.linkedMeasurementSetId) {
       return;
     }
 
-    const hasAnyMeasurements = Object.values(order.custom.measurements).some((value) => value.trim().length > 0);
+    const hasAnyMeasurements = Object.values(order.custom.draft.measurements).some((value) => value.trim().length > 0);
     if (hasAnyMeasurements) {
       return;
     }
 
-    const suggestedMeasurementSet = getSuggestedMeasurementSet(measurementSets, selectedCustomerId);
+    const suggestedMeasurementSet = getSuggestedMeasurementSet(measurementSets, wearerCustomerId);
     if (!suggestedMeasurementSet) {
       return;
     }
@@ -37,5 +37,5 @@ export function useCustomMeasurementDefaults({
       values: suggestedMeasurementSet.values,
       measurementSetId: suggestedMeasurementSet.id,
     });
-  }, [dispatch, measurementSets, order, selectedCustomerId]);
+  }, [dispatch, measurementSets, order, wearerCustomerId]);
 }

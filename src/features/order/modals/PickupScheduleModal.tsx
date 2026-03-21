@@ -26,6 +26,51 @@ function formatTimeInputValue(value: Date) {
   return `${hours}:${minutes}`;
 }
 
+function roundUpToQuarterHour(value: Date) {
+  const next = new Date(value);
+  next.setSeconds(0, 0);
+  const minutes = next.getMinutes();
+  const roundedMinutes = Math.ceil(minutes / 15) * 15;
+  next.setMinutes(roundedMinutes);
+
+  if (roundedMinutes === 60) {
+    next.setHours(next.getHours() + 1, 0, 0, 0);
+  }
+
+  return next;
+}
+
+function formatTimeLabel(value: string) {
+  const [hours, minutes] = value.split(":").map(Number);
+  const date = new Date();
+  date.setHours(hours, minutes, 0, 0);
+
+  return new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function buildTimeOptions(now: Date, isToday: boolean) {
+  const options: string[] = [];
+  const start = isToday ? roundUpToQuarterHour(now) : new Date(now.getFullYear(), now.getMonth(), now.getDate(), 9, 0, 0, 0);
+  const cursor = new Date(start);
+
+  if (!isToday) {
+    cursor.setHours(9, 0, 0, 0);
+  }
+
+  const end = new Date(cursor);
+  end.setHours(19, 0, 0, 0);
+
+  while (cursor <= end) {
+    options.push(formatTimeInputValue(cursor));
+    cursor.setMinutes(cursor.getMinutes() + 15);
+  }
+
+  return options;
+}
+
 export function PickupScheduleModal({ pickupDate, pickupTime, pickupLocation, onChange, onClose }: PickupScheduleModalProps) {
   const [now, setNow] = useState(() => new Date());
 
@@ -35,67 +80,107 @@ export function PickupScheduleModal({ pickupDate, pickupTime, pickupLocation, on
   }, []);
 
   const minPickupDate = formatDateInputValue(now);
-  const minPickupTime = pickupDate === minPickupDate ? formatTimeInputValue(now) : undefined;
+  const isTodayPickup = pickupDate === minPickupDate;
   const selectedPickupDateTime =
     pickupDate && pickupTime
       ? new Date(`${pickupDate}T${pickupTime}`)
       : null;
   const hasPastPickupSelection =
     selectedPickupDateTime !== null && !Number.isNaN(selectedPickupDateTime.getTime()) && selectedPickupDateTime < now;
+  const timeOptions = pickupDate ? buildTimeOptions(now, isTodayPickup) : [];
+  const selectedTimeIsUnavailable = !!pickupTime && !timeOptions.includes(pickupTime);
+  const pickupInvalid = !pickupDate || !pickupTime || !pickupLocation || hasPastPickupSelection || selectedTimeIsUnavailable;
 
   return (
     <ModalShell
       title="Set pickup schedule"
       subtitle="Set date, time, and location"
       onClose={onClose}
-      widthClassName="max-w-[440px]"
+      widthClassName="max-w-[720px]"
       footer={
         <div className="flex items-center justify-between gap-3">
           <div className="text-xs text-[var(--app-text-muted)]">
-            {hasPastPickupSelection ? "Pickup must be scheduled for a future date and time." : "Required for alterations."}
+            {hasPastPickupSelection || selectedTimeIsUnavailable
+              ? "Pickup must be scheduled for an available future time."
+              : "Required for alterations."}
           </div>
-          <ActionButton tone="primary" onClick={onClose} disabled={!pickupDate || !pickupTime || !pickupLocation || hasPastPickupSelection}>
+          <ActionButton tone="primary" onClick={onClose} disabled={pickupInvalid}>
             Save pickup
           </ActionButton>
         </div>
       }
     >
-      <div className="grid gap-3 md:grid-cols-2">
-        <label className="text-sm">
+      <div className="space-y-5">
+        <label className="block text-sm">
           <FieldLabel>Pickup date</FieldLabel>
           <input
             value={pickupDate}
-            onChange={(event) => onChange({ pickupDate: event.target.value, pickupTime, pickupLocation })}
+            onChange={(event) =>
+              onChange({
+                pickupDate: event.target.value,
+                pickupTime:
+                  event.target.value === pickupDate && !selectedTimeIsUnavailable
+                    ? pickupTime
+                    : "",
+                pickupLocation,
+              })
+            }
             type="date"
             min={minPickupDate}
-            className="app-input"
+            className="app-input min-h-12 text-base"
           />
         </label>
-        <label className="text-sm">
+
+        <div>
           <FieldLabel>Pickup time</FieldLabel>
-          <input
-            value={pickupTime}
-            onChange={(event) => onChange({ pickupDate, pickupTime: event.target.value, pickupLocation })}
-            type="time"
-            min={minPickupTime}
-            className="app-input"
-          />
-        </label>
-        <label className="text-sm md:col-span-2">
+          {pickupDate ? (
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
+              {timeOptions.map((timeOption) => {
+                const isSelected = pickupTime === timeOption;
+                return (
+                  <button
+                    key={timeOption}
+                    type="button"
+                    onClick={() => onChange({ pickupDate, pickupTime: timeOption, pickupLocation })}
+                    className={[
+                      "min-h-12 rounded-[var(--app-radius-md)] border px-3 py-2 text-sm font-medium transition",
+                      isSelected
+                        ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                        : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
+                    ].join(" ")}
+                  >
+                    {formatTimeLabel(timeOption)}
+                  </button>
+                );
+              })}
+            </div>
+          ) : (
+            <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
+              <div className="app-text-caption">Choose a pickup date first to see available times.</div>
+            </div>
+          )}
+        </div>
+
+        <div>
           <FieldLabel>Pickup location</FieldLabel>
-          <select
-            value={pickupLocation}
-            onChange={(event) => onChange({ pickupDate, pickupTime, pickupLocation: event.target.value as PickupLocation | "" })}
-            className="app-input"
-          >
-            <option value="">Select store</option>
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {pickupLocations.map((location) => (
-              <option key={location} value={location}>
+              <button
+                key={location}
+                type="button"
+                onClick={() => onChange({ pickupDate, pickupTime, pickupLocation: location })}
+                className={[
+                  "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left text-sm font-medium transition",
+                  pickupLocation === location
+                    ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                    : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
+                ].join(" ")}
+              >
                 {location}
-              </option>
+              </button>
             ))}
-          </select>
-        </label>
+          </div>
+        </div>
       </div>
     </ModalShell>
   );

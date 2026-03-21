@@ -94,12 +94,14 @@ button {
 }
 
 .app-sidebar {
-  background: var(--app-surface);
-  border-right: 1px solid var(--app-border);
+  background: color-mix(in srgb, var(--app-surface) 84%, transparent);
+  box-shadow: var(--app-shadow-sm);
 }
 
 .app-main {
-  background: var(--app-bg);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 22%, transparent), transparent 180px),
+    var(--app-bg);
 }
 
 .app-card,
