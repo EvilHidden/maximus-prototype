@@ -9,6 +9,31 @@ type OpenOrdersScreenProps = {
   onStartNewOrder: () => void;
 };
 
+function getPickupTimingLabel(dateValue: string) {
+  const target = new Date(`${dateValue}T12:00:00`);
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  if (target.toDateString() === today.toDateString()) {
+    return { subtitle: "Pickup due today", tone: "dark" as const };
+  }
+
+  if (target.toDateString() === tomorrow.toDateString()) {
+    return { subtitle: "Pickup due tomorrow", tone: "default" as const };
+  }
+
+  return {
+    subtitle: new Intl.DateTimeFormat("en-US", {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+    }).format(target),
+    tone: "default" as const,
+  };
+}
+
 export function OpenOrdersScreen({ openOrders, pickupAppointments, onStartNewOrder }: OpenOrdersScreenProps) {
   const totalOpenItems = openOrders.length + pickupAppointments.length;
 
@@ -30,24 +55,28 @@ export function OpenOrdersScreen({ openOrders, pickupAppointments, onStartNewOrd
           <EmptyState>No open orders yet. Scheduled pickups and newly created work orders will appear here.</EmptyState>
         ) : (
           <div className="space-y-3">
-            {pickupAppointments.map((appointment) => (
-              <Card key={appointment.id} className="p-4">
-                <div className="flex items-start justify-between gap-4">
-                  <div className="min-w-0 flex-1">
-                    <div className="app-text-value">{appointment.customer}</div>
-                    <div className="app-text-caption mt-1">{appointment.day === "today" ? "Pickup due today" : "Pickup due tomorrow"}</div>
-                  </div>
-                  <StatusPill tone={appointment.day === "today" ? "dark" : "default"}>
-                    {appointment.status}
-                  </StatusPill>
-                </div>
+            {pickupAppointments.map((appointment) => {
+              const pickupTiming = getPickupTimingLabel(appointment.date);
 
-                <div className="mt-4 grid gap-3 md:grid-cols-2">
-                  <EntityRow title="Pickup appointment" subtitle={`${appointment.time} • ${appointment.type}`} />
-                  <EntityRow title="Prep status" subtitle={appointment.missing === "Complete" ? "Ready for release" : appointment.missing} />
-                </div>
-              </Card>
-            ))}
+              return (
+                <Card key={appointment.id} className="p-4">
+                  <div className="flex items-start justify-between gap-4">
+                    <div className="min-w-0 flex-1">
+                      <div className="app-text-value">{appointment.customer}</div>
+                      <div className="app-text-caption mt-1">{pickupTiming.subtitle}</div>
+                    </div>
+                    <StatusPill tone={pickupTiming.tone}>
+                      {appointment.status}
+                    </StatusPill>
+                  </div>
+
+                  <div className="mt-4 grid gap-3 md:grid-cols-2">
+                    <EntityRow title="Pickup appointment" subtitle={`${appointment.time} • ${appointment.type}`} />
+                    <EntityRow title="Prep status" subtitle={appointment.missing === "Complete" ? "Ready for release" : appointment.missing} />
+                  </div>
+                </Card>
+              );
+            })}
 
             {openOrders.map((openOrder) => {
               const pickupSummary = formatPickupSchedule(openOrder.pickupDate, openOrder.pickupTime);

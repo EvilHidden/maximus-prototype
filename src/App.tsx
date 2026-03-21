@@ -9,6 +9,7 @@ import { OrderScreen } from "./screens/OrderScreen";
 import { MeasurementsScreen } from "./screens/MeasurementsScreen";
 import { CheckoutScreen } from "./screens/CheckoutScreen";
 import { OpenOrdersScreen } from "./screens/OpenOrdersScreen";
+import { AppointmentsScreen } from "./screens/AppointmentsScreen";
 import { appReducer, createInitialAppState } from "./state/appState";
 import { buildAlterationOpenOrder, getOrderType } from "./features/order/selectors";
 import { getPickupAppointments } from "./features/home/selectors";
@@ -169,6 +170,10 @@ export default function App() {
           onStartNewOrder={() => startWorkflow("alteration")}
         />
       );
+    }
+
+    if (state.screen === "appointments") {
+      return <AppointmentsScreen appointments={appointments} />;
     }
 
     return (

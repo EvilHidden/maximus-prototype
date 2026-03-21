@@ -1,7 +1,7 @@
 import type { ReactNode } from "react";
 
 export type ThemeMode = "light" | "dark";
-export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders";
+export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders" | "appointments";
 export type WorkflowMode = "alteration" | "custom";
 export type OrderType = WorkflowMode | "mixed";
 export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
@@ -31,9 +31,10 @@ export type CustomerOrder = {
 
 export type Appointment = {
   id: string;
+  date: string;
   time: string;
-  day: "today" | "tomorrow";
   kind: "appointment" | "pickup";
+  location: PickupLocation;
   customerId?: string;
   customer: string;
   type: string;

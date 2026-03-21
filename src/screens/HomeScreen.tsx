@@ -1,6 +1,8 @@
 import {
   CalendarDays,
+  CheckSquare2,
   Clock3,
+  Square,
   Package,
   Receipt,
   Ruler,
@@ -8,7 +10,7 @@ import {
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { appointments } from "../data";
-import type { Appointment, Screen, WorkflowMode } from "../types";
+import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
 import { ActionButton, Card, StatusPill, cx } from "../components/ui/primitives";
 import { getPickupAppointments, getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
 
@@ -30,6 +32,8 @@ type FrontDeskAction = {
   onClick: () => void;
 };
 
+const locationOptions: PickupLocation[] = ["Fifth Avenue", "Queens", "Long Island"];
+
 function getAppointmentCallouts(appointment: Appointment) {
   const callouts: Array<{ label: string; tone?: "default" | "warn" }> = [];
 
@@ -38,6 +42,24 @@ function getAppointmentCallouts(appointment: Appointment) {
   }
 
   return callouts;
+}
+
+function getRelativeDayLabel(dateValue: string) {
+  const target = new Date(`${dateValue}T12:00:00`);
+  const today = new Date();
+  today.setHours(12, 0, 0, 0);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+
+  if (target.toDateString() === today.toDateString()) {
+    return "Today";
+  }
+
+  if (target.toDateString() === tomorrow.toDateString()) {
+    return "Tomorrow";
+  }
+
+  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(target);
 }
 
 function FrontDeskActionTile({
@@ -82,7 +104,7 @@ function ScheduleRow({
             <div className="app-text-value text-[0.95rem]">{appointment.time}</div>
             <div className="min-w-0">
               <div className="app-text-value">{appointment.customer}</div>
-              <div className="app-text-caption mt-1">{appointment.type}</div>
+              <div className="app-text-caption mt-1">{appointment.type} • {appointment.location}</div>
             </div>
           </div>
         </div>
@@ -156,11 +178,11 @@ function PickupRow({
     <div className="grid gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/34 px-4 py-4 lg:grid-cols-[96px_minmax(0,1fr)_auto] lg:items-center">
       <div>
         <div className="app-text-value text-[0.95rem]">{appointment.time}</div>
-        <div className="app-text-caption mt-1">{appointment.day === "today" ? "Today" : "Tomorrow"}</div>
+        <div className="app-text-caption mt-1">{getRelativeDayLabel(appointment.date)}</div>
       </div>
       <div className="min-w-0">
         <div className="app-text-value">{appointment.customer}</div>
-        <div className="app-text-caption mt-1">{appointment.type}</div>
+        <div className="app-text-caption mt-1">{appointment.type} • {appointment.location}</div>
       </div>
       <div className="flex items-center gap-2">
         <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onEditPickup}>
@@ -215,11 +237,11 @@ function PickupLane({
 
 export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment }: HomeScreenProps) {
   const [actionToast, setActionToast] = useState<string | null>(null);
-  const todayAppointments = getTodayAppointments(appointments);
-  const tomorrowAppointments = getTomorrowAppointments(appointments);
-  const pickups = getPickupAppointments(appointments);
-  const todayPickups = pickups.filter((appointment) => appointment.day === "today");
-  const tomorrowPickups = pickups.filter((appointment) => appointment.day === "tomorrow");
+  const [activeLocations, setActiveLocations] = useState<PickupLocation[]>(locationOptions);
+  const filteredAppointments = appointments.filter((appointment) => activeLocations.includes(appointment.location));
+  const todayAppointments = getTodayAppointments(filteredAppointments);
+  const tomorrowAppointments = getTomorrowAppointments(filteredAppointments);
+  const pickups = getPickupAppointments(filteredAppointments);
   const now = new Date();
   const tomorrowDate = new Date(now);
   tomorrowDate.setDate(now.getDate() + 1);
@@ -229,6 +251,11 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
   });
   const todayLabel = dateFormatter.format(now);
   const tomorrowLabel = dateFormatter.format(tomorrowDate);
+  const todayKey = now.toISOString().slice(0, 10);
+  const tomorrowKey = tomorrowDate.toISOString().slice(0, 10);
+  const todayPickups = pickups.filter((appointment) => appointment.date === todayKey);
+  const tomorrowPickups = pickups.filter((appointment) => appointment.date === tomorrowKey);
+  const allLocationsActive = activeLocations.length === locationOptions.length;
 
   useEffect(() => {
     if (!actionToast) {
@@ -301,6 +328,56 @@ export function HomeScreen({ onScreenChange, onStartWorkflow, onOpenAppointment 
           </div>
         </div>
       </Card>
+
+      <div className="rounded-[var(--app-radius-lg)] bg-[var(--app-surface-muted)]/24 px-4 py-3">
+        <div className="flex flex-wrap items-center gap-4">
+          <div className="shrink-0 pt-0.5">
+            <div className="app-text-overline">View locations</div>
+            <div className="app-text-caption mt-1">Filter appointments and pickups.</div>
+          </div>
+          <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/18 px-2.5 py-2.5">
+            <button
+              onClick={() => setActiveLocations(allLocationsActive ? [] : locationOptions)}
+              className={cx(
+                "flex min-h-10 items-center gap-2.5 rounded-[var(--app-radius-sm)] border px-3 py-2 text-left text-[0.75rem] font-semibold tracking-[0.02em] transition",
+                allLocationsActive
+                  ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]/82 text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                  : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]",
+              )}
+            >
+              {allLocationsActive ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
+              <span>All locations</span>
+            </button>
+            {locationOptions.map((location) => {
+              const isActive = activeLocations.includes(location);
+
+              return (
+                <button
+                  key={location}
+                  onClick={() => {
+                    setActiveLocations((current) => {
+                      if (current.includes(location)) {
+                        return current.filter((value) => value !== location);
+                      }
+
+                      return [...current, location];
+                    });
+                  }}
+                  className={cx(
+                    "flex min-h-10 items-center gap-2.5 rounded-[var(--app-radius-sm)] border px-3 py-2 text-left text-[0.75rem] font-semibold tracking-[0.02em] transition",
+                    isActive
+                      ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]/82 text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                      : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]",
+                  )}
+                >
+                  {isActive ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
+                  <span>{location}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       <Card className="p-4">
         <div className="flex items-center justify-between gap-3">
