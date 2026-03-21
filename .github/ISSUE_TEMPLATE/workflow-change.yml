@@ -1,0 +1,33 @@
+name: Workflow change
+description: Capture a product or operational workflow change for a focused branch.
+title: "[Workflow] "
+labels:
+  - workflow
+body:
+  - type: input
+    id: subsystem
+    attributes:
+      label: Subsystem
+      description: Which area does this belong to?
+      placeholder: appointments / measurements / order-builder / customers / home
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem statement
+      description: What is broken, unclear, or missing?
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Done for this pass
+      description: What should be true when this branch is ready to merge?
+    validations:
+      required: true
+  - type: textarea
+    id: holes
+    attributes:
+      label: Known holes
+      description: Logic holes, design holes, or open questions we already know about.

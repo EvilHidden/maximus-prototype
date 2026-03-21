@@ -1,0 +1,12 @@
+# Default ownership stays simple until collaborator ownership is formalized.
+* @EvilHidden
+
+# Subsystem routing
+/src/features/order/ @EvilHidden
+/src/features/customer/ @EvilHidden
+/src/features/home/ @EvilHidden
+/src/features/measurements/ @EvilHidden
+/src/state/ @EvilHidden
+/src/components/ui/ @EvilHidden
+/src/data/ @EvilHidden
+/src/screens/ @EvilHidden

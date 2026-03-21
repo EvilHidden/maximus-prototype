@@ -1,0 +1,25 @@
+name: UI polish
+description: Capture a focused polish pass without mixing in unrelated logic changes.
+title: "[UI] "
+labels:
+  - ui
+body:
+  - type: input
+    id: screen
+    attributes:
+      label: Screen or feature
+      placeholder: Appointments / Measurements / Order Builder
+    validations:
+      required: true
+  - type: textarea
+    id: problem
+    attributes:
+      label: What looks wrong
+      description: Describe the hierarchy, spacing, copy, or interaction issue.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: What better looks like
+      description: Describe the intended visual or interaction outcome.

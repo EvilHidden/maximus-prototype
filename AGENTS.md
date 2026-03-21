@@ -35,6 +35,20 @@ Secondary goal:
 - Keep one branch focused on one area when possible.
 - If two people are working at once, split by subsystem, not by random file slices.
 
+## Collaboration Cadence
+- Before starting, name the problem and the subsystem out loud.
+- Create a fresh branch for that problem. Do not keep reopening old branches for unrelated work.
+- During the work, check in periodically:
+  - what problem are we solving?
+  - are logic holes closed?
+  - are design holes closed enough for this pass?
+  - are we still inside the original branch scope?
+- Before merging, summarize:
+  - what changed
+  - what was validated
+  - what is still open
+- After merge, close the branch immediately.
+
 ## Safe Work Boundaries
 Use these ownership boundaries to reduce merge conflicts:
 
@@ -97,6 +111,7 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
 - Minimum validation for non-trivial changes:
   - `npm run build`
 - For UI workflow changes, also sanity-check the affected flows in the running app.
+- Use the PR template in `.github/pull_request_template.md` when summarizing a branch for merge.
 - High-priority flows:
   - no-customer / no-order empty state
   - alterations-only order
@@ -117,3 +132,10 @@ Before committing:
 - remove dead code introduced by the change
 - build the app
 - make sure the diff is scoped to the intended subsystem
+
+## Repo Guardrails
+- Keep contributor-facing process docs current:
+  - `README.md` for repo overview
+  - `CONTRIBUTING.md` for workflow and merge discipline
+  - `docs/STYLE_GUIDE.md` for UI/system conventions
+- Keep GitHub build checks lightweight and relevant. For this repo, a passing `npm run build` is the baseline merge guardrail.
