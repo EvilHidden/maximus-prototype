@@ -22,7 +22,7 @@ npm run start-topic -- "short topic name"
 npm run ship -- "Short PR title"
 ```
 
-That command runs a fast local `npm run check`, stages and commits the branch, pushes it, opens or reuses a PR to `main`, and enables auto-merge so GitHub closes it out after the full required build check passes.
+That command runs a fast local `npm run check`, stages and commits the branch, pushes it, opens or reuses a PR to `main`, enables auto-merge, waits for the required build check to pass, then switches the local repo back to `main` and deletes the finished local topic branch.
 The `start-topic` command checks that your tree is clean, updates `main`, and creates a fresh `codex/` branch for the new idea.
 
 ## Branch naming

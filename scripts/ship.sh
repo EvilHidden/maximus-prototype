@@ -14,6 +14,7 @@ What it does:
   4. Pushes the current branch
   5. Creates or reuses a pull request to main
   6. Enables auto-merge with branch deletion after the full GitHub build passes
+  7. Waits for the merge, then switches back to main and deletes the local topic branch
 EOF
 }
 
@@ -115,4 +116,19 @@ pr_number="$(gh pr view "$current_branch" --json number --jq '.number')"
 echo "Enabling auto-merge..."
 gh pr merge "$pr_number" --auto --merge --delete-branch
 
-echo "Shipped branch ${current_branch} to PR #${pr_number}."
+echo "Waiting for PR #${pr_number} to merge..."
+while true; do
+  pr_state="$(gh pr view "$pr_number" --json state --jq '.state')"
+  if [[ "$pr_state" == "MERGED" ]]; then
+    break
+  fi
+
+  sleep 3
+done
+
+echo "Returning local repo to ${base_branch}..."
+git checkout "$base_branch"
+git pull --ff-only origin "$base_branch"
+git branch -d "$current_branch"
+
+echo "Shipped branch ${current_branch} to PR #${pr_number} and returned to ${base_branch}."
