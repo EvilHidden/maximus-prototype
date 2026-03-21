@@ -9,11 +9,11 @@ Usage:
 
 What it does:
   1. Verifies you are on a codex/ branch and not on main
-  2. Runs npm run build
+  2. Runs npm run check for a fast local gate
   3. Stages all changes and commits them with the provided title
   4. Pushes the current branch
   5. Creates or reuses a pull request to main
-  6. Enables auto-merge with branch deletion after checks pass
+  6. Enables auto-merge with branch deletion after the full GitHub build passes
 EOF
 }
 
@@ -44,8 +44,8 @@ fi
 
 cd "$repo_root"
 
-echo "Running build..."
-npm run build
+echo "Running fast local check..."
+npm run check
 
 echo "Staging changes..."
 git add -A
@@ -82,7 +82,7 @@ cat > "$body_file" <<EOF
 
 ## Validation
 
-- [x] npm run build
+- [x] npm run check
 - [ ] Affected UI flow checked in the running app
 
 ## Open holes
