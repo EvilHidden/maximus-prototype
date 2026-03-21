@@ -1,4 +1,4 @@
-import type { Customer, MeasurementSet, MeasurementStatus } from "../../types";
+import type { Customer, CustomerOrder, MeasurementSet, MeasurementStatus } from "../../types";
 
 export function filterCustomers(customers: Customer[], query: string) {
   const lowerQuery = query.trim().toLowerCase();
@@ -46,4 +46,13 @@ export function getCustomerMeasurementSets(measurementSets: MeasurementSet[], cu
   }
 
   return measurementSets.filter((set) => set.customerId === customerId);
+}
+
+export function getCustomerLastOrderSummary(orders: CustomerOrder[]) {
+  const latestOrder = orders[0];
+  if (!latestOrder) {
+    return null;
+  }
+
+  return `${latestOrder.label} • ${latestOrder.date}`;
 }

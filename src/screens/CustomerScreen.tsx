@@ -1,10 +1,13 @@
-import { AlertCircle, Ruler, Search, User } from "lucide-react";
-import { useMemo, useState } from "react";
+import { Mail, MapPin, Phone, Plus, Ruler, Search, User, Users } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 import { customerOrders, customers } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import { ActionButton, SectionHeader, StatusPill } from "../components/ui/primitives";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
-import { filterCustomers, getMeasurementStatusLabel, getMeasurementStatusTone } from "../features/customer/selectors";
+import {
+  filterCustomers,
+  getCustomerLastOrderSummary,
+} from "../features/customer/selectors";
 
 type CustomerScreenProps = {
   measurementSets: MeasurementSet[];
@@ -15,59 +18,98 @@ type CustomerScreenProps = {
 
 function CustomerRow({
   customer,
-  measurementCount,
+  lastOrderSummary,
   onOpen,
 }: {
   customer: Customer;
-  measurementCount: number;
+  lastOrderSummary: string | null;
   onOpen: () => void;
 }) {
-  const statusTone = getMeasurementStatusTone(customer.measurementsStatus);
+  const hasMeasurementsOnFile = customer.measurementsStatus === "on_file";
+  const lastOrderParts = lastOrderSummary?.split(" • ", 2) ?? [];
+  const lastOrderLabel = lastOrderParts.length === 2 ? lastOrderParts[0] : lastOrderSummary;
+  const lastOrderDate = lastOrderParts.length === 2 ? lastOrderParts[1] : null;
 
   return (
     <button
       onClick={onOpen}
-      className="w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/24 px-4 py-4 text-left transition hover:bg-[var(--app-surface)]/38"
+      className="w-full rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface)]"
     >
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1.8fr)_220px_140px] xl:items-center">
-        <div className="min-w-0 space-y-3">
-          <div className="flex items-center gap-2">
-            <div className="app-text-value truncate">{customer.name}</div>
-            {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,2fr)_340px] xl:items-stretch">
+        <div className="min-w-0">
+          <div className="flex items-start justify-between gap-3">
+            <div className="flex min-w-0 items-start gap-3">
+              <div className="app-icon-chip mt-0.5">
+                <User className="h-4 w-4" />
+              </div>
+              <div className="min-w-0">
+                <div className="flex items-center gap-2">
+                  <div className="app-text-value truncate">{customer.name}</div>
+                  {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
+                </div>
+              </div>
+            </div>
+            <div className="app-text-caption shrink-0">{customer.id}</div>
           </div>
-          <div className="app-text-caption">{customer.notes}</div>
-          <div className="space-y-1">
-            <div className="app-text-overline">Phone</div>
-            <div className="app-text-body font-medium">{customer.phone}</div>
-          </div>
-        </div>
 
-        <div className="space-y-2 xl:justify-self-start">
-          <div className="space-y-1">
-            <div className="app-text-overline">Measurements</div>
-            <div className="flex flex-col items-start gap-1.5">
-              <StatusPill tone={statusTone}>
-                {customer.measurementsStatus === "on_file" ? (
-                  <Ruler className="h-3.5 w-3.5" />
-                ) : (
-                  <AlertCircle className="h-3.5 w-3.5" />
-                )}
-                {getMeasurementStatusLabel(customer.measurementsStatus)}
-              </StatusPill>
-              <div className="app-text-caption">{measurementCount} sets</div>
+          <div className="mt-2 grid gap-x-5 gap-y-3 md:grid-cols-2">
+            <div className="min-w-0 py-1">
+              <div className="flex items-center gap-2">
+                <Phone className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                <div className="app-text-overline">Phone</div>
+              </div>
+              <div className="app-text-body mt-1 font-medium">{customer.phone}</div>
+            </div>
+            <div className="min-w-0 py-1">
+              <div className="flex items-center gap-2">
+                <Mail className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                <div className="app-text-overline">Email</div>
+              </div>
+              <div className="app-text-body mt-1 truncate font-medium">{customer.email}</div>
+            </div>
+            <div className="min-w-0 py-1">
+              <div className="flex items-center gap-2">
+                <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                <div className="app-text-overline">Address</div>
+              </div>
+              <div className="app-text-body mt-1 font-medium">{customer.address}</div>
+            </div>
+            <div className="min-w-0 py-1">
+              <div className="app-text-overline">Notes</div>
+              <div className="app-text-caption mt-0.5">{customer.notes}</div>
             </div>
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-4 xl:block xl:justify-self-end xl:text-right">
-          <div className="space-y-1">
-            <div className="app-text-overline">Last visit</div>
-            <div className="app-text-body font-medium">{customer.lastVisit}</div>
+        <div className="grid h-full gap-x-4 gap-y-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/16 px-3 py-2.5 sm:grid-cols-2">
+          <div className="min-w-0 self-start">
+            <div className="app-text-overline">Preferred location</div>
+            <div className="app-text-body mt-0.5 font-medium">{customer.preferredLocation}</div>
           </div>
-
-          <ActionButton tone="secondary" className="min-h-12 shrink-0 px-4 py-2.5 text-sm xl:mt-3 xl:w-full">
-            Open
-          </ActionButton>
+          <div className="min-w-0 self-start">
+            <div className="app-text-overline">Last visit</div>
+            <div className="app-text-body mt-0.5 font-medium">{customer.lastVisit}</div>
+          </div>
+          <div className="min-w-0 self-start">
+            <div className="app-text-overline">Measurements</div>
+            <div className="mt-1 flex flex-wrap items-center gap-2">
+              <StatusPill tone={hasMeasurementsOnFile ? "success" : "default"}>
+                <Ruler className="h-3.5 w-3.5" />
+                {hasMeasurementsOnFile ? "On file" : "Not on file"}
+              </StatusPill>
+            </div>
+          </div>
+          <div className="min-w-0 self-start">
+            <div className="app-text-overline">Last order</div>
+            {lastOrderSummary ? (
+              <>
+                <div className="app-text-body mt-0.5 font-medium">{lastOrderDate ?? "Recent"}</div>
+                <div className="app-text-caption mt-0.5">{lastOrderLabel}</div>
+              </>
+            ) : (
+              <div className="app-text-caption mt-0.5">No order history yet</div>
+            )}
+          </div>
         </div>
       </div>
     </button>
@@ -77,27 +119,32 @@ function CustomerRow({
 export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCustomer, onScreenChange }: CustomerScreenProps) {
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [actionToast, setActionToast] = useState<string | null>(null);
 
   const filteredCustomers = useMemo(() => filterCustomers(customers, query), [query]);
 
-  const summary = useMemo(() => {
-    return {
-      total: filteredCustomers.length,
-      onFile: filteredCustomers.filter((customer) => customer.measurementsStatus === "on_file").length,
-      needsUpdate: filteredCustomers.filter((customer) => customer.measurementsStatus === "needs_update").length,
-      vip: filteredCustomers.filter((customer) => customer.isVip).length,
-    };
-  }, [filteredCustomers]);
+  useEffect(() => {
+    if (!actionToast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setActionToast(null), 2400);
+    return () => window.clearTimeout(timeoutId);
+  }, [actionToast]);
 
   return (
     <div className="relative space-y-4">
       <div className="space-y-4">
-        <SectionHeader icon={User} title="Customers" subtitle="Service directory" />
+        <SectionHeader
+          icon={Users}
+          title="Customers"
+          subtitle="Service directory"
+        />
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_300px] xl:items-end">
-          <label className="block">
+        <div className="flex flex-wrap items-end gap-3">
+          <label className="block min-w-[320px] flex-1">
             <div className="app-text-overline mb-2">Search customers</div>
-            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/18 px-4 py-3.5">
+            <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
               <div className="flex items-center gap-3">
                 <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
                 <input
@@ -109,25 +156,14 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
               </div>
             </div>
           </label>
-
-          <div className="grid grid-cols-2 gap-x-6 gap-y-2 xl:justify-self-end">
-            <div>
-              <div className="app-text-overline">Visible</div>
-              <div className="app-text-value mt-1">{summary.total}</div>
-            </div>
-            <div>
-              <div className="app-text-overline">On file</div>
-              <div className="app-text-value mt-1">{summary.onFile}</div>
-            </div>
-            <div>
-              <div className="app-text-overline">Needs update</div>
-              <div className="app-text-value mt-1">{summary.needsUpdate}</div>
-            </div>
-            <div>
-              <div className="app-text-overline">VIP</div>
-              <div className="app-text-value mt-1">{summary.vip}</div>
-            </div>
-          </div>
+          <ActionButton
+            tone="primary"
+            className="min-h-[3.625rem] px-4 py-2.5 text-sm"
+            onClick={() => setActionToast("New customer intake is ready to be connected next.")}
+          >
+            <Plus className="h-4 w-4" />
+            Add customer
+          </ActionButton>
         </div>
 
         <div className="border-t border-[var(--app-border)]/55 pt-4">
@@ -139,15 +175,15 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
             <div className="app-text-overline">{filteredCustomers.length} customers</div>
           </div>
 
-          <div className="mt-4 space-y-3">
+          <div className="mt-4 grid gap-3 xl:grid-cols-2">
             {filteredCustomers.map((customer) => {
-              const measurementCount = measurementSets.filter((set) => set.customerId === customer.id).length;
+              const lastOrderSummary = getCustomerLastOrderSummary(customerOrders[customer.id] ?? []);
 
               return (
                 <CustomerRow
                   key={customer.id}
                   customer={customer}
-                  measurementCount={measurementCount}
+                  lastOrderSummary={lastOrderSummary}
                   onOpen={() => {
                     onSelectCustomer(customer);
                     setDrawerOpen(true);
@@ -158,6 +194,12 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
           </div>
         </div>
       </div>
+
+      {actionToast ? (
+        <div className="pointer-events-none fixed bottom-5 right-5 z-50 max-w-[320px] rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-surface)] px-4 py-3 shadow-[var(--app-shadow-lg)]">
+          <div className="app-text-body font-medium">{actionToast}</div>
+        </div>
+      ) : null}
 
       {drawerOpen ? (
         <CustomerProfileDrawer

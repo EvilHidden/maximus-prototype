@@ -15,6 +15,9 @@ export type Customer = {
   id: string;
   name: string;
   phone: string;
+  email: string;
+  address: string;
+  preferredLocation: PickupLocation;
   lastVisit: string;
   measurementsStatus: MeasurementStatus;
   notes: string;
