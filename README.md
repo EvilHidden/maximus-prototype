@@ -2,6 +2,17 @@
 
 Operational tailoring prototype built with `Vite + React + Tailwind v4`.
 
+## Collaboration docs
+
+If two people are actively iterating in this repo, use these first:
+
+- [CONTRIBUTING.md](/Users/daniel/Dev%20Work/maximus/CONTRIBUTING.md)
+  - branch workflow, PR checklist, merge/closeout steps
+- [docs/STYLE_GUIDE.md](/Users/daniel/Dev%20Work/maximus/docs/STYLE_GUIDE.md)
+  - UI/system/style rules so we stop reinventing patterns
+- [AGENTS.md](/Users/daniel/Dev%20Work/maximus/AGENTS.md)
+  - Codex-specific repo rules and subsystem boundaries
+
 ## What changed
 
 This repo is structured for fast two-person prototyping:
@@ -65,3 +76,7 @@ npm run dev
 npm run build
 npm run preview
 ```
+
+## Build checks
+
+This repo includes a lightweight GitHub Actions build check that runs on pushes to `main` and on pull requests. The goal is not enterprise CI, just a simple guardrail so collaborative changes fail fast when the app stops building.

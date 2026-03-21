@@ -1,0 +1,32 @@
+name: Logic hole
+description: Track a workflow bug, gap, or contradictory state in the prototype.
+title: "[Logic hole] "
+labels:
+  - logic
+body:
+  - type: input
+    id: subsystem
+    attributes:
+      label: Subsystem
+      placeholder: order / measurements / appointments / customers
+    validations:
+      required: true
+  - type: textarea
+    id: reproduction
+    attributes:
+      label: Reproduction
+      description: What steps expose the issue?
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected result
+      description: What should happen instead?
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Notes
+      description: Optional constraints, assumptions, or screenshots.
