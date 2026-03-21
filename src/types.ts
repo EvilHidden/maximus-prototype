@@ -1,13 +1,15 @@
 import type { ReactNode } from "react";
 
 export type ThemeMode = "light" | "dark";
-export type Screen = "home" | "customer" | "order" | "measurements" | "checkout";
+export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders";
 export type WorkflowMode = "alteration" | "custom";
 export type OrderType = WorkflowMode | "mixed";
 export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
 export type MeasurementStatus = "on_file" | "needs_update" | "missing";
 export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
+export type AlterationCheckoutIntent = "pay_later" | "prepay_now" | null;
+export type OpenOrderPaymentStatus = "pay_later" | "prepaid";
 
 export type Customer = {
   id: string;
@@ -129,6 +131,7 @@ export type CustomBuilderState = {
 export type OrderWorkflowState = {
   activeWorkflow: WorkflowMode | null;
   payerCustomerId: string | null;
+  checkoutIntent: AlterationCheckoutIntent;
   alteration: AlterationBuilderState;
   custom: CustomBuilderState;
   fulfillment: {
@@ -136,6 +139,22 @@ export type OrderWorkflowState = {
     pickupTime: string;
     pickupLocation: PickupLocation | "";
   };
+};
+
+export type OpenOrder = {
+  id: number;
+  payerCustomerId: string | null;
+  payerName: string;
+  orderType: OrderType;
+  itemCount: number;
+  itemSummary: string[];
+  pickupDate: string;
+  pickupTime: string;
+  pickupLocation: PickupLocation | "";
+  paymentStatus: OpenOrderPaymentStatus;
+  collectedToday: number;
+  total: number;
+  createdAtLabel: string;
 };
 
 export type NavItem = {

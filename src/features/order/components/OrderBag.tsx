@@ -1,5 +1,5 @@
 import { CalendarClock, MapPin, ShoppingBag, Trash2 } from "lucide-react";
-import type { Customer, OrderBagLineItem, PickupLocation, PricingSummary, WorkflowMode } from "../../../types";
+import type { Customer, OrderBagLineItem, OrderType, PickupLocation, PricingSummary, WorkflowMode } from "../../../types";
 import {
   ActionButton,
   Card,
@@ -16,6 +16,7 @@ type OrderBagProps = {
   customer: Customer | null;
   lineItems: OrderBagLineItem[];
   pricing: PricingSummary;
+  orderType: OrderType | null;
   activeWorkflow: WorkflowMode | null;
   continueLabel: string;
   pickupRequired: boolean;
@@ -29,13 +30,18 @@ type OrderBagProps = {
   onRequestRemoveItem: (kind: WorkflowMode, itemId: number) => void;
   onClearCart: () => void;
   onContinue: () => void;
+  onSchedulePayLater: () => void;
+  onSchedulePrepay: () => void;
   continueDisabled: boolean;
+  continueDisabledReason?: string;
+  onShowDisabledReason?: (reason: string) => void;
 };
 
 export function OrderBag({
   customer,
   lineItems,
   pricing,
+  orderType,
   activeWorkflow,
   continueLabel,
   pickupRequired,
@@ -49,9 +55,14 @@ export function OrderBag({
   onRequestRemoveItem,
   onClearCart,
   onContinue,
+  onSchedulePayLater,
+  onSchedulePrepay,
   continueDisabled,
+  continueDisabledReason,
+  onShowDisabledReason,
 }: OrderBagProps) {
   const formattedPickupSchedule = formatPickupSchedule(pickupDate, pickupTime);
+  const showAlterationSchedulingCtas = orderType === "alteration";
 
   return (
     <Card className="sticky top-0 p-3.5">
@@ -181,7 +192,7 @@ export function OrderBag({
               ) : (
                 <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
                   <div className="app-text-body font-medium">Pickup details needed</div>
-                  <div className="app-text-caption mt-1">Set the pickup date, time, and location before checkout.</div>
+                  <div className="app-text-caption mt-1">Set the pickup date, time, and location before moving this order forward.</div>
                 </div>
               )}
             </div>
@@ -194,12 +205,40 @@ export function OrderBag({
           <EmptyState>No summary yet.</EmptyState>
         )}
 
-        <div className="grid grid-cols-2 gap-2 border-t border-[var(--app-border)] pt-3">
-          <ActionButton tone="secondary">Save draft</ActionButton>
-          <ActionButton tone="primary" disabled={continueDisabled} onClick={onContinue}>
-            {continueLabel}
-          </ActionButton>
-        </div>
+        {showAlterationSchedulingCtas ? (
+          <div className="grid grid-cols-2 gap-2 border-t border-[var(--app-border)] pt-3">
+            <ActionButton
+              tone="primary"
+              disabled={continueDisabled}
+              disabledReason={continueDisabledReason}
+              onDisabledPress={onShowDisabledReason}
+              onClick={onSchedulePayLater}
+            >
+              Schedule Order and Pay Later
+            </ActionButton>
+            <ActionButton
+              tone="secondary"
+              disabled={continueDisabled}
+              disabledReason={continueDisabledReason}
+              onDisabledPress={onShowDisabledReason}
+              onClick={onSchedulePrepay}
+            >
+              Schedule Order and Prepay Now
+            </ActionButton>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border)] pt-3">
+            <ActionButton
+              tone="primary"
+              disabled={continueDisabled}
+              disabledReason={continueDisabledReason}
+              onDisabledPress={onShowDisabledReason}
+              onClick={onContinue}
+            >
+              {continueLabel}
+            </ActionButton>
+          </div>
+        )}
       </SummaryStack>
     </Card>
   );

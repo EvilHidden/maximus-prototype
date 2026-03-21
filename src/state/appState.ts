@@ -1,9 +1,11 @@
 import { measurementFields } from "../data";
 import type {
+  AlterationCheckoutIntent,
   AlterationService,
   CustomBuilderState,
   CustomGarmentDraft,
   CustomGarmentGender,
+  OpenOrder,
   OrderWorkflowState,
   PickupLocation,
   Screen,
@@ -13,6 +15,7 @@ import type {
 export type AppState = {
   screen: Screen;
   selectedCustomerId: string | null;
+  openOrders: OpenOrder[];
   order: OrderWorkflowState;
 };
 
@@ -69,6 +72,8 @@ export type AppAction =
   | { type: "setCustomer"; customerId: string | null }
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
+  | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
+  | { type: "completeAlterationOpenOrder"; openOrder: OpenOrder }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
   | { type: "addAlterationItem" }
@@ -100,6 +105,7 @@ export function createInitialOrderState(): OrderWorkflowState {
   return {
     activeWorkflow: null,
     payerCustomerId: null,
+    checkoutIntent: null,
     alteration: {
       selectedGarment: "",
       selectedModifiers: [],
@@ -118,6 +124,7 @@ export function createInitialAppState(): AppState {
   return {
     screen: "home",
     selectedCustomerId: null,
+    openOrders: [],
     order: createInitialOrderState(),
   };
 }
@@ -145,6 +152,7 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         order: {
           ...state.order,
           activeWorkflow: action.workflow,
+          checkoutIntent: null,
           payerCustomerId: state.order.payerCustomerId ?? state.selectedCustomerId,
           custom:
             action.workflow === "custom" && !state.order.custom.draft.wearerCustomerId
@@ -157,6 +165,21 @@ export function appReducer(state: AppState, action: AppAction): AppState {
                 }
               : state.order.custom,
         },
+      };
+    case "setAlterationCheckoutIntent":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          checkoutIntent: action.intent,
+        },
+      };
+    case "completeAlterationOpenOrder":
+      return {
+        ...state,
+        screen: "openOrders",
+        openOrders: [action.openOrder, ...state.openOrders],
+        order: createInitialOrderState(),
       };
     case "selectAlterationGarment":
       return {

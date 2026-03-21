@@ -1,7 +1,9 @@
 import type {
-  Customer,
   CustomGarmentDraft,
+  Customer,
   MeasurementSet,
+  OpenOrder,
+  OpenOrderPaymentStatus,
   OrderBagLineItem,
   OrderType,
   OrderWorkflowState,
@@ -224,4 +226,40 @@ export function formatPickupSchedule(pickupDate: string, pickupTime: string) {
     .replace(/\s/g, "");
 
   return `${date}. ${time}`;
+}
+
+export function buildAlterationOpenOrder(
+  order: OrderWorkflowState,
+  customers: Customer[],
+  paymentStatus: OpenOrderPaymentStatus,
+): OpenOrder | null {
+  const orderType = getOrderType(order);
+  if (orderType !== "alteration") {
+    return null;
+  }
+
+  const lineItems = getOrderBagLineItems(order, customers);
+  const pricing = getPricingSummary(order);
+  const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
+
+  return {
+    id: Date.now(),
+    payerCustomerId: order.payerCustomerId,
+    payerName: payer?.name ?? "Walk-in customer",
+    orderType,
+    itemCount: lineItems.length,
+    itemSummary: lineItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
+    pickupDate: order.fulfillment.pickupDate,
+    pickupTime: order.fulfillment.pickupTime,
+    pickupLocation: order.fulfillment.pickupLocation,
+    paymentStatus,
+    collectedToday: paymentStatus === "prepaid" ? pricing.total : 0,
+    total: pricing.total,
+    createdAtLabel: new Intl.DateTimeFormat("en-US", {
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }).format(new Date()),
+  };
 }

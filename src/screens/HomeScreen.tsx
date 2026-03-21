@@ -172,7 +172,7 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
       label: "Order pickup",
       subtitle: "Prepare checkout and release orders",
       icon: Package,
-      onClick: () => onScreenChange("checkout"),
+      onClick: () => onScreenChange("openOrders"),
     },
   ];
 
@@ -239,7 +239,7 @@ export function HomeScreen({ onScreenChange, onStartWorkflow }: HomeScreenProps)
         <div className="mt-4 space-y-3">
           {pickups.map((appointment, index) => (
             <div key={appointment.id}>
-              <PickupRow appointment={appointment} onOpen={() => onScreenChange("checkout")} />
+              <PickupRow appointment={appointment} onOpen={() => onScreenChange("openOrders")} />
               {index < pickups.length - 1 ? <div className="mx-1 mt-3 border-t border-[var(--app-border)]/45" /> : null}
             </div>
           ))}

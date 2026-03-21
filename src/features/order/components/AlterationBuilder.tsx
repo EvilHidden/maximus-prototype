@@ -10,6 +10,8 @@ type AlterationBuilderProps = {
   currentServices: AlterationService[];
   selectedModifiers: AlterationService[];
   currentSubtotal: number;
+  addDisabledReason?: string;
+  onShowDisabledReason?: (reason: string) => void;
   onSelectGarment: (garment: string) => void;
   onToggleModifier: (modifier: AlterationService) => void;
   onAddItem: () => void;
@@ -21,6 +23,8 @@ export function AlterationBuilder({
   currentServices,
   selectedModifiers,
   currentSubtotal,
+  addDisabledReason,
+  onShowDisabledReason,
   onSelectGarment,
   onToggleModifier,
   onAddItem,
@@ -105,8 +109,14 @@ export function AlterationBuilder({
         </div>
         <div className="flex shrink-0 items-center gap-3 self-center">
           <div className="app-text-value">${currentSubtotal.toFixed(2)}</div>
-          <ActionButton tone="primary" disabled={!selectedGarment || selectedModifiers.length === 0} onClick={onAddItem}>
-            Add to order
+          <ActionButton
+            tone="primary"
+            disabled={!selectedGarment || selectedModifiers.length === 0}
+            disabledReason={addDisabledReason}
+            onDisabledPress={onShowDisabledReason}
+            onClick={onAddItem}
+          >
+            Add to Cart
           </ActionButton>
         </div>
       </div>

@@ -16,9 +16,10 @@ type CheckoutScreenProps = {
   payerCustomer: Customer | null;
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
+  onCompleteAlterationOrder: (paymentStatus: "pay_later" | "prepaid") => void;
 };
 
-export function CheckoutScreen({ payerCustomer, order, onScreenChange }: CheckoutScreenProps) {
+export function CheckoutScreen({ payerCustomer, order, onScreenChange, onCompleteAlterationOrder }: CheckoutScreenProps) {
   const orderType = getOrderType(order);
   const hasAlterations = orderType === "alteration" || orderType === "mixed";
   const hasCustom = orderType === "custom" || orderType === "mixed";
@@ -28,6 +29,7 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange }: Checkou
   const pricing = getPricingSummary(order);
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
   const formattedPickup = formatPickupSchedule(order.fulfillment.pickupDate, order.fulfillment.pickupTime);
+  const isAlterationPrepayFlow = orderType === "alteration" && order.checkoutIntent === "prepay_now";
   const checklist = [
     { label: "Payer linked", ready: !summaryGuardrail.missingCustomer, value: payerCustomer?.name ?? "Required" },
     {
@@ -57,8 +59,10 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange }: Checkou
           subtitle={
             orderType === "mixed"
               ? "Save, send, collect deposit"
-              : orderType === "alteration"
-                ? "Save, send, collect"
+              : isAlterationPrepayFlow
+                ? "Collect now, then open the scheduled work order"
+                : orderType === "alteration"
+                  ? "Save, send, collect"
                 : orderType === "custom"
                   ? "Save, send, collect deposit"
                   : "Select an order type first"
@@ -126,8 +130,18 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange }: Checkou
                 <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
                   Revise order
                 </ActionButton>
-                <ActionButton tone="primary" disabled={checkoutBlocked}>
-                  {`Send ${formatSummaryCurrency(checkoutCollectionAmount)} to Square`}
+                <ActionButton
+                  tone="primary"
+                  disabled={checkoutBlocked}
+                  onClick={() => {
+                    if (isAlterationPrepayFlow) {
+                      onCompleteAlterationOrder("prepaid");
+                    }
+                  }}
+                >
+                  {isAlterationPrepayFlow
+                    ? `Collect ${formatSummaryCurrency(checkoutCollectionAmount)} and open order`
+                    : `Send ${formatSummaryCurrency(checkoutCollectionAmount)} to Square`}
                 </ActionButton>
               </div>
             </Card>
@@ -159,15 +173,25 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange }: Checkou
               },
               {
                 label: "Square order",
-                detail: checkoutBlocked ? "Waiting on order setup" : `Queue ${formatSummaryCurrency(checkoutCollectionAmount)} to collect`,
+                detail: checkoutBlocked
+                  ? "Waiting on order setup"
+                  : isAlterationPrepayFlow
+                    ? `Collect ${formatSummaryCurrency(checkoutCollectionAmount)} before opening the work order`
+                    : `Queue ${formatSummaryCurrency(checkoutCollectionAmount)} to collect`,
                 tone: checkoutBlocked ? "warn" : "default",
                 status: checkoutBlocked ? "Pending" : "Pending send",
               },
               {
                 label: "Payment collection",
-                detail: hasCustom ? "Deposit due today" : orderType === "alteration" ? "Collect at terminal" : "Not ready",
+                detail: hasCustom
+                  ? "Deposit due today"
+                  : isAlterationPrepayFlow
+                    ? "Prepay in checkout"
+                    : orderType === "alteration"
+                      ? "Collect at terminal"
+                      : "Not ready",
                 tone: hasCustom || orderType === "alteration" ? "default" : "warn",
-                status: hasCustom ? "Deposit due" : orderType === "alteration" ? "At terminal" : "Blocked",
+                status: hasCustom ? "Deposit due" : isAlterationPrepayFlow ? "Prepay now" : orderType === "alteration" ? "At terminal" : "Blocked",
               },
             ].map((row) => (
               <div

@@ -1,5 +1,5 @@
 import { useMemo, useReducer, useState } from "react";
-import { customers, measurementSets as initialMeasurementSets } from "./data";
+import { appointments, customers, measurementSets as initialMeasurementSets } from "./data";
 import { useThemePreference } from "./hooks/useThemePreference";
 import type { Customer, MeasurementSet, WorkflowMode } from "./types";
 import { AppShell } from "./components/layout/AppShell";
@@ -8,8 +8,10 @@ import { CustomerScreen } from "./screens/CustomerScreen";
 import { OrderScreen } from "./screens/OrderScreen";
 import { MeasurementsScreen } from "./screens/MeasurementsScreen";
 import { CheckoutScreen } from "./screens/CheckoutScreen";
+import { OpenOrdersScreen } from "./screens/OpenOrdersScreen";
 import { appReducer, createInitialAppState } from "./state/appState";
-import { getOrderType } from "./features/order/selectors";
+import { buildAlterationOpenOrder, getOrderType } from "./features/order/selectors";
+import { getPickupAppointments } from "./features/home/selectors";
 import {
   createDraftMeasurementSet,
   deleteMeasurementSetAndPreserveDraft,
@@ -29,6 +31,7 @@ export default function App() {
     [state.order.payerCustomerId],
   );
   const orderType = getOrderType(state.order);
+  const pickupAppointments = useMemo(() => getPickupAppointments(appointments), []);
 
   const startWorkflow = (workflow: WorkflowMode) => {
     dispatch({ type: "clearOrder" });
@@ -76,6 +79,15 @@ export default function App() {
     dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
   };
 
+  const handleCompleteAlterationOrder = (paymentStatus: "pay_later" | "prepaid") => {
+    const openOrder = buildAlterationOpenOrder(state.order, customers, paymentStatus);
+    if (!openOrder) {
+      return;
+    }
+
+    dispatch({ type: "completeAlterationOpenOrder", openOrder });
+  };
+
   const content = useMemo(() => {
     if (state.screen === "home") {
       return <HomeScreen onScreenChange={(screen) => dispatch({ type: "setScreen", screen })} onStartWorkflow={startWorkflow} />;
@@ -101,6 +113,7 @@ export default function App() {
           order={state.order}
           dispatch={dispatch}
           onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+          onCompleteAlterationOrder={handleCompleteAlterationOrder}
         />
       );
     }
@@ -128,14 +141,25 @@ export default function App() {
       );
     }
 
+    if (state.screen === "openOrders") {
+      return (
+        <OpenOrdersScreen
+          openOrders={state.openOrders}
+          pickupAppointments={pickupAppointments}
+          onStartNewOrder={() => startWorkflow("alteration")}
+        />
+      );
+    }
+
     return (
       <CheckoutScreen
         payerCustomer={payerCustomer}
         order={state.order}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        onCompleteAlterationOrder={handleCompleteAlterationOrder}
       />
     );
-  }, [measurementSets, state, selectedCustomer, payerCustomer, orderType]);
+  }, [measurementSets, state, selectedCustomer, payerCustomer, orderType, pickupAppointments]);
 
   return (
     <div data-theme={theme}>

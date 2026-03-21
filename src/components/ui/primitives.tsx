@@ -26,6 +26,8 @@ type StatusPillProps = {
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   tone?: "primary" | "secondary" | "quiet";
   fullWidth?: boolean;
+  disabledReason?: string;
+  onDisabledPress?: (reason: string) => void;
 };
 
 type DefinitionListProps = {
@@ -125,6 +127,10 @@ export function ActionButton({
   fullWidth = false,
   className,
   children,
+  disabledReason,
+  onDisabledPress,
+  disabled,
+  onClick,
   ...props
 }: ActionButtonProps) {
   const tones = {
@@ -133,15 +139,32 @@ export function ActionButton({
     quiet: "app-btn app-btn--quiet",
   };
 
+  const isGuarded = Boolean(disabled);
+
   return (
     <button
       className={cx(
         "app-text-body font-medium",
         tones[tone],
+        isGuarded && "app-btn--disabled",
         fullWidth && "w-full",
         className,
       )}
+      aria-disabled={isGuarded}
+      onClick={(event) => {
+        if (isGuarded) {
+          event.preventDefault();
+          event.stopPropagation();
+          if (disabledReason && onDisabledPress) {
+            onDisabledPress(disabledReason);
+          }
+          return;
+        }
+
+        onClick?.(event);
+      }}
       {...props}
+      disabled={false}
     >
       {children}
     </button>

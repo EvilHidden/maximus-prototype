@@ -251,6 +251,11 @@ button {
   cursor: not-allowed;
 }
 
+.app-btn--disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .app-btn--primary {
   border-color: var(--app-accent);
   background: var(--app-accent);

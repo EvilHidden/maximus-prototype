@@ -21,6 +21,8 @@ type CustomGarmentBuilderProps = {
   lapel: string | null;
   canvas: string | null;
   canAddToOrder: boolean;
+  addDisabledReason?: string;
+  onShowDisabledReason?: (reason: string) => void;
   isEditing: boolean;
   editingLabel?: string | null;
   onSelectGender: (gender: CustomGarmentGender) => void;
@@ -172,6 +174,8 @@ export function CustomGarmentBuilder({
   lapel,
   canvas,
   canAddToOrder,
+  addDisabledReason,
+  onShowDisabledReason,
   isEditing,
   editingLabel,
   onSelectGender,
@@ -368,7 +372,14 @@ export function CustomGarmentBuilder({
             Cancel edit
           </ActionButton>
         ) : null}
-        <ActionButton tone="primary" disabled={!canAddToOrder} className="min-h-12 min-w-[200px] px-5 text-sm" onClick={onAddToOrder}>
+        <ActionButton
+          tone="primary"
+          disabled={!canAddToOrder}
+          disabledReason={addDisabledReason}
+          onDisabledPress={onShowDisabledReason}
+          className="min-h-12 min-w-[200px] px-5 text-sm"
+          onClick={onAddToOrder}
+        >
           {isEditing ? "Save changes" : "Add to order"}
         </ActionButton>
       </div>

@@ -1,8 +1,9 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   alterationCatalog,
   canvasOptions,
   customGarmentOptionsByGender,
+  jacketBasedCustomGarments,
   lapelOptions,
   pocketTypeOptions,
 } from "../data";
@@ -45,6 +46,7 @@ type OrderScreenProps = {
   order: AppState["order"];
   dispatch: Dispatch<AppAction>;
   onScreenChange: (screen: Screen) => void;
+  onCompleteAlterationOrder: (paymentStatus: "pay_later" | "prepaid") => void;
 };
 
 export function OrderScreen({
@@ -54,7 +56,9 @@ export function OrderScreen({
   order,
   dispatch,
   onScreenChange,
+  onCompleteAlterationOrder,
 }: OrderScreenProps) {
+  const [actionToast, setActionToast] = useState<string | null>(null);
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [wearerModalOpen, setWearerModalOpen] = useState(false);
   const [customerQuery, setCustomerQuery] = useState("");
@@ -81,6 +85,11 @@ export function OrderScreen({
     order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId
       ? "Go to measurements"
       : "Continue to checkout";
+  const addToCartDisabledReason = !order.alteration.selectedGarment
+    ? "Select a garment before adding anything to the cart."
+    : order.alteration.selectedModifiers.length === 0
+      ? "Choose at least one alteration service before adding this item to the cart."
+      : undefined;
 
   const garmentOptions = alterationCatalog.map((garment) => garment.category);
   const currentServices = alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
@@ -97,6 +106,31 @@ export function OrderScreen({
     ? order.custom.items.find((item) => item.id === editingCustomItemId) ?? null
     : null;
   const editingServices = alterationCatalog.find((garment) => garment.category === editingItem?.garment)?.services ?? [];
+  const continueDisabledReason =
+    orderType === null
+      ? "Add at least one item to the cart before moving forward."
+      : summaryGuardrail.missingCustomer
+        ? "Link a paying customer before moving this order forward."
+        : summaryGuardrail.missingPickup
+          ? "Set the pickup date, time, and location before moving this order forward."
+          : summaryGuardrail.customIncomplete
+            ? "Finish the custom garment configuration before continuing to checkout."
+            : undefined;
+  const customAddDisabledReason = !order.custom.draft.gender
+    ? "Select a gender before building the custom garment."
+    : !order.custom.draft.selectedGarment
+      ? "Choose a garment before adding the custom item to the cart."
+      : !order.custom.draft.wearerCustomerId
+        ? "Assign a wearer before adding the custom garment to the cart."
+        : !order.custom.draft.linkedMeasurementSetId
+          ? "Choose or create a measurement set before adding the custom garment to the cart."
+          : !order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads
+          ? "Complete fabric, buttons, lining, and thread details before adding this garment to the cart."
+            : order.custom.draft.selectedGarment &&
+                jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
+                (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
+              ? "Choose the canvas, lapel, and pocket details before adding this jacket-based garment to the cart."
+              : undefined;
 
   useCustomMeasurementDefaults({
     measurementSets,
@@ -104,6 +138,15 @@ export function OrderScreen({
     order,
     dispatch,
   });
+
+  useEffect(() => {
+    if (!actionToast) {
+      return;
+    }
+
+    const timeoutId = window.setTimeout(() => setActionToast(null), 2600);
+    return () => window.clearTimeout(timeoutId);
+  }, [actionToast]);
 
   return (
     <div
@@ -133,6 +176,8 @@ export function OrderScreen({
               currentServices={currentServices}
               selectedModifiers={order.alteration.selectedModifiers}
               currentSubtotal={currentAlterationSubtotal}
+              addDisabledReason={addToCartDisabledReason}
+              onShowDisabledReason={setActionToast}
               onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
               onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
               onAddItem={() => dispatch({ type: "addAlterationItem" })}
@@ -201,6 +246,8 @@ export function OrderScreen({
               lapel={order.custom.draft.lapel}
               canvas={order.custom.draft.canvas}
               canAddToOrder={canAddCustomDraftToOrder}
+              addDisabledReason={customAddDisabledReason}
+              onShowDisabledReason={setActionToast}
               isEditing={editingCustomItemId !== null}
               editingLabel={editingCustomItem?.selectedGarment ?? null}
               onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
@@ -244,6 +291,7 @@ export function OrderScreen({
           customer={payerCustomer}
           lineItems={lineItems}
           pricing={pricing}
+          orderType={orderType}
           activeWorkflow={order.activeWorkflow}
           continueLabel={continueLabel}
           pickupRequired={pickupRequired}
@@ -271,6 +319,14 @@ export function OrderScreen({
             dispatch({ type: "removeCustomItem", itemId });
           }}
           onClearCart={() => setClearBagConfirmOpen(true)}
+          onSchedulePayLater={() => {
+            onCompleteAlterationOrder("pay_later");
+          }}
+          onSchedulePrepay={() => {
+            dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
+            onScreenChange("checkout");
+          }}
+          onShowDisabledReason={setActionToast}
           onContinue={() => {
             if (order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId) {
               if (wearerCustomer) {
@@ -288,8 +344,17 @@ export function OrderScreen({
             summaryGuardrail.missingPickup ||
             summaryGuardrail.customIncomplete
           }
+          continueDisabledReason={continueDisabledReason}
         />
       </div>
+
+      {actionToast ? (
+        <div className="pointer-events-none fixed bottom-5 left-1/2 z-40 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2">
+          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-accent)] px-4 py-3 text-sm font-medium text-[var(--app-accent-contrast)] shadow-[var(--app-shadow-lg)]">
+            {actionToast}
+          </div>
+        </div>
+      ) : null}
 
       {customerModalOpen ? (
         <CustomerPickerModal
