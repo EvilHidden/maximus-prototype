@@ -1,4 +1,14 @@
-import { Moon, Sun } from "lucide-react";
+import {
+  CalendarDays,
+  ClipboardList,
+  Home,
+  Moon,
+  Package,
+  Ruler,
+  Sun,
+  Users,
+  Wallet,
+} from "lucide-react";
 import type { ReactNode } from "react";
 import { navItems } from "../../data";
 import type { Screen } from "../../types";
@@ -11,6 +21,16 @@ type AppShellProps = {
   onToggleTheme: () => void;
   children: ReactNode;
 };
+
+const navIcons = {
+  home: Home,
+  customer: Users,
+  openOrders: Package,
+  appointments: CalendarDays,
+  order: ClipboardList,
+  measurements: Ruler,
+  checkout: Wallet,
+} satisfies Record<Screen, typeof Home>;
 
 export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, children }: AppShellProps) {
   return (
@@ -26,18 +46,25 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
             <div className="app-text-overline px-2 pb-2 pt-1">Workspace</div>
             <div className="space-y-1.5">
             {navItems.map((item) => (
-              <button
-                key={item.key}
-                onClick={() => onScreenChange(item.key)}
-                className={cx(
-                  "w-full rounded-[12px] px-3.5 py-3 text-left transition",
-                  screen === item.key
-                    ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                    : "border border-transparent bg-transparent text-[var(--app-text-muted)] hover:border-[var(--app-border)]/55 hover:bg-[var(--app-surface)]/42 hover:text-[var(--app-text)]",
-                )}
-              >
-                <div className="app-text-body font-medium">{item.label}</div>
-              </button>
+              (() => {
+                const Icon = navIcons[item.key];
+
+                return (
+                  <button
+                    key={item.key}
+                    onClick={() => onScreenChange(item.key)}
+                    className={cx(
+                      "flex w-full items-center gap-3 rounded-[12px] px-3.5 py-3 text-left transition",
+                      screen === item.key
+                        ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                        : "border border-transparent bg-transparent text-[var(--app-text-muted)] hover:border-[var(--app-border)]/55 hover:bg-[var(--app-surface)]/42 hover:text-[var(--app-text)]",
+                    )}
+                  >
+                    <Icon className="h-4 w-4 shrink-0" />
+                    <div className="app-text-body font-medium">{item.label}</div>
+                  </button>
+                );
+              })()
             ))}
             </div>
           </div>
