@@ -1,6 +1,7 @@
-import { AlertCircle, ArrowRight, History, MessageSquare, PencilRuler, Ruler, User } from "lucide-react";
+import { useState } from "react";
+import { AlertCircle, ArrowRight, History, MessageSquare, PencilRuler, Ruler, Trash2, User } from "lucide-react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../../types";
-import { ActionButton, StatusPill } from "../ui/primitives";
+import { ActionButton, ModalShell, StatusPill } from "../ui/primitives";
 import { getMeasurementStatusLabel, getMeasurementStatusTone } from "../../features/customer/selectors";
 
 type CustomerProfileDrawerProps = {
@@ -9,6 +10,7 @@ type CustomerProfileDrawerProps = {
   measurementSets: MeasurementSet[];
   onClose: () => void;
   onEditCustomer: () => void;
+  onDeleteCustomer: () => void;
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -50,12 +52,17 @@ export function CustomerProfileDrawer({
   measurementSets,
   onClose,
   onEditCustomer,
+  onDeleteCustomer,
   onScreenChange,
 }: CustomerProfileDrawerProps) {
+  const hasVisitHistory = Boolean(customer?.lastVisit && customer.lastVisit !== "New");
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+
   return (
     <div className="fixed inset-0 z-40">
       <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
-      <div className="absolute right-0 top-0 h-full w-[460px] overflow-auto border-l border-[var(--app-border)] bg-[var(--app-surface)] p-4 shadow-[var(--app-shadow-lg)]">
+      <div className="absolute right-0 top-0 flex h-full w-[460px] flex-col border-l border-[var(--app-border)] bg-[var(--app-surface)] shadow-[var(--app-shadow-lg)]">
+        <div className="flex-1 overflow-auto p-4">
         <div className="border-b border-[var(--app-border)]/45 pb-4">
           <div className="flex items-start justify-between gap-3">
             <div className="flex min-w-0 items-start gap-3">
@@ -92,7 +99,9 @@ export function CustomerProfileDrawer({
             </div>
             <div>
               <div className="app-text-overline">Last visit</div>
-              <div className="app-text-body mt-2 font-medium">{customer?.lastVisit ?? "Unknown"}</div>
+              <div className={hasVisitHistory ? "app-text-body mt-2 font-medium" : "app-text-caption mt-2"}>
+                {hasVisitHistory ? customer?.lastVisit : "No visit history yet"}
+              </div>
             </div>
           </div>
 
@@ -196,7 +205,47 @@ export function CustomerProfileDrawer({
             ))}
           </div>
         </div>
+        </div>
+        <div className="border-t border-[var(--app-border)]/45 p-4">
+          <button
+            onClick={() => setConfirmDeleteOpen(true)}
+            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 hover:text-red-800"
+          >
+            <Trash2 className="h-4 w-4" />
+            Delete customer
+          </button>
+        </div>
       </div>
+      {confirmDeleteOpen ? (
+        <ModalShell
+          title="Delete customer"
+          subtitle={customer ? `Remove ${customer.name} from the customer list?` : "Remove this customer from the customer list?"}
+          onClose={() => setConfirmDeleteOpen(false)}
+          showCloseButton={false}
+          widthClassName="max-w-[460px]"
+          footer={
+            <div className="flex items-center justify-end gap-2">
+              <ActionButton tone="secondary" onClick={() => setConfirmDeleteOpen(false)} className="min-h-12 px-4 py-2.5 text-sm">
+                Cancel
+              </ActionButton>
+              <button
+                onClick={() => {
+                  setConfirmDeleteOpen(false);
+                  onDeleteCustomer();
+                }}
+                className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 hover:text-red-800"
+              >
+                <Trash2 className="h-4 w-4" />
+                Delete customer
+              </button>
+            </div>
+          }
+        >
+          <div className="app-text-body">
+            This will permanently delete the customer. This action can’t be undone.
+          </div>
+        </ModalShell>
+      ) : null}
     </div>
   );
 }

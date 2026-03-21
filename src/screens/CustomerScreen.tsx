@@ -27,6 +27,7 @@ function CustomerRow({
   onOpen: () => void;
 }) {
   const hasMeasurementsOnFile = customer.measurementsStatus === "on_file";
+  const hasVisitHistory = Boolean(customer.lastVisit && customer.lastVisit !== "New");
   const lastOrderParts = lastOrderSummary?.split(" • ", 2) ?? [];
   const lastOrderLabel = lastOrderParts.length === 2 ? lastOrderParts[0] : lastOrderSummary;
   const lastOrderDate = lastOrderParts.length === 2 ? lastOrderParts[1] : null;
@@ -81,7 +82,9 @@ function CustomerRow({
           </div>
           <div className="min-w-0 py-1">
             <div className="app-text-overline">Last visit</div>
-            <div className="app-text-body mt-0.5 font-medium">{customer.lastVisit}</div>
+            <div className={hasVisitHistory ? "app-text-body mt-0.5 font-medium" : "app-text-caption mt-0.5"}>
+              {hasVisitHistory ? customer.lastVisit : "No visit history yet"}
+            </div>
           </div>
           <div className="min-w-0 py-1">
             <div className="app-text-overline">Measurements</div>
@@ -209,6 +212,16 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
           measurementSets={activeCustomer ? measurementSets.filter((set) => set.customerId === activeCustomer.id) : []}
           onClose={() => setDrawerOpen(false)}
           onEditCustomer={() => setEditorMode("edit")}
+          onDeleteCustomer={() => {
+            if (!activeCustomer) {
+              return;
+            }
+
+            setCustomerRecords((current) => current.filter((customer) => customer.id !== activeCustomer.id));
+            setActionToast(`${activeCustomer.name} deleted.`);
+            setDrawerOpen(false);
+            setActiveCustomerId(null);
+          }}
           onScreenChange={onScreenChange}
         />
       ) : null}
@@ -223,7 +236,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
               const nextCustomer: Customer = {
                 ...draft,
                 id: `C-${Math.floor(1000 + Math.random() * 9000)}`,
-                lastVisit: "New",
+                lastVisit: "",
                 measurementsStatus: "missing",
               };
               setCustomerRecords((current) => [nextCustomer, ...current]);
