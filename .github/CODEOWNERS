@@ -1,12 +1,14 @@
-# Default ownership stays simple until collaborator ownership is formalized.
+# Default ownership
 * @EvilHidden
 
-# Subsystem routing
+# Shared system surfaces
+/src/state/ @EvilHidden @cthoro
+/src/components/ui/ @EvilHidden @cthoro
+/src/data/ @EvilHidden @cthoro
+/src/screens/ @EvilHidden @cthoro
+
+# Feature routing
 /src/features/order/ @EvilHidden
-/src/features/customer/ @EvilHidden
-/src/features/home/ @EvilHidden
 /src/features/measurements/ @EvilHidden
-/src/state/ @EvilHidden
-/src/components/ui/ @EvilHidden
-/src/data/ @EvilHidden
-/src/screens/ @EvilHidden
+/src/features/customer/ @cthoro
+/src/features/home/ @cthoro
