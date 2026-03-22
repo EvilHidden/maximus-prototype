@@ -1,4 +1,4 @@
-import { CalendarDays, Mail, MapPin, Megaphone, Package, Phone, type LucideIcon } from "lucide-react";
+import { AlertCircle, CalendarDays, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
 import type { Appointment } from "../../../types";
 import {
   ActionButton,
@@ -16,33 +16,51 @@ import {
 } from "../../appointments/selectors";
 import { HomeLaneEmptyState } from "./HomeLaneEmptyState";
 
-function getAppointmentCallouts(appointment: Appointment) {
-  const callouts: Array<{ label: string; tone?: "default" | "warn" }> = [];
+function getAppointmentConfirmationPills(appointment: Appointment) {
+  return appointment.contextFlags
+    .filter((flag) => flag === "confirmed" || flag === "unconfirmed")
+    .map((flag) => ({
+      label: getAppointmentContextFlagLabel(flag),
+      tone: "default" as const,
+    }));
+}
 
-  callouts.push(
+function getAppointmentAlertIcons(appointment: Appointment) {
+  const icons: Array<{
+    key: string;
+    label: string;
+    Icon: LucideIcon;
+    tone?: "warn" | "danger";
+  }> = [];
+
+  icons.push(
     ...appointment.prepFlags.map((flag) => ({
+      key: flag,
       label: getAppointmentPrepFlagLabel(flag),
+      Icon: Ruler,
       tone: "warn" as const,
     })),
   );
 
-  callouts.push(
-    ...appointment.contextFlags.map((flag) => ({
-      label: getAppointmentContextFlagLabel(flag),
-      tone: "default" as const,
-    })),
+  icons.push(
+    ...appointment.contextFlags
+      .filter((flag) => flag === "rush")
+      .map((flag) => ({
+        key: flag,
+        label: getAppointmentContextFlagLabel(flag),
+        Icon: AlertCircle,
+        tone: "danger" as const,
+      })),
   );
 
-  return callouts;
-}
-
-function getProfileAlertIcons(appointment: Appointment) {
-  return appointment.profileFlags.map((flag) => {
+  icons.push(
+    ...appointment.profileFlags.map((flag) => {
     if (flag === "missing_email") {
       return {
         key: flag,
         label: getAppointmentProfileFlagLabel(flag),
         Icon: Mail,
+        tone: "warn" as const,
       };
     }
 
@@ -51,6 +69,7 @@ function getProfileAlertIcons(appointment: Appointment) {
         key: flag,
         label: getAppointmentProfileFlagLabel(flag),
         Icon: Phone,
+        tone: "warn" as const,
       };
     }
 
@@ -59,6 +78,7 @@ function getProfileAlertIcons(appointment: Appointment) {
         key: flag,
         label: getAppointmentProfileFlagLabel(flag),
         Icon: MapPin,
+        tone: "warn" as const,
       };
     }
 
@@ -66,8 +86,12 @@ function getProfileAlertIcons(appointment: Appointment) {
       key: flag,
       label: getAppointmentProfileFlagLabel(flag),
       Icon: Megaphone,
+      tone: "warn" as const,
     };
-  });
+    }),
+  );
+
+  return icons;
 }
 
 export function HomeEmptyState({
@@ -124,8 +148,8 @@ function ScheduleRow({
   onCreateOrder: (appointment: Appointment) => void;
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
-  const callouts = getAppointmentCallouts(appointment);
-  const profileAlertIcons = getProfileAlertIcons(appointment);
+  const confirmationPills = getAppointmentConfirmationPills(appointment);
+  const alertIcons = getAppointmentAlertIcons(appointment);
 
   return (
     <div className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
@@ -136,12 +160,17 @@ function ScheduleRow({
       <div className="min-w-0 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
           <div className="app-text-value leading-tight">{appointment.customer}</div>
-          {profileAlertIcons.length ? (
+          {alertIcons.length ? (
             <div className="flex items-center gap-1.5">
-              {profileAlertIcons.map(({ key, label, Icon }) => (
+              {alertIcons.map(({ key, label, Icon, tone }) => (
                 <span
                   key={key}
-                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] text-[var(--app-warn-text)]"
+                  className={[
+                    "inline-flex h-6 w-6 items-center justify-center rounded-full border",
+                    tone === "danger"
+                      ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
+                      : "border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] text-[var(--app-warn-text)]",
+                  ].join(" ")}
                   title={label}
                   aria-label={label}
                 >
@@ -158,12 +187,12 @@ function ScheduleRow({
             <span>{appointment.location}</span>
           </div>
         </div>
-        {callouts.length ? (
+        {confirmationPills.length ? (
           <div className="flex flex-wrap items-center gap-2">
-            {callouts.map((callout) => (
+            {confirmationPills.map((callout) => (
               <AppointmentIssuePill
                 key={callout.label}
-                tone={callout.tone === "warn" ? "warn" : "default"}
+                tone={callout.tone}
                 label={callout.label}
               />
             ))}
