@@ -48,6 +48,11 @@ Do not invent local text stacks unless there is a strong reason.
   - active order
   - linked measurement set
   - current customer
+- For table-like operational surfaces, reuse the shared table system from `src/index.css`:
+  - `app-table-shell`
+  - `app-table-head`
+  - `app-table-row`
+- If Customers has already established the correct table treatment for a pattern, other screens should follow that same shell, row border, and hover language instead of inventing a local variant.
 
 ## Orders language
 

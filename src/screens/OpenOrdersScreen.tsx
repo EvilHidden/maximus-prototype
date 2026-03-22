@@ -415,7 +415,7 @@ function WorkQueueOrderRow({
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
                   {isFullyReady ? null : (
                     <ActionButton
-                      tone="secondary"
+                      tone="primary"
                       className="px-3 py-2 text-xs"
                       onClick={() => {
                         group.pendingIds.forEach((pickupId) => onMarkOpenOrderPickupReady(openOrder.id, pickupId));
@@ -485,16 +485,16 @@ function QueueSection({
   return (
     <div className="space-y-3">
       <OpenSectionHeader icon={icon} title={title} count={count} subtitle={subtitle} />
-      <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
+      <div className="app-table-shell rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
         {pickupAppointments.length > 0 ? (
           <div>
-            <div className="border-b border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/20 px-4 py-2">
+            <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
               <div className="app-text-overline">Scheduled pickup appointments</div>
             </div>
             {pickupAppointments.map((appointment, index) => (
               <div
                 key={appointment.id}
-                className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
+                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
               >
                 <WorkQueuePickupRow appointment={appointment} />
               </div>
@@ -503,13 +503,13 @@ function QueueSection({
         ) : null}
         {openOrders.length > 0 ? (
           <div className={cx(pickupAppointments.length > 0 && "border-t border-[var(--app-border)]/45")}>
-            <div className="border-b border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/20 px-4 py-2">
+            <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
               <div className="app-text-overline">Active orders</div>
             </div>
             {openOrders.map((openOrder, index) => (
               <div
                 key={openOrder.id}
-                className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
+                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
               >
                 <WorkQueueOrderRow openOrder={openOrder} onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady} />
               </div>
@@ -653,21 +653,27 @@ export function OpenOrdersScreen({
                 )}
               />
             </button>
-          ))}
+            ))}
+          </div>
+
+        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/18 px-4 py-4 shadow-[var(--app-shadow-sm)]">
+          <div className="space-y-4">
+            <SearchFilterBar
+              query={query}
+              onQueryChange={setQuery}
+              typeFilter={typeFilter}
+              onTypeFilterChange={setTypeFilter}
+              locationFilter={locationFilter}
+              onLocationFilterChange={setLocationFilter}
+            />
+
+            {activeView === "queues" ? (
+              <div className="border-t border-[var(--app-border)]/35 pt-4">
+                <QueueStrip activeQueue={activeQueue} onQueueChange={setActiveQueue} counts={queueCounts} />
+              </div>
+            ) : null}
+          </div>
         </div>
-
-        <SearchFilterBar
-          query={query}
-          onQueryChange={setQuery}
-          typeFilter={typeFilter}
-          onTypeFilterChange={setTypeFilter}
-          locationFilter={locationFilter}
-          onLocationFilterChange={setLocationFilter}
-        />
-
-        {activeView === "queues" ? (
-          <QueueStrip activeQueue={activeQueue} onQueueChange={setActiveQueue} counts={queueCounts} />
-        ) : null}
       </div>
 
       <div className="border-t border-[var(--app-border)]/55 pt-4">
@@ -675,11 +681,11 @@ export function OpenOrdersScreen({
           baseOpenOrders.length === 0 ? (
             <EmptyState>No active orders match this search and filter set.</EmptyState>
           ) : (
-            <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
+            <div className="app-table-shell rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
               {baseOpenOrders.map((openOrder, index) => (
                 <div
                   key={openOrder.id}
-                  className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
+                  className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
                 >
                   <AllOrdersRow openOrder={openOrder} />
                 </div>
@@ -708,12 +714,12 @@ export function OpenOrdersScreen({
           filteredHistoryItems.length === 0 ? (
             <EmptyState>No closed orders match this search.</EmptyState>
           ) : (
-            <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
+            <div className="app-table-shell rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
               {filteredHistoryItems.map((order, index) => (
                 <div
                   key={order.id}
                   className={cx(
-                    "grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_140px_120px_auto] md:items-center",
+                    "app-table-row grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_140px_120px_auto] md:items-center",
                     index > 0 && "border-t border-[var(--app-border)]/35",
                   )}
                 >
