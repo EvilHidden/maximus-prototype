@@ -12,7 +12,7 @@ import { OpenOrdersScreen } from "./screens/OpenOrdersScreen";
 import { AppointmentsScreen } from "./screens/AppointmentsScreen";
 import { appReducer, createInitialAppState } from "./state/appState";
 import { buildOpenOrder } from "./features/order/selectors";
-import { getOpenOrderPickupAppointments, getPickupAppointments } from "./features/home/selectors";
+import { getPickupAppointments } from "./features/home/selectors";
 import { ToastProvider } from "./components/ui/toast";
 import {
   createDraftMeasurementSet,
@@ -43,11 +43,6 @@ export default function App() {
     [state.order.payerCustomerId],
   );
   const pickupAppointments = useMemo(() => getPickupAppointments(baseAppointments), [baseAppointments]);
-  const openOrderPickupAppointments = useMemo(() => getOpenOrderPickupAppointments(state.openOrders), [state.openOrders]);
-  const homePickupAppointments = useMemo(
-    () => [...pickupAppointments, ...openOrderPickupAppointments],
-    [pickupAppointments, openOrderPickupAppointments],
-  );
 
   const startWorkflow = (workflow: WorkflowMode) => {
     dispatch({ type: "clearOrder" });
@@ -123,7 +118,7 @@ export default function App() {
       return (
         <HomeScreen
           appointments={baseAppointments}
-          pickupAppointments={homePickupAppointments}
+          pickupAppointments={pickupAppointments}
           onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
           onStartWorkflow={startWorkflow}
           onOpenAppointment={handleOpenAppointment}
