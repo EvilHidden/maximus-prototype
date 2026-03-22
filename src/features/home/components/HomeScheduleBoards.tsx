@@ -106,10 +106,10 @@ function ScheduleRow({
 
       <div className="grid gap-2 md:justify-items-stretch">
         <ActionButton tone="primary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
-          Create order
+          Start order
         </ActionButton>
         <ActionButton tone="secondary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
-          Cancel
+          Cancel appointment
         </ActionButton>
       </div>
     </div>
