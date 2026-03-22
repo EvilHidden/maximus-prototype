@@ -27,7 +27,7 @@ type AddressDraft = {
   zip: string;
 };
 
-type RequiredField = "firstName" | "lastName" | "phone" | "email" | "addressLine1" | "city" | "state";
+type RequiredField = "firstName" | "lastName";
 
 const locationOptions: PickupLocation[] = ["Fifth Avenue", "Queens", "Long Island"];
 const honorificOptions = ["", "Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Prof."];
@@ -45,11 +45,6 @@ const selectCaretStyle = {
 const requiredFieldLabels: Record<RequiredField, string> = {
   firstName: "first name",
   lastName: "last name",
-  phone: "phone",
-  email: "email",
-  addressLine1: "street address",
-  city: "city",
-  state: "state",
 };
 
 function formatPhoneNumber(value: string) {
@@ -77,6 +72,7 @@ function normalizeCustomerSeed(customer?: Customer | null): Customer {
       preferredLocation: "Fifth Avenue",
       lastVisit: "",
       measurementsStatus: "missing",
+      marketingOptIn: false,
       notes: "",
       isVip: false,
     }
@@ -168,11 +164,6 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
   const missingFields: RequiredField[] = [
     !nameDraft.firstName.trim() ? "firstName" : null,
     !nameDraft.lastName.trim() ? "lastName" : null,
-    !draft.phone.trim() ? "phone" : null,
-    !draft.email.trim() ? "email" : null,
-    !addressDraft.addressLine1.trim() ? "addressLine1" : null,
-    !addressDraft.city.trim() ? "city" : null,
-    !addressDraft.state.trim() ? "state" : null,
   ].filter((field): field is RequiredField => Boolean(field));
   const missingFieldSet = new Set(missingFields);
   const validationMessage =
@@ -182,9 +173,6 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
 
   const isInvalid =
     !formattedName ||
-    !draft.phone.trim() ||
-    !draft.email.trim() ||
-    !formattedAddress ||
     !draft.preferredLocation;
   const showValidationSummary = isInvalid && (showValidation || missingFields.some((field) => touchedFields[field]));
 
@@ -276,20 +264,16 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                           phone: formatPhoneNumber(event.target.value),
                         }))
                       }
-                      onBlur={markFieldTouched("phone")}
-                      className={getFieldClassName(inputClassName, "phone")}
+                      className={inputClassName}
                     />
-                    {getFieldHint("phone")}
                   </label>
                   <label className="block">
                     <FieldLabel>Email</FieldLabel>
                     <input
                       value={draft.email}
                       onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))}
-                      onBlur={markFieldTouched("email")}
-                      className={getFieldClassName(inputClassName, "email")}
+                      className={inputClassName}
                     />
-                    {getFieldHint("email")}
                   </label>
                 </div>
 
@@ -302,10 +286,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <input
                           value={addressDraft.addressLine1}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, addressLine1: event.target.value }))}
-                          onBlur={markFieldTouched("addressLine1")}
-                          className={getFieldClassName(inputClassName, "addressLine1")}
+                          className={inputClassName}
                         />
-                        {getFieldHint("addressLine1")}
                       </label>
                       <label className="block">
                         <FieldLabel>Unit</FieldLabel>
@@ -323,18 +305,15 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <input
                           value={addressDraft.city}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, city: event.target.value }))}
-                          onBlur={markFieldTouched("city")}
-                          className={getFieldClassName(inputClassName, "city")}
+                          className={inputClassName}
                         />
-                        {getFieldHint("city")}
                       </label>
                       <label className="block">
                         <FieldLabel>State</FieldLabel>
                         <select
                           value={addressDraft.state}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, state: event.target.value }))}
-                          onBlur={markFieldTouched("state")}
-                          className={getFieldClassName(selectClassName, "state")}
+                          className={selectClassName}
                           style={selectCaretStyle}
                         >
                           {stateOptions.map((option) => (
@@ -343,7 +322,6 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                             </option>
                           ))}
                         </select>
-                        {getFieldHint("state")}
                       </label>
                       <label className="block">
                         <FieldLabel>ZIP</FieldLabel>
@@ -439,6 +417,25 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                       </button>
                     ))}
                   </div>
+                </div>
+
+                <div className="border-t border-[var(--app-border)]/30 pt-4">
+                  <FieldLabel>Marketing</FieldLabel>
+                  <button
+                    onClick={() => setDraft((current) => ({ ...current, marketingOptIn: !current.marketingOptIn }))}
+                    className={cx(
+                      "mt-2 flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border px-3 py-3 text-left transition",
+                      draft.marketingOptIn
+                        ? "border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)]"
+                        : "border-[var(--app-border)]/85 bg-[var(--app-surface-muted)]/75 text-[var(--app-text-muted)]",
+                    )}
+                  >
+                    <div className="flex items-center gap-2">
+                      {draft.marketingOptIn ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
+                      <span className="app-text-body font-medium">Marketing opt-in</span>
+                    </div>
+                    <span className="app-text-caption">{draft.marketingOptIn ? "Permission captured" : "Needs consent"}</span>
+                  </button>
                 </div>
 
                 <div className="border-t border-[var(--app-border)]/30 pt-4">

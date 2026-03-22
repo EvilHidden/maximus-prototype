@@ -1,7 +1,7 @@
 import type {
   Appointment,
   AppointmentContextFlag,
-  AppointmentPrepStatus,
+  AppointmentPrepFlag,
   AppointmentProfileFlag,
 } from "../../types";
 
@@ -75,18 +75,10 @@ export function compareAppointments(left: Appointment, right: Appointment) {
   return left.scheduledFor.localeCompare(right.scheduledFor);
 }
 
-export function getAppointmentPrepStatusLabel(status: AppointmentPrepStatus) {
-  switch (status) {
-    case "ready":
-      return "Ready";
-    case "needs_profile":
-      return "Needs profile";
+export function getAppointmentPrepFlagLabel(flag: AppointmentPrepFlag) {
+  switch (flag) {
     case "needs_measurements":
       return "Needs measurements";
-    case "needs_materials":
-      return "Needs materials";
-    case "needs_review":
-      return "Needs review";
   }
 }
 
@@ -96,6 +88,10 @@ export function getAppointmentProfileFlagLabel(flag: AppointmentProfileFlag) {
       return "Missing phone";
     case "missing_email":
       return "Missing email";
+    case "missing_address":
+      return "Missing address";
+    case "needs_marketing_opt_in":
+      return "Needs marketing opt-in";
   }
 }
 
@@ -105,10 +101,6 @@ export function getAppointmentContextFlagLabel(flag: AppointmentContextFlag) {
       return "Confirmed";
     case "unconfirmed":
       return "Unconfirmed";
-    case "wedding":
-      return "Wedding";
-    case "prom":
-      return "Prom";
     case "rush":
       return "Rush";
   }

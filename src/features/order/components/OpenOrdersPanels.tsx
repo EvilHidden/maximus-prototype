@@ -19,7 +19,12 @@ import {
   cx,
 } from "../../../components/ui/primitives";
 import { CountPill, LocationPill, OrderStatusPill, PaymentStatusPill } from "../../../components/ui/pills";
-import { getAppointmentPrepStatusLabel, getAppointmentTimeLabel } from "../../appointments/selectors";
+import {
+  getAppointmentContextFlagLabel,
+  getAppointmentPrepFlagLabel,
+  getAppointmentProfileFlagLabel,
+  getAppointmentTimeLabel,
+} from "../../appointments/selectors";
 import {
   formatClosedOrderDate,
   formatClosedOrderTotal,
@@ -322,6 +327,12 @@ export function OpenOrdersControls({
 }
 
 function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
+  const operationalDetail =
+    appointment.prepFlags.map(getAppointmentPrepFlagLabel)[0]
+    ?? appointment.profileFlags.map(getAppointmentProfileFlagLabel)[0]
+    ?? appointment.contextFlags.map(getAppointmentContextFlagLabel)[0]
+    ?? "Customer handoff scheduled";
+
   return (
     <div className="grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1.1fr)_220px_180px] md:items-center">
       <div className="min-w-0">
@@ -330,9 +341,7 @@ function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
       </div>
       <div className="min-w-0">
         <div className="app-text-body font-medium">{`${getPickupTimingLabel(appointment.scheduledFor.slice(0, 10))} • ${getAppointmentTimeLabel(appointment)}`}</div>
-        <div className="app-text-caption mt-1">
-          {appointment.prepStatus === "ready" ? "Ready for release" : getAppointmentPrepStatusLabel(appointment.prepStatus)}
-        </div>
+        <div className="app-text-caption mt-1">{operationalDetail}</div>
       </div>
       <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
         <LocationPill location={appointment.location} />

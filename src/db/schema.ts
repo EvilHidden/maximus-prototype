@@ -1,7 +1,5 @@
 import type {
-  AppointmentContextFlag,
-  AppointmentPrepStatus,
-  AppointmentProfileFlag,
+  AppointmentConfirmationStatus,
   AppointmentSource,
   AppointmentStatusKey,
   AppointmentTypeKey,
@@ -54,6 +52,7 @@ export type DbCustomer = {
   preferredLocationId: string;
   lastVisitLabel: string;
   measurementsStatus: MeasurementStatus;
+  marketingOptIn: boolean;
   notes: string;
   isVip?: boolean;
 };
@@ -129,9 +128,8 @@ export type DbPickupAppointment = {
   typeKey: Extract<AppointmentTypeKey, "pickup">;
   statusKey: Extract<AppointmentStatusKey, "scheduled" | "completed" | "canceled">;
   summary: string;
-  prepStatus: AppointmentPrepStatus;
-  profileFlags: AppointmentProfileFlag[];
-  contextFlags: AppointmentContextFlag[];
+  confirmationStatus: AppointmentConfirmationStatus | null;
+  rush: boolean;
 };
 
 export type DbServiceAppointment = {
@@ -151,9 +149,8 @@ export type DbServiceAppointment = {
     "alteration_fitting" | "custom_consult" | "first_fitting" | "custom_fitting" | "wedding_party_fitting"
   >;
   statusKey: Extract<AppointmentStatusKey, "scheduled" | "ready_to_check_in" | "prep_required" | "completed" | "canceled">;
-  prepStatus: AppointmentPrepStatus;
-  profileFlags: AppointmentProfileFlag[];
-  contextFlags: AppointmentContextFlag[];
+  confirmationStatus: AppointmentConfirmationStatus | null;
+  rush: boolean;
 };
 
 export type DbPaymentRecord = {

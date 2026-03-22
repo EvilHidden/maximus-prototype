@@ -21,6 +21,7 @@ const customers: Customer[] = [
     preferredLocation: "Fifth Avenue",
     lastVisit: "Mar 1",
     measurementsStatus: "on_file",
+    marketingOptIn: true,
     notes: "",
   },
   {
@@ -32,6 +33,7 @@ const customers: Customer[] = [
     preferredLocation: "Queens",
     lastVisit: "Mar 2",
     measurementsStatus: "missing",
+    marketingOptIn: false,
     notes: "",
   },
 ];
@@ -147,7 +149,7 @@ function createPickupAppointment(overrides: Partial<Appointment>): Appointment {
     type: "Pickup appointment",
     statusKey: "scheduled",
     status: "Upcoming",
-    prepStatus: "ready",
+    prepFlags: [],
     profileFlags: [],
     contextFlags: [],
     route: "pickup",
