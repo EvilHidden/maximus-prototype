@@ -1,4 +1,4 @@
-import { CreditCard } from "lucide-react";
+import { ClipboardList, CreditCard } from "lucide-react";
 import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, DefinitionList, EmptyState, EntityRow, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import { PaymentStatusPill, ReadinessPill } from "../components/ui/pills";
@@ -214,11 +214,34 @@ export function CheckoutScreen({
 
           {activeLineItems.length === 0 ? (
             <div className="border-t border-[var(--app-border)]/45">
-              <EmptyState className="rounded-none border-0 bg-transparent shadow-none text-sm">
-                {openOrder
-                  ? "This saved order does not have a checkout payload available."
-                  : "No order bag is ready for checkout. Add items on the order screen, then return here."}
-              </EmptyState>
+              <div className="px-4 py-5">
+                <EmptyState className="rounded-[var(--app-radius-md)] border-dashed bg-[var(--app-surface-muted)]/35 px-5 py-5 shadow-none">
+                  <div className="flex items-start gap-3">
+                    <div className="app-icon-chip">
+                      <ClipboardList className="h-4 w-4" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="app-text-overline">
+                        {openOrder ? "Checkout payload unavailable" : "Nothing staged for checkout"}
+                      </div>
+                      <div className="app-text-body mt-2">
+                        {openOrder
+                          ? "This saved order is missing the review payload that checkout expects. Return to the registry and reopen a collectible order."
+                          : "Build the order bag first, then come back here to review payer, pickup handoff, and collection."}
+                      </div>
+                      <div className="mt-3">
+                        <ActionButton
+                          tone="secondary"
+                          className="px-3 py-2 text-xs"
+                          onClick={() => onScreenChange(openOrder ? "openOrders" : "order")}
+                        >
+                          {openOrder ? "Back to orders" : "Return to order builder"}
+                        </ActionButton>
+                      </div>
+                    </div>
+                  </div>
+                </EmptyState>
+              </div>
             </div>
           ) : (
             <>
@@ -330,24 +353,27 @@ export function CheckoutScreen({
 
           <Surface tone="support" className="p-4">
             <SurfaceHeader
-              title="Ops checks"
-              subtitle="Keep the support rail lightweight: just the key readiness signals."
+              title="Readiness"
+              subtitle="Only the few signals that determine whether this handoff can move forward."
             />
 
-            <div className="mt-4 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55">
-              <div className="app-table-head grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 px-3 py-2">
-                <span>Check</span>
-                <span>Detail</span>
-                <span>Status</span>
-              </div>
+            <div className="mt-4 border-t border-[var(--app-border)]/45 pt-2">
               {(openOrder ? savedChecklist : draftChecklist).map((row) => (
                 <div
                   key={row.label}
-                  className="grid grid-cols-[minmax(0,1.2fr)_minmax(0,1fr)_auto] gap-3 border-t border-[var(--app-border)]/35 px-3 py-2"
+                  className="flex items-start justify-between gap-3 border-b border-[var(--app-border)]/30 py-3 last:border-b-0"
                 >
-                  <span className="app-text-body font-medium">{row.label}</span>
-                  <span className="app-text-caption whitespace-pre-line">{row.value}</span>
-                  <StatusPill tone={row.ready ? "dark" : "warn"}>{row.ready ? "Ready" : "Needs work"}</StatusPill>
+                  <div className="min-w-0 flex-1">
+                    <div className="app-text-overline">{row.label}</div>
+                    <div className="app-text-body mt-1.5 whitespace-pre-line leading-relaxed">
+                      {row.value}
+                    </div>
+                  </div>
+                  <div className="shrink-0 pt-0.5">
+                    <StatusPill tone={row.ready ? "dark" : "warn"}>
+                      {row.ready ? "Ready" : "Needs work"}
+                    </StatusPill>
+                  </div>
                 </div>
               ))}
             </div>
