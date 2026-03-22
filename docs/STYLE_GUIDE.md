@@ -49,6 +49,42 @@ Do not invent local text stacks unless there is a strong reason.
   - linked measurement set
   - current customer
 
+## Orders language
+
+- Use the current operator-facing Orders vocabulary:
+  - `Worklist`
+  - `Order Registry`
+  - `Closed Orders`
+  - `Promised ready by`
+  - `Payment Due`
+- Do not reintroduce older or vaguer terms like:
+  - `Open orders`
+  - `Mixed`
+  - `Pickup target`
+  - `Pay later`
+- `Overdue` is the strong operational warning state.
+- `Pending` is a calmer work-in-progress state, not a danger state.
+- `Ready` and `Ready for pickup` should not compete in the same row. If the row already communicates pickup-readiness, do not add a second near-duplicate ready badge.
+
+## Orders worklist rows
+
+- The worklist row should scan left to right as:
+  - customer and order identity
+  - promised-ready detail and item summary
+  - action, status, and money
+- Customer identity anchors the row.
+- The middle section should answer:
+  - what was promised
+  - when it is due
+  - where it belongs
+  - what items are involved
+- The right side is for operator action and financial context, not extra chatter.
+- Remove metadata that does not help the merchant act:
+  - lane labels
+  - repeated location labels
+  - vague footer summaries
+- If a row contains both a status and an action, the action should sit near the work detail it affects, not drift into a far corner just because there is space there.
+
 ## Buttons and actions
 
 - Buttons should be one clear row or one clear stack.

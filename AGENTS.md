@@ -105,6 +105,31 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
 - Radius, hierarchy, and dark-mode behavior should stay consistent with the operational UI system already in place.
 - Do not add another component framework or design-system layer just to make the prototype feel more formal. Only do this after the prototype constraint rule above is satisfied.
 
+## Orders terminology rules
+- Use the current operator-facing Orders language:
+  - `Worklist`
+  - `Order Registry`
+  - `Closed Orders`
+  - `Promised ready by`
+  - `Payment Due`
+- Avoid reintroducing older or fuzzier labels like:
+  - `Open orders`
+  - `Mixed`
+  - `Pickup target`
+  - `Pay later`
+- `Overdue` should stay the strong attention state.
+- `Pending` should read as work-in-progress, not as an alarm state.
+- If a worklist row already communicates readiness in one place, do not repeat a second near-duplicate ready message elsewhere in the same row.
+
+## Orders row hierarchy
+- For Orders worklist rows, preserve this scan path:
+  - left: customer and order identity
+  - middle: promised-ready detail, location, and item summary
+  - right: operator status, money, and supporting payment cue
+- Remove metadata that does not help the operator act.
+- Avoid footer chatter and duplicate status explanations.
+- Keep the worklist focused on actionable state, not schema language or internal implementation concepts.
+
 ## Repo Hygiene
 - Remove dead files and stale styles when replacing old architecture.
 - Do not leave unused prototype-only components checked in after a refactor.
