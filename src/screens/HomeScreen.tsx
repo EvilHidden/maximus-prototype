@@ -2,6 +2,7 @@ import {
   CalendarDays,
   CheckSquare2,
   Clock3,
+  MapPin,
   Square,
   Package,
   Receipt,
@@ -10,7 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, Card, cx } from "../components/ui/primitives";
+import { ActionButton, Card, StatusPill, cx } from "../components/ui/primitives";
 import { CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
@@ -100,26 +101,47 @@ function ScheduleRow({
   onCreateOrder: (appointment: Appointment) => void;
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
+  const callouts = getAppointmentCallouts(appointment);
+
   return (
-      <div className="flex items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <div className="grid gap-3 md:grid-cols-[88px_minmax(0,1fr)] md:items-start">
-            <div className="app-text-value text-[0.95rem]">{appointment.time}</div>
-            <div className="min-w-0">
-              <div className="app-text-value">{appointment.customer}</div>
-              <div className="app-text-caption mt-1">{appointment.type} • {appointment.location}</div>
-            </div>
+    <div className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
+      <div>
+        <div className="app-text-value text-[0.95rem]">{appointment.time}</div>
+      </div>
+
+      <div className="min-w-0 space-y-2">
+        <div className="app-text-value leading-tight">{appointment.customer}</div>
+        <div className="space-y-1">
+          <div className="app-text-body font-medium leading-tight">{appointment.type}</div>
+          <div className="app-text-caption flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>{appointment.location}</span>
           </div>
         </div>
-        <div className="flex shrink-0 items-center gap-2 pl-3">
-          <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={() => onCancelAppointment(appointment)}>
-            Cancel Appointment
-          </ActionButton>
-          <ActionButton tone="primary" className="min-h-12 px-4 py-2.5 text-sm" onClick={() => onCreateOrder(appointment)}>
-            Create Order
-          </ActionButton>
-        </div>
+        {callouts.length ? (
+          <div className="flex flex-wrap items-center gap-2">
+            {callouts.map((callout) => (
+              <StatusPill
+                key={callout.label}
+                tone={callout.tone === "warn" ? "warn" : "default"}
+                className="px-2.5 py-1 text-[11px]"
+              >
+                {callout.label}
+              </StatusPill>
+            ))}
+          </div>
+        ) : null}
       </div>
+
+      <div className="grid gap-2 md:justify-items-stretch">
+        <ActionButton tone="primary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
+          Create order
+        </ActionButton>
+        <ActionButton tone="secondary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
+          Cancel
+        </ActionButton>
+      </div>
+    </div>
   );
 }
 
