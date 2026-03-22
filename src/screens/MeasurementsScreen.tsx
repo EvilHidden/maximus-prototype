@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
-import { Card, ModalShell, SectionHeader, ActionButton } from "../components/ui/primitives";
+import { ModalShell, SectionHeader, ActionButton } from "../components/ui/primitives";
 import { filterCustomers } from "../features/customer/selectors";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import {
@@ -84,14 +84,14 @@ export function MeasurementsScreen({
   return (
     <>
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <Card className="p-4">
+        <div className="app-work-surface p-4">
           <SectionHeader icon={Ruler} title="Measurements" subtitle="Capture, review, and attach the active set." />
           <MeasurementStatusCard title={status.title} detail={status.detail} />
 
           <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
             <div className="app-text-overline mb-3">Measurement worksheet</div>
             <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/14 p-3">
+              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/36 bg-[var(--app-surface-muted)]/22 p-3">
                 <MeasurementFieldGrid
                   activeField={activeField}
                   values={order.custom.draft.measurements}
@@ -99,13 +99,13 @@ export function MeasurementsScreen({
                 />
               </div>
 
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/14 p-4">
+              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/36 bg-[var(--app-surface)]/38 p-4">
                 <div className="grid min-h-full gap-4">
-                  <div className="flex min-h-[360px] items-center justify-center rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/18 px-4 py-5">
+                  <div className="flex min-h-[360px] items-center justify-center rounded-[var(--app-radius-md)] border border-[var(--app-border)]/30 bg-[var(--app-surface)]/62 px-4 py-5">
                     <MeasurementBodyMap activeField={activeField} />
                   </div>
 
-                  <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/18 p-4">
+                  <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/30 bg-[var(--app-surface-muted)]/16 p-4">
                     <div className="mx-auto max-w-[420px]">
                       <MeasurementValueEditor
                         focusKey={activeField}
@@ -123,9 +123,9 @@ export function MeasurementsScreen({
               </div>
             </div>
           </div>
-        </Card>
+        </div>
 
-        <Card className="p-4">
+        <div className="app-support-rail p-4">
           <SectionHeader icon={Ruler} title="Measurement rail" subtitle="Saved sets and active order linkage." />
 
           <div className="space-y-5">
@@ -151,7 +151,7 @@ export function MeasurementsScreen({
               onCheckout={() => onScreenChange("checkout")}
             />
           </div>
-        </Card>
+        </div>
       </div>
 
       {customerModalOpen ? (

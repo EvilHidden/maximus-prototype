@@ -1,5 +1,5 @@
 import { Ruler, TriangleAlert } from "lucide-react";
-import { ActionButton, Card, EmptyState, InlineEmptyState, SectionHeader, StatusPill } from "../../../components/ui/primitives";
+import { ActionButton, EmptyState, InlineEmptyState, SectionHeader, StatusPill } from "../../../components/ui/primitives";
 import type { CustomMeasurementsCardModel } from "../../measurements/types";
 
 type MeasurementsCardProps = {
@@ -87,7 +87,7 @@ export function MeasurementsCard({
     );
 
   return (
-    <Card className="p-4">
+    <div className="app-work-surface p-4">
       <SectionHeader icon={Ruler} title="Measurements" subtitle="Wearer and linked set" />
 
       {showValidationBanner ? (
@@ -134,6 +134,6 @@ export function MeasurementsCard({
           )}
         </div>
       )}
-    </Card>
+    </div>
   );
 }

@@ -96,7 +96,17 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
   - `app-table-shell`
   - `app-table-head`
   - `app-table-row`
+- Reuse the shared page-surface language for operational screens:
+  - `app-control-deck`
+  - `app-work-surface`
+  - `app-support-rail`
 - If a screen introduces a table/list surface that behaves like Customer Directory or Orders Registry, it should follow that same shell, border, and hover treatment unless there is a strong workflow reason not to.
+- Operational pages should read as one system:
+  - page-level plane
+  - one clear control deck
+  - one clear primary work surface
+  - lighter support rail
+- Do not reintroduce card stacks inside those surfaces when a bordered section or row treatment already communicates the grouping.
 - If a pattern appears more than once, promote it into the UI layer or a feature component.
 - Use semantic app classes and tokens from `src/index.css`.
 - Use the shared typography roles from `src/index.css` for text hierarchy:

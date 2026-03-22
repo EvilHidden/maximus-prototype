@@ -1,7 +1,6 @@
 import { CalendarClock, MapPin, ShoppingBag, Trash2 } from "lucide-react";
 import type { Customer, OrderBagLineItem, OrderType, PickupSchedule, PricingSummary, WorkflowMode } from "../../../types";
 import {
-  Card,
   EmptyState,
   InlineEmptyState,
   PanelSection,
@@ -72,7 +71,7 @@ export function OrderBag({
   };
 
   return (
-    <Card className="sticky top-0 p-3.5">
+    <div className="app-support-rail sticky top-0 p-3.5">
       <SectionHeader
         icon={ShoppingBag}
         title="Cart"
@@ -260,6 +259,6 @@ export function OrderBag({
           </div>
         )}
       </SummaryStack>
-    </Card>
+    </div>
   );
 }

@@ -1,7 +1,7 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Appointment } from "../types";
-import { ActionButton, Card, EmptyState, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SectionHeader, StatusPill } from "../components/ui/primitives";
 
 type AppointmentsScreenProps = {
   appointments: Appointment[];
@@ -102,7 +102,7 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
 
   return (
     <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <Card className="p-4">
+      <div className="app-work-surface p-4">
         <SectionHeader
           icon={CalendarDays}
           title="Appointments"
@@ -149,12 +149,12 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
           }
         />
 
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/26 p-2.5">
+        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)]">
           <div className="grid grid-cols-7 gap-2.5">
             {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (
               <div
                 key={dayLabel}
-                className="app-text-overline rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] px-2 py-1.5 text-center"
+                className="app-text-overline px-2 py-1.5 text-center"
               >
                 {dayLabel}
               </div>
@@ -220,9 +220,9 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
             })}
           </div>
         </div>
-      </Card>
+      </div>
 
-      <Card className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
+      <div className="app-support-rail flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
         <div className="mb-3 flex items-start justify-between gap-3">
           <div>
             <div className="app-section-title">Upcoming schedule</div>
@@ -273,7 +273,7 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
             ))}
           </div>
         )}
-      </Card>
+      </div>
     </div>
   );
 }
