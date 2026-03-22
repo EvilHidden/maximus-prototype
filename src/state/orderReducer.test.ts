@@ -64,35 +64,37 @@ describe("order reducer", () => {
   });
 
   it("marks pickup ready using the injected clock when schedule values are empty", () => {
-    const state = createInitialAppState([
-      {
-        id: 55,
-        payerCustomerId: "cus_1",
-        payerName: "Jordan Patel",
-        orderType: "alteration",
-        itemCount: 1,
-        itemSummary: ["Trouser hem"],
-        pickupSchedules: [
-          {
-            id: "pickup-1",
-            scope: "alteration",
-            label: "Alteration pickup",
-            itemSummary: ["Trouser hem"],
-            itemCount: 1,
-            pickupDate: "",
-            pickupTime: "",
-            pickupLocation: "Fifth Avenue",
-            eventType: "none",
-            eventDate: "",
-            readyForPickup: false,
-          },
-        ],
-        paymentStatus: "pay_later",
-        collectedToday: 0,
-        total: 35,
-        createdAt: "2026-03-20T15:00:00.000Z",
-      },
-    ]);
+    const state = createInitialAppState({
+      openOrders: [
+        {
+          id: 55,
+          payerCustomerId: "cus_1",
+          payerName: "Jordan Patel",
+          orderType: "alteration",
+          itemCount: 1,
+          itemSummary: ["Trouser hem"],
+          pickupSchedules: [
+            {
+              id: "pickup-1",
+              scope: "alteration",
+              label: "Alteration pickup",
+              itemSummary: ["Trouser hem"],
+              itemCount: 1,
+              pickupDate: "",
+              pickupTime: "",
+              pickupLocation: "Fifth Avenue",
+              eventType: "none",
+              eventDate: "",
+              readyForPickup: false,
+            },
+          ],
+          paymentStatus: "pay_later",
+          collectedToday: 0,
+          total: 35,
+          createdAt: "2026-03-20T15:00:00.000Z",
+        },
+      ],
+    });
 
     const next = tryReduceOrderAction(
       state,

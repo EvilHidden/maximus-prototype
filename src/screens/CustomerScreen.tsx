@@ -7,6 +7,7 @@ import { useToast } from "../components/ui/toast";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
 import {
+  createNextCustomerId,
   filterCustomers,
   getCustomerLastOrderSummary,
 } from "../features/customer/selectors";
@@ -17,6 +18,9 @@ type CustomerScreenProps = {
   measurementSets: MeasurementSet[];
   selectedCustomer: Customer | null;
   onSelectCustomer: (customer: Customer) => void;
+  onAddCustomer: (customer: Customer) => void;
+  onUpdateCustomer: (customer: Customer) => void;
+  onDeleteCustomer: (customerId: string) => void;
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -95,19 +99,21 @@ export function CustomerScreen({
   measurementSets,
   selectedCustomer,
   onSelectCustomer,
+  onAddCustomer,
+  onUpdateCustomer,
+  onDeleteCustomer,
   onScreenChange,
 }: CustomerScreenProps) {
   const { showToast } = useToast();
-  const [customerRecords, setCustomerRecords] = useState<Customer[]>(customers);
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(selectedCustomer?.id ?? null);
   const [editorMode, setEditorMode] = useState<"add" | "edit" | null>(null);
 
-  const filteredCustomers = useMemo(() => filterCustomers(customerRecords, query), [customerRecords, query]);
+  const filteredCustomers = useMemo(() => filterCustomers(customers, query), [customers, query]);
   const activeCustomer = useMemo(
-    () => customerRecords.find((customer) => customer.id === activeCustomerId) ?? null,
-    [customerRecords, activeCustomerId],
+    () => customers.find((customer) => customer.id === activeCustomerId) ?? null,
+    [customers, activeCustomerId],
   );
 
   return (
@@ -199,7 +205,7 @@ export function CustomerScreen({
               return;
             }
 
-            setCustomerRecords((current) => current.filter((customer) => customer.id !== activeCustomer.id));
+            onDeleteCustomer(activeCustomer.id);
             showToast(`${activeCustomer.name} deleted.`);
             setDrawerOpen(false);
             setActiveCustomerId(null);
@@ -217,11 +223,11 @@ export function CustomerScreen({
             if (editorMode === "add") {
               const nextCustomer: Customer = {
                 ...draft,
-                id: `C-${Math.floor(1000 + Math.random() * 9000)}`,
-                lastVisit: "",
+                id: createNextCustomerId(customers),
+                lastVisit: new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date()),
                 measurementsStatus: "missing",
               };
-              setCustomerRecords((current) => [nextCustomer, ...current]);
+              onAddCustomer(nextCustomer);
               setActiveCustomerId(nextCustomer.id);
               onSelectCustomer(nextCustomer);
               showToast(`${nextCustomer.name} added.`);
@@ -230,9 +236,7 @@ export function CustomerScreen({
                 ...activeCustomer,
                 ...draft,
               };
-              setCustomerRecords((current) =>
-                current.map((customer) => (customer.id === updatedCustomer.id ? updatedCustomer : customer)),
-              );
+              onUpdateCustomer(updatedCustomer);
               setActiveCustomerId(updatedCustomer.id);
               onSelectCustomer(updatedCustomer);
               showToast(`${updatedCustomer.name} updated.`);

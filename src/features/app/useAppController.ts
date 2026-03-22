@@ -10,7 +10,7 @@ export function useAppController() {
   const appRuntime = useAppRuntimeData();
   const {
     referenceData,
-    customers,
+    customers: baseCustomers,
     customerOrders,
     appointments: baseAppointments,
     measurementSets: baseMeasurementSets,
@@ -18,15 +18,19 @@ export function useAppController() {
     closedOrderHistory,
   } = appRuntime;
 
-  const [state, dispatch] = useReducer(appReducer, initialOpenOrders, createInitialAppState);
+  const [state, dispatch] = useReducer(
+    appReducer,
+    { customers: baseCustomers, openOrders: initialOpenOrders },
+    createInitialAppState,
+  );
 
   const selectedCustomer = useMemo<Customer | null>(
-    () => customers.find((customer) => customer.id === state.selectedCustomerId) ?? null,
-    [customers, state.selectedCustomerId],
+    () => state.customers.find((customer) => customer.id === state.selectedCustomerId) ?? null,
+    [state.customers, state.selectedCustomerId],
   );
   const payerCustomer = useMemo<Customer | null>(
-    () => customers.find((customer) => customer.id === state.order.payerCustomerId) ?? null,
-    [customers, state.order.payerCustomerId],
+    () => state.customers.find((customer) => customer.id === state.order.payerCustomerId) ?? null,
+    [state.customers, state.order.payerCustomerId],
   );
   const pickupAppointments = useMemo(() => getPickupAppointments(baseAppointments), [baseAppointments]);
 
@@ -38,7 +42,7 @@ export function useAppController() {
     dispatch,
   });
   const { startWorkflow, openWorkflowAppointment, completeOrder } = useAppWorkflowActions({
-    customers,
+    customers: state.customers,
     dispatch,
     order: state.order,
   });
@@ -47,7 +51,7 @@ export function useAppController() {
     state,
     dispatch,
     referenceData,
-    customers,
+    customers: state.customers,
     customerOrders,
     appointments: baseAppointments,
     measurementSets,

@@ -36,6 +36,19 @@ export function filterCustomers(customers: Customer[], query: string) {
   });
 }
 
+export function createNextCustomerId(customers: Customer[]) {
+  const maxId = customers.reduce((highestId, customer) => {
+    const numericId = Number.parseInt(customer.id.replace(/\D/g, ""), 10);
+    if (Number.isNaN(numericId)) {
+      return highestId;
+    }
+
+    return Math.max(highestId, numericId);
+  }, 999);
+
+  return `C-${maxId + 1}`;
+}
+
 export function getMeasurementStatusLabel(status: MeasurementStatus) {
   if (status === "on_file") {
     return "On file";

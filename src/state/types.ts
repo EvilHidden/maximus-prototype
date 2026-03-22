@@ -1,6 +1,7 @@
 import type {
   AlterationCheckoutIntent,
   AlterationService,
+  Customer,
   CustomOrderEventType,
   CustomGarmentGender,
   OpenOrder,
@@ -13,6 +14,7 @@ import type {
 export type AppState = {
   screen: Screen;
   selectedCustomerId: string | null;
+  customers: Customer[];
   openOrders: OpenOrder[];
   order: OrderWorkflowState;
 };
@@ -44,6 +46,9 @@ export type SaveCustomItemPayload = AddCustomItemPayload & {
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "setCustomer"; customerId: string | null }
+  | { type: "addCustomer"; customer: Customer }
+  | { type: "updateCustomer"; customer: Customer }
+  | { type: "deleteCustomer"; customerId: string }
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
