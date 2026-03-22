@@ -148,12 +148,10 @@ function getWorklistPhaseLabel(phase: string) {
 function OpenSectionHeader({
   icon: Icon,
   title,
-  count,
   subtitle,
 }: {
   icon: LucideIcon;
   title: string;
-  count: number;
   subtitle: string;
 }) {
   return (
@@ -161,7 +159,6 @@ function OpenSectionHeader({
       icon={Icon}
       title={title}
       subtitle={subtitle}
-      meta={<CountPill count={count} />}
       className="border-b border-[var(--app-border)]/45 pb-3"
       titleClassName="app-text-value"
       subtitleClassName="app-text-caption"
@@ -243,7 +240,7 @@ export function OpenOrdersControls({
                     "px-2 py-0.5 text-[11px]",
                     activeView === view.key
                       ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                      : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+                      : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
                   )}
                 />
               }
@@ -309,7 +306,7 @@ export function OpenOrdersControls({
                           "px-2 py-0.5 text-[11px]",
                           activeQueue === queue.key
                             ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                            : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+                            : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
                         )}
                       />
                     }
@@ -512,7 +509,6 @@ export function QueueSection({
           <OpenSectionHeader
             icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
             title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-            count={0}
             subtitle={
               activeQueue === "all"
                 ? "Active orders and booked pickup visits that still need operational attention."
@@ -535,7 +531,6 @@ export function QueueSection({
         <OpenSectionHeader
           icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
           title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-          count={count}
           subtitle={
             activeQueue === "all"
               ? "Active orders and booked pickup visits that still need operational attention."

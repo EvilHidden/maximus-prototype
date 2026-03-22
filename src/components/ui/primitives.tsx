@@ -1,5 +1,5 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
-import type { LucideIcon } from "lucide-react";
+import { ChevronDown, type LucideIcon } from "lucide-react";
 import type { StatusTone } from "../../types";
 import type { DefinitionItem } from "./types";
 
@@ -563,10 +563,11 @@ export function SelectField({ label, value, onChange, children, className = "" }
         <select
           value={value}
           onChange={(event) => onChange(event.target.value)}
-          className="app-text-body appearance-none"
+          className="app-text-body min-w-0 flex-1 appearance-none pr-7"
         >
           {children}
         </select>
+        <ChevronDown className="h-4 w-4 shrink-0 text-[var(--app-text-soft)] pointer-events-none" />
       </div>
     </FieldStack>
   );
