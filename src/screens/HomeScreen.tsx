@@ -12,10 +12,11 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, SectionHeader, cx } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SectionHeader, cx } from "../components/ui/primitives";
 import { AppointmentIssuePill, CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
+import { HomeLaneEmptyState } from "../features/home/components/HomeLaneEmptyState";
 
 type HomeScreenProps = {
   appointments: Appointment[];
@@ -93,6 +94,55 @@ function FrontDeskActionTile({
   );
 }
 
+function HomeEmptyState({
+  title,
+  detail,
+  primaryAction,
+  secondaryAction,
+}: {
+  title: string;
+  detail: string;
+  primaryAction?: { label: string; onClick: () => void };
+  secondaryAction?: { label: string; onClick: () => void };
+}) {
+  return (
+    <div className="app-work-surface p-4">
+      <EmptyState className="space-y-4 border-dashed border-[var(--app-border-strong)]/80 bg-[var(--app-surface-muted)]/85 px-5 py-5">
+        <div className="flex items-start gap-3">
+          <div
+            className="app-icon-chip"
+            style={{
+              borderColor: "#bfdbfe",
+              backgroundColor: "#eff6ff",
+              color: "#1d4ed8",
+            }}
+          >
+            <CalendarDays className="h-4 w-4" />
+          </div>
+          <div>
+            <div className="app-text-value">{title}</div>
+            <div className="app-text-caption mt-1">{detail}</div>
+          </div>
+        </div>
+        {primaryAction || secondaryAction ? (
+          <div className="flex flex-wrap gap-2">
+            {primaryAction ? (
+              <ActionButton tone="primary" className="min-h-11 px-4 py-2 text-sm" onClick={primaryAction.onClick}>
+                {primaryAction.label}
+              </ActionButton>
+            ) : null}
+            {secondaryAction ? (
+              <ActionButton tone="secondary" className="min-h-11 px-4 py-2 text-sm" onClick={secondaryAction.onClick}>
+                {secondaryAction.label}
+              </ActionButton>
+            ) : null}
+          </div>
+        ) : null}
+      </EmptyState>
+    </div>
+  );
+}
+
 function ScheduleRow({
   appointment,
   onCreateOrder,
@@ -148,12 +198,14 @@ function AppointmentLane({
   title,
   dateLabel,
   appointments,
+  activeLocationLabel,
   onCreateOrder,
   onCancelAppointment,
 }: {
   title: string;
   dateLabel: string;
   appointments: Appointment[];
+  activeLocationLabel?: string;
   onCreateOrder: (appointment: Appointment) => void;
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
@@ -169,15 +221,24 @@ function AppointmentLane({
         <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
       </div>
       <div>
-        {appointments.map((appointment) => (
-          <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
-            <ScheduleRow
-              appointment={appointment}
-              onCreateOrder={onCreateOrder}
-              onCancelAppointment={onCancelAppointment}
-            />
-          </div>
-        ))}
+        {appointments.length ? (
+          appointments.map((appointment) => (
+            <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
+              <ScheduleRow
+                appointment={appointment}
+                onCreateOrder={onCreateOrder}
+                onCancelAppointment={onCancelAppointment}
+              />
+            </div>
+          ))
+        ) : (
+          <HomeLaneEmptyState
+            kind="appointment"
+            dayLabel={title}
+            dateLabel={dateLabel}
+            activeLocationLabel={activeLocationLabel}
+          />
+        )}
       </div>
     </div>
   );
@@ -222,12 +283,14 @@ function PickupLane({
   title,
   dateLabel,
   appointments,
+  activeLocationLabel,
   onCheckout,
   onEditPickup,
 }: {
   title: string;
   dateLabel: string;
   appointments: Appointment[];
+  activeLocationLabel?: string;
   onCheckout: (appointment: Appointment) => void;
   onEditPickup: (appointment: Appointment) => void;
 }) {
@@ -241,15 +304,24 @@ function PickupLane({
         <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
       </div>
       <div>
-        {appointments.map((appointment) => (
-          <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
-            <PickupRow
-              appointment={appointment}
-              onCheckout={() => onCheckout(appointment)}
-              onEditPickup={() => onEditPickup(appointment)}
-            />
-          </div>
-        ))}
+        {appointments.length ? (
+          appointments.map((appointment) => (
+            <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
+              <PickupRow
+                appointment={appointment}
+                onCheckout={() => onCheckout(appointment)}
+                onEditPickup={() => onEditPickup(appointment)}
+              />
+            </div>
+          ))
+        ) : (
+          <HomeLaneEmptyState
+            kind="pickup"
+            dayLabel={title}
+            dateLabel={dateLabel}
+            activeLocationLabel={activeLocationLabel}
+          />
+        )}
       </div>
     </div>
   );
@@ -276,6 +348,12 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
   const todayPickups = pickups.filter((appointment) => appointment.date === todayKey);
   const tomorrowPickups = pickups.filter((appointment) => appointment.date === tomorrowKey);
   const allLocationsActive = activeLocations.length === locationOptions.length;
+  const visibleAppointmentCount = todayAppointments.length + tomorrowAppointments.length;
+  const visiblePickupCount = todayPickups.length + tomorrowPickups.length;
+  const hasVisibleHomeWork = visibleAppointmentCount > 0 || visiblePickupCount > 0;
+  const hasAnyLocationSelected = activeLocations.length > 0;
+  const hasFilteredLaterWork = filteredAppointments.length > visibleAppointmentCount || pickups.length > visiblePickupCount;
+  const singleActiveLocationLabel = activeLocations.length === 1 ? activeLocations[0] : undefined;
 
   const actions: FrontDeskAction[] = [
     {
@@ -386,88 +464,111 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
         </div>
       </div>
 
-      <div className="app-work-surface p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div
-              className="app-icon-chip"
-              style={{
-                borderColor: "#bae6fd",
-                backgroundColor: "#f0f9ff",
-                color: "#0369a1",
-              }}
-            >
-              <CalendarDays className="h-4 w-4" />
+      {hasVisibleHomeWork ? (
+        <>
+          <div className="app-work-surface p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div
+                  className="app-icon-chip"
+                  style={{
+                    borderColor: "#bae6fd",
+                    backgroundColor: "#f0f9ff",
+                    color: "#0369a1",
+                  }}
+                >
+                  <CalendarDays className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="app-section-title">Appointments</div>
+                  <div className="app-section-copy">Today and tomorrow</div>
+                </div>
+              </div>
+              <CountPill count={visibleAppointmentCount} label="appointments" icon={CalendarDays} tone="info" />
             </div>
-            <div>
-              <div className="app-section-title">Appointments</div>
-              <div className="app-section-copy">Today and tomorrow</div>
+
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              <AppointmentLane
+                title="Today"
+                dateLabel={todayLabel}
+                appointments={todayAppointments}
+                activeLocationLabel={singleActiveLocationLabel}
+                onCreateOrder={onOpenAppointment}
+                onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
+              />
+              <AppointmentLane
+                title="Tomorrow"
+                dateLabel={tomorrowLabel}
+                appointments={tomorrowAppointments}
+                activeLocationLabel={singleActiveLocationLabel}
+                onCreateOrder={onOpenAppointment}
+                onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
+              />
             </div>
           </div>
-          <CountPill
-            count={todayAppointments.length + tomorrowAppointments.length}
-            label="appointments"
-            icon={CalendarDays}
-            tone="info"
-          />
-        </div>
 
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
-          <AppointmentLane
-            title="Today"
-            dateLabel={todayLabel}
-            appointments={todayAppointments}
-            onCreateOrder={onOpenAppointment}
-            onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
-          />
-          <AppointmentLane
-            title="Tomorrow"
-            dateLabel={tomorrowLabel}
-            appointments={tomorrowAppointments}
-            onCreateOrder={onOpenAppointment}
-            onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
-          />
-        </div>
-      </div>
-
-      <div className="app-work-surface p-4">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-start gap-3">
-            <div
-              className="app-icon-chip"
-              style={{
-                borderColor: "#a7f3d0",
-                backgroundColor: "#ecfdf5",
-                color: "#047857",
-              }}
-            >
-              <Package className="h-4 w-4" />
+          <div className="app-work-surface p-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-start gap-3">
+                <div
+                  className="app-icon-chip"
+                  style={{
+                    borderColor: "#a7f3d0",
+                    backgroundColor: "#ecfdf5",
+                    color: "#047857",
+                  }}
+                >
+                  <Package className="h-4 w-4" />
+                </div>
+                <div>
+                  <div className="app-section-title">Pickups</div>
+                  <div className="app-section-copy">Today and tomorrow</div>
+                </div>
+              </div>
+              <CountPill count={visiblePickupCount} label="pickups" icon={Package} tone="success" />
             </div>
-            <div>
-              <div className="app-section-title">Pickups</div>
-              <div className="app-section-copy">Today and tomorrow</div>
+
+            <div className="mt-4 grid gap-4 xl:grid-cols-2">
+              <PickupLane
+                title="Today"
+                dateLabel={todayLabel}
+                appointments={todayPickups}
+                activeLocationLabel={singleActiveLocationLabel}
+                onCheckout={() => onScreenChange("checkout")}
+                onEditPickup={() => onScreenChange("openOrders")}
+              />
+              <PickupLane
+                title="Tomorrow"
+                dateLabel={tomorrowLabel}
+                appointments={tomorrowPickups}
+                activeLocationLabel={singleActiveLocationLabel}
+                onCheckout={() => onScreenChange("checkout")}
+                onEditPickup={() => onScreenChange("openOrders")}
+              />
             </div>
           </div>
-          <CountPill count={pickups.length} label="pickups" icon={Package} tone="success" />
-        </div>
-
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
-          <PickupLane
-            title="Today"
-            dateLabel={todayLabel}
-            appointments={todayPickups}
-            onCheckout={() => onScreenChange("checkout")}
-            onEditPickup={() => onScreenChange("openOrders")}
-          />
-          <PickupLane
-            title="Tomorrow"
-            dateLabel={tomorrowLabel}
-            appointments={tomorrowPickups}
-            onCheckout={() => onScreenChange("checkout")}
-            onEditPickup={() => onScreenChange("openOrders")}
-          />
-        </div>
-      </div>
+        </>
+      ) : !hasAnyLocationSelected ? (
+        <HomeEmptyState
+          title="No locations selected"
+          detail="Choose at least one location to bring appointments and pickups back into view."
+          primaryAction={{ label: "Show all locations", onClick: () => setActiveLocations(locationOptions) }}
+        />
+      ) : hasFilteredLaterWork ? (
+        <HomeEmptyState
+          title="Nothing scheduled for today or tomorrow"
+          detail="Later appointments and pickups are still in the system. Open the full schedule or order registry to work ahead."
+          primaryAction={{ label: "Open appointments", onClick: () => onScreenChange("appointments") }}
+          secondaryAction={{ label: "Open order registry", onClick: () => onScreenChange("openOrders") }}
+        />
+      ) : (
+        <HomeEmptyState
+          title="No front-desk work is queued"
+          detail="New fittings, consults, and pickups will appear here once they are scheduled."
+          primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
+          secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
+        />
+      )}
     </div>
   );
 }

@@ -136,6 +136,23 @@ Do not invent local text stacks unless there is a strong reason.
 - Bad:
 - repeated explanatory sentences that restate the same thing multiple times
 
+## Empty states
+
+- Reuse `EmptyState` and `InlineEmptyState` from `src/components/ui/primitives.tsx` instead of inventing local shells.
+- Keep empty-state copy short, direct, and operational:
+  - title/label says what is missing
+  - body says what scope is empty
+  - optional caption can explain the filter or date context
+- Prefer phrasing like:
+  - `No appointments scheduled`
+  - `No pickups scheduled`
+  - `No customers match this search`
+- Avoid decorative or celebratory phrasing for routine operational gaps.
+- Inside table lanes or work-surface slots, empty states should feel attached to the lane:
+  - use the existing border rhythm
+  - avoid introducing a second floating card language
+  - add filter context only when it explains why the lane is empty
+
 ## Pills and badges
 
 - Use `src/components/ui/primitives.tsx` for the base `StatusPill`.
