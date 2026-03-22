@@ -110,7 +110,20 @@ const unselectedFilterClass =
 const unselectedFilterCountClass =
   "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]";
 
+function formatWorklistTotal(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
 function getPhaseTone(phase: string) {
+  if (phase === "In progress") {
+    return "default" as const;
+  }
+
   if (phase === "Ready for pickup") {
     return "success" as const;
   }
@@ -120,6 +133,30 @@ function getPhaseTone(phase: string) {
   }
 
   return "warn" as const;
+}
+
+function getWorklistPhaseLabel(phase: string) {
+  if (phase === "In progress") {
+    return "Pending";
+  }
+
+  if (phase === "Ready for pickup") {
+    return "Ready";
+  }
+
+  return phase;
+}
+
+function getWorklistPhaseClass(phase: string) {
+  if (phase === "Overdue") {
+    return "text-[var(--app-danger)]";
+  }
+
+  if (phase === "Ready for pickup") {
+    return "text-[var(--app-success)]";
+  }
+
+  return "text-[var(--app-text)]";
 }
 
 function OpenSectionHeader({
@@ -360,6 +397,7 @@ function WorkQueueOrderRow({
 
     return groups;
   }, []);
+  const pendingPickupIds = pickupGroups.flatMap((group) => group.pendingIds);
 
   const getGroupedItemSummary = (items: string[]) => {
     const uniqueItems = [...new Set(items)];
@@ -436,15 +474,21 @@ function WorkQueueOrderRow({
           })}
         </div>
 
-        <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end">
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            <StatusPill tone={getPhaseTone(phase)}>{phase}</StatusPill>
+        <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
+          <div>
+            <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>
           </div>
-          <div className="text-right">
-            <div className="app-text-strong">Total {formatSummaryCurrency(openOrder.total)}</div>
-            <div className="app-text-caption mt-1">
-              {openOrder.paymentStatus === "prepaid" ? "Prepaid" : "Pay later"}
+          <div>
+            <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+              {formatWorklistTotal(openOrder.total)}
             </div>
+            {openOrder.paymentStatus === "prepaid" ? (
+              <div className="app-text-caption mt-1">Prepaid</div>
+            ) : (
+              <div className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-warn-text)]">
+                Payment Due
+              </div>
+            )}
           </div>
         </div>
       </div>
