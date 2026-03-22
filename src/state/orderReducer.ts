@@ -5,7 +5,20 @@ import {
   createInitialOrderState,
 } from "./orderState";
 
-export function tryReduceOrderAction(state: AppState, action: AppAction): AppState | null {
+export type OrderReducerOptions = {
+  now?: Date;
+  idFactory?: () => number;
+};
+
+function getNow(options?: OrderReducerOptions) {
+  return options?.now ?? new Date();
+}
+
+function getNextId(options?: OrderReducerOptions) {
+  return options?.idFactory?.() ?? Date.now();
+}
+
+export function tryReduceOrderAction(state: AppState, action: AppAction, options?: OrderReducerOptions): AppState | null {
   switch (action.type) {
     case "setOrderPayer":
       return {
@@ -51,26 +64,32 @@ export function tryReduceOrderAction(state: AppState, action: AppAction): AppSta
         order: createInitialOrderState(),
       };
     case "markOpenOrderPickupReady":
-      return {
-        ...state,
-        openOrders: state.openOrders.map((openOrder) => (
-          openOrder.id === action.openOrderId
-            ? {
-                ...openOrder,
-                pickupSchedules: openOrder.pickupSchedules.map((pickup) => (
-                  pickup.id === action.pickupId
-                    ? {
-                        ...pickup,
-                        readyForPickup: true,
-                        pickupDate: pickup.pickupDate || new Date().toISOString().slice(0, 10),
-                        pickupTime: pickup.pickupTime || new Date().toTimeString().slice(0, 5),
-                      }
-                    : pickup
-                )),
-              }
-            : openOrder
-        )),
-      };
+      {
+        const now = getNow(options);
+        const pickupDate = now.toISOString().slice(0, 10);
+        const pickupTime = now.toTimeString().slice(0, 5);
+
+        return {
+          ...state,
+          openOrders: state.openOrders.map((openOrder) => (
+            openOrder.id === action.openOrderId
+              ? {
+                  ...openOrder,
+                  pickupSchedules: openOrder.pickupSchedules.map((pickup) => (
+                    pickup.id === action.pickupId
+                      ? {
+                          ...pickup,
+                          readyForPickup: true,
+                          pickupDate: pickup.pickupDate || pickupDate,
+                          pickupTime: pickup.pickupTime || pickupTime,
+                        }
+                      : pickup
+                  )),
+                }
+              : openOrder
+          )),
+        };
+      }
     case "selectAlterationGarment":
       return {
         ...state,
@@ -105,6 +124,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction): AppSta
       }
 
       const subtotal = state.order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
+      const itemId = getNextId(options);
       return {
         ...state,
         order: {
@@ -114,7 +134,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction): AppSta
             items: [
               ...state.order.alteration.items,
               {
-                id: Date.now(),
+                id: itemId,
                 garment: state.order.alteration.selectedGarment,
                 modifiers: [...state.order.alteration.selectedModifiers],
                 subtotal,
@@ -255,6 +275,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction): AppSta
         return state;
       }
 
+      const itemId = getNextId(options);
       return {
         ...state,
         order: {
@@ -264,7 +285,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction): AppSta
             items: [
               ...state.order.custom.items,
               {
-                id: Date.now(),
+                id: itemId,
                 ...draft,
                 wearerName: action.payload.wearerName,
                 linkedMeasurementLabel: action.payload.linkedMeasurementLabel,

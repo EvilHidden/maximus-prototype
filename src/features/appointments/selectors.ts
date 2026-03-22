@@ -42,7 +42,7 @@ export function getAppointmentDateLabel(appointment: Appointment) {
   }).format(parsed);
 }
 
-export function getRelativeAppointmentDayLabel(appointment: Appointment) {
+export function getRelativeAppointmentDayLabel(appointment: Appointment, now = new Date()) {
   const parsed = parseScheduledFor(appointment.scheduledFor);
   if (!parsed) {
     return appointment.scheduledFor;
@@ -50,7 +50,7 @@ export function getRelativeAppointmentDayLabel(appointment: Appointment) {
 
   const target = new Date(parsed);
   target.setHours(12, 0, 0, 0);
-  const today = new Date();
+  const today = new Date(now);
   today.setHours(12, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);

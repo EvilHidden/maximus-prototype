@@ -1,6 +1,6 @@
 import type { OpenOrder } from "../types";
 import { createInitialOrderState } from "./orderState";
-import { tryReduceOrderAction } from "./orderReducer";
+import { tryReduceOrderAction, type OrderReducerOptions } from "./orderReducer";
 import type { AppAction, AppState } from "./types";
 
 export type { AppAction, AppState } from "./types";
@@ -15,7 +15,7 @@ export function createInitialAppState(initialOpenOrders: OpenOrder[] = []): AppS
   };
 }
 
-export function appReducer(state: AppState, action: AppAction): AppState {
+export function appReducer(state: AppState, action: AppAction, options?: OrderReducerOptions): AppState {
   switch (action.type) {
     case "setScreen":
       return { ...state, screen: action.screen };
@@ -25,6 +25,6 @@ export function appReducer(state: AppState, action: AppAction): AppState {
         selectedCustomerId: action.customerId,
       };
     default:
-      return tryReduceOrderAction(state, action) ?? state;
+      return tryReduceOrderAction(state, action, options) ?? state;
   }
 }

@@ -8,13 +8,13 @@ function toDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-export function getTodayAppointments(appointments: Appointment[]) {
-  const today = toDateKey(new Date());
+export function getTodayAppointments(appointments: Appointment[], now = new Date()) {
+  const today = toDateKey(now);
   return appointments.filter((appointment) => getAppointmentDateKey(appointment) === today && appointment.kind === "appointment");
 }
 
-export function getTomorrowAppointments(appointments: Appointment[]) {
-  const tomorrow = new Date();
+export function getTomorrowAppointments(appointments: Appointment[], now = new Date()) {
+  const tomorrow = new Date(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   return appointments.filter((appointment) => getAppointmentDateKey(appointment) === toDateKey(tomorrow) && appointment.kind === "appointment");
 }
