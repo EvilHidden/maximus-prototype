@@ -25,7 +25,8 @@ type UseOrderBuilderControllerArgs = {
   order: AppState["order"];
   dispatch: Dispatch<AppAction>;
   onScreenChange: (screen: Screen) => void;
-  onCompleteOrder: (paymentStatus: "pay_later" | "prepaid") => void;
+  onOpenDraftCheckout: () => void;
+  onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
   showToast: (message: string) => void;
 };
 
@@ -37,7 +38,8 @@ export function useOrderBuilderController({
   order,
   dispatch,
   onScreenChange,
-  onCompleteOrder,
+  onOpenDraftCheckout,
+  onSaveDraftOrder,
   showToast,
 }: UseOrderBuilderControllerArgs) {
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
@@ -189,7 +191,7 @@ export function useOrderBuilderController({
       return;
     }
 
-    onScreenChange("checkout");
+    onOpenDraftCheckout();
   };
 
   return {
@@ -250,10 +252,10 @@ export function useOrderBuilderController({
     handleAddOrSaveCustomItem,
     handleCancelCustomEdit,
     handleContinue,
-    handleSchedulePayLater: () => onCompleteOrder("pay_later"),
+    handleSchedulePayLater: () => onSaveDraftOrder("due_later", false),
     handleSchedulePrepay: () => {
       dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
-      onScreenChange("checkout");
+      onOpenDraftCheckout();
     },
     handleOpenEditCustomItem: (itemId: number) => {
       setEditingItemId(null);

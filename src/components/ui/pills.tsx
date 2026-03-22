@@ -48,7 +48,16 @@ export function MeasurementStatusPill({
 }
 
 export function PaymentStatusPill({ status }: { status: OpenOrderPaymentStatus }) {
-  return <StatusPill tone={status === "prepaid" ? "success" : "warn"}>{status === "prepaid" ? "Prepaid" : "Payment Due"}</StatusPill>;
+  const tone = status === "captured" ? "success" : status === "due_later" ? "default" : "warn";
+  const label = status === "captured"
+    ? "Payment captured"
+    : status === "pending"
+      ? "Payment pending"
+      : status === "ready_to_collect"
+        ? "Ready to collect"
+        : "Due later";
+
+  return <StatusPill tone={tone}>{label}</StatusPill>;
 }
 
 export function ReadinessPill({

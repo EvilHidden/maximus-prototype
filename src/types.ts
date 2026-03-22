@@ -7,7 +7,7 @@ export type MeasurementStatus = "on_file" | "needs_update" | "missing";
 export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
 export type AlterationCheckoutIntent = "pay_later" | "prepay_now" | null;
-export type OpenOrderPaymentStatus = "pay_later" | "prepaid";
+export type OpenOrderPaymentStatus = "due_later" | "ready_to_collect" | "pending" | "captured";
 export type CustomOrderEventType = "none" | "wedding" | "prom";
 export type AppointmentSource = "square" | "manual" | "prototype";
 export type ServiceAppointmentType =
@@ -192,10 +192,13 @@ export type OpenOrder = {
   payerName: string;
   orderType: OrderType;
   itemCount: number;
+  lineItems: OrderBagLineItem[];
   itemSummary: string[];
   pickupSchedules: OpenOrderPickup[];
   paymentStatus: OpenOrderPaymentStatus;
+  paymentDueNow: number;
   collectedToday: number;
+  balanceDue: number;
   total: number;
   createdAt: string;
 };

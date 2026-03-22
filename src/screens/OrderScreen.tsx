@@ -27,7 +27,8 @@ type OrderScreenProps = {
   order: AppState["order"];
   dispatch: Dispatch<AppAction>;
   onScreenChange: (screen: Screen) => void;
-  onCompleteOrder: (paymentStatus: "pay_later" | "prepaid") => void;
+  onOpenDraftCheckout: () => void;
+  onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
 };
 
 export function OrderScreen({
@@ -38,7 +39,8 @@ export function OrderScreen({
   order,
   dispatch,
   onScreenChange,
-  onCompleteOrder,
+  onOpenDraftCheckout,
+  onSaveDraftOrder,
 }: OrderScreenProps) {
   const { showToast } = useToast();
   const controller = useOrderBuilderController({
@@ -49,7 +51,8 @@ export function OrderScreen({
     order,
     dispatch,
     onScreenChange,
-    onCompleteOrder,
+    onOpenDraftCheckout,
+    onSaveDraftOrder,
     showToast,
   });
 

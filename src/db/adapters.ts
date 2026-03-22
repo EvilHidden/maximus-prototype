@@ -113,7 +113,11 @@ function getScopeLines(database: PrototypeDatabase, scopeId: string) {
   return database.orderScopeLines.filter((line) => line.scopeId === scopeId);
 }
 
-function getPaymentSummary(database: PrototypeDatabase, orderId: string) {
+function getPaymentSummary(
+  database: PrototypeDatabase,
+  orderId: string,
+  orderType: OpenOrder["orderType"],
+): { paymentStatus: OpenOrderPaymentStatus; collectedToday: number } {
   const records = database.payments.filter((payment) => payment.orderId === orderId);
   const latest = records[records.length - 1];
   const today = new Date(database.generatedAt);
@@ -134,7 +138,15 @@ function getPaymentSummary(database: PrototypeDatabase, orderId: string) {
   }, 0);
 
   return {
-    paymentStatus: latest?.status ?? ("pay_later" satisfies OpenOrderPaymentStatus),
+    paymentStatus: (
+      latest?.status === "captured"
+        ? ("captured" satisfies OpenOrderPaymentStatus)
+        : latest?.status === "pending"
+          ? ("pending" satisfies OpenOrderPaymentStatus)
+          : orderType === "alteration"
+            ? ("due_later" satisfies OpenOrderPaymentStatus)
+            : ("ready_to_collect" satisfies OpenOrderPaymentStatus)
+    ),
     collectedToday,
   };
 }
@@ -166,6 +178,20 @@ function getOrderLabel(database: PrototypeDatabase, orderId: string) {
   }
 
   return lines.map((line) => line.label).join(", ");
+}
+
+function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): OpenOrder["lineItems"] {
+  return getOrderLines(database, orderId).map((line, index) => {
+    const scope = database.orderScopes.find((candidate) => candidate.id === line.scopeId);
+
+    return {
+      id: `${orderId}-${line.id}`,
+      kind: scope?.workflow ?? "alteration",
+      title: `${index + 1}. ${line.label}`,
+      subtitle: scope?.workflow === "custom" ? "Custom workflow" : "Alteration workflow",
+      amount: line.quantity * line.unitPrice,
+    };
+  });
 }
 
 function getOpenOrderPickup(
@@ -333,20 +359,29 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
     .filter((order) => order.status !== "complete")
     .map((order) => {
       const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
-      const lines = getOrderLines(database, order.id);
-      const payment = getPaymentSummary(database, order.id);
+      const lineItems = getOpenOrderLineItems(database, order.id);
+      const payment = getPaymentSummary(database, order.id, order.orderType);
+      const total = getOrderTotal(database, order.id);
+      const paymentDueNow = payment.paymentStatus === "captured"
+        ? payment.collectedToday
+        : payment.paymentStatus === "due_later"
+          ? 0
+          : Math.max(total - payment.collectedToday, 0);
 
       return {
         id: Number.parseInt(order.displayId.replace(/\D/g, ""), 10),
         payerCustomerId: order.payerCustomerId,
         payerName: order.payerName,
         orderType: order.orderType,
-        itemCount: lines.reduce((sum, line) => sum + line.quantity, 0),
-        itemSummary: lines.map((line) => line.label),
+        itemCount: lineItems.length,
+        lineItems,
+        itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),
         pickupSchedules: scopes.map((scope) => getOpenOrderPickup(database, order, scope)),
         paymentStatus: payment.paymentStatus,
+        paymentDueNow,
         collectedToday: payment.collectedToday,
-        total: getOrderTotal(database, order.id),
+        balanceDue: Math.max(total - payment.collectedToday, 0),
+        total,
         createdAt: order.createdAt,
       };
     });

@@ -16,6 +16,7 @@ export function createInitialAppState({ customers = [], openOrders = [] }: Initi
   return {
     screen: "home",
     selectedCustomerId: null,
+    checkoutOpenOrderId: null,
     customers,
     openOrders,
     order: createInitialOrderState(),
@@ -25,7 +26,23 @@ export function createInitialAppState({ customers = [], openOrders = [] }: Initi
 export function appReducer(state: AppState, action: AppAction, options?: OrderReducerOptions): AppState {
   switch (action.type) {
     case "setScreen":
-      return { ...state, screen: action.screen };
+      return {
+        ...state,
+        screen: action.screen,
+        checkoutOpenOrderId: null,
+      };
+    case "openCheckoutForDraft":
+      return {
+        ...state,
+        screen: "checkout",
+        checkoutOpenOrderId: null,
+      };
+    case "openCheckoutForOpenOrder":
+      return {
+        ...state,
+        screen: "checkout",
+        checkoutOpenOrderId: action.openOrderId,
+      };
     case "setCustomer":
       return {
         ...state,

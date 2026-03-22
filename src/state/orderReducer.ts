@@ -56,12 +56,47 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           checkoutIntent: action.intent,
         },
       };
-    case "completeOpenOrder":
+    case "saveOpenOrder":
       return {
         ...state,
-        screen: "openOrders",
+        screen: action.openCheckout ? "checkout" : "openOrders",
+        checkoutOpenOrderId: action.openCheckout ? action.openOrder.id : null,
         openOrders: [action.openOrder, ...state.openOrders],
         order: createInitialOrderState(),
+      };
+    case "startOpenOrderPayment":
+      return {
+        ...state,
+        openOrders: state.openOrders.map((openOrder) => (
+          openOrder.id === action.openOrderId
+            ? {
+                ...openOrder,
+                paymentStatus: "pending",
+                paymentDueNow: openOrder.balanceDue,
+              }
+            : openOrder
+        )),
+      };
+    case "captureOpenOrderPayment":
+      return {
+        ...state,
+        openOrders: state.openOrders.map((openOrder) => (
+          openOrder.id === action.openOrderId
+            ? (() => {
+                const capturedAmount = openOrder.paymentDueNow;
+                const nextCollectedToday = openOrder.collectedToday + capturedAmount;
+                const nextBalanceDue = Math.max(openOrder.balanceDue - capturedAmount, 0);
+
+                return {
+                  ...openOrder,
+                  paymentStatus: "captured",
+                  collectedToday: nextCollectedToday,
+                  balanceDue: nextBalanceDue,
+                  paymentDueNow: nextBalanceDue,
+                };
+              })()
+            : openOrder
+        )),
       };
     case "markOpenOrderPickupReady":
       {

@@ -8,6 +8,7 @@ type OpenOrdersScreenProps = {
   pickupAppointments: Appointment[];
   pickupLocations: PickupLocation[];
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
+  onOpenOrderCheckout: (openOrderId: number) => void;
   onStartNewOrder: () => void;
 };
 
@@ -17,6 +18,7 @@ export function OpenOrdersScreen({
   pickupAppointments,
   pickupLocations,
   onMarkOpenOrderPickupReady,
+  onOpenOrderCheckout,
   onStartNewOrder,
 }: OpenOrdersScreenProps) {
   const {
@@ -72,6 +74,7 @@ export function OpenOrdersScreen({
         filteredQueuePickups={filteredQueuePickups}
         filteredHistoryItems={filteredHistoryItems}
         onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+        onOpenOrderCheckout={onOpenOrderCheckout}
       />
     </div>
   );

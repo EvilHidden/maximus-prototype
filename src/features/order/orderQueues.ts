@@ -269,7 +269,19 @@ export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][numb
 }
 
 export function getOpenOrderPaymentSummary(paymentStatus: OpenOrderPaymentStatus) {
-  return paymentStatus === "prepaid" ? "Payment captured at scheduling" : "No payment collected yet";
+  if (paymentStatus === "captured") {
+    return "Payment captured";
+  }
+
+  if (paymentStatus === "pending") {
+    return "Payment is pending";
+  }
+
+  if (paymentStatus === "ready_to_collect") {
+    return "Collection can start now";
+  }
+
+  return "No payment required right now";
 }
 
 export function getPickupAppointmentSummary(appointment: Appointment) {
