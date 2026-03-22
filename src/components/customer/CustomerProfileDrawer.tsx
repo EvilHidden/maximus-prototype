@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { AlertCircle, ArrowRight, History, MessageSquare, PencilRuler, Ruler, Trash2, User } from "lucide-react";
+import { ArrowRight, History, MessageSquare, PencilRuler, Ruler, Trash2, User } from "lucide-react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../../types";
 import { ActionButton, ModalShell, StatusPill } from "../ui/primitives";
-import { getMeasurementStatusLabel, getMeasurementStatusTone } from "../../features/customer/selectors";
+import { MeasurementStatusPill, OrderStatusPill, VipPill } from "../ui/pills";
 
 type CustomerProfileDrawerProps = {
   customer: Customer | null;
@@ -90,7 +90,7 @@ export function CustomerProfileDrawer({
               <div className="min-w-0">
                 <div className="flex items-center gap-2">
                   <div className="app-text-value truncate">{customer?.name ?? "Select customer"}</div>
-                  {customer?.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
+                  {customer?.isVip ? <VipPill /> : null}
                 </div>
                 <div className="app-text-body-muted mt-1">{customer?.phone ?? "No phone on file"}</div>
               </div>
@@ -106,10 +106,7 @@ export function CustomerProfileDrawer({
             <div>
               <div className="app-text-overline">Measurements</div>
               <div className="mt-2">
-                <StatusPill tone={customer ? getMeasurementStatusTone(customer.measurementsStatus) : "default"}>
-                  {customer?.measurementsStatus === "on_file" ? <Ruler className="h-3.5 w-3.5" /> : <AlertCircle className="h-3.5 w-3.5" />}
-                  <span>{customer ? getMeasurementStatusLabel(customer.measurementsStatus) : "Unknown"}</span>
-                </StatusPill>
+                {customer ? <MeasurementStatusPill status={customer.measurementsStatus} showIcon /> : <StatusPill>Unknown</StatusPill>}
               </div>
             </div>
             <div>
@@ -181,7 +178,7 @@ export function CustomerProfileDrawer({
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
                     <div className="app-text-strong truncate">{order.label}</div>
-                    <StatusPill>{order.status}</StatusPill>
+                    <OrderStatusPill status={order.status} />
                   </div>
                   <div className="app-text-caption mt-1 truncate">{`${order.id} • ${order.date}`}</div>
                 </div>

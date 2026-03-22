@@ -1,0 +1,105 @@
+import type { LucideIcon } from "lucide-react";
+import { AlertCircle, MapPin, Ruler } from "lucide-react";
+import type { MeasurementStatus, OpenOrderPaymentStatus, StatusTone } from "../../types";
+import { getMeasurementStatusLabel, getMeasurementStatusTone } from "../../features/customer/selectors";
+import { StatusPill, cx } from "./primitives";
+
+type CountPillProps = {
+  count: number;
+  label?: string;
+  icon?: LucideIcon;
+  tone?: "default" | "info" | "success";
+  className?: string;
+};
+
+type ReadinessPillProps = {
+  ready: boolean;
+  readyLabel?: string;
+  missingLabel?: string;
+  readyTone?: StatusTone;
+  missingTone?: StatusTone;
+};
+
+const countToneClasses: Record<NonNullable<CountPillProps["tone"]>, string> = {
+  default: "border-[var(--app-border)]/55 bg-[var(--app-surface)]/26 text-[var(--app-text-muted)]",
+  info: "border-sky-200 bg-sky-50 text-sky-700",
+  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+};
+
+export function VipPill() {
+  return <StatusPill tone="dark">VIP</StatusPill>;
+}
+
+export function MeasurementStatusPill({
+  status,
+  showIcon = false,
+}: {
+  status: MeasurementStatus;
+  showIcon?: boolean;
+}) {
+  const Icon = status === "on_file" ? Ruler : AlertCircle;
+
+  return (
+    <StatusPill tone={getMeasurementStatusTone(status)}>
+      {showIcon ? <Icon className="h-3.5 w-3.5" /> : null}
+      <span>{getMeasurementStatusLabel(status)}</span>
+    </StatusPill>
+  );
+}
+
+export function PaymentStatusPill({ status }: { status: OpenOrderPaymentStatus }) {
+  return <StatusPill tone={status === "prepaid" ? "success" : "warn"}>{status === "prepaid" ? "Prepaid" : "Pay later"}</StatusPill>;
+}
+
+export function ReadinessPill({
+  ready,
+  readyLabel = "Ready",
+  missingLabel = "Missing",
+  readyTone = "dark",
+  missingTone = "warn",
+}: ReadinessPillProps) {
+  return <StatusPill tone={ready ? readyTone : missingTone}>{ready ? readyLabel : missingLabel}</StatusPill>;
+}
+
+export function OrderStatusPill({ status }: { status: string }) {
+  const normalized = status.trim().toLowerCase();
+
+  let tone: StatusTone = "default";
+  if (normalized === "delivered" || normalized === "picked up" || normalized === "ready" || normalized === "ready today") {
+    tone = "success";
+  } else if (normalized === "quoted" || normalized === "in progress") {
+    tone = "warn";
+  }
+
+  return <StatusPill tone={tone}>{status}</StatusPill>;
+}
+
+export function LocationPill({ location }: { location: string }) {
+  return (
+    <StatusPill>
+      <MapPin className="h-3.5 w-3.5" />
+      <span>{location}</span>
+    </StatusPill>
+  );
+}
+
+export function CountPill({
+  count,
+  label,
+  icon: Icon,
+  tone = "default",
+  className,
+}: CountPillProps) {
+  return (
+    <span
+      className={cx(
+        "inline-flex items-center gap-2 rounded-full border px-3 py-1.5",
+        countToneClasses[tone],
+        className,
+      )}
+    >
+      {Icon ? <Icon className="h-3.5 w-3.5" /> : null}
+      <span className="app-text-overline">{label ? `${count} ${label}` : count}</span>
+    </span>
+  );
+}

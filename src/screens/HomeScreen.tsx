@@ -10,7 +10,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, Card, StatusPill, cx } from "../components/ui/primitives";
+import { ActionButton, Card, cx } from "../components/ui/primitives";
+import { CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
 
@@ -144,10 +145,7 @@ function AppointmentLane({
             <div className="app-text-caption">{dateLabel}</div>
           </div>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-[var(--app-border)]/55 bg-[var(--app-surface)]/26 px-3 py-1.5">
-          <Clock3 className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-          <span className="app-text-overline text-[var(--app-text-muted)]">{appointments.length} scheduled</span>
-        </div>
+        <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
       </div>
       <div className="mt-4 space-y-3">
         {appointments.map((appointment) => (
@@ -222,10 +220,7 @@ function PickupLane({
           <div className="app-text-value">{title}</div>
           <div className="app-text-caption">{dateLabel}</div>
         </div>
-        <div className="flex items-center gap-2 rounded-full border border-[var(--app-border)]/55 bg-[var(--app-surface)]/26 px-3 py-1.5">
-          <Clock3 className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-          <span className="app-text-overline text-[var(--app-text-muted)]">{appointments.length} scheduled</span>
-        </div>
+        <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
       </div>
       <div className="mt-4 space-y-3">
         {appointments.map((appointment) => (
@@ -394,12 +389,12 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
               <div className="app-section-copy">Today and tomorrow</div>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-sky-200 bg-sky-50 px-3 py-1.5 text-sky-700">
-            <CalendarDays className="h-3.5 w-3.5" />
-            <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-sky-700">
-              {todayAppointments.length + tomorrowAppointments.length} appointments
-            </span>
-          </div>
+          <CountPill
+            count={todayAppointments.length + tomorrowAppointments.length}
+            label="appointments"
+            icon={CalendarDays}
+            tone="info"
+          />
         </div>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-2">
@@ -438,12 +433,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
               <div className="app-section-copy">Today and tomorrow</div>
             </div>
           </div>
-          <div className="flex items-center gap-2 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-emerald-700">
-            <Package className="h-3.5 w-3.5" />
-            <span className="text-[0.6875rem] font-semibold uppercase tracking-[0.08em] text-emerald-700">
-              {pickups.length} pickups
-            </span>
-          </div>
+          <CountPill count={pickups.length} label="pickups" icon={Package} tone="success" />
         </div>
 
         <div className="mt-4 grid gap-4 xl:grid-cols-2">

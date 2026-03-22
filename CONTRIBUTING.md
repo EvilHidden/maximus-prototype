@@ -64,6 +64,7 @@ Use these to avoid conflict:
   - fixtures, catalogs, seeded scenarios
 - `src/components/ui/`
   - shared reusable UI primitives
+  - use `primitives.tsx` for base controls and `pills.tsx` for shared badge/pill patterns
 - `src/screens/`
   - composition only; avoid growing business logic here
 
@@ -140,5 +141,6 @@ npm run ship -- "Short PR title"
 - Do not work directly on `main` for normal feature work.
 - Do not mix unrelated screens or subsystems in one branch.
 - Do not use the screen file as the default place for new behavior.
+- Do not hand-roll recurring pill or badge markup in screens when `src/components/ui/pills.tsx` already covers the semantic case.
 - Do not merge without a successful build.
 - Do not leave finished branches hanging around after merge.
