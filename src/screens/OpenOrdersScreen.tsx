@@ -46,6 +46,56 @@ const queueMeta: Array<{
   { key: "scheduled_pickups", label: "Scheduled pickups" },
 ];
 
+const queueOverviewMeta: Array<{
+  key: Exclude<OrdersQueueKey, "all">;
+  title: string;
+  subtitle: string;
+  icon: LucideIcon;
+}> = [
+  {
+    key: "due_today",
+    title: "Due today",
+    subtitle: "Orders and pickups that need same-day movement.",
+    icon: Clock3,
+  },
+  {
+    key: "due_tomorrow",
+    title: "Due tomorrow",
+    subtitle: "Next-day work that should be prepared now.",
+    icon: Clock3,
+  },
+  {
+    key: "ready_for_pickup",
+    title: "Ready for pickup",
+    subtitle: "Items that can move into customer handoff.",
+    icon: PackageCheck,
+  },
+  {
+    key: "overdue",
+    title: "Overdue",
+    subtitle: "Promised pickup timing has already slipped.",
+    icon: PackageSearch,
+  },
+  {
+    key: "in_house",
+    title: "In-house work",
+    subtitle: "Alterations and mixed work moving through internal production.",
+    icon: PackageCheck,
+  },
+  {
+    key: "factory",
+    title: "Factory / custom work",
+    subtitle: "Custom work that needs external production tracking.",
+    icon: Clock3,
+  },
+  {
+    key: "scheduled_pickups",
+    title: "Scheduled pickups",
+    subtitle: "Pickup appointments pulled into the queue workspace.",
+    icon: Clock3,
+  },
+];
+
 const pickupLocations: Array<PickupLocation | "all"> = ["all", "Fifth Avenue", "Queens", "Long Island"];
 
 const selectedFilterClass =
@@ -190,10 +240,7 @@ function QueueStrip({
 }) {
   return (
     <div className="space-y-3 border-b border-[var(--app-border)]/55 pb-4">
-      <div>
-        <div className="app-text-overline">Queue filters</div>
-        <div className="app-text-caption mt-1">Use queues to shift the worklist without duplicating the Home screen.</div>
-      </div>
+      <div className="app-text-overline">Queue filters</div>
       <div className="flex flex-wrap gap-2">
         {queueMeta.map((queue) => (
           <button
@@ -217,6 +264,49 @@ function QueueStrip({
                   : unselectedFilterCountClass,
               )}
             />
+          </button>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function QueueOverview({
+  counts,
+  onQueueChange,
+}: {
+  counts: Record<OrdersQueueKey, number>;
+  onQueueChange: (queue: OrdersQueueKey) => void;
+}) {
+  return (
+    <div className="space-y-3">
+      <OpenSectionHeader
+        icon={PackageSearch}
+        title="Queue overview"
+        count={counts.all}
+        subtitle="Choose one lane to focus the worklist instead of expanding everything at once."
+      />
+      <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
+        {queueOverviewMeta.map((queue, index) => (
+          <button
+            key={queue.key}
+            onClick={() => onQueueChange(queue.key)}
+            className={cx(
+              "grid w-full gap-3 px-4 py-3.5 text-left transition hover:bg-[var(--app-surface-muted)]/30 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center",
+              index > 0 && "border-t border-[var(--app-border)]/35",
+            )}
+          >
+            <div className="app-icon-chip">
+              <queue.icon className="h-4 w-4" />
+            </div>
+            <div className="min-w-0">
+              <div className="app-text-strong">{queue.title}</div>
+              <div className="app-text-caption mt-1">{queue.subtitle}</div>
+            </div>
+            <div className="flex items-center justify-between gap-3 md:justify-end">
+              <CountPill count={counts[queue.key]} />
+              <div className="app-text-caption">Open queue</div>
+            </div>
           </button>
         ))}
       </div>
@@ -456,31 +546,6 @@ export function OpenOrdersScreen({
   const registrySubtitle = baseOpenOrders.length === 1 ? "1 active order in the registry" : `${baseOpenOrders.length} active orders in the registry`;
   const historySubtitle = filteredHistoryItems.length === 1 ? "1 closed order" : `${filteredHistoryItems.length} closed orders`;
 
-  const readyQueueOrders = useMemo(
-    () => filterOpenOrders(baseOpenOrders, { query: "", queue: "ready_for_pickup", typeFilter: "all", locationFilter: "all" }),
-    [baseOpenOrders],
-  );
-  const readyQueuePickups = useMemo(
-    () => filterPickupAppointments(basePickupAppointments, { query: "", queue: "ready_for_pickup", locationFilter: "all" }),
-    [basePickupAppointments],
-  );
-  const overdueQueueOrders = useMemo(
-    () => filterOpenOrders(baseOpenOrders, { query: "", queue: "overdue", typeFilter: "all", locationFilter: "all" }),
-    [baseOpenOrders],
-  );
-  const overdueQueuePickups = useMemo(
-    () => filterPickupAppointments(basePickupAppointments, { query: "", queue: "overdue", locationFilter: "all" }),
-    [basePickupAppointments],
-  );
-  const inHouseQueueOrders = useMemo(
-    () => filterOpenOrders(baseOpenOrders, { query: "", queue: "in_house", typeFilter: "all", locationFilter: "all" }),
-    [baseOpenOrders],
-  );
-  const factoryQueueOrders = useMemo(
-    () => filterOpenOrders(baseOpenOrders, { query: "", queue: "factory", typeFilter: "all", locationFilter: "all" }),
-    [baseOpenOrders],
-  );
-
   const activeSubtitle = activeView === "queues"
     ? queuesSubtitle
     : activeView === "all"
@@ -547,52 +612,12 @@ export function OpenOrdersScreen({
               <QueueStrip activeQueue={activeQueue} onQueueChange={setActiveQueue} counts={queueCounts} />
 
               {activeQueue === "all" ? (
-                <div className="space-y-6">
-                  <QueueSection
-                    icon={PackageCheck}
-                    title="Ready for pickup"
-                    subtitle="Orders and pickup appointments that can move into customer handoff."
-                    openOrders={readyQueueOrders}
-                    pickupAppointments={readyQueuePickups}
-                    onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                    emptyMessage="Nothing is ready for pickup right now."
-                  />
-
-                  <QueueSection
-                    icon={PackageSearch}
-                    title="Overdue"
-                    subtitle="Items that need attention because the promised pickup timing has slipped."
-                    openOrders={overdueQueueOrders}
-                    pickupAppointments={overdueQueuePickups}
-                    onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                    emptyMessage="No overdue orders or pickups."
-                  />
-
-                  <QueueSection
-                    icon={PackageCheck}
-                    title="In-house work"
-                    subtitle="Alterations and mixed orders that rely on internal production and finishing."
-                    openOrders={inHouseQueueOrders}
-                    pickupAppointments={[]}
-                    onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                    emptyMessage="No in-house work matches these filters."
-                  />
-
-                  <QueueSection
-                    icon={Clock3}
-                    title="Factory / custom work"
-                    subtitle="Custom and mixed orders that need external production and event-risk tracking."
-                    openOrders={factoryQueueOrders}
-                    pickupAppointments={[]}
-                    onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                    emptyMessage="No factory or custom work matches these filters."
-                  />
-                </div>
+                <QueueOverview counts={queueCounts} onQueueChange={setActiveQueue} />
               ) : (
                 <QueueSection
                   icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
                   title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-                  subtitle="Filtered operational queue view."
+                  subtitle="Focused operational queue view."
                   openOrders={filteredQueueOrders}
                   pickupAppointments={filteredQueuePickups}
                   onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
