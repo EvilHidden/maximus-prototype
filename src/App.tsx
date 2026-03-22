@@ -13,6 +13,7 @@ import { AppointmentsScreen } from "./screens/AppointmentsScreen";
 import { appReducer, createInitialAppState } from "./state/appState";
 import { buildOpenOrder, getClosedOrderHistory, getOrderType } from "./features/order/selectors";
 import { getOpenOrderPickupAppointments, getPickupAppointments } from "./features/home/selectors";
+import { ToastProvider } from "./components/ui/toast";
 import {
   createDraftMeasurementSet,
   deleteMeasurementSetAndPreserveDraft,
@@ -198,14 +199,16 @@ export default function App() {
 
   return (
     <div data-theme={theme}>
-      <AppShell
-        themeLabel={theme}
-        onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"))}
-        screen={state.screen}
-        onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
-      >
-        {content}
-      </AppShell>
+      <ToastProvider>
+        <AppShell
+          themeLabel={theme}
+          onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"))}
+          screen={state.screen}
+          onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        >
+          {content}
+        </AppShell>
+      </ToastProvider>
     </div>
   );
 }

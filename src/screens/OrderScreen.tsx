@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import {
   alterationCatalog,
   canvasOptions,
@@ -38,6 +38,7 @@ import { ConfirmRemoveItemModal } from "../features/order/modals/ConfirmRemoveIt
 import { ConfirmClearBagModal } from "../features/order/modals/ConfirmClearBagModal";
 import type { AppState } from "../state/appState";
 import { useCustomMeasurementDefaults } from "../features/measurements/hooks/useCustomMeasurementDefaults";
+import { useToast } from "../components/ui/toast";
 
 type OrderScreenProps = {
   customers: Customer[];
@@ -58,7 +59,7 @@ export function OrderScreen({
   onScreenChange,
   onCompleteOrder,
 }: OrderScreenProps) {
-  const [actionToast, setActionToast] = useState<string | null>(null);
+  const { showToast } = useToast();
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [wearerModalOpen, setWearerModalOpen] = useState(false);
   const [customerQuery, setCustomerQuery] = useState("");
@@ -156,15 +157,6 @@ export function OrderScreen({
     dispatch,
   });
 
-  useEffect(() => {
-    if (!actionToast) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setActionToast(null), 2600);
-    return () => window.clearTimeout(timeoutId);
-  }, [actionToast]);
-
   return (
     <div
       className={cx(
@@ -196,7 +188,7 @@ export function OrderScreen({
               addDisabledReason={addToCartDisabledReason}
               onShowDisabledReason={(reason) => {
                 setAlterationValidationVisible(true);
-                setActionToast(reason);
+                showToast(reason);
               }}
               showValidation={alterationValidationVisible}
               missingGarment={missingAlterationGarment}
@@ -278,7 +270,7 @@ export function OrderScreen({
               addDisabledReason={customAddDisabledReason}
               onShowDisabledReason={(reason) => {
                 setCustomValidationVisible(true);
-                setActionToast(reason);
+                showToast(reason);
               }}
               showValidation={customValidationVisible}
               missingGender={missingCustomGender}
@@ -367,7 +359,7 @@ export function OrderScreen({
             dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
             onScreenChange("checkout");
           }}
-          onShowDisabledReason={setActionToast}
+          onShowDisabledReason={showToast}
           onContinue={() => {
             if (order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId) {
               if (wearerCustomer) {
@@ -388,14 +380,6 @@ export function OrderScreen({
           continueDisabledReason={continueDisabledReason}
         />
       </div>
-
-      {actionToast ? (
-        <div className="pointer-events-none fixed bottom-5 left-1/2 z-40 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2">
-          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-accent)] px-4 py-3 text-sm font-medium text-[var(--app-accent-contrast)] shadow-[var(--app-shadow-lg)]">
-            {actionToast}
-          </div>
-        </div>
-      ) : null}
 
       {customerModalOpen ? (
         <CustomerPickerModal
