@@ -1,6 +1,6 @@
-import { Receipt, Scissors, Shirt } from "lucide-react";
+import { Scissors, Shirt } from "lucide-react";
 import type { WorkflowMode } from "../../../types";
-import { EmptyState, SectionHeader, WorkflowToggle } from "../../../components/ui/primitives";
+import { EmptyState, WorkflowToggle } from "../../../components/ui/primitives";
 
 type WorkflowSelectorProps = {
   activeWorkflow: WorkflowMode | null;
@@ -17,7 +17,7 @@ export function WorkflowSelector({
 }: WorkflowSelectorProps) {
   return (
     <div className="app-control-deck p-3.5">
-      <SectionHeader icon={Receipt} title="Start new order" subtitle="Service type" />
+      <div className="app-text-overline mb-3">Service type</div>
 
       <div className="grid grid-cols-2 gap-2.5">
         <WorkflowToggle

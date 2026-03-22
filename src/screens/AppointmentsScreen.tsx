@@ -101,178 +101,181 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
   const railSubtitle = selectedDateKey ? formatDateLabel(selectedDateKey) : "Appointments and pickups";
 
   return (
-    <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-      <div className="app-work-surface p-4">
-        <SectionHeader
-          icon={CalendarDays}
-          title="Appointments"
-          subtitle={monthLabel}
-          action={
-            <div className="flex items-center gap-2">
-              <ActionButton
-                tone="secondary"
-                className="h-9 gap-1.5 px-3 py-0 text-xs"
-                onClick={() => {
-                  const nextDate = new Date(anchorDate);
-                  nextDate.setMonth(nextDate.getMonth() - 1);
-                  setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
-                }}
-                aria-label="Previous month"
-              >
-                <ChevronLeft className="h-4 w-4" />
-                Prev
-              </ActionButton>
-              <ActionButton
-                tone="secondary"
-                className="h-9 px-3 py-0 text-xs"
-                onClick={() => {
-                  setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
-                  setSelectedDateKey(todayKey);
-                }}
-              >
-                Today
-              </ActionButton>
-              <ActionButton
-                tone="secondary"
-                className="h-9 gap-1.5 px-3 py-0 text-xs"
-                onClick={() => {
-                  const nextDate = new Date(anchorDate);
-                  nextDate.setMonth(nextDate.getMonth() + 1);
-                  setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
-                }}
-                aria-label="Next month"
-              >
-                Next
-                <ChevronRight className="h-4 w-4" />
-              </ActionButton>
-            </div>
-          }
-        />
+    <div className="space-y-4">
+      <SectionHeader
+        icon={CalendarDays}
+        title="Appointments"
+        subtitle={monthLabel}
+        action={
+          <div className="flex items-center gap-2">
+            <ActionButton
+              tone="secondary"
+              className="h-9 gap-1.5 px-3 py-0 text-xs"
+              onClick={() => {
+                const nextDate = new Date(anchorDate);
+                nextDate.setMonth(nextDate.getMonth() - 1);
+                setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+              }}
+              aria-label="Previous month"
+            >
+              <ChevronLeft className="h-4 w-4" />
+              Prev
+            </ActionButton>
+            <ActionButton
+              tone="secondary"
+              className="h-9 px-3 py-0 text-xs"
+              onClick={() => {
+                setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
+                setSelectedDateKey(todayKey);
+              }}
+            >
+              Today
+            </ActionButton>
+            <ActionButton
+              tone="secondary"
+              className="h-9 gap-1.5 px-3 py-0 text-xs"
+              onClick={() => {
+                const nextDate = new Date(anchorDate);
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+              }}
+              aria-label="Next month"
+            >
+              Next
+              <ChevronRight className="h-4 w-4" />
+            </ActionButton>
+          </div>
+        }
+      />
 
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)]">
-          <div className="grid grid-cols-7 gap-2.5">
-            {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (
-              <div
-                key={dayLabel}
-                className="app-text-overline px-2 py-1.5 text-center"
-              >
-                {dayLabel}
-              </div>
-            ))}
+      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="app-work-surface p-4">
 
-            {dayCells.map((day) => {
-              const dayKey = toDateKey(day);
-              const dayAppointments = appointments.filter((appointment) => appointment.date === dayKey);
-              const isCurrentMonth = day.getMonth() === anchorDate.getMonth();
-              const isToday = dayKey === todayKey;
-              const isSelected = dayKey === selectedDateKey;
-              const hasAppointments = dayAppointments.length > 0;
-
-              return (
-                <button
-                  key={dayKey}
-                  type="button"
-                  onClick={() => setSelectedDateKey(dayKey)}
-                  className={`flex min-h-[118px] flex-col items-stretch justify-start rounded-[var(--app-radius-md)] border px-2.5 py-2 text-left align-top transition-colors ${
-                    isSelected
-                      ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[inset_0_0_0_1px_var(--app-accent)]"
-                      : isToday
-                        ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]"
-                        : isCurrentMonth
-                          ? "border-[var(--app-border)]/75 bg-[var(--app-surface)]"
-                          : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/16 opacity-60"
-                  }`}
+          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)]">
+            <div className="grid grid-cols-7 gap-2.5">
+              {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (
+                <div
+                  key={dayLabel}
+                  className="app-text-overline px-2 py-1.5 text-center"
                 >
-                  <div className="mb-2 flex items-center justify-between gap-2">
-                    <div className={isSelected || isToday ? "app-text-strong" : "app-text-body font-medium"}>
-                      {day.getDate()}
-                    </div>
-                    {hasAppointments ? (
-                      <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--app-accent)] opacity-70" />
-                    ) : null}
-                  </div>
+                  {dayLabel}
+                </div>
+              ))}
 
-                  <div className="space-y-1.5">
-                    {dayAppointments.slice(0, 1).map((appointment) => (
-                      <div
-                        key={appointment.id}
-                        className={`rounded-[var(--app-radius-sm)] border px-2 py-1.5 ${
-                          appointment.kind === "pickup"
-                            ? "border-[var(--app-warn-border)]/45 bg-[var(--app-warn-bg)]/45"
-                            : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22"
-                        }`}
-                      >
-                        <div className="text-[12px] font-semibold text-[var(--app-text)]">{appointment.time}</div>
-                        <div className="mt-1 truncate text-[12px] font-medium text-[var(--app-text-muted)]">{appointment.customer}</div>
-                        <div className="mt-0.5 truncate text-[11px] leading-snug text-[var(--app-text-soft)]">
-                          {getCalendarLine(appointment)}
+              {dayCells.map((day) => {
+                const dayKey = toDateKey(day);
+                const dayAppointments = appointments.filter((appointment) => appointment.date === dayKey);
+                const isCurrentMonth = day.getMonth() === anchorDate.getMonth();
+                const isToday = dayKey === todayKey;
+                const isSelected = dayKey === selectedDateKey;
+                const hasAppointments = dayAppointments.length > 0;
+
+                return (
+                  <button
+                    key={dayKey}
+                    type="button"
+                    onClick={() => setSelectedDateKey(dayKey)}
+                    className={`flex min-h-[118px] flex-col items-stretch justify-start rounded-[var(--app-radius-md)] border px-2.5 py-2 text-left align-top transition-colors ${
+                      isSelected
+                        ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[inset_0_0_0_1px_var(--app-accent)]"
+                        : isToday
+                          ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]"
+                          : isCurrentMonth
+                            ? "border-[var(--app-border)]/75 bg-[var(--app-surface)]"
+                            : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/16 opacity-60"
+                    }`}
+                  >
+                    <div className="mb-2 flex items-center justify-between gap-2">
+                      <div className={isSelected || isToday ? "app-text-strong" : "app-text-body font-medium"}>
+                        {day.getDate()}
+                      </div>
+                      {hasAppointments ? (
+                        <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--app-accent)] opacity-70" />
+                      ) : null}
+                    </div>
+
+                    <div className="space-y-1.5">
+                      {dayAppointments.slice(0, 1).map((appointment) => (
+                        <div
+                          key={appointment.id}
+                          className={`rounded-[var(--app-radius-sm)] border px-2 py-1.5 ${
+                            appointment.kind === "pickup"
+                              ? "border-[var(--app-warn-border)]/45 bg-[var(--app-warn-bg)]/45"
+                              : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22"
+                          }`}
+                        >
+                          <div className="text-[12px] font-semibold text-[var(--app-text)]">{appointment.time}</div>
+                          <div className="mt-1 truncate text-[12px] font-medium text-[var(--app-text-muted)]">{appointment.customer}</div>
+                          <div className="mt-0.5 truncate text-[11px] leading-snug text-[var(--app-text-soft)]">
+                            {getCalendarLine(appointment)}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                    {dayAppointments.length > 1 ? (
-                      <div className="app-text-caption px-1">+{dayAppointments.length - 1} more</div>
-                    ) : hasAppointments ? null : (
-                      <div className="h-[54px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10" />
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+                      ))}
+                      {dayAppointments.length > 1 ? (
+                        <div className="app-text-caption px-1">+{dayAppointments.length - 1} more</div>
+                      ) : hasAppointments ? null : (
+                        <div className="h-[54px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10" />
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="app-support-rail flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
-        <div className="mb-3 flex items-start justify-between gap-3">
-          <div>
-            <div className="app-section-title">Upcoming schedule</div>
-            <div className="app-section-copy">{railSubtitle}</div>
+        <div className="app-support-rail flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
+          <div className="mb-3 flex items-start justify-between gap-3">
+            <div>
+              <div className="app-section-title">Upcoming schedule</div>
+              <div className="app-section-copy">{railSubtitle}</div>
+            </div>
+            <div className="w-[96px] shrink-0 text-right">
+              {selectedDateKey ? (
+                <ActionButton
+                  tone="quiet"
+                  className="whitespace-nowrap px-2.5 py-1.5 text-xs"
+                  onClick={() => setSelectedDateKey(null)}
+                >
+                  Show all
+                </ActionButton>
+              ) : null}
+            </div>
           </div>
-          <div className="w-[96px] shrink-0 text-right">
-            {selectedDateKey ? (
-              <ActionButton
-                tone="quiet"
-                className="whitespace-nowrap px-2.5 py-1.5 text-xs"
-                onClick={() => setSelectedDateKey(null)}
-              >
-                Show all
-              </ActionButton>
-            ) : null}
-          </div>
-        </div>
-        {railAppointments.length === 0 ? (
-          <EmptyState className="mt-1">No appointments scheduled.</EmptyState>
-        ) : (
-          <div className="overflow-y-auto pr-1 [scrollbar-gutter:stable]">
-            {railAppointments.map((appointment) => (
-              <div
-                key={appointment.id}
-                className="border-b border-[var(--app-border)]/55 py-3.5 last:border-b-0"
-              >
-                <div className="flex items-start gap-3">
-                  <div className="w-[78px] shrink-0 pt-0.5">
-                    <div className="app-text-caption">{formatDateLabel(appointment.date)}</div>
-                    <div className="app-text-body mt-1 font-medium">{appointment.time}</div>
-                  </div>
-
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="app-text-strong">{appointment.customer}</div>
-                        <div className="app-text-caption mt-1">{appointment.location}</div>
-                      </div>
-                      <StatusPill tone={appointment.kind === "pickup" ? "warn" : "default"}>
-                        {appointment.kind === "pickup" ? "Pickup" : "Appointment"}
-                      </StatusPill>
+          {railAppointments.length === 0 ? (
+            <EmptyState className="mt-1">No appointments scheduled.</EmptyState>
+          ) : (
+            <div className="overflow-y-auto pr-1 [scrollbar-gutter:stable]">
+              {railAppointments.map((appointment) => (
+                <div
+                  key={appointment.id}
+                  className="border-b border-[var(--app-border)]/55 py-3.5 last:border-b-0"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-[78px] shrink-0 pt-0.5">
+                      <div className="app-text-caption">{formatDateLabel(appointment.date)}</div>
+                      <div className="app-text-body mt-1 font-medium">{appointment.time}</div>
                     </div>
 
-                    <div className="app-text-body mt-2">{getScheduleLine(appointment)}</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="app-text-strong">{appointment.customer}</div>
+                          <div className="app-text-caption mt-1">{appointment.location}</div>
+                        </div>
+                        <StatusPill tone={appointment.kind === "pickup" ? "warn" : "default"}>
+                          {appointment.kind === "pickup" ? "Pickup" : "Appointment"}
+                        </StatusPill>
+                      </div>
+
+                      <div className="app-text-body mt-2">{getScheduleLine(appointment)}</div>
+                    </div>
                   </div>
                 </div>
-              </div>
-            ))}
-          </div>
-        )}
+              ))}
+            </div>
+          )}
+        </div>
       </div>
     </div>
   );

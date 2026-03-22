@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { Receipt } from "lucide-react";
 import {
   alterationCatalog,
   canvasOptions,
@@ -29,7 +30,7 @@ import { AlterationBuilder } from "../features/order/components/AlterationBuilde
 import { MeasurementsCard } from "../features/order/components/MeasurementsCard";
 import { CustomGarmentBuilder } from "../features/order/components/CustomGarmentBuilder";
 import { OrderBag } from "../features/order/components/OrderBag";
-import { ActionButton, cx } from "../components/ui/primitives";
+import { ActionButton, SectionHeader, cx } from "../components/ui/primitives";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import { PickupScheduleModal } from "../features/order/modals/PickupScheduleModal";
 import { MeasurementSetModal } from "../features/order/modals/MeasurementSetModal";
@@ -158,227 +159,231 @@ export function OrderScreen({
   });
 
   return (
-    <div
-      className={cx(
-        "grid gap-3.5 xl:grid-cols-[1.25fr_0.75fr]",
-        order.activeWorkflow === "alteration" && "xl:h-[calc(100vh-2.5rem)] xl:min-h-0",
-      )}
-    >
+    <div className="space-y-4">
+      <SectionHeader icon={Receipt} title="Order Builder" subtitle="Compose tailoring work and prepare checkout." />
+
       <div
         className={cx(
-          "space-y-3.5",
-          order.activeWorkflow === "alteration" && "xl:flex xl:min-h-0 xl:flex-col",
+          "grid gap-3.5 xl:grid-cols-[1.25fr_0.75fr]",
+          order.activeWorkflow === "alteration" && "xl:h-[calc(100vh-2.5rem)] xl:min-h-0",
         )}
       >
-        <WorkflowSelector
-          activeWorkflow={order.activeWorkflow}
-          hasAlterationContent={hasAlterationContent}
-          hasCustomContent={hasCustomContent}
-          onActivate={(workflow) => dispatch({ type: "activateWorkflow", workflow })}
-        />
+        <div
+          className={cx(
+            "space-y-3.5",
+            order.activeWorkflow === "alteration" && "xl:flex xl:min-h-0 xl:flex-col",
+          )}
+        >
+          <WorkflowSelector
+            activeWorkflow={order.activeWorkflow}
+            hasAlterationContent={hasAlterationContent}
+            hasCustomContent={hasCustomContent}
+            onActivate={(workflow) => dispatch({ type: "activateWorkflow", workflow })}
+          />
 
-        {order.activeWorkflow === "alteration" ? (
-          <div className="xl:min-h-0 xl:flex-1">
-            <AlterationBuilder
-              garmentOptions={garmentOptions}
-              selectedGarment={order.alteration.selectedGarment}
-              currentServices={currentServices}
-              selectedModifiers={order.alteration.selectedModifiers}
-              currentSubtotal={currentAlterationSubtotal}
-              addDisabledReason={addToCartDisabledReason}
-              onShowDisabledReason={(reason) => {
-                setAlterationValidationVisible(true);
-                showToast(reason);
-              }}
-              showValidation={alterationValidationVisible}
-              missingGarment={missingAlterationGarment}
-              missingServices={missingAlterationServices}
-              onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
-              onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
-              onAddItem={() => {
-                setAlterationValidationVisible(false);
-                dispatch({ type: "addAlterationItem" });
-              }}
-            />
-          </div>
-        ) : null}
+          {order.activeWorkflow === "alteration" ? (
+            <div className="xl:min-h-0 xl:flex-1">
+              <AlterationBuilder
+                garmentOptions={garmentOptions}
+                selectedGarment={order.alteration.selectedGarment}
+                currentServices={currentServices}
+                selectedModifiers={order.alteration.selectedModifiers}
+                currentSubtotal={currentAlterationSubtotal}
+                addDisabledReason={addToCartDisabledReason}
+                onShowDisabledReason={(reason) => {
+                  setAlterationValidationVisible(true);
+                  showToast(reason);
+                }}
+                showValidation={alterationValidationVisible}
+                missingGarment={missingAlterationGarment}
+                missingServices={missingAlterationServices}
+                onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
+                onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
+                onAddItem={() => {
+                  setAlterationValidationVisible(false);
+                  dispatch({ type: "addAlterationItem" });
+                }}
+              />
+            </div>
+          ) : null}
 
-        {order.activeWorkflow === "custom" ? (
-          <div className="space-y-3.5">
-            {editingCustomItem ? (
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] px-4 py-3 shadow-[var(--app-shadow-sm)]">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--app-warn-text)]">Editing existing line item</div>
-                    <div className="mt-1 truncate text-[1rem] font-semibold leading-tight text-[var(--app-text)]">
-                      {editingCustomItem.selectedGarment ?? "Custom garment"}
+          {order.activeWorkflow === "custom" ? (
+            <div className="space-y-3.5">
+              {editingCustomItem ? (
+                <div className="rounded-[var(--app-radius-md)] border border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] px-4 py-3 shadow-[var(--app-shadow-sm)]">
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="min-w-0">
+                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--app-warn-text)]">Editing existing line item</div>
+                      <div className="mt-1 truncate text-[1rem] font-semibold leading-tight text-[var(--app-text)]">
+                        {editingCustomItem.selectedGarment ?? "Custom garment"}
+                      </div>
+                      <div className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--app-text-muted)]">
+                        {editingCustomItem.wearerName ?? "Wearer required"}
+                        {editingCustomItem.linkedMeasurementLabel ? ` • ${editingCustomItem.linkedMeasurementLabel}` : ""}
+                      </div>
+                      <div className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--app-warn-text)]">
+                        Saving will overwrite this cart item instead of creating a new one.
+                      </div>
                     </div>
-                    <div className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--app-text-muted)]">
-                      {editingCustomItem.wearerName ?? "Wearer required"}
-                      {editingCustomItem.linkedMeasurementLabel ? ` • ${editingCustomItem.linkedMeasurementLabel}` : ""}
-                    </div>
-                    <div className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--app-warn-text)]">
-                      Saving will overwrite this cart item instead of creating a new one.
-                    </div>
+                    <ActionButton
+                      tone="secondary"
+                      className="shrink-0 border-[var(--app-warn-border)] bg-[var(--app-surface)]"
+                      onClick={() => {
+                        setEditingCustomItemId(null);
+                        dispatch({ type: "resetCustomDraft" });
+                      }}
+                    >
+                      Cancel edit
+                    </ActionButton>
                   </div>
-                  <ActionButton
-                    tone="secondary"
-                    className="shrink-0 border-[var(--app-warn-border)] bg-[var(--app-surface)]"
-                    onClick={() => {
-                      setEditingCustomItemId(null);
-                      dispatch({ type: "resetCustomDraft" });
-                    }}
-                  >
-                    Cancel edit
-                  </ActionButton>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
 
-            <MeasurementsCard
-              model={measurementsCardModel}
-              showValidation={customValidationVisible}
-              missingWearer={missingCustomWearer}
-              missingMeasurementSet={missingCustomMeasurements}
-              onChooseWearer={() => setWearerModalOpen(true)}
-              onChooseAnother={() => setMeasurementPickerOpen(true)}
-              onCreateNew={() => {
-                if (wearerCustomer) {
-                  dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
-                }
-                onScreenChange("measurements");
-              }}
-            />
-            <CustomGarmentBuilder
-              garmentOptionsByGender={customGarmentOptionsByGender}
-              pocketTypeOptions={pocketTypeOptions}
-              lapelOptions={lapelOptions}
-              canvasOptions={canvasOptions}
-              selectedGender={order.custom.draft.gender}
-              selectedGarment={order.custom.draft.selectedGarment}
-              fabric={order.custom.draft.fabric}
-              buttons={order.custom.draft.buttons}
-              lining={order.custom.draft.lining}
-              threads={order.custom.draft.threads}
-              monogramLeft={order.custom.draft.monogramLeft}
-              monogramCenter={order.custom.draft.monogramCenter}
-              monogramRight={order.custom.draft.monogramRight}
-              pocketType={order.custom.draft.pocketType}
-              lapel={order.custom.draft.lapel}
-              canvas={order.custom.draft.canvas}
-              canAddToOrder={canAddCustomDraftToOrder}
-              addDisabledReason={customAddDisabledReason}
-              onShowDisabledReason={(reason) => {
-                setCustomValidationVisible(true);
-                showToast(reason);
-              }}
-              showValidation={customValidationVisible}
-              missingGender={missingCustomGender}
-              missingGarment={missingCustomGarment}
-              missingWearer={missingCustomWearer}
-              missingMeasurements={missingCustomMeasurements}
-              missingBuildDetails={missingCustomBuildDetails}
-              missingStyleDetails={missingCustomStyleDetails}
-              isEditing={editingCustomItemId !== null}
-              editingLabel={editingCustomItem?.selectedGarment ?? null}
-              wearerName={wearerCustomer?.name ?? null}
-              onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
-              onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
-              onAddToOrder={() => {
-                if (editingCustomItemId !== null) {
+              <MeasurementsCard
+                model={measurementsCardModel}
+                showValidation={customValidationVisible}
+                missingWearer={missingCustomWearer}
+                missingMeasurementSet={missingCustomMeasurements}
+                onChooseWearer={() => setWearerModalOpen(true)}
+                onChooseAnother={() => setMeasurementPickerOpen(true)}
+                onCreateNew={() => {
+                  if (wearerCustomer) {
+                    dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
+                  }
+                  onScreenChange("measurements");
+                }}
+              />
+              <CustomGarmentBuilder
+                garmentOptionsByGender={customGarmentOptionsByGender}
+                pocketTypeOptions={pocketTypeOptions}
+                lapelOptions={lapelOptions}
+                canvasOptions={canvasOptions}
+                selectedGender={order.custom.draft.gender}
+                selectedGarment={order.custom.draft.selectedGarment}
+                fabric={order.custom.draft.fabric}
+                buttons={order.custom.draft.buttons}
+                lining={order.custom.draft.lining}
+                threads={order.custom.draft.threads}
+                monogramLeft={order.custom.draft.monogramLeft}
+                monogramCenter={order.custom.draft.monogramCenter}
+                monogramRight={order.custom.draft.monogramRight}
+                pocketType={order.custom.draft.pocketType}
+                lapel={order.custom.draft.lapel}
+                canvas={order.custom.draft.canvas}
+                canAddToOrder={canAddCustomDraftToOrder}
+                addDisabledReason={customAddDisabledReason}
+                onShowDisabledReason={(reason) => {
+                  setCustomValidationVisible(false);
+                  showToast(reason);
+                }}
+                showValidation={customValidationVisible}
+                missingGender={missingCustomGender}
+                missingGarment={missingCustomGarment}
+                missingWearer={missingCustomWearer}
+                missingMeasurements={missingCustomMeasurements}
+                missingBuildDetails={missingCustomBuildDetails}
+                missingStyleDetails={missingCustomStyleDetails}
+                isEditing={editingCustomItemId !== null}
+                editingLabel={editingCustomItem?.selectedGarment ?? null}
+                wearerName={wearerCustomer?.name ?? null}
+                onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
+                onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
+                onAddToOrder={() => {
+                  if (editingCustomItemId !== null) {
+                    dispatch({
+                      type: "saveCustomItem",
+                      payload: {
+                        itemId: editingCustomItemId,
+                        wearerName: wearerCustomer?.name ?? null,
+                        linkedMeasurementLabel:
+                          measurementsCardModel.kind === "linked" ? measurementsCardModel.set.version : wearerCustomer ? "Draft" : null,
+                      },
+                    });
+                    setEditingCustomItemId(null);
+                    setCustomValidationVisible(false);
+                    return;
+                  }
+
+                  setCustomValidationVisible(false);
                   dispatch({
-                    type: "saveCustomItem",
+                    type: "addCustomItem",
                     payload: {
-                      itemId: editingCustomItemId,
                       wearerName: wearerCustomer?.name ?? null,
                       linkedMeasurementLabel:
                         measurementsCardModel.kind === "linked" ? measurementsCardModel.set.version : wearerCustomer ? "Draft" : null,
                     },
                   });
+                }}
+                onCancelEdit={() => {
                   setEditingCustomItemId(null);
                   setCustomValidationVisible(false);
-                  return;
-                }
+                  dispatch({ type: "resetCustomDraft" });
+                }}
+                onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
+              />
+            </div>
+          ) : null}
+        </div>
 
-                setCustomValidationVisible(false);
-                dispatch({
-                  type: "addCustomItem",
-                  payload: {
-                    wearerName: wearerCustomer?.name ?? null,
-                    linkedMeasurementLabel:
-                      measurementsCardModel.kind === "linked" ? measurementsCardModel.set.version : wearerCustomer ? "Draft" : null,
-                  },
-                });
-              }}
-              onCancelEdit={() => {
-                setEditingCustomItemId(null);
-                setCustomValidationVisible(false);
-                dispatch({ type: "resetCustomDraft" });
-              }}
-              onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
-            />
-          </div>
-        ) : null}
-      </div>
-
-      <div className={cx(order.activeWorkflow === "alteration" && "xl:min-h-0", "space-y-3.5")}>
-        <OrderBag
-          customer={payerCustomer}
-          lineItems={lineItems}
-          pricing={pricing}
-          orderType={orderType}
-          activeWorkflow={order.activeWorkflow}
-          continueLabel={continueLabel}
-          pickupRequired={pickupRequired}
-          pickupSchedules={order.fulfillment}
-          onOpenCustomerModal={() => setCustomerModalOpen(true)}
-          onOpenPickupModal={(scope) => setPickupModalScope(scope)}
-          onEditAlterationItem={(itemId) => setEditingItemId(itemId)}
-          onEditCustomItem={(itemId) => {
-            setEditingItemId(null);
-            setEditingCustomItemId(itemId);
-            dispatch({ type: "loadCustomItemForEdit", itemId });
-          }}
-          onRequestRemoveItem={(kind, itemId) => {
-            if (kind === "alteration") {
-              setPendingDeleteItemId(itemId);
-              return;
-            }
-
-            if (editingCustomItemId === itemId) {
-              setEditingCustomItemId(null);
-              dispatch({ type: "resetCustomDraft" });
-            }
-            dispatch({ type: "removeCustomItem", itemId });
-          }}
-          onClearCart={() => setClearBagConfirmOpen(true)}
-          onSchedulePayLater={() => {
-            onCompleteOrder("pay_later");
-          }}
-          onSchedulePrepay={() => {
-            dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
-            onScreenChange("checkout");
-          }}
-          onShowDisabledReason={showToast}
-          onContinue={() => {
-            if (order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId) {
-              if (wearerCustomer) {
-                dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
+        <div className={cx(order.activeWorkflow === "alteration" && "xl:min-h-0", "space-y-3.5")}>
+          <OrderBag
+            customer={payerCustomer}
+            lineItems={lineItems}
+            pricing={pricing}
+            orderType={orderType}
+            activeWorkflow={order.activeWorkflow}
+            continueLabel={continueLabel}
+            pickupRequired={pickupRequired}
+            pickupSchedules={order.fulfillment}
+            onOpenCustomerModal={() => setCustomerModalOpen(true)}
+            onOpenPickupModal={(scope) => setPickupModalScope(scope)}
+            onEditAlterationItem={(itemId) => setEditingItemId(itemId)}
+            onEditCustomItem={(itemId) => {
+              setEditingItemId(null);
+              setEditingCustomItemId(itemId);
+              dispatch({ type: "loadCustomItemForEdit", itemId });
+            }}
+            onRequestRemoveItem={(kind, itemId) => {
+              if (kind === "alteration") {
+                setPendingDeleteItemId(itemId);
+                return;
               }
-              onScreenChange("measurements");
-              return;
-            }
 
-            onScreenChange("checkout");
-          }}
-          continueDisabled={
-            orderType === null ||
-            summaryGuardrail.missingCustomer ||
-            summaryGuardrail.missingPickup ||
-            summaryGuardrail.customIncomplete
-          }
-          continueDisabledReason={continueDisabledReason}
-        />
+              if (editingCustomItemId === itemId) {
+                setEditingCustomItemId(null);
+                dispatch({ type: "resetCustomDraft" });
+              }
+              dispatch({ type: "removeCustomItem", itemId });
+            }}
+            onClearCart={() => setClearBagConfirmOpen(true)}
+            onSchedulePayLater={() => {
+              onCompleteOrder("pay_later");
+            }}
+            onSchedulePrepay={() => {
+              dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
+              onScreenChange("checkout");
+            }}
+            onShowDisabledReason={showToast}
+            onContinue={() => {
+              if (order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId) {
+                if (wearerCustomer) {
+                  dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
+                }
+                onScreenChange("measurements");
+                return;
+              }
+
+              onScreenChange("checkout");
+            }}
+            continueDisabled={
+              orderType === null ||
+              summaryGuardrail.missingCustomer ||
+              summaryGuardrail.missingPickup ||
+              summaryGuardrail.customIncomplete
+            }
+            continueDisabledReason={continueDisabledReason}
+          />
+        </div>
       </div>
 
       {customerModalOpen ? (
