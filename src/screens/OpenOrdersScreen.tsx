@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { ClipboardList } from "lucide-react";
 import type { Appointment, ClosedOrderHistoryItem, OpenOrder } from "../types";
 import { ActionButton, Card, EmptyState, EntityRow, SectionHeader, StatusPill, cx } from "../components/ui/primitives";
+import { CountPill, LocationPill, OrderStatusPill, PaymentStatusPill } from "../components/ui/pills";
 import { formatPickupSchedule, formatSummaryCurrency, getCustomFulfillmentSummary } from "../features/order/selectors";
 
 type OpenOrdersScreenProps = {
@@ -192,15 +193,16 @@ export function OpenOrdersScreen({
             )}
           >
             Open orders
-            <span className={cx(
-              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-              activeTab === "open"
-                ? "bg-[rgba(255,255,255,0.18)] text-[var(--app-accent-contrast)]"
-                : "bg-[var(--app-surface)] text-[var(--app-text-soft)]",
-            )}
-            >
-              {totalOpenItems}
-            </span>
+            <CountPill
+              count={totalOpenItems}
+              icon={undefined}
+              className={cx(
+                "px-2 py-0.5 text-[11px]",
+                activeTab === "open"
+                  ? "border-transparent bg-[rgba(255,255,255,0.18)] text-[var(--app-accent-contrast)]"
+                  : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+              )}
+            />
           </button>
           <button
             onClick={() => setActiveTab("history")}
@@ -212,15 +214,16 @@ export function OpenOrdersScreen({
             )}
           >
             Order history
-            <span className={cx(
-              "rounded-full px-2 py-0.5 text-[11px] font-semibold",
-              activeTab === "history"
-                ? "bg-[rgba(255,255,255,0.18)] text-[var(--app-accent-contrast)]"
-                : "bg-[var(--app-surface)] text-[var(--app-text-soft)]",
-            )}
-            >
-              {totalHistoryItems}
-            </span>
+            <CountPill
+              count={totalHistoryItems}
+              icon={undefined}
+              className={cx(
+                "px-2 py-0.5 text-[11px]",
+                activeTab === "history"
+                  ? "border-transparent bg-[rgba(255,255,255,0.18)] text-[var(--app-accent-contrast)]"
+                  : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+              )}
+            />
           </button>
         </div>
 
@@ -238,7 +241,7 @@ export function OpenOrdersScreen({
                         {appointment.pickupSummary ?? appointment.type}
                       </div>
                     </div>
-                    <StatusPill tone="default">{appointment.location}</StatusPill>
+                    <LocationPill location={appointment.location} />
                   </div>
 
                   <div className="mt-4 grid gap-3 md:grid-cols-2">
@@ -259,9 +262,7 @@ export function OpenOrdersScreen({
                         </div>
                       </div>
                       <div className="flex flex-wrap items-center justify-end gap-2">
-                        <StatusPill tone={openOrder.paymentStatus === "prepaid" ? "success" : "warn"}>
-                          {openOrder.paymentStatus === "prepaid" ? "Prepaid" : "Pay later"}
-                        </StatusPill>
+                        <PaymentStatusPill status={openOrder.paymentStatus} />
                       </div>
                     </div>
 
@@ -338,7 +339,7 @@ export function OpenOrdersScreen({
                       <div className="app-text-value">{order.customerName}</div>
                       <div className="app-text-caption mt-1">{order.label}</div>
                     </div>
-                    <StatusPill tone="success">{order.status}</StatusPill>
+                    <OrderStatusPill status={order.status} />
                   </div>
 
                   <div className="mt-4 grid gap-3 md:grid-cols-2">

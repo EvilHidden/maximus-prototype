@@ -88,6 +88,7 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
 
 ## UI System Rules
 - Reuse primitives from `src/components/ui/primitives.tsx` before inventing new one-off markup patterns.
+- Reuse semantic pill wrappers from `src/components/ui/pills.tsx` for VIP, measurement, payment, readiness, location, order-status, and count badges before adding local badge markup.
 - If a pattern appears more than once, promote it into the UI layer or a feature component.
 - Use semantic app classes and tokens from `src/index.css`.
 - Use the shared typography roles from `src/index.css` for text hierarchy:

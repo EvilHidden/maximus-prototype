@@ -21,6 +21,7 @@ type SectionHeaderProps = {
 type StatusPillProps = {
   children: ReactNode;
   tone?: StatusTone;
+  className?: string;
 };
 
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
@@ -110,7 +111,7 @@ export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHe
   );
 }
 
-export function StatusPill({ children, tone = "default" }: StatusPillProps) {
+export function StatusPill({ children, tone = "default", className }: StatusPillProps) {
   const tones: Record<StatusTone, string> = {
     default: "app-pill app-pill--default",
     dark: "app-pill app-pill--dark",
@@ -119,7 +120,7 @@ export function StatusPill({ children, tone = "default" }: StatusPillProps) {
     danger: "app-pill app-pill--danger",
   };
 
-  return <span className={tones[tone]}>{children}</span>;
+  return <span className={cx(tones[tone], className)}>{children}</span>;
 }
 
 export function ActionButton({

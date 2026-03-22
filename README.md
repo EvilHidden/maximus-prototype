@@ -33,8 +33,24 @@ This repo is structured for fast two-person prototyping:
 - Put new seeded scenarios and catalogs in `src/data/`
 - Put derived view logic in feature `selectors.ts` files, not inside screens
 - Put reusable interaction patterns in `src/components/ui/primitives.tsx`
+- Put shared pill and badge patterns in `src/components/ui/pills.tsx`
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching
+
+## Shared pills
+
+Use the shared pill layer before inventing local badge markup:
+
+- `src/components/ui/primitives.tsx`
+  - base `StatusPill` primitive and tone system
+- `src/components/ui/pills.tsx`
+  - semantic wrappers like `VipPill`, `MeasurementStatusPill`, `PaymentStatusPill`, `OrderStatusPill`, `ReadinessPill`, `LocationPill`, and `CountPill`
+
+Rule of thumb:
+
+- if you need a one-off label with an existing tone, use `StatusPill`
+- if you are rendering a recurring domain meaning like VIP, readiness, payment state, order state, measurement state, or count badges, use the semantic pill wrappers in `pills.tsx`
+- do not hand-roll pill markup in screens or feature components unless you are proving a brand-new pattern
 
 ## Typography standard
 

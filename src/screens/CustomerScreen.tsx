@@ -2,14 +2,13 @@ import { ChevronRight, Mail, Phone, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import { customerOrders, customers } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
-import { ActionButton, EmptyState, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SectionHeader } from "../components/ui/primitives";
+import { MeasurementStatusPill, VipPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
 import {
   filterCustomers,
-  getMeasurementStatusLabel,
-  getMeasurementStatusTone,
   getCustomerLastOrderSummary,
 } from "../features/customer/selectors";
 
@@ -41,7 +40,7 @@ function CustomerRow({
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">
           <div className="app-text-strong truncate">{customer.name}</div>
-          {customer.isVip ? <StatusPill tone="dark">VIP</StatusPill> : null}
+          {customer.isVip ? <VipPill /> : null}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
           <div className="app-text-caption flex items-center gap-1.5">
@@ -58,9 +57,7 @@ function CustomerRow({
       <div className="min-w-0">
         <div className="app-text-overline">Measurements</div>
         <div className="mt-1">
-          <StatusPill tone={getMeasurementStatusTone(customer.measurementsStatus)}>
-            {getMeasurementStatusLabel(customer.measurementsStatus)}
-          </StatusPill>
+          <MeasurementStatusPill status={customer.measurementsStatus} />
         </div>
       </div>
 

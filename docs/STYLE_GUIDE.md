@@ -86,7 +86,22 @@ Do not invent local text stacks unless there is a strong reason.
   - `V2`
   - `No customer selected`
 - Bad:
-  - repeated explanatory sentences that restate the same thing multiple times
+- repeated explanatory sentences that restate the same thing multiple times
+
+## Pills and badges
+
+- Use `src/components/ui/primitives.tsx` for the base `StatusPill`.
+- Use `src/components/ui/pills.tsx` for shared semantic pills:
+  - `VipPill`
+  - `MeasurementStatusPill`
+  - `PaymentStatusPill`
+  - `OrderStatusPill`
+  - `ReadinessPill`
+  - `LocationPill`
+  - `CountPill`
+- If the meaning is domain-specific and appears in more than one place, add or reuse a semantic pill wrapper instead of repeating tone/label logic inline.
+- Do not hand-roll local VIP, count, payment, measurement, or order-status badges inside screens.
+- Keep pill text short, operational, and scannable.
 
 ## Code style for UI work
 

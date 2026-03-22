@@ -3,6 +3,7 @@ import { CheckSquare2, Square } from "lucide-react";
 import { useState } from "react";
 import type { Customer, PickupLocation } from "../../types";
 import { ActionButton, FieldLabel, ModalShell, StatusPill, cx } from "../ui/primitives";
+import { VipPill } from "../ui/pills";
 
 type CustomerEditorModalProps = {
   mode: "add" | "edit";
@@ -227,11 +228,7 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
         <div className="border-b border-[var(--app-border)]/35 pb-4">
           <div className="flex flex-wrap items-center gap-2">
             <div className="app-text-value">{formattedName || "Unnamed customer"}</div>
-            {draft.isVip ? (
-              <span className="rounded-full border border-[var(--app-border)]/65 px-2 py-1 text-[0.7rem] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-muted)]">
-                VIP
-              </span>
-            ) : null}
+            {draft.isVip ? <VipPill /> : null}
           </div>
           {showValidationSummary ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">

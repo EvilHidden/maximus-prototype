@@ -1,6 +1,7 @@
 import { CreditCard } from "lucide-react";
 import type { Customer, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, Card, EmptyState, EntityRow, PanelSection, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { ReadinessPill } from "../components/ui/pills";
 import {
   getCheckoutCollectionAmount,
   formatPickupSchedule,
@@ -100,13 +101,13 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange, onComplet
                 <EntityRow
                   title={payerCustomer?.name ?? "Payer required"}
                   subtitle={payerCustomer ? `${payerCustomer.phone} • ${payerCustomer.lastVisit}` : "Link the paying customer before checkout."}
-                  meta={<StatusPill tone={payerCustomer ? "dark" : "warn"}>{payerCustomer ? "Linked" : "Missing"}</StatusPill>}
+                  meta={<ReadinessPill ready={Boolean(payerCustomer)} readyLabel="Linked" />}
                 />
                 {pickupRequired ? (
                   <EntityRow
                     title="Pickup handoff"
                     subtitle={formattedPickup || "Alteration pickup details or custom order event details required."}
-                    meta={<StatusPill tone={!summaryGuardrail.missingPickup ? "dark" : "warn"}>{!summaryGuardrail.missingPickup ? "Ready" : "Missing"}</StatusPill>}
+                    meta={<ReadinessPill ready={!summaryGuardrail.missingPickup} />}
                   />
                 ) : null}
               </div>
