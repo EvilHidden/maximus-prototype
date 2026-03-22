@@ -10,6 +10,7 @@ type CurrentOrderMeasurementCardProps = {
   onOpenSaveDraft: () => void;
   onOpenSaveSet: () => void;
   onOpenCustomerModal: () => void;
+  checkoutDisabledReason?: string;
   onCheckout: () => void;
 };
 
@@ -20,6 +21,7 @@ export function CurrentOrderMeasurementCard({
   onOpenSaveDraft,
   onOpenSaveSet,
   onOpenCustomerModal,
+  checkoutDisabledReason,
   onCheckout,
 }: CurrentOrderMeasurementCardProps) {
   return (
@@ -79,12 +81,18 @@ export function CurrentOrderMeasurementCard({
           tone="primary"
           className="flex min-h-12 items-center justify-center gap-2 px-3 py-2 text-center"
           onClick={onCheckout}
-          disabled={!customer}
+          disabled={Boolean(checkoutDisabledReason)}
+          title={checkoutDisabledReason}
         >
           <ArrowRight className="h-4 w-4" />
           <span>Continue to checkout</span>
         </ActionButton>
       </div>
+      {checkoutDisabledReason ? (
+        <div className="app-text-caption mt-3">
+          {checkoutDisabledReason}
+        </div>
+      ) : null}
     </div>
   );
 }

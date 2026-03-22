@@ -9,6 +9,7 @@ import {
   getMeasurementSetDisplay,
   getMeasurementStatusModel,
 } from "../features/measurements/selectors";
+import { getOrderType, getSummaryGuardrail } from "../features/order/selectors";
 import { formatMeasurementValue, parseMeasurementValue } from "../features/measurements/service";
 import { MeasurementStatusCard } from "../features/measurements/components/MeasurementStatusCard";
 import { MeasurementFieldGrid } from "../features/measurements/components/MeasurementFieldGrid";
@@ -69,6 +70,19 @@ export function MeasurementsScreen({
   const activeSet = getLinkedMeasurementSet(measurementSets, order.custom.draft.linkedMeasurementSetId);
   const status = getMeasurementStatusModel(activeSet, hasEnteredMeasurements);
   const pendingDeleteSet = pendingDeleteSetId ? measurementSets.find((set) => set.id === pendingDeleteSetId) ?? null : null;
+  const payerCustomer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
+  const orderType = getOrderType(order);
+  const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
+  const checkoutDisabledReason =
+    orderType === null
+      ? "Add at least one item to the order before going to checkout."
+      : summaryGuardrail.missingCustomer
+        ? "Link a paying customer before going to checkout."
+        : summaryGuardrail.missingPickup
+          ? "Finish the pickup handoff before going to checkout."
+          : summaryGuardrail.customIncomplete
+            ? "Finish the custom garment setup before going to checkout."
+            : undefined;
 
   const setActiveMeasurementValue = (nextInches: number, nextFraction: number) => {
     onUpdateMeasurement(activeField, formatMeasurementValue(Math.max(0, nextInches), nextFraction));
@@ -151,6 +165,7 @@ export function MeasurementsScreen({
               onOpenSaveDraft={() => openSaveModal("draft")}
               onOpenSaveSet={() => openSaveModal("saved")}
               onOpenCustomerModal={() => setCustomerModalOpen(true)}
+              checkoutDisabledReason={checkoutDisabledReason}
               onCheckout={() => onScreenChange("checkout")}
             />
           </div>
