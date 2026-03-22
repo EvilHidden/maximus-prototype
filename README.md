@@ -12,6 +12,8 @@ If two people are actively iterating in this repo, use these first:
   - UI/system/style rules so we stop reinventing patterns
 - [AGENTS.md](/Users/daniel/Dev%20Work/maximus/AGENTS.md)
   - Codex-specific repo rules and subsystem boundaries
+- [docs/DOMAIN_SCHEMA.md](/Users/daniel/Dev%20Work/maximus/docs/DOMAIN_SCHEMA.md)
+  - canonical prototype schema, lifecycle assumptions, and database-runtime direction
 
 ## What changed
 
@@ -21,6 +23,8 @@ This repo is structured for fast two-person prototyping:
   - reducer-driven app and order workflow state
 - `src/data/`
   - seeded domain fixtures split by concern
+- `src/db/`
+  - normalized prototype database schema, runtime seed generation, and adapters back to UI models
 - `src/features/order/`
   - order workflow selectors, builders, summary rail, and modals
 - `src/features/home/`, `src/features/customer/`
@@ -31,6 +35,7 @@ This repo is structured for fast two-person prototyping:
 ## Working rules
 
 - Put new seeded scenarios and catalogs in `src/data/`
+- Put canonical business entities, relationships, and runtime-relative seed logic in `src/db/`
 - Put derived view logic in feature `selectors.ts` files, not inside screens
 - Put reusable interaction patterns in `src/components/ui/primitives.tsx`
 - Put shared pill and badge patterns in `src/components/ui/pills.tsx`
