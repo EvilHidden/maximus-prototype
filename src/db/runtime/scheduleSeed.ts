@@ -70,7 +70,9 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       typeKey: "pickup",
       statusKey: "scheduled",
       summary: "Alterations: jeans, pants • Custom: shirt",
-      issue: "Phone missing",
+      prepStatus: "needs_profile",
+      profileFlags: ["missing_phone"],
+      contextFlags: [],
     },
     {
       id: "pickup-1006",
@@ -85,7 +87,9 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       typeKey: "pickup",
       statusKey: "scheduled",
       summary: "Alterations: dress, vest • Custom: jacket",
-      issue: "Bag and tag",
+      prepStatus: "needs_materials",
+      profileFlags: [],
+      contextFlags: [],
     },
     {
       id: "pickup-1009",
@@ -100,7 +104,9 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       typeKey: "pickup",
       statusKey: "scheduled",
       summary: "Alterations: pants, shirt",
-      issue: "Receipt match",
+      prepStatus: "needs_review",
+      profileFlags: [],
+      contextFlags: [],
     },
     {
       id: "pickup-1010",
@@ -115,7 +121,9 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       typeKey: "pickup",
       statusKey: "scheduled",
       summary: "Alterations: blouse sleeve taper • Custom: reception jacket",
-      issue: "Garment bag prep",
+      prepStatus: "needs_materials",
+      profileFlags: [],
+      contextFlags: [],
     },
   ];
 }
@@ -136,7 +144,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 30,
       typeKey: "alteration_fitting",
       statusKey: "ready_to_check_in",
-      issue: "Email missing",
+      prepStatus: "needs_profile",
+      profileFlags: ["missing_email"],
+      contextFlags: ["confirmed"],
     },
     {
       id: "APT-1002",
@@ -152,7 +162,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 60,
       typeKey: "custom_consult",
       statusKey: "scheduled",
-      issue: "Complete",
+      prepStatus: "ready",
+      profileFlags: [],
+      contextFlags: ["confirmed"],
     },
     {
       id: "APT-1004",
@@ -168,7 +180,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 45,
       typeKey: "first_fitting",
       statusKey: "prep_required",
-      issue: "Measurements to review",
+      prepStatus: "needs_measurements",
+      profileFlags: [],
+      contextFlags: [],
     },
     {
       id: "APT-1005",
@@ -184,7 +198,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 60,
       typeKey: "custom_consult",
       statusKey: "scheduled",
-      issue: "Fabric swatches",
+      prepStatus: "needs_materials",
+      profileFlags: [],
+      contextFlags: [],
     },
     {
       id: "APT-1007",
@@ -200,7 +216,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 30,
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
-      issue: "Complete",
+      prepStatus: "ready",
+      profileFlags: [],
+      contextFlags: [],
     },
     {
       id: "APT-1008",
@@ -216,7 +234,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 45,
       typeKey: "custom_fitting",
       statusKey: "scheduled",
-      issue: "Button confirmation",
+      prepStatus: "needs_review",
+      profileFlags: [],
+      contextFlags: ["confirmed"],
     },
     {
       id: "APT-1009",
@@ -232,7 +252,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 120,
       typeKey: "wedding_party_fitting",
       statusKey: "scheduled",
-      issue: "Lapel decision",
+      prepStatus: "needs_review",
+      profileFlags: [],
+      contextFlags: ["wedding"],
     },
     {
       id: "APT-1010",
@@ -248,7 +270,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 120,
       typeKey: "wedding_party_fitting",
       statusKey: "prep_required",
-      issue: "Hem notes to confirm",
+      prepStatus: "needs_review",
+      profileFlags: [],
+      contextFlags: ["wedding"],
     },
     {
       id: "APT-1011",
@@ -264,7 +288,9 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       durationMinutes: 45,
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
-      issue: "Rush turnaround",
+      prepStatus: "needs_review",
+      profileFlags: [],
+      contextFlags: ["rush"],
     },
   ];
 }

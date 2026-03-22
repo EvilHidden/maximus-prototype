@@ -234,7 +234,9 @@ export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
     type: getAppointmentTypeLabel(appointment.typeKey),
     statusKey: appointment.statusKey,
     status: getAppointmentStatusLabel(appointment.statusKey),
-    missing: appointment.issue,
+    prepStatus: appointment.prepStatus,
+    profileFlags: appointment.profileFlags,
+    contextFlags: appointment.contextFlags,
     route: appointment.workflow,
   }));
 
@@ -257,7 +259,9 @@ export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
       pickupSummary: appointment.summary,
       statusKey: appointment.statusKey,
       status: getAppointmentStatusLabel(appointment.statusKey),
-      missing: appointment.issue,
+      prepStatus: appointment.prepStatus,
+      profileFlags: appointment.profileFlags,
+      contextFlags: appointment.contextFlags,
       route: "pickup",
     };
   });

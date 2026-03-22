@@ -1,4 +1,9 @@
-import type { Appointment } from "../../types";
+import type {
+  Appointment,
+  AppointmentContextFlag,
+  AppointmentPrepStatus,
+  AppointmentProfileFlag,
+} from "../../types";
 
 function parseScheduledFor(value: string) {
   const parsed = new Date(value);
@@ -68,4 +73,43 @@ export function getRelativeAppointmentDayLabel(appointment: Appointment, now = n
 
 export function compareAppointments(left: Appointment, right: Appointment) {
   return left.scheduledFor.localeCompare(right.scheduledFor);
+}
+
+export function getAppointmentPrepStatusLabel(status: AppointmentPrepStatus) {
+  switch (status) {
+    case "ready":
+      return "Ready";
+    case "needs_profile":
+      return "Needs profile";
+    case "needs_measurements":
+      return "Needs measurements";
+    case "needs_materials":
+      return "Needs materials";
+    case "needs_review":
+      return "Needs review";
+  }
+}
+
+export function getAppointmentProfileFlagLabel(flag: AppointmentProfileFlag) {
+  switch (flag) {
+    case "missing_phone":
+      return "Missing phone";
+    case "missing_email":
+      return "Missing email";
+  }
+}
+
+export function getAppointmentContextFlagLabel(flag: AppointmentContextFlag) {
+  switch (flag) {
+    case "confirmed":
+      return "Confirmed";
+    case "unconfirmed":
+      return "Unconfirmed";
+    case "wedding":
+      return "Wedding";
+    case "prom":
+      return "Prom";
+    case "rush":
+      return "Rush";
+  }
 }

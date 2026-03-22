@@ -7,6 +7,11 @@ import type {
   WorkflowMode,
 } from "../../types";
 import {
+  getAppointmentContextFlagLabel,
+  getAppointmentPrepStatusLabel,
+  getAppointmentProfileFlagLabel,
+} from "../appointments/selectors";
+import {
   formatDateLabel,
   getPickupDateTime,
   isToday,
@@ -60,7 +65,9 @@ function getPickupAppointmentSearchText(appointment: Appointment) {
       appointment.scheduledFor,
       appointment.location,
       appointment.status,
-      appointment.missing,
+      getAppointmentPrepStatusLabel(appointment.prepStatus),
+      ...appointment.profileFlags.map(getAppointmentProfileFlagLabel),
+      ...appointment.contextFlags.map(getAppointmentContextFlagLabel),
     ]
       .filter(Boolean)
       .join(" "),

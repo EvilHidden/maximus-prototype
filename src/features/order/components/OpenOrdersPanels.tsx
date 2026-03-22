@@ -19,6 +19,7 @@ import {
   cx,
 } from "../../../components/ui/primitives";
 import { CountPill, LocationPill, OrderStatusPill, PaymentStatusPill } from "../../../components/ui/pills";
+import { getAppointmentPrepStatusLabel, getAppointmentTimeLabel } from "../../appointments/selectors";
 import {
   formatClosedOrderDate,
   formatClosedOrderTotal,
@@ -37,7 +38,6 @@ import {
   type OrdersQueueKey,
 } from "../selectors";
 import type { OrdersView } from "../hooks/useOpenOrdersView";
-import { getAppointmentTimeLabel } from "../../appointments/selectors";
 
 export const queueMeta: Array<{
   key: OrdersQueueKey;
@@ -330,7 +330,9 @@ function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
       </div>
       <div className="min-w-0">
         <div className="app-text-body font-medium">{`${getPickupTimingLabel(appointment.scheduledFor.slice(0, 10))} • ${getAppointmentTimeLabel(appointment)}`}</div>
-        <div className="app-text-caption mt-1">{appointment.missing === "Complete" ? "Ready for release" : appointment.missing}</div>
+        <div className="app-text-caption mt-1">
+          {appointment.prepStatus === "ready" ? "Ready for release" : getAppointmentPrepStatusLabel(appointment.prepStatus)}
+        </div>
       </div>
       <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
         <LocationPill location={appointment.location} />
