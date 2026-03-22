@@ -111,7 +111,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
         <div className="flex flex-wrap items-end gap-3">
           <label className="block min-w-[320px] flex-1">
             <div className="app-text-overline mb-2">Search customers</div>
-            <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
+            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
               <div className="flex items-center gap-3">
                 <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
                 <input
