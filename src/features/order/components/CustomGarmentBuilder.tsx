@@ -1,5 +1,5 @@
-import { CheckSquare, Layers3, Shirt, Type } from "lucide-react";
-import { ActionButton, Card, EmptyState, FieldLabel, SectionHeader, cx } from "../../../components/ui/primitives";
+import { CheckSquare, Layers3, Shirt, TriangleAlert, Type } from "lucide-react";
+import { ActionButton, Card, EmptyState, FieldLabel, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
@@ -24,6 +24,13 @@ type CustomGarmentBuilderProps = {
   canAddToOrder: boolean;
   addDisabledReason?: string;
   onShowDisabledReason?: (reason: string) => void;
+  showValidation?: boolean;
+  missingGender?: boolean;
+  missingGarment?: boolean;
+  missingWearer?: boolean;
+  missingMeasurements?: boolean;
+  missingBuildDetails?: boolean;
+  missingStyleDetails?: boolean;
   isEditing: boolean;
   editingLabel?: string | null;
   wearerName?: string | null;
@@ -187,6 +194,13 @@ export function CustomGarmentBuilder({
   canAddToOrder,
   addDisabledReason,
   onShowDisabledReason,
+  showValidation = false,
+  missingGender = false,
+  missingGarment = false,
+  missingWearer = false,
+  missingMeasurements = false,
+  missingBuildDetails = false,
+  missingStyleDetails = false,
   isEditing,
   editingLabel,
   wearerName,
@@ -201,6 +215,9 @@ export function CustomGarmentBuilder({
   const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
   const currentSubtotal = getCustomGarmentPrice(selectedGarment);
   const summaryParts = [selectedGarment, wearerName, lapel].filter(Boolean) as string[];
+  const showValidationBanner =
+    showValidation &&
+    (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
 
   return (
     <>
@@ -210,6 +227,23 @@ export function CustomGarmentBuilder({
           title={isEditing ? "Edit custom garment" : "Custom garment"}
           subtitle={isEditing ? "Update wearer, measurements, and build details" : "Build the garment in 3 steps"}
         />
+
+        {showValidationBanner ? (
+          <div className="mb-4 flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/55 px-4 py-3">
+            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-danger-text)]" />
+            <div className="min-w-0">
+              <StatusPill tone="danger">{isEditing ? "Save changes is blocked" : "Add to cart is blocked"}</StatusPill>
+              <div className="mt-2 flex flex-wrap gap-2">
+                {missingGender ? <span className="app-text-caption text-[var(--app-danger-text)]">Gender</span> : null}
+                {missingGarment ? <span className="app-text-caption text-[var(--app-danger-text)]">Garment</span> : null}
+                {missingWearer ? <span className="app-text-caption text-[var(--app-danger-text)]">Wearer</span> : null}
+                {missingMeasurements ? <span className="app-text-caption text-[var(--app-danger-text)]">Measurements</span> : null}
+                {missingBuildDetails ? <span className="app-text-caption text-[var(--app-danger-text)]">Build details</span> : null}
+                {missingStyleDetails ? <span className="app-text-caption text-[var(--app-danger-text)]">Jacket style details</span> : null}
+              </div>
+            </div>
+          </div>
+        ) : null}
 
         {isEditing ? (
           <div className="mb-4 rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3.5">
@@ -223,7 +257,12 @@ export function CustomGarmentBuilder({
           <div>
             <StageLabel>1. Choose garment</StageLabel>
 
-            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-4">
+            <div
+              className={cx(
+                "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-4",
+                showValidation && missingGender && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30",
+              )}
+            >
               <div className="app-text-overline">Cut</div>
               <div className="mt-3 grid grid-cols-2 gap-2 rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/20 p-1.5">
                 {(["male", "female"] as const).map((gender) => (
@@ -246,7 +285,12 @@ export function CustomGarmentBuilder({
             <div className="mt-4">
               <FieldLabel>Garment</FieldLabel>
               {selectedGender ? (
-                <div className="mt-2">
+                <div
+                  className={cx(
+                    "mt-2 rounded-[var(--app-radius-md)]",
+                    showValidation && missingGarment && "border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30 p-3",
+                  )}
+                >
                   <ChoiceGrid
                     options={garmentOptions}
                     selectedValue={selectedGarment}
@@ -255,7 +299,9 @@ export function CustomGarmentBuilder({
                   />
                 </div>
               ) : (
-                <EmptyState className="mt-2">Select gender first.</EmptyState>
+                <EmptyState className={cx("mt-2", showValidation && missingGender && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
+                  Select gender first.
+                </EmptyState>
               )}
             </div>
           </div>
@@ -264,7 +310,12 @@ export function CustomGarmentBuilder({
             <StageLabel>2. Build details</StageLabel>
 
             {showConfiguration ? (
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-4">
+              <div
+                className={cx(
+                  "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-4",
+                  showValidation && missingBuildDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30",
+                )}
+              >
                 <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
                   <div>
                     <div className="app-text-overline">Information</div>
@@ -320,7 +371,9 @@ export function CustomGarmentBuilder({
                 </div>
               </div>
             ) : (
-              <EmptyState>Select a garment first.</EmptyState>
+              <EmptyState className={cx(showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
+                Select a garment first.
+              </EmptyState>
             )}
           </div>
 
@@ -328,7 +381,12 @@ export function CustomGarmentBuilder({
             <StageLabel>3. Style details</StageLabel>
 
             {showConfiguration && showJacketStyleOptions ? (
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-4">
+              <div
+                className={cx(
+                  "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-4",
+                  showValidation && missingStyleDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30",
+                )}
+              >
                 <div className="grid gap-6 xl:grid-cols-[0.76fr_1fr]">
                   <div className="space-y-6">
                     <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface)]/38 px-4 py-4">
