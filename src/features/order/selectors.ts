@@ -369,14 +369,14 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
   if (minutesUntilPickup < 0) {
     return {
       tone: "danger" as const,
-      label: "Running late",
+      label: "Past promised ready time",
     };
   }
 
   if (minutesUntilPickup <= 60) {
     return {
       tone: "warn" as const,
-      label: "Pickup within 1 hour",
+      label: "Promised ready within 1 hour",
     };
   }
 
@@ -392,7 +392,7 @@ export function getPickupStatusSummary(pickup: OpenOrderPickup) {
   }
 
   const pickupSummary = formatPickupSchedule(pickup.pickupDate, pickup.pickupTime);
-  return `${pickupSummary ?? "Pickup timing not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
+  return `${pickupSummary ?? "Promised ready time not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
 }
 
 export function getOpenOrderPaymentSummary(paymentStatus: OpenOrderPaymentStatus) {
