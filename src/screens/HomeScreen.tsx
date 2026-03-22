@@ -17,6 +17,11 @@ import { AppointmentIssuePill, CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
 import { HomeLaneEmptyState } from "../features/home/components/HomeLaneEmptyState";
+import {
+  getAppointmentDateKey,
+  getAppointmentTimeLabel,
+  getRelativeAppointmentDayLabel,
+} from "../features/appointments/selectors";
 
 type HomeScreenProps = {
   appointments: Appointment[];
@@ -48,24 +53,6 @@ function getAppointmentCallouts(appointment: Appointment) {
   }
 
   return callouts;
-}
-
-function getRelativeDayLabel(dateValue: string) {
-  const target = new Date(`${dateValue}T12:00:00`);
-  const today = new Date();
-  today.setHours(12, 0, 0, 0);
-  const tomorrow = new Date(today);
-  tomorrow.setDate(today.getDate() + 1);
-
-  if (target.toDateString() === today.toDateString()) {
-    return "Today";
-  }
-
-  if (target.toDateString() === tomorrow.toDateString()) {
-    return "Tomorrow";
-  }
-
-  return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(target);
 }
 
 function HomeEmptyState({
@@ -127,7 +114,7 @@ function ScheduleRow({
   return (
     <div className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
       <div>
-        <div className="app-text-value text-[0.95rem]">{appointment.time}</div>
+        <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
       </div>
 
       <div className="min-w-0 space-y-2">
@@ -226,8 +213,8 @@ function PickupRow({
   return (
     <div className="grid gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/34 px-4 py-4 lg:grid-cols-[96px_minmax(0,1fr)_auto] lg:items-center">
       <div>
-        <div className="app-text-value text-[0.95rem]">{appointment.time}</div>
-        <div className="app-text-caption mt-1">{getRelativeDayLabel(appointment.date)}</div>
+        <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
+        <div className="app-text-caption mt-1">{getRelativeAppointmentDayLabel(appointment)}</div>
       </div>
       <div className="min-w-0">
         <div className="app-text-value">{appointment.customer}</div>
@@ -317,8 +304,8 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
   const tomorrowLabel = dateFormatter.format(tomorrowDate);
   const todayKey = now.toISOString().slice(0, 10);
   const tomorrowKey = tomorrowDate.toISOString().slice(0, 10);
-  const todayPickups = pickups.filter((appointment) => appointment.date === todayKey);
-  const tomorrowPickups = pickups.filter((appointment) => appointment.date === tomorrowKey);
+  const todayPickups = pickups.filter((appointment) => getAppointmentDateKey(appointment) === todayKey);
+  const tomorrowPickups = pickups.filter((appointment) => getAppointmentDateKey(appointment) === tomorrowKey);
   const allLocationsActive = activeLocations.length === locationOptions.length;
   const visibleAppointmentCount = todayAppointments.length + tomorrowAppointments.length;
   const visiblePickupCount = todayPickups.length + tomorrowPickups.length;

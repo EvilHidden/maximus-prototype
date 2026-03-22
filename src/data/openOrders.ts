@@ -14,6 +14,14 @@ function getDateOffset(days: number) {
   return toDateString(date);
 }
 
+function getDateTimeOffset(days: number, hours: number, minutes: number) {
+  const date = new Date();
+  date.setSeconds(0, 0);
+  date.setHours(hours, minutes, 0, 0);
+  date.setDate(date.getDate() + days);
+  return `${toDateString(date)}T${`${hours}`.padStart(2, "0")}:${`${minutes}`.padStart(2, "0")}:00`;
+}
+
 export const openOrders: OpenOrder[] = [
   {
     id: 9001,
@@ -40,7 +48,7 @@ export const openOrders: OpenOrder[] = [
     paymentStatus: "prepaid",
     collectedToday: 747.5,
     total: 1627.22,
-    createdAtLabel: "Mar 18, 11:20 AM",
+    createdAt: getDateTimeOffset(-2, 11, 20),
   },
   {
     id: 9002,
@@ -67,7 +75,7 @@ export const openOrders: OpenOrder[] = [
     paymentStatus: "pay_later",
     collectedToday: 0,
     total: 347.8,
-    createdAtLabel: "Mar 19, 2:05 PM",
+    createdAt: getDateTimeOffset(-1, 14, 5),
   },
   {
     id: 9003,
@@ -107,7 +115,7 @@ export const openOrders: OpenOrder[] = [
     paymentStatus: "prepaid",
     collectedToday: 1080,
     total: 2356.85,
-    createdAtLabel: "Mar 16, 9:45 AM",
+    createdAt: getDateTimeOffset(-4, 9, 45),
   },
   {
     id: 9004,
@@ -134,6 +142,6 @@ export const openOrders: OpenOrder[] = [
     paymentStatus: "pay_later",
     collectedToday: 0,
     total: 54.45,
-    createdAtLabel: "Mar 20, 4:10 PM",
+    createdAt: getDateTimeOffset(0, 16, 10),
   },
 ];

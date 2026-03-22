@@ -1,0 +1,155 @@
+import type {
+  DbAlterationServiceDefinition,
+  DbCustomGarmentDefinition,
+  DbMeasurementFieldDefinition,
+  DbStyleOptionDefinition,
+} from "../schema";
+
+function slugify(value: string) {
+  return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
+}
+
+export function createAlterationServiceDefinitions(): DbAlterationServiceDefinition[] {
+  const definitions: Array<[string, string, number]> = [
+    ["Dress", "Strap", 35],
+    ["Dress", "Waist", 50],
+    ["Dress", "Hem", 50],
+    ["Dress", "Shoulder", 100],
+    ["Dress", "Zipper replacement", 60],
+    ["Jacket", "Length", 80],
+    ["Jacket", "Sleeve replacement", 80],
+    ["Jacket", "Lining replacement", 150],
+    ["Jacket", "Add buttonholes", 75],
+    ["Jacket", "Lower armhole", 30],
+    ["Jacket", "Half back", 35],
+    ["Jacket", "Half seat", 40],
+    ["Jacket", "Across the chest", 75],
+    ["Jacket", "Sleeve length", 40],
+    ["Jacket", "Sleeve length from shoulder", 75],
+    ["Jacket", "Sleeve width", 30],
+    ["Jacket", "Change buttons", 35],
+    ["Jacket", "Chest", 30],
+    ["Jacket", "Stomach", 30],
+    ["Jacket", "Bicep", 30],
+    ["Jacket", "Seat", 30],
+    ["Jacket", "Lower collar", 30],
+    ["Jacket", "Restitch felt", 20],
+    ["Jacket", "Shoulder", 75],
+    ["Jacket", "Add shoulder pads", 35],
+    ["Jeans", "Length", 30],
+    ["Jeans", "Wide leg length", 45],
+    ["Jeans", "Knee", 20],
+    ["Jeans", "Rise", 20],
+    ["Jeans", "Add belt loops", 40],
+    ["Jeans", "Repair crotch", 40],
+    ["Jeans", "Waist", 25],
+    ["Jeans", "Seat", 20],
+    ["Jeans", "Thigh", 20],
+    ["Jeans", "Bottom", 20],
+    ["Pants", "Length", 30],
+    ["Pants", "Knee", 20],
+    ["Pants", "Rise", 20],
+    ["Pants", "Add belt loops", 40],
+    ["Pants", "Repair crotch", 40],
+    ["Pants", "Waist", 25],
+    ["Pants", "Seat", 20],
+    ["Pants", "Thigh", 20],
+    ["Pants", "Bottom", 20],
+    ["Shirt", "Seat", 25],
+    ["Shirt", "Bicep", 20],
+    ["Shirt", "Sleeve length", 35],
+    ["Shirt", "Cuff", 20],
+    ["Shirt", "Neck", 10],
+    ["Shirt", "Shoulder", 45],
+    ["Shirt", "Chest", 20],
+    ["Shirt", "Stomach", 25],
+    ["Shirt", "Change buttons", 20],
+    ["Shirt", "Change collar", 30],
+    ["Vest", "Chest", 30],
+    ["Vest", "Stomach", 30],
+    ["Vest", "Seat", 30],
+    ["Vest", "Length", 50],
+  ];
+
+  return definitions.map(([category, name, price]) => ({
+    id: `alteration_service_${slugify(category)}_${slugify(name)}`,
+    category,
+    name,
+    price,
+  }));
+}
+
+export function createCustomGarmentDefinitions(): DbCustomGarmentDefinition[] {
+  const definitions: Array<["male" | "female", string, boolean]> = [
+    ["male", "Two-piece suit", true],
+    ["male", "Three-piece suit", true],
+    ["male", "Jacket", true],
+    ["male", "Pants", false],
+    ["male", "Vest", false],
+    ["male", "Shirt", false],
+    ["male", "Overcoat", true],
+    ["male", "Tuxedo jacket", true],
+    ["male", "Three-piece tuxedo", true],
+    ["female", "Two-piece suit", true],
+    ["female", "Three-piece suit", true],
+    ["female", "Jacket", true],
+    ["female", "Pants", false],
+    ["female", "Vest", false],
+    ["female", "Shirt", false],
+    ["female", "Overcoat", true],
+    ["female", "Skirt", false],
+  ];
+
+  return definitions.map(([gender, label, jacketBased]) => ({
+    id: `custom_garment_${gender}_${slugify(label)}`,
+    gender,
+    label,
+    jacketBased,
+  }));
+}
+
+export function createStyleOptionDefinitions(): DbStyleOptionDefinition[] {
+  const definitions: Array<["lapel" | "pocket_type" | "canvas", string]> = [
+    ["lapel", "Notch"],
+    ["lapel", "Peak"],
+    ["lapel", "Shawl"],
+    ["pocket_type", "Regular"],
+    ["pocket_type", "Slanted"],
+    ["pocket_type", "Slanted with slanted ticket pocket"],
+    ["pocket_type", "Regular pockets, no flap"],
+    ["pocket_type", "Regular without flap"],
+    ["canvas", "Half"],
+    ["canvas", "Full"],
+    ["canvas", "Fused"],
+  ];
+
+  return definitions.map(([kind, label]) => ({
+    id: `style_option_${kind}_${slugify(label)}`,
+    kind,
+    label,
+  }));
+}
+
+export function createMeasurementFieldDefinitions(): DbMeasurementFieldDefinition[] {
+  return [
+    "Back Length",
+    "Shoulder",
+    "Neck",
+    "Chest",
+    "Stomach",
+    "Waist",
+    "Seat",
+    "Bicep",
+    "Sleeve Length",
+    "Thigh",
+    "Rise",
+    "Bottom",
+    "Length",
+    "Shirt Cuff Left",
+    "Shirt Cuff Right",
+  ].map((label, index) => ({
+    id: `measurement_field_${slugify(label)}`,
+    label,
+    sortOrder: index,
+  }));
+}

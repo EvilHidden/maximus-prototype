@@ -7,6 +7,9 @@ import {
   filterClosedOrderHistory,
   filterOpenOrders,
   filterPickupAppointments,
+  formatClosedOrderDate,
+  formatClosedOrderTotal,
+  formatOpenOrderCreatedAt,
   formatSummaryCurrency,
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
@@ -21,11 +24,13 @@ import {
   getPickupTimingLabel,
   type OrdersQueueKey,
 } from "../features/order/selectors";
+import { getAppointmentTimeLabel } from "../features/appointments/selectors";
 
 type OpenOrdersScreenProps = {
   openOrders: OpenOrder[];
   closedOrderHistory: ClosedOrderHistoryItem[];
   pickupAppointments: Appointment[];
+  pickupLocations: PickupLocation[];
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onStartNewOrder: () => void;
 };
@@ -95,8 +100,6 @@ const queueOverviewMeta: Array<{
     icon: Clock3,
   },
 ];
-
-const pickupLocations: Array<PickupLocation | "all"> = ["all", "Fifth Avenue", "Queens", "Long Island"];
 
 function formatWorklistTotal(value: number) {
   return new Intl.NumberFormat("en-US", {
@@ -176,6 +179,7 @@ function SearchFilterBar({
   onQueryChange,
   typeFilter,
   onTypeFilterChange,
+  pickupLocations,
   locationFilter,
   onLocationFilterChange,
 }: {
@@ -183,9 +187,12 @@ function SearchFilterBar({
   onQueryChange: (value: string) => void;
   typeFilter: OrderType | "all";
   onTypeFilterChange: (value: OrderType | "all") => void;
+  pickupLocations: PickupLocation[];
   locationFilter: PickupLocation | "all";
   onLocationFilterChange: (value: PickupLocation | "all") => void;
 }) {
+  const locationOptions: Array<PickupLocation | "all"> = ["all", ...pickupLocations];
+
   return (
     <div className="flex flex-wrap items-end gap-3">
       <SearchField
@@ -215,7 +222,7 @@ function SearchFilterBar({
         onChange={(value) => onLocationFilterChange(value as PickupLocation | "all")}
         className="min-w-[180px]"
       >
-          {pickupLocations.map((location) => (
+          {locationOptions.map((location) => (
             <option key={location} value={location}>
               {location === "all" ? "All locations" : location}
             </option>
@@ -272,7 +279,7 @@ function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
         <div className="app-text-caption mt-1">Scheduled pickup appointment • {getPickupAppointmentSummary(appointment)}</div>
       </div>
       <div className="min-w-0">
-        <div className="app-text-body font-medium">{`${getPickupTimingLabel(appointment.date)} • ${appointment.time}`}</div>
+        <div className="app-text-body font-medium">{`${getPickupTimingLabel(appointment.scheduledFor.slice(0, 10))} • ${getAppointmentTimeLabel(appointment)}`}</div>
         <div className="app-text-caption mt-1">{appointment.missing === "Complete" ? "Ready for release" : appointment.missing}</div>
       </div>
       <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
@@ -342,7 +349,7 @@ function WorkQueueOrderRow({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.15fr)_220px] lg:items-start">
         <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
-          <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {openOrder.createdAtLabel}</div>
+          <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
         </div>
 
         <div className="min-w-0 space-y-3">
@@ -535,6 +542,7 @@ export function OpenOrdersScreen({
   openOrders,
   closedOrderHistory,
   pickupAppointments,
+  pickupLocations,
   onMarkOpenOrderPickupReady,
   onStartNewOrder,
 }: OpenOrdersScreenProps) {
@@ -636,14 +644,15 @@ export function OpenOrdersScreen({
             </div>
 
             <div className="border-t border-[var(--app-border)]/35 pt-4">
-              <SearchFilterBar
-                query={query}
-                onQueryChange={setQuery}
-                typeFilter={typeFilter}
-                onTypeFilterChange={setTypeFilter}
-                locationFilter={locationFilter}
-                onLocationFilterChange={setLocationFilter}
-              />
+        <SearchFilterBar
+          query={query}
+          onQueryChange={setQuery}
+          typeFilter={typeFilter}
+          onTypeFilterChange={setTypeFilter}
+          pickupLocations={pickupLocations}
+          locationFilter={locationFilter}
+          onLocationFilterChange={setLocationFilter}
+        />
             </div>
 
             {activeView === "queues" ? (
@@ -706,8 +715,8 @@ export function OpenOrdersScreen({
                     <div className="app-text-strong">{order.customerName}</div>
                     <div className="app-text-caption mt-1">{order.label}</div>
                   </div>
-                  <div className="app-text-body font-medium">{order.date}</div>
-                  <div className="app-text-strong">{order.total}</div>
+                  <div className="app-text-body font-medium">{formatClosedOrderDate(order.createdAt)}</div>
+                  <div className="app-text-strong">{formatClosedOrderTotal(order.total)}</div>
                   <div className="flex justify-start md:justify-end">
                     <OrderStatusPill status={order.status} />
                   </div>

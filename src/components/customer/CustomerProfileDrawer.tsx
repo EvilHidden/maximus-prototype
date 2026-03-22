@@ -3,6 +3,7 @@ import { ArrowRight, History, MessageSquare, PencilRuler, Ruler, Trash2, User } 
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../../types";
 import { ActionButton, ModalShell, StatusPill } from "../ui/primitives";
 import { MeasurementStatusPill, OrderStatusPill, VipPill } from "../ui/pills";
+import { formatCustomerOrderDate, formatCustomerOrderTotal } from "../../features/customer/selectors";
 
 type CustomerProfileDrawerProps = {
   customer: Customer | null;
@@ -177,12 +178,12 @@ export function CustomerProfileDrawer({
               >
                 <div className="min-w-0">
                   <div className="flex min-w-0 items-center gap-2">
-                    <div className="app-text-strong truncate">{order.label}</div>
-                    <OrderStatusPill status={order.status} />
+                  <div className="app-text-strong truncate">{order.label}</div>
+                  <OrderStatusPill status={order.status} />
                   </div>
-                  <div className="app-text-caption mt-1 truncate">{`${order.id} • ${order.date}`}</div>
+                  <div className="app-text-caption mt-1 truncate">{`${order.id} • ${formatCustomerOrderDate(order.createdAt)}`}</div>
                 </div>
-                <div className="app-text-body self-start justify-self-end text-right font-medium">{order.total}</div>
+                <div className="app-text-body self-start justify-self-end text-right font-medium">{formatCustomerOrderTotal(order.total)}</div>
               </div>
             ))}
           </div>

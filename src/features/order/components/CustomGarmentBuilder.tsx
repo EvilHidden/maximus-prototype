@@ -1,11 +1,11 @@
 import { CheckSquare, Layers3, Shirt, TriangleAlert, Type } from "lucide-react";
 import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, Surface, cx } from "../../../components/ui/primitives";
-import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
 
 type CustomGarmentBuilderProps = {
   garmentOptionsByGender: Record<CustomGarmentGender, string[]>;
+  jacketBasedCustomGarments: Set<string>;
   lapelOptions: string[];
   pocketTypeOptions: string[];
   canvasOptions: string[];
@@ -176,6 +176,7 @@ function VerticalOptionList({
 
 export function CustomGarmentBuilder({
   garmentOptionsByGender,
+  jacketBasedCustomGarments,
   lapelOptions,
   pocketTypeOptions,
   canvasOptions,

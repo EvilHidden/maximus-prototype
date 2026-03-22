@@ -1,5 +1,3 @@
-import type { ReactNode } from "react";
-
 export type ThemeMode = "light" | "dark";
 export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders" | "appointments";
 export type WorkflowMode = "alteration" | "custom";
@@ -11,6 +9,18 @@ export type CustomGarmentGender = "male" | "female";
 export type AlterationCheckoutIntent = "pay_later" | "prepay_now" | null;
 export type OpenOrderPaymentStatus = "pay_later" | "prepaid";
 export type CustomOrderEventType = "none" | "wedding" | "prom";
+export type AppointmentSource = "square" | "manual" | "prototype";
+export type ServiceAppointmentType =
+  | "alteration_fitting"
+  | "custom_consult"
+  | "first_fitting"
+  | "custom_fitting"
+  | "wedding_party_fitting";
+export type PickupAppointmentType = "pickup";
+export type AppointmentTypeKey = ServiceAppointmentType | PickupAppointmentType;
+export type ServiceAppointmentStatus = "scheduled" | "ready_to_check_in" | "prep_required" | "completed" | "canceled";
+export type PickupAppointmentStatus = "scheduled" | "completed" | "canceled";
+export type AppointmentStatusKey = ServiceAppointmentStatus | PickupAppointmentStatus;
 export type PickupSchedule = {
   pickupDate: string;
   pickupTime: string;
@@ -44,20 +54,26 @@ export type Customer = {
 export type CustomerOrder = {
   id: string;
   label: string;
-  date: string;
+  createdAt: string;
   status: string;
-  total: string;
+  total: number;
 };
 
 export type Appointment = {
   id: string;
-  date: string;
-  time: string;
+  scheduledFor: string;
   kind: "appointment" | "pickup";
+  source: AppointmentSource;
   location: PickupLocation;
   customerId?: string;
   customer: string;
+  orderId?: string | null;
+  scopeId?: string | null;
+  scopeLineId?: string | null;
+  durationMinutes: number;
+  typeKey: AppointmentTypeKey;
   type: string;
+  statusKey: AppointmentStatusKey;
   pickupSummary?: string;
   status: string;
   missing: string;
@@ -174,24 +190,19 @@ export type OpenOrder = {
   paymentStatus: OpenOrderPaymentStatus;
   collectedToday: number;
   total: number;
-  createdAtLabel: string;
+  createdAt: string;
 };
 
 export type ClosedOrderHistoryItem = {
   id: string;
   customerName: string;
   label: string;
-  date: string;
+  createdAt: string;
   status: string;
-  total: string;
+  total: number;
 };
 
 export type NavItem = {
   key: Screen;
   label: string;
-};
-
-export type DefinitionItem = {
-  label: string;
-  value: ReactNode;
 };

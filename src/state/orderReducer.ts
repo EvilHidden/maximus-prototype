@@ -1,0 +1,413 @@
+import type { AppAction, AppState } from "./types";
+import {
+  createEmptyMeasurements,
+  createInitialCustomDraft,
+  createInitialOrderState,
+} from "./orderState";
+
+export function tryReduceOrderAction(state: AppState, action: AppAction): AppState | null {
+  switch (action.type) {
+    case "setOrderPayer":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          payerCustomerId: action.customerId,
+        },
+      };
+    case "activateWorkflow":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: action.workflow,
+          checkoutIntent: null,
+          payerCustomerId: state.order.payerCustomerId ?? state.selectedCustomerId,
+          custom:
+            action.workflow === "custom" && !state.order.custom.draft.wearerCustomerId
+              ? {
+                  ...state.order.custom,
+                  draft: {
+                    ...state.order.custom.draft,
+                    wearerCustomerId: state.order.payerCustomerId ?? state.selectedCustomerId,
+                  },
+                }
+              : state.order.custom,
+        },
+      };
+    case "setAlterationCheckoutIntent":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          checkoutIntent: action.intent,
+        },
+      };
+    case "completeOpenOrder":
+      return {
+        ...state,
+        screen: "openOrders",
+        openOrders: [action.openOrder, ...state.openOrders],
+        order: createInitialOrderState(),
+      };
+    case "markOpenOrderPickupReady":
+      return {
+        ...state,
+        openOrders: state.openOrders.map((openOrder) => (
+          openOrder.id === action.openOrderId
+            ? {
+                ...openOrder,
+                pickupSchedules: openOrder.pickupSchedules.map((pickup) => (
+                  pickup.id === action.pickupId
+                    ? {
+                        ...pickup,
+                        readyForPickup: true,
+                        pickupDate: pickup.pickupDate || new Date().toISOString().slice(0, 10),
+                        pickupTime: pickup.pickupTime || new Date().toTimeString().slice(0, 5),
+                      }
+                    : pickup
+                )),
+              }
+            : openOrder
+        )),
+      };
+    case "selectAlterationGarment":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "alteration",
+          alteration: {
+            ...state.order.alteration,
+            selectedGarment: action.garment,
+            selectedModifiers: [],
+          },
+        },
+      };
+    case "toggleAlterationModifier": {
+      const isSelected = state.order.alteration.selectedModifiers.some((modifier) => modifier.name === action.modifier.name);
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            selectedModifiers: isSelected
+              ? state.order.alteration.selectedModifiers.filter((modifier) => modifier.name !== action.modifier.name)
+              : [...state.order.alteration.selectedModifiers, action.modifier],
+          },
+        },
+      };
+    }
+    case "addAlterationItem": {
+      if (!state.order.alteration.selectedGarment || state.order.alteration.selectedModifiers.length === 0) {
+        return state;
+      }
+
+      const subtotal = state.order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            items: [
+              ...state.order.alteration.items,
+              {
+                id: Date.now(),
+                garment: state.order.alteration.selectedGarment,
+                modifiers: [...state.order.alteration.selectedModifiers],
+                subtotal,
+              },
+            ],
+            selectedModifiers: [],
+          },
+        },
+      };
+    }
+    case "setAlterationItem":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            items: state.order.alteration.items.map((item) => {
+              if (item.id !== action.payload.itemId) {
+                return item;
+              }
+
+              const garment = action.payload.garment ?? item.garment;
+              const modifiers = action.payload.modifiers ?? item.modifiers;
+              return {
+                ...item,
+                garment,
+                modifiers,
+                subtotal: modifiers.reduce((sum, modifier) => sum + modifier.price, 0),
+              };
+            }),
+          },
+        },
+      };
+    case "removeAlterationItem":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            items: state.order.alteration.items.filter((item) => item.id !== action.itemId),
+          },
+        },
+      };
+    case "setPickupSchedule":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          fulfillment: {
+            ...state.order.fulfillment,
+            [action.payload.scope]: {
+              pickupDate: action.payload.pickupDate,
+              pickupTime: action.payload.pickupTime,
+              pickupLocation: action.payload.pickupLocation,
+              eventType: action.payload.eventType,
+              eventDate: action.payload.eventDate,
+            },
+          },
+        },
+      };
+    case "selectCustomGender":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...createInitialCustomDraft(),
+              gender: action.gender,
+              wearerCustomerId: state.order.custom.draft.wearerCustomerId ?? state.order.payerCustomerId ?? state.selectedCustomerId,
+            },
+          },
+        },
+      };
+    case "selectCustomWearer":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              wearerCustomerId: action.customerId,
+              linkedMeasurementSetId: null,
+              measurements: createEmptyMeasurements(),
+            },
+          },
+        },
+      };
+    case "selectCustomGarment":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              selectedGarment: action.garment,
+              fabric: null,
+              buttons: null,
+              lining: null,
+              threads: null,
+              monogramLeft: "",
+              monogramCenter: "",
+              monogramRight: "",
+              pocketType: null,
+              lapel: null,
+              canvas: null,
+            },
+          },
+        },
+      };
+    case "setCustomConfiguration":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              ...action.patch,
+            },
+          },
+        },
+      };
+    case "addCustomItem": {
+      const draft = state.order.custom.draft;
+      if (!draft.selectedGarment || !draft.wearerCustomerId) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            items: [
+              ...state.order.custom.items,
+              {
+                id: Date.now(),
+                ...draft,
+                wearerName: action.payload.wearerName,
+                linkedMeasurementLabel: action.payload.linkedMeasurementLabel,
+                measurementSnapshot: { ...draft.measurements },
+              },
+            ],
+            draft: {
+              ...createInitialCustomDraft(),
+              gender: draft.gender,
+            },
+          },
+        },
+      };
+    }
+    case "loadCustomItemForEdit": {
+      const item = state.order.custom.items.find((customItem) => customItem.id === action.itemId);
+      if (!item) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "custom",
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...item,
+              measurements: { ...item.measurementSnapshot },
+            },
+          },
+        },
+      };
+    }
+    case "saveCustomItem": {
+      const draft = state.order.custom.draft;
+      if (!draft.selectedGarment || !draft.wearerCustomerId) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            items: state.order.custom.items.map((item) =>
+              item.id === action.payload.itemId
+                ? {
+                    ...item,
+                    ...draft,
+                    wearerName: action.payload.wearerName,
+                    linkedMeasurementLabel: action.payload.linkedMeasurementLabel,
+                    measurementSnapshot: { ...draft.measurements },
+                  }
+                : item,
+            ),
+            draft: {
+              ...createInitialCustomDraft(),
+              gender: draft.gender,
+            },
+          },
+        },
+      };
+    }
+    case "resetCustomDraft":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: createInitialCustomDraft(),
+          },
+        },
+      };
+    case "removeCustomItem":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            items: state.order.custom.items.filter((item) => item.id !== action.itemId),
+          },
+        },
+      };
+    case "updateMeasurements":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              measurements: {
+                ...state.order.custom.draft.measurements,
+                [action.field]: action.value,
+              },
+            },
+          },
+        },
+      };
+    case "replaceMeasurements":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: action.measurementSetId,
+              measurements: {
+                ...createEmptyMeasurements(),
+                ...action.values,
+              },
+            },
+          },
+        },
+      };
+    case "linkMeasurementSet":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: action.measurementSetId,
+            },
+          },
+        },
+      };
+    case "clearOrder":
+      return {
+        ...state,
+        order: createInitialOrderState(),
+      };
+    default:
+      return null;
+  }
+}

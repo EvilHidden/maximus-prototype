@@ -1,6 +1,7 @@
 import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
-import type { DefinitionItem, StatusTone } from "../../types";
+import type { StatusTone } from "../../types";
+import type { DefinitionItem } from "./types";
 
 export function cx(...parts: Array<string | false | null | undefined>) {
   return parts.filter(Boolean).join(" ");

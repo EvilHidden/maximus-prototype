@@ -16,11 +16,21 @@ import type {
   PricingSummary,
   WorkflowMode,
 } from "../../types";
-import { jacketBasedCustomGarments } from "../../data";
+import { createSeedReferenceData } from "../../db/referenceData";
 import { getMeasurementSetDisplay, getLinkedMeasurementSet } from "../measurements/selectors";
+
+const seedReferenceData = createSeedReferenceData();
 
 function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
+}
+
+function formatCompactCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    maximumFractionDigits: 0,
+  }).format(value);
 }
 
 function formatDateLabel(value: string) {
@@ -100,7 +110,7 @@ function getCustomDraftReady(order: OrderWorkflowState) {
     return false;
   }
 
-  if (jacketBasedCustomGarments.has(draft.selectedGarment)) {
+  if (seedReferenceData.jacketBasedCustomGarments.has(draft.selectedGarment)) {
     return Boolean(draft.pocketType && draft.lapel && draft.canvas);
   }
 
@@ -220,7 +230,7 @@ export function getCheckoutCollectionAmount(order: OrderWorkflowState) {
 }
 
 function getStyleSummary(garment: string | null, lapel: string | null, pocketType: string | null, canvas: string | null) {
-  if (!garment || !jacketBasedCustomGarments.has(garment)) {
+  if (!garment || !seedReferenceData.jacketBasedCustomGarments.has(garment)) {
     return [];
   }
 
@@ -493,6 +503,7 @@ function getPickupAppointmentSearchText(appointment: Appointment) {
       appointment.customer,
       appointment.type,
       appointment.pickupSummary,
+      appointment.scheduledFor,
       appointment.location,
       appointment.status,
       appointment.missing,
@@ -503,7 +514,7 @@ function getPickupAppointmentSearchText(appointment: Appointment) {
 }
 
 function getClosedOrderSearchText(order: ClosedOrderHistoryItem) {
-  return normalizeSearchValue([order.id, order.customerName, order.label, order.status, order.total].join(" "));
+  return normalizeSearchValue([order.id, order.customerName, order.label, order.status, formatCompactCurrency(order.total)].join(" "));
 }
 
 function openOrderMatchesLocation(openOrder: OpenOrder, locationFilter: PickupLocation | "all") {
@@ -685,6 +696,28 @@ export function formatSummaryCurrency(value: number) {
   return formatCurrency(value);
 }
 
+export function formatClosedOrderDate(value: string) {
+  return formatDateLabel(value);
+}
+
+export function formatClosedOrderTotal(value: number) {
+  return formatCompactCurrency(value);
+}
+
+export function formatOpenOrderCreatedAt(value: string) {
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return value;
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(parsed);
+}
+
 export function formatPickupSchedule(pickupDate: string, pickupTime: string) {
   if (!pickupDate || !pickupTime) {
     return null;
@@ -817,12 +850,7 @@ export function buildOpenOrder(
     paymentStatus,
     collectedToday,
     total: pricing.total,
-    createdAtLabel: new Intl.DateTimeFormat("en-US", {
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-    }).format(new Date()),
+    createdAt: new Date().toISOString(),
   };
 }
 
@@ -841,7 +869,7 @@ export function getClosedOrderHistory(
         id: order.id,
         customerName,
         label: order.label,
-        date: order.date,
+        createdAt: order.createdAt,
         status: order.status,
         total: order.total,
       }));

@@ -1,5 +1,9 @@
 import type {
+  AppointmentSource,
+  AppointmentStatusKey,
+  AppointmentTypeKey,
   CustomOrderEventType,
+  CustomGarmentGender,
   MeasurementStatus,
   OpenOrderPaymentStatus,
   OrderType,
@@ -10,6 +14,32 @@ import type {
 export type DbLocation = {
   id: string;
   name: PickupLocation;
+};
+
+export type DbAlterationServiceDefinition = {
+  id: string;
+  category: string;
+  name: string;
+  price: number;
+};
+
+export type DbCustomGarmentDefinition = {
+  id: string;
+  gender: CustomGarmentGender;
+  label: string;
+  jacketBased: boolean;
+};
+
+export type DbStyleOptionDefinition = {
+  id: string;
+  kind: "lapel" | "pocket_type" | "canvas";
+  label: string;
+};
+
+export type DbMeasurementFieldDefinition = {
+  id: string;
+  label: string;
+  sortOrder: number;
 };
 
 export type DbCustomer = {
@@ -87,10 +117,14 @@ export type DbPickupAppointment = {
   id: string;
   orderId: string;
   scopeId: string | null;
+  scopeLineId: string | null;
   customerId: string | null;
   scheduledFor: string;
   locationId: string;
-  status: "scheduled" | "completed";
+  source: AppointmentSource;
+  durationMinutes: number;
+  typeKey: Extract<AppointmentTypeKey, "pickup">;
+  statusKey: Extract<AppointmentStatusKey, "scheduled" | "completed" | "canceled">;
   summary: string;
   issue: string;
 };
@@ -98,12 +132,20 @@ export type DbPickupAppointment = {
 export type DbServiceAppointment = {
   id: string;
   customerId?: string;
+  orderId: string | null;
+  scopeId: string | null;
+  scopeLineId: string | null;
   customerName: string;
   workflow: WorkflowMode;
   locationId: string;
   scheduledFor: string;
-  type: string;
-  status: string;
+  source: AppointmentSource;
+  durationMinutes: number;
+  typeKey: Extract<
+    AppointmentTypeKey,
+    "alteration_fitting" | "custom_consult" | "first_fitting" | "custom_fitting" | "wedding_party_fitting"
+  >;
+  statusKey: Extract<AppointmentStatusKey, "scheduled" | "ready_to_check_in" | "prep_required" | "completed" | "canceled">;
   issue: string;
 };
 
@@ -130,6 +172,10 @@ export type DbAirtableLink = {
 export type PrototypeDatabase = {
   generatedAt: string;
   locations: DbLocation[];
+  alterationServiceDefinitions: DbAlterationServiceDefinition[];
+  customGarmentDefinitions: DbCustomGarmentDefinition[];
+  styleOptionDefinitions: DbStyleOptionDefinition[];
+  measurementFieldDefinitions: DbMeasurementFieldDefinition[];
   customers: DbCustomer[];
   customerEvents: DbCustomerEvent[];
   measurementSets: DbMeasurementSet[];

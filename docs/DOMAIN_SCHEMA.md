@@ -22,6 +22,7 @@ The goal is not to be production-perfect yet. The goal is to stop spreading busi
 ### `order`
 - Parent commercial record
 - Represents the customer-facing order that may contain one or more fulfillment scopes
+- Should remain compatible with Square's order-level model, not replace it
 - Can be:
   - `open`
   - `partially_ready`
@@ -33,6 +34,7 @@ The goal is not to be production-perfect yet. The goal is to stop spreading busi
 
 ### `order_scope`
 - The unit of fulfillment truth
+- This is the Maximus overlay that sits on top of flatter Square-compatible order/item records
 - One order can contain:
   - one alteration scope
   - one custom scope
@@ -75,15 +77,34 @@ UI note:
 - Can be linked to:
   - an order
   - optionally a specific scope
+  - and should remain flexible enough to support ad hoc scheduled pickups
+- Should carry scheduling metadata such as:
+  - source
+  - duration
+  - optional linkage to finer-grained work records as needed
 
 ### `service_appointment`
 - Non-pickup scheduled touchpoints such as:
   - fittings
   - consults
   - review appointments
+  - wedding-party fittings
+
+Appointments are modeled as their own domain and should not be collapsed into generic order fields simply because Airtable currently lacks dedicated appointment tables.
+They should also remain expressive enough to carry normalized scheduling metadata and optional order/work associations.
 
 ### `measurement_set`
 - Versioned customer measurement history
+- Measurements should follow the most correct and flexible tailoring model, not Airtable's current fixed-column shape
+
+### Reference definitions
+- The prototype also carries seeded operational reference tables for:
+  - alteration services
+  - custom garment definitions
+  - style options
+  - measurement field definitions
+
+These now live under `src/db/` so operational lookup data is sourced from the same canonical layer as business records.
 
 ### `payment_record`
 - Local mirror of payment state
@@ -141,6 +162,8 @@ The current prototype runtime is:
 
 - `src/db/runtime.ts`
   - creates a local normalized database seeded relative to the current date
+- `src/db/referenceData.ts`
+  - derives screen-facing operational catalogs from canonical reference tables
 - `src/db/adapters.ts`
   - adapts canonical records into current screen-facing view models
 - `src/db/appRuntime.ts`
@@ -157,6 +180,7 @@ This means:
 Short-term:
 - keep the UI working through adapters
 - migrate fragile logic first, especially Orders and pickup/readiness behavior
+- keep the canonical model compatible with Square integrations without letting Square's flatter structure dictate the whole domain model
 
 Long-term:
 - replace adapter-era view-model shaping with direct query/repository patterns

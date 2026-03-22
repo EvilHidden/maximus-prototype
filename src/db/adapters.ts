@@ -1,5 +1,7 @@
 import type {
   Appointment,
+  AppointmentStatusKey,
+  AppointmentTypeKey,
   ClosedOrderHistoryItem,
   Customer,
   CustomerOrder,
@@ -17,34 +19,40 @@ import type {
   PrototypeDatabase,
 } from "./schema";
 
-function formatDateLabel(value: string) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-  }).format(parsed);
-}
-
-function formatDateTimeLabel(value: string) {
-  const parsed = new Date(value);
-  if (Number.isNaN(parsed.getTime())) {
-    return value;
-  }
-
-  return new Intl.DateTimeFormat("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  }).format(parsed);
-}
-
 function findLocationName(locations: DbLocation[], locationId: string) {
   return locations.find((location) => location.id === locationId)?.name ?? "Fifth Avenue";
+}
+
+function getAppointmentTypeLabel(typeKey: AppointmentTypeKey) {
+  switch (typeKey) {
+    case "alteration_fitting":
+      return "Alteration fitting";
+    case "custom_consult":
+      return "Custom consult";
+    case "first_fitting":
+      return "First fitting";
+    case "custom_fitting":
+      return "Custom fitting";
+    case "wedding_party_fitting":
+      return "Wedding party fitting";
+    case "pickup":
+      return "Pickup appointment";
+  }
+}
+
+function getAppointmentStatusLabel(statusKey: AppointmentStatusKey) {
+  switch (statusKey) {
+    case "ready_to_check_in":
+      return "Ready to check in";
+    case "prep_required":
+      return "Prep ticket";
+    case "scheduled":
+      return "Upcoming";
+    case "completed":
+      return "Completed";
+    case "canceled":
+      return "Canceled";
+  }
 }
 
 function getOrderLines(database: PrototypeDatabase, orderId: string) {
@@ -186,9 +194,9 @@ export function adaptCustomerOrders(database: PrototypeDatabase): Record<string,
     const nextEntry: CustomerOrder = {
       id: order.displayId,
       label: lineSummary,
-      date: formatDateLabel(order.createdAt),
+      createdAt: order.createdAt,
       status: deriveOrderStatus(order, database.orderScopes.filter((scope) => scope.orderId === order.id)),
-      total: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(getOrderTotal(database, order.id)),
+      total: getOrderTotal(database, order.id),
     };
 
     accumulator[order.payerCustomerId] = [nextEntry, ...(accumulator[order.payerCustomerId] ?? [])];
@@ -203,44 +211,52 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
       id: order.displayId,
       customerName: order.payerName,
       label: getOrderLabel(database, order.id),
-      date: formatDateLabel(order.createdAt),
+      createdAt: order.createdAt,
       status: "Picked up",
-      total: new Intl.NumberFormat("en-US", { style: "currency", currency: "USD", maximumFractionDigits: 0 }).format(getOrderTotal(database, order.id)),
+      total: getOrderTotal(database, order.id),
     }));
 }
 
 export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
-  const serviceAppointments: Appointment[] = database.serviceAppointments.map((appointment) => {
-    const scheduledFor = new Date(appointment.scheduledFor);
-    return {
-      id: appointment.id,
-      date: appointment.scheduledFor.slice(0, 10),
-      time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(scheduledFor),
-      kind: "appointment",
-      location: findLocationName(database.locations, appointment.locationId),
-      customerId: appointment.customerId,
-      customer: appointment.customerName,
-      type: appointment.type,
-      status: appointment.status,
-      missing: appointment.issue,
-      route: appointment.workflow,
-    };
-  });
+  const serviceAppointments: Appointment[] = database.serviceAppointments.map((appointment) => ({
+    id: appointment.id,
+    scheduledFor: appointment.scheduledFor,
+    kind: "appointment",
+    source: appointment.source,
+    location: findLocationName(database.locations, appointment.locationId),
+    customerId: appointment.customerId,
+    orderId: appointment.orderId,
+    scopeId: appointment.scopeId,
+    scopeLineId: appointment.scopeLineId,
+    customer: appointment.customerName,
+    durationMinutes: appointment.durationMinutes,
+    typeKey: appointment.typeKey,
+    type: getAppointmentTypeLabel(appointment.typeKey),
+    statusKey: appointment.statusKey,
+    status: getAppointmentStatusLabel(appointment.statusKey),
+    missing: appointment.issue,
+    route: appointment.workflow,
+  }));
 
   const pickupAppointments: Appointment[] = database.pickupAppointments.map((appointment) => {
-    const scheduledFor = new Date(appointment.scheduledFor);
     const order = database.orders.find((candidate) => candidate.id === appointment.orderId);
     return {
       id: appointment.id,
-      date: appointment.scheduledFor.slice(0, 10),
-      time: new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(scheduledFor),
+      scheduledFor: appointment.scheduledFor,
       kind: "pickup",
+      source: appointment.source,
       location: findLocationName(database.locations, appointment.locationId),
       customerId: appointment.customerId ?? undefined,
+      orderId: appointment.orderId,
+      scopeId: appointment.scopeId,
+      scopeLineId: appointment.scopeLineId,
       customer: order?.payerName ?? "Unknown customer",
-      type: "Pickup appointment",
+      durationMinutes: appointment.durationMinutes,
+      typeKey: appointment.typeKey,
+      type: getAppointmentTypeLabel(appointment.typeKey),
       pickupSummary: appointment.summary,
-      status: `Scheduled pickup • ${formatDateTimeLabel(appointment.scheduledFor)}`,
+      statusKey: appointment.statusKey,
+      status: getAppointmentStatusLabel(appointment.statusKey),
       missing: appointment.issue,
       route: "pickup",
     };
@@ -268,7 +284,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         paymentStatus: payment.paymentStatus,
         collectedToday: payment.collectedToday,
         total: getOrderTotal(database, order.id),
-        createdAtLabel: formatDateTimeLabel(order.createdAt),
+        createdAt: order.createdAt,
       };
     });
 }

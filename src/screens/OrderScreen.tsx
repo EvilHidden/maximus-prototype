@@ -1,16 +1,9 @@
 import { useMemo, useState } from "react";
 import { Receipt } from "lucide-react";
-import {
-  alterationCatalog,
-  canvasOptions,
-  customGarmentOptionsByGender,
-  jacketBasedCustomGarments,
-  lapelOptions,
-  pocketTypeOptions,
-} from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import type { Dispatch } from "react";
 import type { AppAction } from "../state/appState";
+import type { AppReferenceData } from "../db";
 import {
   filterCustomers,
 } from "../features/customer/selectors";
@@ -44,6 +37,7 @@ import { useToast } from "../components/ui/toast";
 type OrderScreenProps = {
   customers: Customer[];
   measurementSets: MeasurementSet[];
+  referenceData: AppReferenceData;
   payerCustomer: Customer | null;
   order: AppState["order"];
   dispatch: Dispatch<AppAction>;
@@ -54,6 +48,7 @@ type OrderScreenProps = {
 export function OrderScreen({
   customers,
   measurementSets,
+  referenceData,
   payerCustomer,
   order,
   dispatch,
@@ -97,8 +92,8 @@ export function OrderScreen({
   const missingAlterationGarment = !order.alteration.selectedGarment;
   const missingAlterationServices = Boolean(order.alteration.selectedGarment) && order.alteration.selectedModifiers.length === 0;
 
-  const garmentOptions = alterationCatalog.map((garment) => garment.category);
-  const currentServices = alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
+  const garmentOptions = referenceData.alterationCatalog.map((garment) => garment.category);
+  const currentServices = referenceData.alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
   const currentAlterationSubtotal = order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
   const filteredCustomers = useMemo(() => filterCustomers(customers, customerQuery), [customers, customerQuery]);
   const measurementsCardModel = getCustomMeasurementsCardModel(
@@ -111,7 +106,7 @@ export function OrderScreen({
   const editingCustomItem = editingCustomItemId !== null
     ? order.custom.items.find((item) => item.id === editingCustomItemId) ?? null
     : null;
-  const editingServices = alterationCatalog.find((garment) => garment.category === editingItem?.garment)?.services ?? [];
+  const editingServices = referenceData.alterationCatalog.find((garment) => garment.category === editingItem?.garment)?.services ?? [];
   const continueDisabledReason =
     orderType === null
       ? "Add at least one item to the cart before moving forward."
@@ -132,10 +127,10 @@ export function OrderScreen({
         ? "Assign a wearer before adding the custom garment to the cart."
         : !order.custom.draft.linkedMeasurementSetId
           ? "Choose or create a measurement set before adding the custom garment to the cart."
-          : !order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads
+            : !order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads
           ? "Complete fabric, buttons, lining, and thread details before adding this garment to the cart."
             : order.custom.draft.selectedGarment &&
-                jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
+                referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
                 (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
               ? "Choose the canvas, lapel, and pocket details before adding this jacket-based garment to the cart."
               : undefined;
@@ -148,7 +143,7 @@ export function OrderScreen({
     (!order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads);
   const missingCustomStyleDetails =
     Boolean(order.custom.draft.selectedGarment) &&
-    jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
+    referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
     (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas);
 
   useCustomMeasurementDefaults({
@@ -255,10 +250,11 @@ export function OrderScreen({
                 }}
               />
               <CustomGarmentBuilder
-                garmentOptionsByGender={customGarmentOptionsByGender}
-                pocketTypeOptions={pocketTypeOptions}
-                lapelOptions={lapelOptions}
-                canvasOptions={canvasOptions}
+                garmentOptionsByGender={referenceData.customGarmentOptionsByGender}
+                jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
+                pocketTypeOptions={referenceData.pocketTypeOptions}
+                lapelOptions={referenceData.lapelOptions}
+                canvasOptions={referenceData.canvasOptions}
                 selectedGender={order.custom.draft.gender}
                 selectedGarment={order.custom.draft.selectedGarment}
                 fabric={order.custom.draft.fabric}
@@ -409,6 +405,7 @@ export function OrderScreen({
         <PickupScheduleModal
           scope={pickupModalScope}
           schedule={order.fulfillment[pickupModalScope]}
+          pickupLocations={referenceData.pickupLocations}
           onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: { scope: pickupModalScope, ...patch } })}
           onClose={() => setPickupModalScope(null)}
         />
