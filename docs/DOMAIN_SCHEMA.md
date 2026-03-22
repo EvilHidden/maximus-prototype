@@ -117,10 +117,13 @@ The current prototype runtime is:
   - creates a local normalized database seeded relative to the current date
 - `src/db/adapters.ts`
   - adapts canonical records into current screen-facing view models
+- `src/db/appRuntime.ts`
+  - provides the single app-facing bootstrap boundary consumed by `App.tsx`
 
 This means:
 - business truth lives in the schema/runtime layer
 - UI compatibility is preserved through adapters
+- app bootstrap should happen through one runtime entry point instead of hand-wiring multiple adapters at the app root
 - future PostgreSQL migration starts from the normalized model, not from scattered fixture arrays
 
 ## Migration intent

@@ -22,7 +22,7 @@ This repo is structured for fast two-person prototyping:
 - `src/state/`
   - reducer-driven app and order workflow state
 - `src/data/`
-  - seeded domain fixtures split by concern
+  - static lookup data, catalogs, navigation, and UI-facing config
 - `src/db/`
   - normalized prototype database schema, runtime seed generation, and adapters back to UI models
 - `src/features/order/`
@@ -34,13 +34,26 @@ This repo is structured for fast two-person prototyping:
 
 ## Working rules
 
-- Put new seeded scenarios and catalogs in `src/data/`
-- Put canonical business entities, relationships, and runtime-relative seed logic in `src/db/`
+- Put static lookup data and catalogs in `src/data/`
+- Put canonical business entities, relationships, runtime-relative seed logic, and app bootstrap data in `src/db/`
 - Put derived view logic in feature `selectors.ts` files, not inside screens
 - Put reusable interaction patterns in `src/components/ui/primitives.tsx`
 - Put shared pill and badge patterns in `src/components/ui/pills.tsx`
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching
+
+## Runtime entry point
+
+The app should consume canonical prototype business data through `src/db/appRuntime.ts`.
+
+- `src/db/runtime.ts`
+  - builds the normalized local prototype database relative to the current date
+- `src/db/adapters.ts`
+  - adapts canonical records into current UI-facing view models
+- `src/db/appRuntime.ts`
+  - the single app-facing bootstrap boundary used by `App.tsx`
+
+If you need to change seeded customers, appointments, open orders, readiness, pickup state, or order history, start from `src/db/` and only fall back to `src/data/` for static lookup/config work.
 
 ## Shared pills
 

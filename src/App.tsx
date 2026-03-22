@@ -1,5 +1,5 @@
 import { useMemo, useReducer, useState } from "react";
-import { createPrototypeDatabase, adaptAppointments, adaptClosedOrderHistory, adaptCustomerOrders, adaptCustomers, adaptMeasurementSets, adaptOpenOrders } from "./db";
+import { createAppRuntime } from "./db";
 import { useThemePreference } from "./hooks/useThemePreference";
 import type { Appointment, Customer, MeasurementSet, WorkflowMode } from "./types";
 import { AppShell } from "./components/layout/AppShell";
@@ -21,13 +21,15 @@ import {
 } from "./features/measurements/service";
 
 export default function App() {
-  const prototypeDatabase = useMemo(() => createPrototypeDatabase(), []);
-  const customers = useMemo(() => adaptCustomers(prototypeDatabase), [prototypeDatabase]);
-  const customerOrders = useMemo(() => adaptCustomerOrders(prototypeDatabase), [prototypeDatabase]);
-  const baseAppointments = useMemo(() => adaptAppointments(prototypeDatabase), [prototypeDatabase]);
-  const baseMeasurementSets = useMemo(() => adaptMeasurementSets(prototypeDatabase), [prototypeDatabase]);
-  const initialOpenOrders = useMemo(() => adaptOpenOrders(prototypeDatabase), [prototypeDatabase]);
-  const closedOrderHistory = useMemo(() => adaptClosedOrderHistory(prototypeDatabase), [prototypeDatabase]);
+  const appRuntime = useMemo(() => createAppRuntime(), []);
+  const {
+    customers,
+    customerOrders,
+    appointments: baseAppointments,
+    measurementSets: baseMeasurementSets,
+    openOrders: initialOpenOrders,
+    closedOrderHistory,
+  } = appRuntime;
 
   const [state, dispatch] = useReducer(appReducer, initialOpenOrders, createInitialAppState);
   const [measurementSets, setMeasurementSets] = useState<MeasurementSet[]>(baseMeasurementSets);
