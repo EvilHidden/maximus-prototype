@@ -152,14 +152,14 @@ export function getCustomEventTypeLabel(eventType: CustomOrderEventType) {
 
 export function getOpenOrderTypeLabel(orderType: OrderType) {
   if (orderType === "custom") {
-    return "Custom garment order";
+    return "Custom Garment";
   }
 
   if (orderType === "mixed") {
-    return "Mixed order";
+    return "Custom + Alterations";
   }
 
-  return "Alteration order";
+  return "Alterations";
 }
 
 export function getRequiredPickupScopes(order: OrderWorkflowState): WorkflowMode[] {

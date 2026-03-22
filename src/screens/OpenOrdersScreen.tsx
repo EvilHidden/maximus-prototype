@@ -190,8 +190,8 @@ function SearchFilterBar({
         >
           <option value="all">All order types</option>
           <option value="alteration">Alterations</option>
-          <option value="custom">Custom</option>
-          <option value="mixed">Mixed</option>
+          <option value="custom">Custom Garment</option>
+          <option value="mixed">Custom + Alterations</option>
         </select>
       </label>
 
