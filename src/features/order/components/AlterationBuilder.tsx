@@ -1,6 +1,6 @@
 import { Scissors, TriangleAlert } from "lucide-react";
 import type { AlterationService } from "../../../types";
-import { ActionButton, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, Surface, cx } from "../../../components/ui/primitives";
 import { getAlterationGarmentVisual } from "../alterationGarmentVisuals";
 import { getAlterationServiceIcon, getAlterationServiceIconClassName } from "../alterationServiceVisuals";
 
@@ -39,25 +39,24 @@ export function AlterationBuilder({
   const showValidationBanner = showValidation && (missingGarment || missingServices);
 
   return (
-    <div className="app-work-surface flex h-full min-h-0 flex-col p-4">
+    <Surface tone="work" className="flex h-full min-h-0 flex-col p-4">
       <SectionHeader icon={Scissors} title="Alteration intake" subtitle="Build line item" />
 
       {showValidationBanner ? (
-        <div className="mb-4 flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/55 px-4 py-3">
-          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-danger-text)]" />
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <StatusPill tone="danger">Add to cart is blocked</StatusPill>
-            </div>
-            <div className="mt-2 app-text-caption text-[var(--app-danger-text)]">
-              {missingGarment && missingServices
-                ? "Choose a garment and at least one alteration service to build this line item."
-                : missingGarment
-                  ? "Choose the garment first."
-                  : "Pick at least one alteration service for this garment."}
-            </div>
+        <Callout
+          tone="danger"
+          icon={TriangleAlert}
+          title={<StatusPill tone="danger">Add to cart is blocked</StatusPill>}
+          className="mb-4"
+        >
+          <div className="app-text-caption">
+            {missingGarment && missingServices
+              ? "Choose a garment and at least one alteration service to build this line item."
+              : missingGarment
+                ? "Choose the garment first."
+                : "Pick at least one alteration service for this garment."}
           </div>
-        </div>
+        </Callout>
       ) : null}
 
       <div
@@ -134,7 +133,7 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <div className="app-support-rail mt-4 xl:mt-5 flex flex-wrap items-start justify-between gap-3 p-4">
+      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-3 p-4 xl:mt-5">
         <div className="shrink-0">
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption mt-1">
@@ -163,7 +162,7 @@ export function AlterationBuilder({
             Add to Cart
           </ActionButton>
         </div>
-      </div>
-    </div>
+      </Surface>
+    </Surface>
   );
 }

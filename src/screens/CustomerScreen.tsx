@@ -1,7 +1,7 @@
 import { ChevronRight, Mail, MapPin, Phone, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../types";
-import { ActionButton, EmptyState, SectionHeader } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SearchField, SectionHeader, Surface } from "../components/ui/primitives";
 import { MeasurementStatusPill, VipPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
@@ -119,30 +119,26 @@ export function CustomerScreen({
           subtitle="Service directory"
         />
 
-        <div className="flex flex-wrap items-end gap-3">
-          <label className="block min-w-[320px] flex-1">
-            <div className="app-text-overline mb-2">Search customers</div>
-            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
-              <div className="flex items-center gap-3">
-                <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
-                <input
-                  value={query}
-                  onChange={(event) => setQuery(event.target.value)}
-                  placeholder="Search by name, phone, customer ID, or notes"
-                  className="min-w-0 flex-1 border-0 bg-transparent p-0 app-text-body outline-none placeholder:text-[var(--app-text-soft)]"
-                />
-              </div>
-            </div>
-          </label>
-          <ActionButton
-            tone="primary"
-            className="min-h-[3.625rem] px-4 py-2.5 text-sm"
-            onClick={() => setEditorMode("add")}
-          >
-            <Plus className="h-4 w-4" />
-            Add customer
-          </ActionButton>
-        </div>
+        <Surface tone="control" className="p-4">
+          <div className="flex flex-wrap items-end gap-3">
+            <SearchField
+              label="Search customers"
+              value={query}
+              onChange={setQuery}
+              placeholder="Search by name, phone, customer ID, or notes"
+              icon={Search}
+              className="min-w-[320px] flex-1"
+            />
+            <ActionButton
+              tone="primary"
+              className="min-h-[3.625rem] px-4 py-2.5 text-sm"
+              onClick={() => setEditorMode("add")}
+            >
+              <Plus className="h-4 w-4" />
+              Add customer
+            </ActionButton>
+          </div>
+        </Surface>
 
         <div className="border-t border-[var(--app-border)]/55 pt-4">
           <div className="flex items-center justify-between gap-3">

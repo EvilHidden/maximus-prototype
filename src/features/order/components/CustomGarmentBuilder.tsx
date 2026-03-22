@@ -1,5 +1,5 @@
 import { CheckSquare, Layers3, Shirt, TriangleAlert, Type } from "lucide-react";
-import { ActionButton, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, Surface, cx } from "../../../components/ui/primitives";
 import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
@@ -221,7 +221,7 @@ export function CustomGarmentBuilder({
 
   return (
     <>
-      <div className="app-work-surface p-4">
+      <Surface tone="work" className="p-4">
         <SectionHeader
           icon={Shirt}
           title={isEditing ? "Edit custom garment" : "Custom garment"}
@@ -229,28 +229,29 @@ export function CustomGarmentBuilder({
         />
 
         {showValidationBanner ? (
-          <div className="mb-4 flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/55 px-4 py-3">
-            <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-danger-text)]" />
-            <div className="min-w-0">
-              <StatusPill tone="danger">{isEditing ? "Save changes is blocked" : "Add to cart is blocked"}</StatusPill>
-              <div className="mt-2 flex flex-wrap gap-2">
-                {missingGender ? <span className="app-text-caption text-[var(--app-danger-text)]">Gender</span> : null}
-                {missingGarment ? <span className="app-text-caption text-[var(--app-danger-text)]">Garment</span> : null}
-                {missingWearer ? <span className="app-text-caption text-[var(--app-danger-text)]">Wearer</span> : null}
-                {missingMeasurements ? <span className="app-text-caption text-[var(--app-danger-text)]">Measurements</span> : null}
-                {missingBuildDetails ? <span className="app-text-caption text-[var(--app-danger-text)]">Build details</span> : null}
-                {missingStyleDetails ? <span className="app-text-caption text-[var(--app-danger-text)]">Jacket style details</span> : null}
-              </div>
+          <Callout
+            tone="danger"
+            icon={TriangleAlert}
+            title={<StatusPill tone="danger">{isEditing ? "Save changes is blocked" : "Add to cart is blocked"}</StatusPill>}
+            className="mb-4"
+          >
+            <div className="mt-0.5 flex flex-wrap gap-2">
+              {missingGender ? <span className="app-text-caption">Gender</span> : null}
+              {missingGarment ? <span className="app-text-caption">Garment</span> : null}
+              {missingWearer ? <span className="app-text-caption">Wearer</span> : null}
+              {missingMeasurements ? <span className="app-text-caption">Measurements</span> : null}
+              {missingBuildDetails ? <span className="app-text-caption">Build details</span> : null}
+              {missingStyleDetails ? <span className="app-text-caption">Jacket style details</span> : null}
             </div>
-          </div>
+          </Callout>
         ) : null}
 
         {isEditing ? (
-          <div className="mb-4 rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3.5">
+          <Callout tone="default" className="mb-4">
             <div className="app-text-overline">Editing</div>
             <div className="app-text-value mt-1">{editingLabel ?? "Custom garment"}</div>
             <div className="app-text-caption mt-1">Changes will update the existing line item instead of adding a new one.</div>
-          </div>
+          </Callout>
         ) : null}
 
         <div className="space-y-6">
@@ -439,9 +440,9 @@ export function CustomGarmentBuilder({
             )}
           </div>
         </div>
-      </div>
+      </Surface>
 
-      <div className="app-support-rail flex items-center justify-between gap-4 px-4 py-3.5">
+      <Surface tone="support" className="flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0 flex-1">
           <div className="app-text-overline">{isEditing ? "Current garment" : "Ready to add"}</div>
           <div className="app-text-caption mt-1">
@@ -469,7 +470,7 @@ export function CustomGarmentBuilder({
             {isEditing ? "Save changes" : "Add to Cart"}
           </ActionButton>
         </div>
-      </div>
+      </Surface>
     </>
   );
 }

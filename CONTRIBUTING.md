@@ -4,6 +4,8 @@ This repo is built for fast prototype work by two contributors at the same time.
 
 The goal is not heavyweight process. The goal is fewer collisions, clearer handoffs, and more reliable merges.
 
+When the work touches shared UI foundations, also check [`docs/UI_SYSTEM_BLUEPRINT.md`](/Users/daniel/Dev%20Work/maximus/docs/UI_SYSTEM_BLUEPRINT.md) so tokens, primitives, and screen composition stay aligned with the future `WeWeb + Xano` target.
+
 ## Default workflow
 
 1. Start from up-to-date `main`.

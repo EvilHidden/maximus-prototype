@@ -4,6 +4,8 @@ This is an operational prototype, not a luxury marketing site and not a producti
 
 The goal is consistency, speed, and readability.
 
+For system architecture, portability, and layer ownership, use [`docs/UI_SYSTEM_BLUEPRINT.md`](/Users/daniel/Dev%20Work/maximus/docs/UI_SYSTEM_BLUEPRINT.md) alongside this guide.
+
 ## Product tone
 
 - operational
@@ -35,6 +37,8 @@ Do not invent local text stacks unless there is a strong reason.
 
 - Keep screens composition-focused.
 - Put complex interaction patterns into feature components.
+- Use `SurfaceHeader` when a section inside a work or support surface needs its own title/subtitle/meta row.
+- Use `SelectionChip` for repeated tabs, mode pills, and filter chips instead of rebuilding selected/unselected button states inline.
 - Prefer a main work surface plus a supporting rail when the workflow benefits from it.
 - For operational pages, standardize around three layers:
   - `app-control-deck` for search, filters, mode toggles, and queue rails
@@ -59,6 +63,7 @@ Do not invent local text stacks unless there is a strong reason.
   - `app-table-row`
 - If Customers has already established the correct table treatment for a pattern, other screens should follow that same shell, row border, and hover language instead of inventing a local variant.
 - Calendar-first screens can stay calendar-first, but the shell around the calendar should still use the same plane language as the rest of the app.
+- Use `CalendarDayCard` for reusable day-cell framing before inventing a new day button treatment.
 - Support rails should feel attached to the page plane, not like a second application floating beside the main work.
 
 ## Orders language
@@ -100,9 +105,18 @@ Do not invent local text stacks unless there is a strong reason.
 ## Buttons and actions
 
 - Buttons should be one clear row or one clear stack.
+- Use `QuickActionTile` for repeated launcher tiles like front-desk entry points instead of rebuilding the tile shell locally.
 - Avoid long labels that wrap if the action can be made shorter.
 - Icon-first actions are fine for dense utility areas, but the label still needs to be understandable.
 - If a set of actions appears more than once, extract a pattern.
+
+## Callouts
+
+- Use the shared `Callout` primitive for validation blocks, edit-context notices, and workflow warnings.
+- Do not hand-roll new alert boxes with one-off border/background combinations when the meaning matches an existing tone.
+- Keep callouts short and operational:
+  - what is blocked or changing
+  - what the operator needs to do next
 
 ## Cards
 

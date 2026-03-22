@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ClipboardList, Clock3, MapPin, PackageCheck, PackageSearch, Search, type LucideIcon } from "lucide-react";
 import type { Appointment, ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../types";
-import { ActionButton, EmptyState, SectionHeader, StatusPill, cx } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SearchField, SectionHeader, SelectField, SelectionChip, StatusPill, SurfaceHeader, cx } from "../components/ui/primitives";
 import { CountPill, LocationPill, OrderStatusPill, PaymentStatusPill } from "../components/ui/pills";
 import {
   filterClosedOrderHistory,
@@ -98,18 +98,6 @@ const queueOverviewMeta: Array<{
 
 const pickupLocations: Array<PickupLocation | "all"> = ["all", "Fifth Avenue", "Queens", "Long Island"];
 
-const selectedFilterClass =
-  "border-[var(--app-accent)] bg-[var(--app-surface-elevated)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)] shadow-[inset_0_0_0_1px_var(--app-accent)]";
-
-const selectedFilterCountClass =
-  "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]";
-
-const unselectedFilterClass =
-  "border-[var(--app-border)] bg-[var(--app-surface-muted)]/30 text-[var(--app-text-muted)] hover:text-[var(--app-text)]";
-
-const unselectedFilterCountClass =
-  "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]";
-
 function formatWorklistTotal(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -149,11 +137,11 @@ function getWorklistPhaseLabel(phase: string) {
 
 function getWorklistPhaseClass(phase: string) {
   if (phase === "Overdue") {
-    return "text-[var(--app-danger)]";
+    return "text-[var(--app-danger-text)]";
   }
 
   if (phase === "Ready for pickup") {
-    return "text-[var(--app-success)]";
+    return "text-[var(--app-success-text)]";
   }
 
   return "text-[var(--app-text)]";
@@ -171,18 +159,15 @@ function OpenSectionHeader({
   subtitle: string;
 }) {
   return (
-    <div className="flex items-start justify-between gap-3 border-b border-[var(--app-border)]/45 pb-3">
-      <div className="flex items-start gap-3">
-        <div className="app-icon-chip">
-          <Icon className="h-4 w-4" />
-        </div>
-        <div>
-          <div className="app-text-value">{title}</div>
-          <div className="app-text-caption mt-1">{subtitle}</div>
-        </div>
-      </div>
-      <CountPill count={count} />
-    </div>
+    <SurfaceHeader
+      icon={Icon}
+      title={title}
+      subtitle={subtitle}
+      meta={<CountPill count={count} />}
+      className="border-b border-[var(--app-border)]/45 pb-3"
+      titleClassName="app-text-value"
+      subtitleClassName="app-text-caption"
+    />
   );
 }
 
@@ -203,49 +188,39 @@ function SearchFilterBar({
 }) {
   return (
     <div className="flex flex-wrap items-end gap-3">
-      <label className="block min-w-[280px] flex-1">
-        <div className="app-text-overline mb-2">Search work and orders</div>
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
-          <div className="flex items-center gap-3">
-            <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
-            <input
-              value={query}
-              onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="Search by customer, garment, order ID, or pickup details"
-              className="min-w-0 flex-1 border-0 bg-transparent p-0 app-text-body outline-none placeholder:text-[var(--app-text-soft)]"
-            />
-          </div>
-        </div>
-      </label>
+      <SearchField
+        label="Search work and orders"
+        value={query}
+        onChange={onQueryChange}
+        placeholder="Search by customer, garment, order ID, or pickup details"
+        icon={Search}
+        className="min-w-[280px] flex-1"
+      />
 
-      <label className="block min-w-[180px]">
-        <div className="app-text-overline mb-2">Type</div>
-        <select
-          value={typeFilter}
-          onChange={(event) => onTypeFilterChange(event.target.value as OrderType | "all")}
-          className="min-h-[3.625rem] w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 app-text-body shadow-[var(--app-shadow-sm)] outline-none"
-        >
+      <SelectField
+        label="Type"
+        value={typeFilter}
+        onChange={(value) => onTypeFilterChange(value as OrderType | "all")}
+        className="min-w-[180px]"
+      >
           <option value="all">All order types</option>
           <option value="alteration">Alterations</option>
           <option value="custom">Custom Garment</option>
           <option value="mixed">Custom + Alterations</option>
-        </select>
-      </label>
+      </SelectField>
 
-      <label className="block min-w-[180px]">
-        <div className="app-text-overline mb-2">Location</div>
-        <select
-          value={locationFilter}
-          onChange={(event) => onLocationFilterChange(event.target.value as PickupLocation | "all")}
-          className="min-h-[3.625rem] w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 app-text-body shadow-[var(--app-shadow-sm)] outline-none"
-        >
+      <SelectField
+        label="Location"
+        value={locationFilter}
+        onChange={(value) => onLocationFilterChange(value as PickupLocation | "all")}
+        className="min-w-[180px]"
+      >
           {pickupLocations.map((location) => (
             <option key={location} value={location}>
               {location === "all" ? "All locations" : location}
             </option>
           ))}
-        </select>
-      </label>
+      </SelectField>
     </div>
   );
 }
@@ -263,28 +238,26 @@ function QueueStrip({
     <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
       <div className="flex min-w-max gap-2 px-1">
         {queueMeta.map((queue) => (
-          <button
+          <SelectionChip
             key={queue.key}
+            selected={activeQueue === queue.key}
             onClick={() => onQueueChange(queue.key)}
-            className={cx(
-              "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3 py-2 transition",
-              activeQueue === queue.key
-                ? selectedFilterClass
-                : unselectedFilterClass,
-            )}
+            className={activeQueue === queue.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
+            trailing={
+              <CountPill
+                count={counts[queue.key]}
+                icon={undefined}
+                className={cx(
+                  "px-2 py-0.5 text-[11px]",
+                  activeQueue === queue.key
+                    ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                    : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+                )}
+              />
+            }
           >
-            <span className="app-text-body font-medium">{queue.label}</span>
-            <CountPill
-              count={counts[queue.key]}
-              icon={undefined}
-              className={cx(
-                "px-2 py-0.5 text-[11px]",
-                activeQueue === queue.key
-                  ? selectedFilterCountClass
-                  : unselectedFilterCountClass,
-              )}
-            />
-          </button>
+            {queue.label}
+          </SelectionChip>
         ))}
       </div>
     </div>
@@ -639,28 +612,26 @@ export function OpenOrdersScreen({
                 { key: "all", label: "Order registry", count: baseOpenOrders.length },
                 { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
               ] as const).map((view) => (
-                <button
+                <SelectionChip
                   key={view.key}
+                  selected={activeView === view.key}
                   onClick={() => setActiveView(view.key)}
-                  className={cx(
-                    "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
-                    activeView === view.key
-                      ? selectedFilterClass
-                      : unselectedFilterClass,
-                  )}
+                  className={activeView === view.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
+                  trailing={
+                    <CountPill
+                      count={view.count}
+                      icon={undefined}
+                      className={cx(
+                        "px-2 py-0.5 text-[11px]",
+                        activeView === view.key
+                          ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                          : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+                      )}
+                    />
+                  }
                 >
                   {view.label}
-                  <CountPill
-                    count={view.count}
-                    icon={undefined}
-                    className={cx(
-                      "px-2 py-0.5 text-[11px]",
-                      activeView === view.key
-                        ? selectedFilterCountClass
-                        : unselectedFilterCountClass,
-                    )}
-                  />
-                </button>
+                </SelectionChip>
               ))}
             </div>
 

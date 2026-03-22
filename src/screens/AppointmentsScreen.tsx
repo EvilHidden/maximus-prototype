@@ -1,7 +1,7 @@
 import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Appointment } from "../types";
-import { ActionButton, EmptyState, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { ActionButton, CalendarDayCard, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader } from "../components/ui/primitives";
 
 type AppointmentsScreenProps = {
   appointments: Appointment[];
@@ -149,7 +149,7 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
       />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
-        <div className="app-work-surface p-4">
+        <Surface tone="work" className="p-4">
 
           <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)]">
             <div className="grid grid-cols-7 gap-2.5">
@@ -171,29 +171,15 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
                 const hasAppointments = dayAppointments.length > 0;
 
                 return (
-                  <button
+                  <CalendarDayCard
                     key={dayKey}
-                    type="button"
+                    dayNumber={day.getDate()}
+                    isSelected={isSelected}
+                    isToday={isToday}
+                    isCurrentMonth={isCurrentMonth}
+                    hasItems={hasAppointments}
                     onClick={() => setSelectedDateKey(dayKey)}
-                    className={`flex min-h-[118px] flex-col items-stretch justify-start rounded-[var(--app-radius-md)] border px-2.5 py-2 text-left align-top transition-colors ${
-                      isSelected
-                        ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[inset_0_0_0_1px_var(--app-accent)]"
-                        : isToday
-                          ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]"
-                          : isCurrentMonth
-                            ? "border-[var(--app-border)]/75 bg-[var(--app-surface)]"
-                            : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/16 opacity-60"
-                    }`}
                   >
-                    <div className="mb-2 flex items-center justify-between gap-2">
-                      <div className={isSelected || isToday ? "app-text-strong" : "app-text-body font-medium"}>
-                        {day.getDate()}
-                      </div>
-                      {hasAppointments ? (
-                        <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--app-accent)] opacity-70" />
-                      ) : null}
-                    </div>
-
                     <div className="space-y-1.5">
                       {dayAppointments.slice(0, 1).map((appointment) => (
                         <div
@@ -217,31 +203,32 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
                         <div className="h-[54px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10" />
                       )}
                     </div>
-                  </button>
+                  </CalendarDayCard>
                 );
               })}
             </div>
           </div>
-        </div>
+        </Surface>
 
-        <div className="app-support-rail flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
-          <div className="mb-3 flex items-start justify-between gap-3">
-            <div>
-              <div className="app-section-title">Upcoming schedule</div>
-              <div className="app-section-copy">{railSubtitle}</div>
-            </div>
-            <div className="w-[96px] shrink-0 text-right">
-              {selectedDateKey ? (
-                <ActionButton
-                  tone="quiet"
-                  className="whitespace-nowrap px-2.5 py-1.5 text-xs"
-                  onClick={() => setSelectedDateKey(null)}
-                >
-                  Show all
-                </ActionButton>
-              ) : null}
-            </div>
-          </div>
+        <Surface tone="support" as="aside" className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
+          <SurfaceHeader
+            title="Upcoming schedule"
+            subtitle={railSubtitle}
+            className="mb-3"
+            meta={
+              selectedDateKey ? (
+                <div className="w-[96px] shrink-0 text-right">
+                  <ActionButton
+                    tone="quiet"
+                    className="whitespace-nowrap px-2.5 py-1.5 text-xs"
+                    onClick={() => setSelectedDateKey(null)}
+                  >
+                    Show all
+                  </ActionButton>
+                </div>
+              ) : null
+            }
+          />
           {railAppointments.length === 0 ? (
             <EmptyState className="mt-1">No appointments scheduled.</EmptyState>
           ) : (
@@ -275,7 +262,7 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
               ))}
             </div>
           )}
-        </div>
+        </Surface>
       </div>
     </div>
   );
