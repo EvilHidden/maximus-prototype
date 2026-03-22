@@ -202,7 +202,7 @@ function SearchFilterBar({
   onLocationFilterChange: (value: PickupLocation | "all") => void;
 }) {
   return (
-    <div className="flex flex-wrap items-end gap-3 border-b border-[var(--app-border)]/55 pb-4">
+    <div className="flex flex-wrap items-end gap-3">
       <label className="block min-w-[280px] flex-1">
         <div className="app-text-overline mb-2">Search work and orders</div>
         <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
@@ -259,11 +259,13 @@ function QueueStrip({
   onQueueChange: (queue: OrdersQueueKey) => void;
   counts: Record<OrdersQueueKey, number>;
 }) {
+  const primaryQueues = queueMeta.filter((queue) => queue.key !== "scheduled_pickups");
+  const pickupQueue = queueMeta.find((queue) => queue.key === "scheduled_pickups");
+
   return (
-    <div className="space-y-3 border-b border-[var(--app-border)]/55 pb-4">
-      <div className="app-text-overline">Focus the worklist</div>
+    <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
-        {queueMeta.map((queue) => (
+        {primaryQueues.map((queue) => (
           <button
             key={queue.key}
             onClick={() => onQueueChange(queue.key)}
@@ -288,6 +290,31 @@ function QueueStrip({
           </button>
         ))}
       </div>
+      {pickupQueue ? (
+        <div className="flex justify-start">
+          <button
+            onClick={() => onQueueChange(pickupQueue.key)}
+            className={cx(
+              "inline-flex min-h-9 items-center gap-2 rounded-[var(--app-radius-md)] border px-3 py-2 transition",
+              activeQueue === pickupQueue.key
+                ? selectedFilterClass
+                : unselectedFilterClass,
+            )}
+          >
+            <span className="app-text-caption font-medium">{pickupQueue.label}</span>
+            <CountPill
+              count={counts[pickupQueue.key]}
+              icon={undefined}
+              className={cx(
+                "px-2 py-0.5 text-[11px]",
+                activeQueue === pickupQueue.key
+                  ? selectedFilterCountClass
+                  : unselectedFilterCountClass,
+              )}
+            />
+          </button>
+        </div>
+      ) : null}
     </div>
   );
 }
@@ -657,50 +684,50 @@ export function OpenOrdersScreen({
 
   return (
     <div className="space-y-4">
-      <Card className="p-4">
-        <SectionHeader
-          icon={ClipboardList}
-          title="Orders"
-          subtitle={activeSubtitle}
-          action={
-            <ActionButton tone="primary" className="px-3 py-2 text-xs" onClick={onStartNewOrder}>
-              New order
-            </ActionButton>
-          }
-        />
+      <Card className="overflow-hidden p-0">
+        <div className="space-y-5 border-b border-[var(--app-border)]/55 px-4 py-4">
+          <SectionHeader
+            icon={ClipboardList}
+            title="Orders"
+            subtitle={activeSubtitle}
+            action={
+              <ActionButton tone="primary" className="px-3 py-2 text-xs" onClick={onStartNewOrder}>
+                New order
+              </ActionButton>
+            }
+          />
 
-        <div className="mb-4 flex flex-wrap gap-2 border-b border-[var(--app-border)] pb-4">
-          {([
-            { key: "queues", label: "Worklist", count: queueCounts.all },
-            { key: "all", label: "Order registry", count: baseOpenOrders.length },
-            { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
-          ] as const).map((view) => (
-            <button
-              key={view.key}
-              onClick={() => setActiveView(view.key)}
-              className={cx(
-                "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
-                activeView === view.key
-                  ? selectedFilterClass
-                  : unselectedFilterClass,
-              )}
-            >
-              {view.label}
-              <CountPill
-                count={view.count}
-                icon={undefined}
+          <div className="flex flex-wrap gap-2">
+            {([
+              { key: "queues", label: "Worklist", count: queueCounts.all },
+              { key: "all", label: "Order registry", count: baseOpenOrders.length },
+              { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
+            ] as const).map((view) => (
+              <button
+                key={view.key}
+                onClick={() => setActiveView(view.key)}
                 className={cx(
-                  "px-2 py-0.5 text-[11px]",
+                  "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
                   activeView === view.key
-                    ? selectedFilterCountClass
-                    : unselectedFilterCountClass,
+                    ? selectedFilterClass
+                    : unselectedFilterClass,
                 )}
-              />
-            </button>
-          ))}
-        </div>
+              >
+                {view.label}
+                <CountPill
+                  count={view.count}
+                  icon={undefined}
+                  className={cx(
+                    "px-2 py-0.5 text-[11px]",
+                    activeView === view.key
+                      ? selectedFilterCountClass
+                      : unselectedFilterCountClass,
+                  )}
+                />
+              </button>
+            ))}
+          </div>
 
-        <div className="space-y-4">
           <SearchFilterBar
             query={query}
             onQueryChange={setQuery}
@@ -711,25 +738,13 @@ export function OpenOrdersScreen({
           />
 
           {activeView === "queues" ? (
-            <div className="space-y-6">
+            <div className="space-y-5">
               <QueueStrip activeQueue={activeQueue} onQueueChange={setActiveQueue} counts={queueCounts} />
-
-              {activeQueue === "all" ? (
-                <QueueOverview counts={queueCounts} onQueueChange={setActiveQueue} />
-              ) : (
-                <QueueSection
-                  icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
-                  title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-                  subtitle={queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."}
-                  openOrders={filteredQueueOrders}
-                  pickupAppointments={filteredQueuePickups}
-                  onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                  emptyMessage="Nothing matches this queue and filter combination."
-                />
-              )}
             </div>
           ) : null}
+        </div>
 
+        <div className="px-4 py-5">
           {activeView === "all" ? (
             baseOpenOrders.length === 0 ? (
               <EmptyState>No active orders match this search and filter set.</EmptyState>
@@ -744,6 +759,22 @@ export function OpenOrdersScreen({
                   </div>
                 ))}
               </div>
+            )
+          ) : null}
+
+          {activeView === "queues" ? (
+            activeQueue === "all" ? (
+              <QueueOverview counts={queueCounts} onQueueChange={setActiveQueue} />
+            ) : (
+              <QueueSection
+                icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
+                title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
+                subtitle={queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."}
+                openOrders={filteredQueueOrders}
+                pickupAppointments={filteredQueuePickups}
+                onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+                emptyMessage="Nothing matches this queue and filter combination."
+              />
             )
           ) : null}
 
