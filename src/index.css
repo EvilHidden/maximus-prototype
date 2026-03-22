@@ -411,6 +411,15 @@ button {
   border-top: 1px solid var(--app-border);
 }
 
+.app-no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.app-no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
 svg {
   color: inherit;
 }
