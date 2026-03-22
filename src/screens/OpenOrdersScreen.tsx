@@ -134,7 +134,7 @@ function SearchFilterBar({
     <div className="flex flex-wrap items-end gap-3 border-b border-[var(--app-border)]/55 pb-4">
       <label className="block min-w-[280px] flex-1">
         <div className="app-text-overline mb-2">Search orders</div>
-        <div className="rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
+        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
           <div className="flex items-center gap-3">
             <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
             <input
@@ -152,7 +152,7 @@ function SearchFilterBar({
         <select
           value={typeFilter}
           onChange={(event) => onTypeFilterChange(event.target.value as OrderType | "all")}
-          className="min-h-[3.625rem] w-full rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 app-text-body shadow-[var(--app-shadow-sm)] outline-none"
+          className="min-h-[3.625rem] w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 app-text-body shadow-[var(--app-shadow-sm)] outline-none"
         >
           <option value="all">All order types</option>
           <option value="alteration">Alterations</option>
@@ -166,7 +166,7 @@ function SearchFilterBar({
         <select
           value={locationFilter}
           onChange={(event) => onLocationFilterChange(event.target.value as PickupLocation | "all")}
-          className="min-h-[3.625rem] w-full rounded-[var(--app-radius-lg)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 app-text-body shadow-[var(--app-shadow-sm)] outline-none"
+          className="min-h-[3.625rem] w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3 app-text-body shadow-[var(--app-shadow-sm)] outline-none"
         >
           {pickupLocations.map((location) => (
             <option key={location} value={location}>
