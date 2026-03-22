@@ -55,7 +55,7 @@ export function OrderScreen({
 
   return (
     <div className="space-y-4">
-      <SectionHeader icon={Receipt} title="Order Builder" subtitle="Compose tailoring work and prepare checkout." />
+      <SectionHeader icon={Receipt} title="Create Order" subtitle="Set up tailoring work and prepare checkout." />
 
       <div
         className={cx(
