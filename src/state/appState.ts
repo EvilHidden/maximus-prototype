@@ -1,4 +1,4 @@
-import { measurementFields, openOrders as initialOpenOrders } from "../data";
+import { measurementFields } from "../data";
 import type {
   AlterationCheckoutIntent,
   AlterationService,
@@ -136,7 +136,7 @@ export function createInitialOrderState(): OrderWorkflowState {
   };
 }
 
-export function createInitialAppState(): AppState {
+export function createInitialAppState(initialOpenOrders: OpenOrder[] = []): AppState {
   return {
     screen: "home",
     selectedCustomerId: null,

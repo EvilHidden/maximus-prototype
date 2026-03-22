@@ -1,7 +1,6 @@
 import { ChevronRight, Mail, Phone, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import { customerOrders, customers } from "../data";
-import type { Customer, MeasurementSet, Screen } from "../types";
+import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../types";
 import { ActionButton, EmptyState, SectionHeader } from "../components/ui/primitives";
 import { MeasurementStatusPill, VipPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
@@ -13,6 +12,8 @@ import {
 } from "../features/customer/selectors";
 
 type CustomerScreenProps = {
+  customers: Customer[];
+  customerOrders: Record<string, CustomerOrder[]>;
   measurementSets: MeasurementSet[];
   selectedCustomer: Customer | null;
   onSelectCustomer: (customer: Customer) => void;
@@ -85,7 +86,14 @@ function CustomerRow({
   );
 }
 
-export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCustomer, onScreenChange }: CustomerScreenProps) {
+export function CustomerScreen({
+  customers,
+  customerOrders,
+  measurementSets,
+  selectedCustomer,
+  onSelectCustomer,
+  onScreenChange,
+}: CustomerScreenProps) {
   const { showToast } = useToast();
   const [customerRecords, setCustomerRecords] = useState<Customer[]>(customers);
   const [query, setQuery] = useState("");
