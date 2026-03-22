@@ -1,8 +1,9 @@
 import { ChevronRight, Mail, Phone, Plus, Search, Users } from "lucide-react";
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
 import { customerOrders, customers } from "../data";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import { ActionButton, EmptyState, SectionHeader, StatusPill } from "../components/ui/primitives";
+import { useToast } from "../components/ui/toast";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
 import {
@@ -88,11 +89,11 @@ function CustomerRow({
 }
 
 export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCustomer, onScreenChange }: CustomerScreenProps) {
+  const { showToast } = useToast();
   const [customerRecords, setCustomerRecords] = useState<Customer[]>(customers);
   const [query, setQuery] = useState("");
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(selectedCustomer?.id ?? null);
-  const [actionToast, setActionToast] = useState<string | null>(null);
   const [editorMode, setEditorMode] = useState<"add" | "edit" | null>(null);
 
   const filteredCustomers = useMemo(() => filterCustomers(customerRecords, query), [customerRecords, query]);
@@ -100,15 +101,6 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
     () => customerRecords.find((customer) => customer.id === activeCustomerId) ?? null,
     [customerRecords, activeCustomerId],
   );
-
-  useEffect(() => {
-    if (!actionToast) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setActionToast(null), 2400);
-    return () => window.clearTimeout(timeoutId);
-  }, [actionToast]);
 
   return (
     <div className="relative space-y-4">
@@ -191,12 +183,6 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
         </div>
       </div>
 
-      {actionToast ? (
-        <div className="pointer-events-none fixed bottom-5 right-5 z-50 max-w-[320px] rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-surface)] px-4 py-3 shadow-[var(--app-shadow-lg)]">
-          <div className="app-text-body font-medium">{actionToast}</div>
-        </div>
-      ) : null}
-
       {drawerOpen ? (
         <CustomerProfileDrawer
           customer={activeCustomer}
@@ -210,7 +196,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
             }
 
             setCustomerRecords((current) => current.filter((customer) => customer.id !== activeCustomer.id));
-            setActionToast(`${activeCustomer.name} deleted.`);
+            showToast(`${activeCustomer.name} deleted.`);
             setDrawerOpen(false);
             setActiveCustomerId(null);
           }}
@@ -234,7 +220,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
               setCustomerRecords((current) => [nextCustomer, ...current]);
               setActiveCustomerId(nextCustomer.id);
               onSelectCustomer(nextCustomer);
-              setActionToast(`${nextCustomer.name} added.`);
+              showToast(`${nextCustomer.name} added.`);
             } else if (activeCustomer) {
               const updatedCustomer: Customer = {
                 ...activeCustomer,
@@ -245,7 +231,7 @@ export function CustomerScreen({ measurementSets, selectedCustomer, onSelectCust
               );
               setActiveCustomerId(updatedCustomer.id);
               onSelectCustomer(updatedCustomer);
-              setActionToast(`${updatedCustomer.name} updated.`);
+              showToast(`${updatedCustomer.name} updated.`);
             }
 
             setEditorMode(null);

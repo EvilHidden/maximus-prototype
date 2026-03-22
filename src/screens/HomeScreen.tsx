@@ -8,9 +8,10 @@ import {
   Ruler,
   UserPlus,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
 import { ActionButton, Card, StatusPill, cx } from "../components/ui/primitives";
+import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
 
 type HomeScreenProps = {
@@ -241,7 +242,7 @@ function PickupLane({
 }
 
 export function HomeScreen({ appointments, pickupAppointments, onScreenChange, onStartWorkflow, onOpenAppointment }: HomeScreenProps) {
-  const [actionToast, setActionToast] = useState<string | null>(null);
+  const { showToast } = useToast();
   const [activeLocations, setActiveLocations] = useState<PickupLocation[]>(locationOptions);
   const filteredAppointments = appointments.filter((appointment) => activeLocations.includes(appointment.location));
   const todayAppointments = getTodayAppointments(filteredAppointments);
@@ -261,15 +262,6 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
   const todayPickups = pickups.filter((appointment) => appointment.date === todayKey);
   const tomorrowPickups = pickups.filter((appointment) => appointment.date === tomorrowKey);
   const allLocationsActive = activeLocations.length === locationOptions.length;
-
-  useEffect(() => {
-    if (!actionToast) {
-      return;
-    }
-
-    const timeoutId = window.setTimeout(() => setActionToast(null), 2400);
-    return () => window.clearTimeout(timeoutId);
-  }, [actionToast]);
 
   const actions: FrontDeskAction[] = [
     {
@@ -416,14 +408,14 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
             dateLabel={todayLabel}
             appointments={todayAppointments}
             onCreateOrder={onOpenAppointment}
-            onCancelAppointment={(appointment) => setActionToast(`Cancellation queued for ${appointment.customer}.`)}
+            onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
           />
           <AppointmentLane
             title="Tomorrow"
             dateLabel={tomorrowLabel}
             appointments={tomorrowAppointments}
             onCreateOrder={onOpenAppointment}
-            onCancelAppointment={(appointment) => setActionToast(`Cancellation queued for ${appointment.customer}.`)}
+            onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
           />
         </div>
       </Card>
@@ -471,14 +463,6 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
           />
         </div>
       </Card>
-
-      {actionToast ? (
-        <div className="pointer-events-none fixed bottom-5 left-1/2 z-40 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2">
-          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-accent)] px-4 py-3 text-sm font-medium text-[var(--app-accent-contrast)] shadow-[var(--app-shadow-lg)]">
-            {actionToast}
-          </div>
-        </div>
-      ) : null}
     </div>
   );
 }
