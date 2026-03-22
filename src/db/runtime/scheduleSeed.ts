@@ -271,7 +271,7 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       customerName: "Marcus Reed",
       workflow: "alteration",
       locationId: createLocationId("Queens"),
-      scheduledFor: toDateTimeString(withOffset(baseDate, 2, 14, 0)),
+      scheduledFor: toDateTimeString(withOffset(baseDate, 1, 14, 0)),
       source: "square",
       durationMinutes: 45,
       typeKey: "alteration_fitting",
