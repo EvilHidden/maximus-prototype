@@ -1,4 +1,6 @@
-import { AlertCircle, CalendarDays, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
+import { AlertCircle, CalendarDays, ChevronDown, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
+import type { ReactNode } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { Appointment } from "../../../types";
 import {
   ActionButton,
@@ -240,10 +242,25 @@ function AppointmentLane({
           subtitleClassName="app-text-caption"
         />
       </div>
-      <div>
-        {appointments.length ? (
+      <ScrollableLaneBody
+        itemCount={appointments.length}
+        emptyState={
+          <HomeLaneEmptyState
+            kind="appointment"
+            dayLabel={title}
+            dateLabel={dateLabel}
+            activeLocationLabel={activeLocationLabel}
+          />
+        }
+        renderRows={(hasOverflowRows) =>
           appointments.map((appointment) => (
-            <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
+            <div
+              key={appointment.id}
+              className={[
+                "app-table-row border-t border-[var(--app-border)]/55 px-4 py-4",
+                hasOverflowRows ? "min-h-[9.75rem] md:min-h-[10.5rem]" : "",
+              ].join(" ")}
+            >
               <ScheduleRow
                 appointment={appointment}
                 onCreateOrder={onCreateOrder}
@@ -251,15 +268,76 @@ function AppointmentLane({
               />
             </div>
           ))
-        ) : (
-          <HomeLaneEmptyState
-            kind="appointment"
-            dayLabel={title}
-            dateLabel={dateLabel}
-            activeLocationLabel={activeLocationLabel}
-          />
-        )}
-      </div>
+        }
+      />
+    </div>
+  );
+}
+
+function ScrollableLaneBody({
+  itemCount,
+  emptyState,
+  renderRows,
+}: {
+  itemCount: number;
+  emptyState: ReactNode;
+  renderRows: (hasOverflowRows: boolean) => ReactNode;
+}) {
+  const hasOverflowRows = itemCount > 3;
+  const scrollBodyRef = useRef<HTMLDivElement | null>(null);
+  const [showScrollHint, setShowScrollHint] = useState(hasOverflowRows);
+
+  useEffect(() => {
+    if (!hasOverflowRows) {
+      setShowScrollHint(false);
+      return;
+    }
+
+    const scrollBody = scrollBodyRef.current;
+    if (!scrollBody) {
+      return;
+    }
+
+    const syncScrollHint = () => {
+      setShowScrollHint(scrollBody.scrollTop + scrollBody.clientHeight < scrollBody.scrollHeight - 8);
+    };
+
+    syncScrollHint();
+    scrollBody.addEventListener("scroll", syncScrollHint, { passive: true });
+    window.addEventListener("resize", syncScrollHint);
+
+    return () => {
+      scrollBody.removeEventListener("scroll", syncScrollHint);
+      window.removeEventListener("resize", syncScrollHint);
+    };
+  }, [hasOverflowRows, itemCount]);
+
+  return (
+    <div className="relative">
+      {itemCount ? (
+        <>
+          <div
+            ref={scrollBodyRef}
+            className={
+              hasOverflowRows
+                ? "max-h-[calc(29.25rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar md:max-h-[calc(31.5rem+4px)]"
+                : ""
+            }
+          >
+            {renderRows(hasOverflowRows)}
+          </div>
+          {hasOverflowRows && showScrollHint ? (
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 items-end justify-center bg-gradient-to-t from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pb-3">
+              <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--app-border)]/75 bg-[var(--app-surface)]/96 px-3 py-1.5 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm">
+                <span className="app-text-overline text-[var(--app-text-soft)]">Scroll for more</span>
+                <ChevronDown className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+              </div>
+            </div>
+          ) : null}
+        </>
+      ) : (
+        emptyState
+      )}
     </div>
   );
 }
@@ -325,8 +403,17 @@ function PickupLane({
           subtitleClassName="app-text-caption"
         />
       </div>
-      <div>
-        {appointments.length ? (
+      <ScrollableLaneBody
+        itemCount={appointments.length}
+        emptyState={
+          <HomeLaneEmptyState
+            kind="pickup"
+            dayLabel={title}
+            dateLabel={dateLabel}
+            activeLocationLabel={activeLocationLabel}
+          />
+        }
+        renderRows={(hasOverflowRows) =>
           appointments.map((appointment) => (
             <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
               <PickupRow
@@ -336,15 +423,8 @@ function PickupLane({
               />
             </div>
           ))
-        ) : (
-          <HomeLaneEmptyState
-            kind="pickup"
-            dayLabel={title}
-            dateLabel={dateLabel}
-            activeLocationLabel={activeLocationLabel}
-          />
-        )}
-      </div>
+        }
+      />
     </div>
   );
 }
