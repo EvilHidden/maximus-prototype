@@ -184,7 +184,7 @@ export function CheckoutScreen({ payerCustomer, order, onScreenChange, onComplet
                 status: item.ready ? "Ready" : "Needs work",
               })),
               {
-                label: "Airtable write",
+                label: "Order save",
                 detail: checkoutBlocked ? "Blocked by missing checkout data" : "Order payload ready",
                 tone: checkoutBlocked ? "warn" : "dark",
                 status: checkoutBlocked ? "Blocked" : "Ready",

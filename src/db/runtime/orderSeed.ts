@@ -1,5 +1,4 @@
 import type {
-  DbAirtableLink,
   DbOrder,
   DbOrderScope,
   DbOrderScopeLine,
@@ -674,12 +673,5 @@ export function createSquareLinks(orders: DbOrder[]): DbSquareLink[] {
   return orders.map((order) => ({
     orderId: order.id,
     squareOrderId: `sq_order_${order.displayId.toLowerCase()}`,
-  }));
-}
-
-export function createAirtableLinks(orders: DbOrder[]): DbAirtableLink[] {
-  return orders.map((order) => ({
-    orderId: order.id,
-    airtableRecordId: `rec_${order.displayId.toLowerCase()}`,
   }));
 }

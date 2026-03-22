@@ -30,7 +30,6 @@ The goal is not to be production-perfect yet. The goal is to stop spreading busi
   - `complete`
 - May be linked to:
   - Square
-  - Airtable
 
 ### `order_scope`
 - The unit of fulfillment truth
@@ -90,12 +89,12 @@ UI note:
   - review appointments
   - wedding-party fittings
 
-Appointments are modeled as their own domain and should not be collapsed into generic order fields simply because Airtable currently lacks dedicated appointment tables.
+Appointments are modeled as their own domain and should not be collapsed into generic order fields just because a legacy operational surface was flatter.
 They should also remain expressive enough to carry normalized scheduling metadata and optional order/work associations.
 
 ### `measurement_set`
 - Versioned customer measurement history
-- Measurements should follow the most correct and flexible tailoring model, not Airtable's current fixed-column shape
+- Measurements should follow the most correct and flexible tailoring model, not a legacy fixed-column shape
 
 ### Reference definitions
 - The prototype also carries seeded operational reference tables for:
@@ -111,7 +110,7 @@ These now live under `src/db/` so operational lookup data is sourced from the sa
 - Square remains the payment processor of record
 - The prototype stores references and mirrored payment summaries, not card data
 
-### `square_link` / `airtable_link`
+### `square_link`
 - External system mapping tables
 - Keep external identifiers outside the tailoring-specific domain model
 
@@ -184,5 +183,5 @@ Short-term:
 
 Long-term:
 - replace adapter-era view-model shaping with direct query/repository patterns
-- map canonical local records to Square/Airtable integrations cleanly
+- map canonical local records to backend-owned integrations cleanly
 - translate this schema to PostgreSQL with minimal conceptual rework

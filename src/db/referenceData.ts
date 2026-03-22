@@ -90,6 +90,5 @@ export function createSeedReferenceData(): AppReferenceData {
     serviceAppointments: [],
     payments: [],
     squareLinks: [],
-    airtableLinks: [],
   });
 }

@@ -6,7 +6,6 @@ import {
   createMeasurementSets,
 } from "./runtime/customerSeed";
 import {
-  createAirtableLinks,
   createOrders,
   createOrderScopeLines,
   createOrderScopes,
@@ -57,7 +56,6 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const serviceAppointments = createServiceAppointments(seedDates);
   const payments = createPayments(seedDates);
   const squareLinks = createSquareLinks(orders);
-  const airtableLinks = createAirtableLinks(orders);
 
   return {
     generatedAt: toDateTimeString(seedDates.baseDate),
@@ -77,6 +75,5 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     serviceAppointments,
     payments,
     squareLinks,
-    airtableLinks,
   };
 }

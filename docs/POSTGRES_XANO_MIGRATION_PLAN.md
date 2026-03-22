@@ -93,7 +93,6 @@ Before each follow-up pass, review these issue classes repo-wide:
 - `payment_records`
 - `locations`
 - `square_links`
-- `airtable_links`
 
 ### Reference tables
 - `alteration_service_definitions`
@@ -114,7 +113,7 @@ Before each follow-up pass, review these issue classes repo-wide:
 
 ### Appointments
 - appointments remain their own first-class domain
-- appointments are not constrained by the current Airtable base shape
+- appointments are not constrained by any flatter legacy operational shape
 - canonical scheduling should support:
   - alterations
   - fittings
@@ -130,7 +129,6 @@ Before each follow-up pass, review these issue classes repo-wide:
   - typed appointment/status keys
 
 ### Measurements
-- Airtable is not the source of truth for measurements
 - keep the most flexible, robust canonical measurement model for PostgreSQL/Xano
 - if needed, flatten/unflatten only at integration boundaries
 
@@ -187,11 +185,10 @@ Those belong in frontend selectors or a thin view-model layer.
 - Keep moving operational lookup sets into DB seed/reference tables
 - Keep screens dependent on `createAppRuntime()` outputs only
 
-### Phase 2: Airtable alignment
-- Compare live Airtable schema against canonical repo schema
-- Capture a mapping matrix
-- Surface only material conflicts for approval
-- preserve the approved rule that Airtable follows the canonical model where possible, not the other way around
+### Phase 2: Backend readiness
+- Prepare the canonical schema for owned backend implementation
+- Capture only the backend-facing mappings that the frontend truly needs
+- Surface only material schema conflicts for approval
 
 ### Phase 3: Schema lock
 - Normalize any unresolved statuses/types
@@ -201,17 +198,15 @@ Those belong in frontend selectors or a thin view-model layer.
 ### Phase 4: Backend handoff prep
 - Produce a table-by-table migration sheet
 - Mark derived frontend-only fields explicitly
-- Define external sync points for Square/Airtable/Xano
+- Define external sync points for Square/Xano or other owned backend services
 
 ## Current Decision Gates
 
 Most of the material direction is now resolved:
 - keep normalized order scopes on top of Square-compatible orders/items
 - keep appointments as dedicated flexible records
-- keep measurements flexible and independent from Airtable's fixed-column shape
+- keep measurements flexible and independent from any legacy fixed-column shape
 - keep locations normalized
 
 The only notable canonical-model question still worth revisiting later is:
 - whether customer events should stay a dedicated table forever or collapse into customer-level fields for operational simplicity
-
-See [docs/AIRTABLE_MAXIMUS_ALIGNMENT.md](/Users/daniel/Dev%20Work/maximus/docs/AIRTABLE_MAXIMUS_ALIGNMENT.md) for the full Airtable comparison and the now-approved direction.
