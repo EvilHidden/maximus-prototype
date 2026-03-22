@@ -266,7 +266,8 @@ export function buildOpenOrder(
   const lineItems = getOrderBagLineItems(order, customers);
   const pricing = getPricingSummary(order);
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
-  const collectedToday = paymentStatus === "prepaid" ? getCheckoutCollectionAmount(order) : 0;
+  const paymentDueNow = paymentStatus === "due_later" ? 0 : getCheckoutCollectionAmount(order);
+  const collectedToday = paymentStatus === "captured" ? paymentDueNow : 0;
   const pickupSchedules = getRequiredPickupScopes(order).map((scope) => {
     const schedule = getPickupScheduleForScope(order, scope);
     const matchingItems = lineItems.filter((item) => item.kind === scope);
@@ -292,10 +293,13 @@ export function buildOpenOrder(
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
     itemCount: lineItems.length,
+    lineItems,
     itemSummary: lineItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
     pickupSchedules,
     paymentStatus,
+    paymentDueNow,
     collectedToday,
+    balanceDue: Math.max(pricing.total - collectedToday, 0),
     total: pricing.total,
     createdAt: now.toISOString(),
   };

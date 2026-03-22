@@ -150,7 +150,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
           singleActiveLocationLabel={singleActiveLocationLabel}
           onCreateOrder={onOpenAppointment}
           onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
-          onCheckoutPickup={() => onScreenChange("checkout")}
+          onCheckoutPickup={() => onScreenChange("openOrders")}
           onEditPickup={() => onScreenChange("openOrders")}
         />
       ) : !hasAnyLocationSelected ? (

@@ -20,13 +20,16 @@ export function AppScreenContent({
   closedOrderHistory,
   selectedCustomer,
   payerCustomer,
+  checkoutOpenOrder,
   pickupAppointments,
   startWorkflow,
   openWorkflowAppointment,
   saveMeasurements,
   createDraftMeasurements,
   deleteMeasurementSet,
-  completeOrder,
+  saveDraftOrder,
+  startOpenOrderPayment,
+  captureOpenOrderPayment,
 }: AppController) {
   if (state.screen === "home") {
     return (
@@ -66,7 +69,8 @@ export function AppScreenContent({
         order={state.order}
         dispatch={dispatch}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
-        onCompleteOrder={completeOrder}
+        onOpenDraftCheckout={() => dispatch({ type: "openCheckoutForDraft" })}
+        onSaveDraftOrder={saveDraftOrder}
       />
     );
   }
@@ -103,6 +107,7 @@ export function AppScreenContent({
         pickupAppointments={pickupAppointments}
         pickupLocations={referenceData.pickupLocations}
         onMarkOpenOrderPickupReady={(openOrderId, pickupId) => dispatch({ type: "markOpenOrderPickupReady", openOrderId, pickupId })}
+        onOpenOrderCheckout={(openOrderId) => dispatch({ type: "openCheckoutForOpenOrder", openOrderId })}
         onStartNewOrder={() => startWorkflow("alteration")}
       />
     );
@@ -115,9 +120,12 @@ export function AppScreenContent({
   return (
     <CheckoutScreen
       payerCustomer={payerCustomer}
+      openOrder={checkoutOpenOrder}
       order={state.order}
       onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
-      onCompleteOrder={completeOrder}
+      onSaveDraftOrder={saveDraftOrder}
+      onStartOpenOrderPayment={startOpenOrderPayment}
+      onCaptureOpenOrderPayment={captureOpenOrderPayment}
     />
   );
 }

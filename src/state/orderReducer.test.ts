@@ -72,6 +72,15 @@ describe("order reducer", () => {
           payerName: "Jordan Patel",
           orderType: "alteration",
           itemCount: 1,
+          lineItems: [
+            {
+              id: "line-1",
+              kind: "alteration",
+              title: "1. Trouser hem",
+              subtitle: "Alteration workflow",
+              amount: 35,
+            },
+          ],
           itemSummary: ["Trouser hem"],
           pickupSchedules: [
             {
@@ -88,8 +97,10 @@ describe("order reducer", () => {
               readyForPickup: false,
             },
           ],
-          paymentStatus: "pay_later",
+          paymentStatus: "due_later",
+          paymentDueNow: 0,
           collectedToday: 0,
+          balanceDue: 35,
           total: 35,
           createdAt: "2026-03-20T15:00:00.000Z",
         },

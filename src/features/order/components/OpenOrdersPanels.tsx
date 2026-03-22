@@ -32,6 +32,7 @@ import {
   formatSummaryCurrency,
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
+  getOpenOrderPaymentSummary,
   getOpenOrderOperationalPhase,
   getOpenOrderTypeLabel,
   getOperationalPickupDateLabel,
@@ -350,11 +351,15 @@ function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
 function WorkQueueOrderRow({
   openOrder,
   onMarkOpenOrderPickupReady,
+  onOpenOrderCheckout,
 }: {
   openOrder: OpenOrder;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
+  onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
+  const hasCollectibleBalance = openOrder.balanceDue > 0;
+  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending";
   const pickupGroups = openOrder.pickupSchedules.reduce<Array<{
     key: string;
     summary: string;
@@ -402,7 +407,18 @@ function WorkQueueOrderRow({
   };
 
   return (
-    <div className="px-4 py-4">
+    <div
+      className={cx("px-4 py-4", rowIsActionable && "cursor-pointer")}
+      role={rowIsActionable ? "button" : undefined}
+      tabIndex={rowIsActionable ? 0 : undefined}
+      onClick={rowIsActionable ? () => onOpenOrderCheckout(openOrder.id) : undefined}
+      onKeyDown={rowIsActionable ? (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpenOrderCheckout(openOrder.id);
+        }
+      } : undefined}
+    >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.15fr)_220px] lg:items-start">
         <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
@@ -454,7 +470,8 @@ function WorkQueueOrderRow({
                     <ActionButton
                       tone="primary"
                       className="px-3 py-2 text-xs"
-                      onClick={() => {
+                      onClick={(event) => {
+                        event.stopPropagation();
                         group.pendingIds.forEach((pickupId) => onMarkOpenOrderPickupReady(openOrder.id, pickupId));
                       }}
                     >
@@ -475,13 +492,7 @@ function WorkQueueOrderRow({
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(openOrder.total)}
             </div>
-            {openOrder.paymentStatus === "prepaid" ? (
-              <div className="app-text-caption mt-1">Prepaid</div>
-            ) : (
-              <div className="mt-1 text-xs font-semibold uppercase tracking-[0.18em] text-[var(--app-warn-text)]">
-                Payment Due
-              </div>
-            )}
+            <div className="app-text-caption mt-1">{getOpenOrderPaymentSummary(openOrder.paymentStatus)}</div>
           </div>
         </div>
       </div>
@@ -494,11 +505,13 @@ export function QueueSection({
   openOrders,
   pickupAppointments,
   onMarkOpenOrderPickupReady,
+  onOpenOrderCheckout,
 }: {
   activeQueue: OrdersQueueKey;
   openOrders: OpenOrder[];
   pickupAppointments: Appointment[];
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
+  onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const count = openOrders.length + pickupAppointments.length;
 
@@ -564,7 +577,11 @@ export function QueueSection({
                 key={openOrder.id}
                 className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
               >
-                <WorkQueueOrderRow openOrder={openOrder} onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady} />
+                <WorkQueueOrderRow
+                  openOrder={openOrder}
+                  onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+                  onOpenOrderCheckout={onOpenOrderCheckout}
+                />
               </div>
             ))}
           </div>
@@ -574,13 +591,32 @@ export function QueueSection({
   );
 }
 
-function AllOrdersRow({ openOrder }: { openOrder: OpenOrder }) {
+function AllOrdersRow({
+  openOrder,
+  onOpenOrderCheckout,
+}: {
+  openOrder: OpenOrder;
+  onOpenOrderCheckout: (openOrderId: number) => void;
+}) {
   const phase = getOpenOrderOperationalPhase(openOrder);
   const lane = getOpenOrderOperationalLane(openOrder);
   const locations = getOpenOrderLocationSummary(openOrder);
+  const hasCollectibleBalance = openOrder.balanceDue > 0;
+  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending";
 
   return (
-    <div className="grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_180px_160px_140px_auto] lg:items-center">
+    <div
+      className={cx("grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_180px_160px_140px_auto] lg:items-center", rowIsActionable && "cursor-pointer")}
+      role={rowIsActionable ? "button" : undefined}
+      tabIndex={rowIsActionable ? 0 : undefined}
+      onClick={rowIsActionable ? () => onOpenOrderCheckout(openOrder.id) : undefined}
+      onKeyDown={rowIsActionable ? (event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          onOpenOrderCheckout(openOrder.id);
+        }
+      } : undefined}
+    >
       <div className="min-w-0">
         <div className="app-text-strong">{openOrder.payerName}</div>
         <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {openOrder.itemSummary.join(", ")}</div>
@@ -613,6 +649,7 @@ export function OpenOrdersBody({
   filteredQueuePickups,
   filteredHistoryItems,
   onMarkOpenOrderPickupReady,
+  onOpenOrderCheckout,
 }: {
   activeView: OrdersView;
   activeQueue: OrdersQueueKey;
@@ -621,6 +658,7 @@ export function OpenOrdersBody({
   filteredQueuePickups: Appointment[];
   filteredHistoryItems: ClosedOrderHistoryItem[];
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
+  onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   return (
     <div className="pt-1">
@@ -634,7 +672,7 @@ export function OpenOrdersBody({
                 key={openOrder.id}
                 className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
               >
-                <AllOrdersRow openOrder={openOrder} />
+                <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} />
               </div>
             ))}
           </div>
@@ -647,6 +685,7 @@ export function OpenOrdersBody({
           openOrders={filteredQueueOrders}
           pickupAppointments={filteredQueuePickups}
           onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+          onOpenOrderCheckout={onOpenOrderCheckout}
         />
       ) : null}
 

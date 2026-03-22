@@ -30,18 +30,28 @@ export function useAppWorkflowActions({ customers, dispatch, order }: UseAppWork
     dispatch({ type: "setScreen", screen: "order" });
   }, [dispatch]);
 
-  const completeOrder = useCallback((paymentStatus: "pay_later" | "prepaid") => {
+  const saveDraftOrder = useCallback((paymentStatus: "due_later" | "ready_to_collect", openCheckout = false) => {
     const openOrder = buildOpenOrder(order, customers, paymentStatus);
     if (!openOrder) {
       return;
     }
 
-    dispatch({ type: "completeOpenOrder", openOrder });
+    dispatch({ type: "saveOpenOrder", openOrder, openCheckout });
   }, [customers, dispatch, order]);
+
+  const startOpenOrderPayment = useCallback((openOrderId: number) => {
+    dispatch({ type: "startOpenOrderPayment", openOrderId });
+  }, [dispatch]);
+
+  const captureOpenOrderPayment = useCallback((openOrderId: number) => {
+    dispatch({ type: "captureOpenOrderPayment", openOrderId });
+  }, [dispatch]);
 
   return {
     startWorkflow,
     openWorkflowAppointment,
-    completeOrder,
+    saveDraftOrder,
+    startOpenOrderPayment,
+    captureOpenOrderPayment,
   };
 }

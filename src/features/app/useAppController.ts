@@ -32,6 +32,10 @@ export function useAppController() {
     () => state.customers.find((customer) => customer.id === state.order.payerCustomerId) ?? null,
     [state.customers, state.order.payerCustomerId],
   );
+  const checkoutOpenOrder = useMemo(
+    () => state.openOrders.find((openOrder) => openOrder.id === state.checkoutOpenOrderId) ?? null,
+    [state.checkoutOpenOrderId, state.openOrders],
+  );
   const pickupAppointments = useMemo(() => getPickupAppointments(baseAppointments), [baseAppointments]);
 
   const { measurementSets, saveMeasurements, createDraftMeasurements, deleteMeasurementSet } = useMeasurementSetManager({
@@ -41,7 +45,7 @@ export function useAppController() {
     measurements: state.order.custom.draft.measurements,
     dispatch,
   });
-  const { startWorkflow, openWorkflowAppointment, completeOrder } = useAppWorkflowActions({
+  const { startWorkflow, openWorkflowAppointment, saveDraftOrder, startOpenOrderPayment, captureOpenOrderPayment } = useAppWorkflowActions({
     customers: state.customers,
     dispatch,
     order: state.order,
@@ -58,12 +62,15 @@ export function useAppController() {
     closedOrderHistory,
     selectedCustomer,
     payerCustomer,
+    checkoutOpenOrder,
     pickupAppointments,
     startWorkflow,
     openWorkflowAppointment,
     saveMeasurements,
     createDraftMeasurements,
     deleteMeasurementSet,
-    completeOrder,
+    saveDraftOrder,
+    startOpenOrderPayment,
+    captureOpenOrderPayment,
   };
 }

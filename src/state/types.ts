@@ -14,6 +14,7 @@ import type {
 export type AppState = {
   screen: Screen;
   selectedCustomerId: string | null;
+  checkoutOpenOrderId: number | null;
   customers: Customer[];
   openOrders: OpenOrder[];
   order: OrderWorkflowState;
@@ -45,6 +46,8 @@ export type SaveCustomItemPayload = AddCustomItemPayload & {
 
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
+  | { type: "openCheckoutForDraft" }
+  | { type: "openCheckoutForOpenOrder"; openOrderId: number }
   | { type: "setCustomer"; customerId: string | null }
   | { type: "addCustomer"; customer: Customer }
   | { type: "updateCustomer"; customer: Customer }
@@ -52,7 +55,9 @@ export type AppAction =
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
-  | { type: "completeOpenOrder"; openOrder: OpenOrder }
+  | { type: "saveOpenOrder"; openOrder: OpenOrder; openCheckout: boolean }
+  | { type: "startOpenOrderPayment"; openOrderId: number }
+  | { type: "captureOpenOrderPayment"; openOrderId: number }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }

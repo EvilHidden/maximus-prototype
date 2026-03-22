@@ -112,6 +112,15 @@ function createOpenOrder(overrides: Partial<OpenOrder>): OpenOrder {
     payerName: "Jordan Patel",
     orderType: "alteration",
     itemCount: 1,
+    lineItems: [
+      {
+        id: "line-1",
+        kind: "alteration",
+        title: "1. Trouser hem",
+        subtitle: "Alteration workflow",
+        amount: 35,
+      },
+    ],
     itemSummary: ["Trouser hem"],
     pickupSchedules: [
       {
@@ -128,8 +137,10 @@ function createOpenOrder(overrides: Partial<OpenOrder>): OpenOrder {
         readyForPickup: false,
       },
     ],
-    paymentStatus: "pay_later",
+    paymentStatus: "due_later",
+    paymentDueNow: 0,
     collectedToday: 0,
+    balanceDue: 35,
     total: 35,
     createdAt: "2026-03-20T15:00:00.000Z",
     ...overrides,
@@ -254,7 +265,7 @@ describe("order selectors", () => {
     const order = createMixedOrderState();
     const now = new Date(2026, 2, 22, 10, 15, 0, 0);
 
-    const openOrder = buildOpenOrder(order, customers, "prepaid", {
+    const openOrder = buildOpenOrder(order, customers, "captured", {
       now,
       idFactory: () => 4242,
     });
@@ -264,8 +275,10 @@ describe("order selectors", () => {
       payerCustomerId: "cus_1",
       payerName: "Jordan Patel",
       orderType: "mixed",
-      paymentStatus: "prepaid",
+      paymentStatus: "captured",
+      paymentDueNow: 918.2875,
       collectedToday: 918.2875,
+      balanceDue: 747.4999999999999,
       createdAt: now.toISOString(),
     });
     expect(openOrder?.pickupSchedules.map((pickup) => pickup.id)).toEqual([
