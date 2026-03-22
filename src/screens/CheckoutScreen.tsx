@@ -1,7 +1,7 @@
 import { ClipboardList, CreditCard } from "lucide-react";
 import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, DefinitionList, EmptyState, EntityRow, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
-import { PaymentStatusPill, ReadinessPill } from "../components/ui/pills";
+import { PaymentStatusPill } from "../components/ui/pills";
 import {
   formatPickupSchedule,
   formatSummaryCurrency,
@@ -78,53 +78,6 @@ export function CheckoutScreen({
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
   const pickupSummary = openOrder ? getSavedPickupSummary(openOrder) : getDraftPickupSummary(order);
   const activeLineItems = openOrder ? openOrder.lineItems : draftLineItems;
-
-  const draftChecklist = [
-    { label: "Payer linked", ready: !summaryGuardrail.missingCustomer, value: payerCustomer?.name ?? "Required" },
-    {
-      label: "Pickup scheduled",
-      ready: !summaryGuardrail.missingPickup,
-      value: pickupRequired ? pickupSummary || "Required" : "Not needed",
-    },
-    {
-      label: "Order payload",
-      ready: !checkoutBlocked,
-      value: checkoutBlocked ? "Needs review before save" : "Ready to save",
-    },
-    {
-      label: "Collection step",
-      ready: !draftShouldCollectNow || !checkoutBlocked,
-      value: draftShouldCollectNow ? `Collect ${formatSummaryCurrency(checkoutCollectionAmount)} after save` : "No payment required now",
-    },
-  ];
-
-  const savedChecklist = openOrder ? [
-    {
-      label: "Order save",
-      ready: true,
-      value: `Saved as active order #${openOrder.id}`,
-    },
-    {
-      label: "Pickup handoff",
-      ready: true,
-      value: pickupSummary || "Saved with pickup details",
-    },
-    {
-      label: "Payment status",
-      ready: openOrder.paymentStatus !== "pending",
-      value:
-        openOrder.paymentStatus === "pending"
-          ? "Waiting on Square payment confirmation"
-          : openOrder.balanceDue > 0
-            ? `${formatSummaryCurrency(openOrder.balanceDue)} still due`
-            : `Captured ${formatSummaryCurrency(openOrder.collectedToday)}`,
-    },
-    {
-      label: "Remaining balance",
-      ready: openOrder.balanceDue === 0 || openOrder.paymentStatus === "due_later",
-      value: formatSummaryCurrency(openOrder.balanceDue),
-    },
-  ] : [];
 
   const checkoutSubtitle = openOrder
     ? openOrder.paymentStatus === "pending"
@@ -261,7 +214,7 @@ export function CheckoutScreen({
                             ? `${payerCustomer.phone} • ${payerCustomer.lastVisit}`
                             : "Link the paying customer before checkout."
                       }
-                      meta={openOrder ? <PaymentStatusPill status={openOrder.paymentStatus} /> : <ReadinessPill ready={Boolean(payerCustomer)} readyLabel="Linked" />}
+                      meta={openOrder ? <PaymentStatusPill status={openOrder.paymentStatus} /> : null}
                     />
                   </div>
 
@@ -348,34 +301,6 @@ export function CheckoutScreen({
                   </>
                 )}
               </div>
-            </div>
-          </Surface>
-
-          <Surface tone="support" className="p-4">
-            <SurfaceHeader
-              title="Readiness"
-              subtitle="Only the few signals that determine whether this handoff can move forward."
-            />
-
-            <div className="mt-4 border-t border-[var(--app-border)]/45 pt-2">
-              {(openOrder ? savedChecklist : draftChecklist).map((row) => (
-                <div
-                  key={row.label}
-                  className="flex items-start justify-between gap-3 border-b border-[var(--app-border)]/30 py-3 last:border-b-0"
-                >
-                  <div className="min-w-0 flex-1">
-                    <div className="app-text-overline">{row.label}</div>
-                    <div className="app-text-body mt-1.5 whitespace-pre-line leading-relaxed">
-                      {row.value}
-                    </div>
-                  </div>
-                  <div className="shrink-0 pt-0.5">
-                    <StatusPill tone={row.ready ? "dark" : "warn"}>
-                      {row.ready ? "Ready" : "Needs work"}
-                    </StatusPill>
-                  </div>
-                </div>
-              ))}
             </div>
           </Surface>
         </div>
