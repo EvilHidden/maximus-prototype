@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { ClipboardList, Clock3, MapPin, PackageCheck, PackageSearch, Search, type LucideIcon } from "lucide-react";
 import type { Appointment, ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../types";
-import { ActionButton, Card, EmptyState, SectionHeader, StatusPill, cx } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SectionHeader, StatusPill, cx } from "../components/ui/primitives";
 import { CountPill, LocationPill, OrderStatusPill, PaymentStatusPill } from "../components/ui/pills";
 import {
   filterClosedOrderHistory,
@@ -641,129 +641,125 @@ export function OpenOrdersScreen({
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden p-0">
-        <div className="space-y-5 border-b border-[var(--app-border)]/55 px-4 py-4">
-          <SectionHeader
-            icon={ClipboardList}
-            title="Orders"
-            subtitle={activeSubtitle}
-            action={
-              <ActionButton tone="primary" className="px-3 py-2 text-xs" onClick={onStartNewOrder}>
-                New order
-              </ActionButton>
-            }
-          />
+      <div className="space-y-5">
+        <SectionHeader
+          icon={ClipboardList}
+          title="Orders"
+          subtitle={activeSubtitle}
+          action={
+            <ActionButton tone="primary" className="px-3 py-2 text-xs" onClick={onStartNewOrder}>
+              New order
+            </ActionButton>
+          }
+        />
 
-          <div className="flex flex-wrap gap-2">
-            {([
-              { key: "queues", label: "Worklist", count: queueCounts.all },
-              { key: "all", label: "Order registry", count: baseOpenOrders.length },
-              { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
-            ] as const).map((view) => (
-              <button
-                key={view.key}
-                onClick={() => setActiveView(view.key)}
+        <div className="flex flex-wrap gap-2">
+          {([
+            { key: "queues", label: "Worklist", count: queueCounts.all },
+            { key: "all", label: "Order registry", count: baseOpenOrders.length },
+            { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
+          ] as const).map((view) => (
+            <button
+              key={view.key}
+              onClick={() => setActiveView(view.key)}
+              className={cx(
+                "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
+                activeView === view.key
+                  ? selectedFilterClass
+                  : unselectedFilterClass,
+              )}
+            >
+              {view.label}
+              <CountPill
+                count={view.count}
+                icon={undefined}
                 className={cx(
-                  "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
+                  "px-2 py-0.5 text-[11px]",
                   activeView === view.key
-                    ? selectedFilterClass
-                    : unselectedFilterClass,
+                    ? selectedFilterCountClass
+                    : unselectedFilterCountClass,
                 )}
-              >
-                {view.label}
-                <CountPill
-                  count={view.count}
-                  icon={undefined}
-                  className={cx(
-                    "px-2 py-0.5 text-[11px]",
-                    activeView === view.key
-                      ? selectedFilterCountClass
-                      : unselectedFilterCountClass,
-                  )}
-                />
-              </button>
-            ))}
-          </div>
+              />
+            </button>
+          ))}
+        </div>
 
-          <SearchFilterBar
-            query={query}
-            onQueryChange={setQuery}
-            typeFilter={typeFilter}
-            onTypeFilterChange={setTypeFilter}
-            locationFilter={locationFilter}
-            onLocationFilterChange={setLocationFilter}
-          />
+        <SearchFilterBar
+          query={query}
+          onQueryChange={setQuery}
+          typeFilter={typeFilter}
+          onTypeFilterChange={setTypeFilter}
+          locationFilter={locationFilter}
+          onLocationFilterChange={setLocationFilter}
+        />
 
-          {activeView === "queues" ? (
-            <div className="space-y-5">
-              <QueueStrip activeQueue={activeQueue} onQueueChange={setActiveQueue} counts={queueCounts} />
+        {activeView === "queues" ? (
+          <QueueStrip activeQueue={activeQueue} onQueueChange={setActiveQueue} counts={queueCounts} />
+        ) : null}
+      </div>
+
+      <div className="border-t border-[var(--app-border)]/55 pt-4">
+        {activeView === "all" ? (
+          baseOpenOrders.length === 0 ? (
+            <EmptyState>No active orders match this search and filter set.</EmptyState>
+          ) : (
+            <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
+              {baseOpenOrders.map((openOrder, index) => (
+                <div
+                  key={openOrder.id}
+                  className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
+                >
+                  <AllOrdersRow openOrder={openOrder} />
+                </div>
+              ))}
             </div>
-          ) : null}
-        </div>
+          )
+        ) : null}
 
-        <div className="px-4 py-5">
-          {activeView === "all" ? (
-            baseOpenOrders.length === 0 ? (
-              <EmptyState>No active orders match this search and filter set.</EmptyState>
-            ) : (
-              <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
-                {baseOpenOrders.map((openOrder, index) => (
-                  <div
-                    key={openOrder.id}
-                    className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
-                  >
-                    <AllOrdersRow openOrder={openOrder} />
+        {activeView === "queues" ? (
+          <QueueSection
+            icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
+            title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
+            subtitle={
+              activeQueue === "all"
+                ? "Active orders and booked pickup visits that still need operational attention."
+                : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
+            }
+            openOrders={filteredQueueOrders}
+            pickupAppointments={filteredQueuePickups}
+            onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+            emptyMessage="Nothing matches this queue and filter combination."
+          />
+        ) : null}
+
+        {activeView === "history" ? (
+          filteredHistoryItems.length === 0 ? (
+            <EmptyState>No closed orders match this search.</EmptyState>
+          ) : (
+            <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
+              {filteredHistoryItems.map((order, index) => (
+                <div
+                  key={order.id}
+                  className={cx(
+                    "grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_140px_120px_auto] md:items-center",
+                    index > 0 && "border-t border-[var(--app-border)]/35",
+                  )}
+                >
+                  <div className="min-w-0">
+                    <div className="app-text-strong">{order.customerName}</div>
+                    <div className="app-text-caption mt-1">{order.label}</div>
                   </div>
-                ))}
-              </div>
-            )
-          ) : null}
-
-          {activeView === "queues" ? (
-            <QueueSection
-              icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
-              title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-              subtitle={
-                activeQueue === "all"
-                  ? "Active orders and booked pickup visits that still need operational attention."
-                  : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
-              }
-              openOrders={filteredQueueOrders}
-              pickupAppointments={filteredQueuePickups}
-              onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-              emptyMessage="Nothing matches this queue and filter combination."
-            />
-          ) : null}
-
-          {activeView === "history" ? (
-            filteredHistoryItems.length === 0 ? (
-              <EmptyState>No closed orders match this search.</EmptyState>
-            ) : (
-              <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
-                {filteredHistoryItems.map((order, index) => (
-                  <div
-                    key={order.id}
-                    className={cx(
-                      "grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_140px_120px_auto] md:items-center",
-                      index > 0 && "border-t border-[var(--app-border)]/35",
-                    )}
-                  >
-                    <div className="min-w-0">
-                      <div className="app-text-strong">{order.customerName}</div>
-                      <div className="app-text-caption mt-1">{order.label}</div>
-                    </div>
-                    <div className="app-text-body font-medium">{order.date}</div>
-                    <div className="app-text-strong">{order.total}</div>
-                    <div className="flex justify-start md:justify-end">
-                      <OrderStatusPill status={order.status} />
-                    </div>
+                  <div className="app-text-body font-medium">{order.date}</div>
+                  <div className="app-text-strong">{order.total}</div>
+                  <div className="flex justify-start md:justify-end">
+                    <OrderStatusPill status={order.status} />
                   </div>
-                ))}
-              </div>
-            )
-          ) : null}
-        </div>
-      </Card>
+                </div>
+              ))}
+            </div>
+          )
+        ) : null}
+      </div>
     </div>
   );
 }
