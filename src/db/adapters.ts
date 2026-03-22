@@ -64,9 +64,7 @@ function getAppointmentContextFlags(
   rush: boolean,
 ): AppointmentContextFlag[] {
   const flags: AppointmentContextFlag[] = [];
-  if (confirmationStatus) {
-    flags.push(confirmationStatus);
-  }
+  flags.push(confirmationStatus ?? "unconfirmed");
   if (rush) {
     flags.push("rush");
   }
