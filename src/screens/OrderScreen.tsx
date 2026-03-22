@@ -68,6 +68,8 @@ export function OrderScreen({
   const [editingCustomItemId, setEditingCustomItemId] = useState<number | null>(null);
   const [pendingDeleteItemId, setPendingDeleteItemId] = useState<number | null>(null);
   const [clearBagConfirmOpen, setClearBagConfirmOpen] = useState(false);
+  const [alterationValidationVisible, setAlterationValidationVisible] = useState(false);
+  const [customValidationVisible, setCustomValidationVisible] = useState(false);
 
   const hasAlterationContent = getHasAlterationContent(order);
   const hasCustomContent = getHasCustomContent(order);
@@ -90,6 +92,8 @@ export function OrderScreen({
     : order.alteration.selectedModifiers.length === 0
       ? "Choose at least one alteration service before adding this item to the cart."
       : undefined;
+  const missingAlterationGarment = !order.alteration.selectedGarment;
+  const missingAlterationServices = Boolean(order.alteration.selectedGarment) && order.alteration.selectedModifiers.length === 0;
 
   const garmentOptions = alterationCatalog.map((garment) => garment.category);
   const currentServices = alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
@@ -133,6 +137,17 @@ export function OrderScreen({
                 (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
               ? "Choose the canvas, lapel, and pocket details before adding this jacket-based garment to the cart."
               : undefined;
+  const missingCustomGender = !order.custom.draft.gender;
+  const missingCustomGarment = Boolean(order.custom.draft.gender) && !order.custom.draft.selectedGarment;
+  const missingCustomWearer = Boolean(order.custom.draft.selectedGarment) && !order.custom.draft.wearerCustomerId;
+  const missingCustomMeasurements = Boolean(order.custom.draft.wearerCustomerId) && !order.custom.draft.linkedMeasurementSetId;
+  const missingCustomBuildDetails =
+    Boolean(order.custom.draft.linkedMeasurementSetId) &&
+    (!order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads);
+  const missingCustomStyleDetails =
+    Boolean(order.custom.draft.selectedGarment) &&
+    jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
+    (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas);
 
   useCustomMeasurementDefaults({
     measurementSets,
@@ -179,10 +194,19 @@ export function OrderScreen({
               selectedModifiers={order.alteration.selectedModifiers}
               currentSubtotal={currentAlterationSubtotal}
               addDisabledReason={addToCartDisabledReason}
-              onShowDisabledReason={setActionToast}
+              onShowDisabledReason={(reason) => {
+                setAlterationValidationVisible(true);
+                setActionToast(reason);
+              }}
+              showValidation={alterationValidationVisible}
+              missingGarment={missingAlterationGarment}
+              missingServices={missingAlterationServices}
               onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
               onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
-              onAddItem={() => dispatch({ type: "addAlterationItem" })}
+              onAddItem={() => {
+                setAlterationValidationVisible(false);
+                dispatch({ type: "addAlterationItem" });
+              }}
             />
           </div>
         ) : null}
@@ -221,6 +245,9 @@ export function OrderScreen({
 
             <MeasurementsCard
               model={measurementsCardModel}
+              showValidation={customValidationVisible}
+              missingWearer={missingCustomWearer}
+              missingMeasurementSet={missingCustomMeasurements}
               onChooseWearer={() => setWearerModalOpen(true)}
               onChooseAnother={() => setMeasurementPickerOpen(true)}
               onCreateNew={() => {
@@ -249,7 +276,17 @@ export function OrderScreen({
               canvas={order.custom.draft.canvas}
               canAddToOrder={canAddCustomDraftToOrder}
               addDisabledReason={customAddDisabledReason}
-              onShowDisabledReason={setActionToast}
+              onShowDisabledReason={(reason) => {
+                setCustomValidationVisible(true);
+                setActionToast(reason);
+              }}
+              showValidation={customValidationVisible}
+              missingGender={missingCustomGender}
+              missingGarment={missingCustomGarment}
+              missingWearer={missingCustomWearer}
+              missingMeasurements={missingCustomMeasurements}
+              missingBuildDetails={missingCustomBuildDetails}
+              missingStyleDetails={missingCustomStyleDetails}
               isEditing={editingCustomItemId !== null}
               editingLabel={editingCustomItem?.selectedGarment ?? null}
               wearerName={wearerCustomer?.name ?? null}
@@ -267,9 +304,11 @@ export function OrderScreen({
                     },
                   });
                   setEditingCustomItemId(null);
+                  setCustomValidationVisible(false);
                   return;
                 }
 
+                setCustomValidationVisible(false);
                 dispatch({
                   type: "addCustomItem",
                   payload: {
@@ -281,6 +320,7 @@ export function OrderScreen({
               }}
               onCancelEdit={() => {
                 setEditingCustomItemId(null);
+                setCustomValidationVisible(false);
                 dispatch({ type: "resetCustomDraft" });
               }}
               onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
