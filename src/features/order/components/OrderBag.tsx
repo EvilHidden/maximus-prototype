@@ -1,7 +1,6 @@
 import { CalendarClock, MapPin, ShoppingBag, Trash2 } from "lucide-react";
 import type { Customer, OrderBagLineItem, OrderType, PickupSchedule, PricingSummary, WorkflowMode } from "../../../types";
 import {
-  ActionButton,
   Card,
   EmptyState,
   InlineEmptyState,
@@ -10,6 +9,7 @@ import {
   SummaryStack,
   cx,
 } from "../../../components/ui/primitives";
+import { ActionButton } from "../../../components/ui/primitives";
 import { formatPickupSchedule, getCustomFulfillmentSummary } from "../selectors";
 import { PricingSummary as PricingSummaryPanel } from "./PricingSummary";
 
@@ -93,7 +93,7 @@ export function OrderBag({
           action={
             <button
               onClick={onOpenCustomerModal}
-              className="text-xs font-medium text-[var(--app-text-muted)] underline decoration-[var(--app-border-strong)] underline-offset-2 hover:text-[var(--app-text)]"
+              className="inline-flex items-center app-text-overline text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
             >
               Change
             </button>
