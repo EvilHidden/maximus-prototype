@@ -62,7 +62,7 @@ function CustomerRow({
       <div className="min-w-0">
         <div className="app-text-overline xl:hidden">Measurements</div>
         <div className="mt-1">
-          <MeasurementStatusPill status={customer.measurementsStatus} />
+          <MeasurementStatusPill status={customer.measurementsStatus} showIcon />
         </div>
       </div>
 
