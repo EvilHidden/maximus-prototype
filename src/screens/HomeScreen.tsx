@@ -11,8 +11,8 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, Card, StatusPill, cx } from "../components/ui/primitives";
-import { CountPill } from "../components/ui/pills";
+import { ActionButton, Card, cx } from "../components/ui/primitives";
+import { AppointmentIssuePill, CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
 
@@ -121,13 +121,11 @@ function ScheduleRow({
         {callouts.length ? (
           <div className="flex flex-wrap items-center gap-2">
             {callouts.map((callout) => (
-              <StatusPill
+              <AppointmentIssuePill
                 key={callout.label}
                 tone={callout.tone === "warn" ? "warn" : "default"}
-                className="px-2.5 py-1 text-[11px]"
-              >
-                {callout.label}
-              </StatusPill>
+                label={callout.label}
+              />
             ))}
           </div>
         ) : null}

@@ -93,6 +93,23 @@ export function MeasurementVersionPill({
   return <StatusPill tone={isCurrent ? "dark" : "default"}>{version}</StatusPill>;
 }
 
+export function AppointmentIssuePill({
+  label,
+  tone = "default",
+}: {
+  label: string;
+  tone?: "default" | "warn";
+}) {
+  return (
+    <StatusPill
+      tone={tone === "warn" ? "warn" : "default"}
+      className="px-2.5 py-1 text-[11px]"
+    >
+      {label}
+    </StatusPill>
+  );
+}
+
 export function CountPill({
   count,
   label,
