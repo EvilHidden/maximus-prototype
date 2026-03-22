@@ -319,49 +319,6 @@ function QueueStrip({
   );
 }
 
-function QueueOverview({
-  counts,
-  onQueueChange,
-}: {
-  counts: Record<OrdersQueueKey, number>;
-  onQueueChange: (queue: OrdersQueueKey) => void;
-}) {
-  return (
-    <div className="space-y-3">
-      <OpenSectionHeader
-        icon={PackageSearch}
-        title="Worklist overview"
-        count={counts.all}
-        subtitle="Pick one queue to focus. This view mixes active orders with booked pickup visits."
-      />
-      <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
-        {queueOverviewMeta.map((queue, index) => (
-          <button
-            key={queue.key}
-            onClick={() => onQueueChange(queue.key)}
-            className={cx(
-              "grid w-full gap-3 px-4 py-3.5 text-left transition hover:bg-[var(--app-surface-muted)]/30 md:grid-cols-[auto_minmax(0,1fr)_auto] md:items-center",
-              index > 0 && "border-t border-[var(--app-border)]/35",
-            )}
-          >
-            <div className="app-icon-chip">
-              <queue.icon className="h-4 w-4" />
-            </div>
-            <div className="min-w-0">
-              <div className="app-text-strong">{queue.title}</div>
-              <div className="app-text-caption mt-1">{queue.subtitle}</div>
-            </div>
-            <div className="flex items-center justify-between gap-3 md:justify-end">
-              <CountPill count={counts[queue.key]} />
-              <div className="app-text-caption">View queue</div>
-            </div>
-          </button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
   return (
     <div className="grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1.1fr)_220px_180px] md:items-center">
@@ -763,19 +720,19 @@ export function OpenOrdersScreen({
           ) : null}
 
           {activeView === "queues" ? (
-            activeQueue === "all" ? (
-              <QueueOverview counts={queueCounts} onQueueChange={setActiveQueue} />
-            ) : (
-              <QueueSection
-                icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
-                title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-                subtitle={queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."}
-                openOrders={filteredQueueOrders}
-                pickupAppointments={filteredQueuePickups}
-                onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                emptyMessage="Nothing matches this queue and filter combination."
-              />
-            )
+            <QueueSection
+              icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
+              title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
+              subtitle={
+                activeQueue === "all"
+                  ? "Active orders and booked pickup visits that still need operational attention."
+                  : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
+              }
+              openOrders={filteredQueueOrders}
+              pickupAppointments={filteredQueuePickups}
+              onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+              emptyMessage="Nothing matches this queue and filter combination."
+            />
           ) : null}
 
           {activeView === "history" ? (
