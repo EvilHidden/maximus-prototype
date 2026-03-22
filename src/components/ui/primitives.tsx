@@ -1,4 +1,4 @@
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import type { ButtonHTMLAttributes, CSSProperties, ReactNode } from "react";
 import type { LucideIcon } from "lucide-react";
 import type { DefinitionItem, StatusTone } from "../../types";
 
@@ -11,11 +11,42 @@ type CardProps = {
   className?: string;
 };
 
+type SurfaceTone = "card" | "control" | "work" | "support";
+
+type SurfaceProps = {
+  children: ReactNode;
+  className?: string;
+  tone?: SurfaceTone;
+  as?: "div" | "section" | "aside";
+};
+
 type SectionHeaderProps = {
   icon: LucideIcon;
   title: string;
   subtitle?: string;
   action?: ReactNode;
+};
+
+type SurfaceHeaderProps = {
+  title: ReactNode;
+  subtitle?: ReactNode;
+  icon?: LucideIcon;
+  meta?: ReactNode;
+  className?: string;
+  titleClassName?: string;
+  subtitleClassName?: string;
+  iconStyle?: CSSProperties;
+};
+
+type CalloutTone = "default" | "warn" | "success" | "danger";
+
+type CalloutProps = {
+  title?: ReactNode;
+  children?: ReactNode;
+  icon?: LucideIcon;
+  tone?: CalloutTone;
+  action?: ReactNode;
+  className?: string;
 };
 
 type StatusPillProps = {
@@ -29,6 +60,26 @@ type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   fullWidth?: boolean;
   disabledReason?: string;
   onDisabledPress?: (reason: string) => void;
+};
+
+type QuickActionTileProps = {
+  title: ReactNode;
+  subtitle: ReactNode;
+  icon: LucideIcon;
+  iconStyle?: CSSProperties;
+  metaLabel?: ReactNode;
+  onClick: () => void;
+  className?: string;
+};
+
+type SelectionChipProps = {
+  children: ReactNode;
+  selected?: boolean;
+  onClick: () => void;
+  leading?: ReactNode;
+  trailing?: ReactNode;
+  className?: string;
+  size?: "sm" | "md";
 };
 
 type DefinitionListProps = {
@@ -90,13 +141,69 @@ type FieldLabelProps = {
   children: ReactNode;
 };
 
+type FieldStackProps = {
+  label: string;
+  children: ReactNode;
+  className?: string;
+};
+
+type SearchFieldProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  placeholder: string;
+  className?: string;
+  icon?: LucideIcon;
+};
+
+type SelectFieldProps = {
+  label: string;
+  value: string;
+  onChange: (value: string) => void;
+  children: ReactNode;
+  className?: string;
+};
+
 type InspectorListProps = {
   items: DefinitionItem[];
   className?: string;
 };
 
+type CalendarDayCardProps = {
+  dayNumber: number;
+  isSelected: boolean;
+  isToday: boolean;
+  isCurrentMonth: boolean;
+  hasItems: boolean;
+  onClick: () => void;
+  children: ReactNode;
+};
+
+const surfaceToneClasses: Record<SurfaceTone, string> = {
+  card: "app-card",
+  control: "app-control-deck",
+  work: "app-work-surface",
+  support: "app-support-rail",
+};
+
+const calloutToneClasses: Record<CalloutTone, string> = {
+  default: "app-callout app-callout--default",
+  warn: "app-callout app-callout--warn",
+  success: "app-callout app-callout--success",
+  danger: "app-callout app-callout--danger",
+};
+
+export function Surface({ children, className = "", tone = "card", as = "section" }: SurfaceProps) {
+  const Component = as;
+  return <Component className={cx(surfaceToneClasses[tone], className)}>{children}</Component>;
+}
+
 export function Card({ children, className = "" }: CardProps) {
-  return <section className={cx("app-card", className)}>{children}</section>;
+  return (
+    <Surface tone="card" as="section" className={className}>
+      {children}
+    </Surface>
+  );
 }
 
 export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHeaderProps) {
@@ -113,6 +220,122 @@ export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHe
       </div>
       {action ?? null}
     </div>
+  );
+}
+
+export function SurfaceHeader({
+  title,
+  subtitle,
+  icon: Icon,
+  meta,
+  className = "",
+  titleClassName = "app-section-title",
+  subtitleClassName = "app-section-copy",
+  iconStyle,
+}: SurfaceHeaderProps) {
+  return (
+    <div className={cx("flex items-start justify-between gap-3", className)}>
+      <div className="flex items-start gap-3">
+        {Icon ? (
+          <div className="app-icon-chip" style={iconStyle}>
+            <Icon className="h-4 w-4" />
+          </div>
+        ) : null}
+        <div>
+          <div className={titleClassName}>{title}</div>
+          {subtitle ? <div className={cx("mt-1", subtitleClassName)}>{subtitle}</div> : null}
+        </div>
+      </div>
+      {meta ?? null}
+    </div>
+  );
+}
+
+export function Callout({
+  title,
+  children,
+  icon: Icon,
+  tone = "default",
+  action,
+  className = "",
+}: CalloutProps) {
+  return (
+    <div className={cx(calloutToneClasses[tone], className)}>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex min-w-0 items-start gap-3">
+          {Icon ? <Icon className="mt-0.5 h-4 w-4 shrink-0" /> : null}
+          <div className="min-w-0">
+            {title ? <div>{title}</div> : null}
+            {children ? <div className={cx(title && "mt-2")}>{children}</div> : null}
+          </div>
+        </div>
+        {action ? <div className="shrink-0">{action}</div> : null}
+      </div>
+    </div>
+  );
+}
+
+export function QuickActionTile({
+  title,
+  subtitle,
+  icon: Icon,
+  iconStyle,
+  metaLabel = "Open",
+  onClick,
+  className = "",
+}: QuickActionTileProps) {
+  return (
+    <button
+      onClick={onClick}
+      className={cx(
+        "group flex min-h-[112px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/18 px-4 py-4 text-left transition hover:bg-[var(--app-surface)]/34",
+        className,
+      )}
+    >
+      <div className="flex items-start justify-between gap-3">
+        <div className="app-icon-chip transition group-hover:border-[var(--app-border-strong)]" style={iconStyle}>
+          <Icon className="h-4 w-4" />
+        </div>
+        <span className="app-text-overline">{metaLabel}</span>
+      </div>
+      <div>
+        <div className="app-text-value">{title}</div>
+        <div className="app-text-caption mt-1">{subtitle}</div>
+      </div>
+    </button>
+  );
+}
+
+export function SelectionChip({
+  children,
+  selected = false,
+  onClick,
+  leading,
+  trailing,
+  className = "",
+  size = "md",
+}: SelectionChipProps) {
+  const sizeClassName =
+    size === "sm"
+      ? "min-h-10 rounded-[var(--app-radius-sm)] px-3 py-2 text-[0.75rem] font-semibold tracking-[0.02em]"
+      : "min-h-10 rounded-[var(--app-radius-md)] px-3.5 py-2 text-sm font-medium";
+
+  return (
+    <button
+      onClick={onClick}
+      className={cx(
+        "inline-flex items-center gap-2 border transition",
+        sizeClassName,
+        selected
+          ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+          : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)]",
+        className,
+      )}
+    >
+      {leading ? <span className="shrink-0">{leading}</span> : null}
+      <span>{children}</span>
+      {trailing ? <span className="shrink-0">{trailing}</span> : null}
+    </button>
   );
 }
 
@@ -298,6 +521,87 @@ export function SummaryStack({ children, className = "" }: SummaryStackProps) {
 
 export function FieldLabel({ children }: FieldLabelProps) {
   return <div className="app-field-label">{children}</div>;
+}
+
+export function FieldStack({ label, children, className = "" }: FieldStackProps) {
+  return (
+    <label className={cx("app-field-shell", className)}>
+      <div className="app-text-overline">{label}</div>
+      {children}
+    </label>
+  );
+}
+
+export function SearchField({
+  label,
+  value,
+  onChange,
+  placeholder,
+  className = "",
+  icon: Icon,
+}: SearchFieldProps) {
+  return (
+    <FieldStack label={label} className={className}>
+      <div className="app-field-control">
+        {Icon ? <Icon className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" /> : null}
+        <input
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          placeholder={placeholder}
+          className="app-text-body min-w-0 flex-1 p-0"
+        />
+      </div>
+    </FieldStack>
+  );
+}
+
+export function SelectField({ label, value, onChange, children, className = "" }: SelectFieldProps) {
+  return (
+    <FieldStack label={label} className={className}>
+      <div className="app-field-control">
+        <select
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="app-text-body appearance-none"
+        >
+          {children}
+        </select>
+      </div>
+    </FieldStack>
+  );
+}
+
+export function CalendarDayCard({
+  dayNumber,
+  isSelected,
+  isToday,
+  isCurrentMonth,
+  hasItems,
+  onClick,
+  children,
+}: CalendarDayCardProps) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className={cx(
+        "flex min-h-[118px] flex-col items-stretch justify-start rounded-[var(--app-radius-md)] border px-2.5 py-2 text-left align-top transition-colors",
+        isSelected
+          ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[inset_0_0_0_1px_var(--app-accent)]"
+          : isToday
+            ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]"
+            : isCurrentMonth
+              ? "border-[var(--app-border)]/75 bg-[var(--app-surface)]"
+              : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/16 opacity-60",
+      )}
+    >
+      <div className="mb-2 flex items-center justify-between gap-2">
+        <div className={isSelected || isToday ? "app-text-strong" : "app-text-body font-medium"}>{dayNumber}</div>
+        {hasItems ? <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--app-accent)] opacity-70" /> : null}
+      </div>
+      {children}
+    </button>
+  );
 }
 
 export function InspectorList({ items, className = "" }: InspectorListProps) {

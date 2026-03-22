@@ -1,6 +1,6 @@
 import { Scissors, Shirt } from "lucide-react";
 import type { WorkflowMode } from "../../../types";
-import { EmptyState, WorkflowToggle } from "../../../components/ui/primitives";
+import { EmptyState, Surface, WorkflowToggle } from "../../../components/ui/primitives";
 
 type WorkflowSelectorProps = {
   activeWorkflow: WorkflowMode | null;
@@ -16,7 +16,7 @@ export function WorkflowSelector({
   onActivate,
 }: WorkflowSelectorProps) {
   return (
-    <div className="app-control-deck p-3.5">
+    <Surface tone="control" className="p-3.5">
       <div className="app-text-overline mb-3">Service type</div>
 
       <div className="grid grid-cols-2 gap-2.5">
@@ -39,6 +39,6 @@ export function WorkflowSelector({
       </div>
 
       {activeWorkflow === null ? <EmptyState className="mt-3">Select a service type to begin.</EmptyState> : null}
-    </div>
+    </Surface>
   );
 }

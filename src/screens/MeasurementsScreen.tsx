@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
-import { ModalShell, SectionHeader, ActionButton } from "../components/ui/primitives";
+import { ModalShell, SectionHeader, ActionButton, Surface } from "../components/ui/primitives";
 import { filterCustomers } from "../features/customer/selectors";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import {
@@ -84,7 +84,7 @@ export function MeasurementsScreen({
   return (
     <>
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
-        <div className="app-work-surface p-4">
+        <Surface tone="work" className="p-4">
           <SectionHeader icon={Ruler} title="Measurements" subtitle="Capture, review, and attach the active set." />
           <MeasurementStatusCard title={status.title} detail={status.detail} />
 
@@ -123,9 +123,9 @@ export function MeasurementsScreen({
               </div>
             </div>
           </div>
-        </div>
+        </Surface>
 
-        <div className="app-support-rail p-4">
+        <Surface tone="support" className="p-4">
           <SectionHeader icon={Ruler} title="Measurement rail" subtitle="Saved sets and active order linkage." />
 
           <div className="space-y-5">
@@ -151,7 +151,7 @@ export function MeasurementsScreen({
               onCheckout={() => onScreenChange("checkout")}
             />
           </div>
-        </div>
+        </Surface>
       </div>
 
       {customerModalOpen ? (

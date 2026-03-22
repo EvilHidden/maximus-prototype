@@ -5,6 +5,7 @@ import {
   InlineEmptyState,
   PanelSection,
   SectionHeader,
+  Surface,
   SummaryStack,
   cx,
 } from "../../../components/ui/primitives";
@@ -71,7 +72,7 @@ export function OrderBag({
   };
 
   return (
-    <div className="app-support-rail sticky top-0 p-3.5">
+    <Surface tone="support" className="sticky top-0 p-3.5">
       <SectionHeader
         icon={ShoppingBag}
         title="Cart"
@@ -259,6 +260,6 @@ export function OrderBag({
           </div>
         )}
       </SummaryStack>
-    </div>
+    </Surface>
   );
 }

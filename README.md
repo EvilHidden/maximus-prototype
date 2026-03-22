@@ -10,6 +10,8 @@ If two people are actively iterating in this repo, use these first:
   - branch workflow, PR checklist, merge/closeout steps
 - [docs/STYLE_GUIDE.md](/Users/daniel/Dev%20Work/maximus/docs/STYLE_GUIDE.md)
   - UI/system/style rules so we stop reinventing patterns
+- [docs/UI_SYSTEM_BLUEPRINT.md](/Users/daniel/Dev%20Work/maximus/docs/UI_SYSTEM_BLUEPRINT.md)
+  - portability contract for tokens, primitives, feature layers, and future `WeWeb + Xano` translation
 - [AGENTS.md](/Users/daniel/Dev%20Work/maximus/AGENTS.md)
   - Codex-specific repo rules and subsystem boundaries
 - [docs/DOMAIN_SCHEMA.md](/Users/daniel/Dev%20Work/maximus/docs/DOMAIN_SCHEMA.md)
@@ -38,6 +40,7 @@ This repo is structured for fast two-person prototyping:
 - Put canonical business entities, relationships, runtime-relative seed logic, and app bootstrap data in `src/db/`
 - Put derived view logic in feature `selectors.ts` files, not inside screens
 - Put reusable interaction patterns in `src/components/ui/primitives.tsx`
+- Use [`docs/UI_SYSTEM_BLUEPRINT.md`](/Users/daniel/Dev%20Work/maximus/docs/UI_SYSTEM_BLUEPRINT.md) as the source of truth for what belongs in tokens vs primitives vs feature composites vs screens
 - Put shared pill and badge patterns in `src/components/ui/pills.tsx`
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching

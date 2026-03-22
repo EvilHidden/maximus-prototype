@@ -1,5 +1,5 @@
 import { Ruler, TriangleAlert } from "lucide-react";
-import { ActionButton, EmptyState, InlineEmptyState, SectionHeader, StatusPill } from "../../../components/ui/primitives";
+import { ActionButton, Callout, EmptyState, InlineEmptyState, SectionHeader, StatusPill, Surface } from "../../../components/ui/primitives";
 import type { CustomMeasurementsCardModel } from "../../measurements/types";
 
 type MeasurementsCardProps = {
@@ -87,23 +87,24 @@ export function MeasurementsCard({
     );
 
   return (
-    <div className="app-work-surface p-4">
+    <Surface tone="work" className="p-4">
       <SectionHeader icon={Ruler} title="Measurements" subtitle="Wearer and linked set" />
 
       {showValidationBanner ? (
-        <div className="mb-4 flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/55 px-4 py-3">
-          <TriangleAlert className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-danger-text)]" />
-          <div className="min-w-0">
-            <StatusPill tone="danger">Measurement setup incomplete</StatusPill>
-            <div className="mt-2 app-text-caption text-[var(--app-danger-text)]">
-              {missingWearer && missingMeasurementSet
-                ? "Choose the wearer and link a measurement set before adding this custom garment."
-                : missingWearer
-                  ? "Choose the wearer before continuing."
-                  : "Choose or create a measurement set before continuing."}
-            </div>
+        <Callout
+          tone="danger"
+          icon={TriangleAlert}
+          title={<StatusPill tone="danger">Measurement setup incomplete</StatusPill>}
+          className="mb-4"
+        >
+          <div className="app-text-caption">
+            {missingWearer && missingMeasurementSet
+              ? "Choose the wearer and link a measurement set before adding this custom garment."
+              : missingWearer
+                ? "Choose the wearer before continuing."
+                : "Choose or create a measurement set before continuing."}
           </div>
-        </div>
+        </Callout>
       ) : null}
 
       {model.kind === "no_wearer" ? (
@@ -134,6 +135,6 @@ export function MeasurementsCard({
           )}
         </div>
       )}
-    </div>
+    </Surface>
   );
 }

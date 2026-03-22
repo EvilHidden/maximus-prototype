@@ -30,7 +30,7 @@ import { AlterationBuilder } from "../features/order/components/AlterationBuilde
 import { MeasurementsCard } from "../features/order/components/MeasurementsCard";
 import { CustomGarmentBuilder } from "../features/order/components/CustomGarmentBuilder";
 import { OrderBag } from "../features/order/components/OrderBag";
-import { ActionButton, SectionHeader, cx } from "../components/ui/primitives";
+import { ActionButton, Callout, SectionHeader, cx } from "../components/ui/primitives";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import { PickupScheduleModal } from "../features/order/modals/PickupScheduleModal";
 import { MeasurementSetModal } from "../features/order/modals/MeasurementSetModal";
@@ -210,21 +210,10 @@ export function OrderScreen({
           {order.activeWorkflow === "custom" ? (
             <div className="space-y-3.5">
               {editingCustomItem ? (
-                <div className="rounded-[var(--app-radius-md)] border border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] px-4 py-3 shadow-[var(--app-shadow-sm)]">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="text-[11px] font-semibold uppercase tracking-[0.08em] text-[var(--app-warn-text)]">Editing existing line item</div>
-                      <div className="mt-1 truncate text-[1rem] font-semibold leading-tight text-[var(--app-text)]">
-                        {editingCustomItem.selectedGarment ?? "Custom garment"}
-                      </div>
-                      <div className="mt-1 text-[0.8125rem] leading-relaxed text-[var(--app-text-muted)]">
-                        {editingCustomItem.wearerName ?? "Wearer required"}
-                        {editingCustomItem.linkedMeasurementLabel ? ` • ${editingCustomItem.linkedMeasurementLabel}` : ""}
-                      </div>
-                      <div className="mt-2 text-[0.8125rem] leading-relaxed text-[var(--app-warn-text)]">
-                        Saving will overwrite this cart item instead of creating a new one.
-                      </div>
-                    </div>
+                <Callout
+                  tone="warn"
+                  className="mb-0"
+                  action={
                     <ActionButton
                       tone="secondary"
                       className="shrink-0 border-[var(--app-warn-border)] bg-[var(--app-surface)]"
@@ -235,8 +224,20 @@ export function OrderScreen({
                     >
                       Cancel edit
                     </ActionButton>
+                  }
+                >
+                  <div className="app-text-overline text-[var(--app-warn-text)]">Editing existing line item</div>
+                  <div className="app-text-value mt-1 truncate text-[var(--app-text)]">
+                    {editingCustomItem.selectedGarment ?? "Custom garment"}
                   </div>
-                </div>
+                  <div className="app-text-caption mt-1 text-[var(--app-text-muted)]">
+                    {editingCustomItem.wearerName ?? "Wearer required"}
+                    {editingCustomItem.linkedMeasurementLabel ? ` • ${editingCustomItem.linkedMeasurementLabel}` : ""}
+                  </div>
+                  <div className="app-text-caption mt-2 text-[var(--app-warn-text)]">
+                    Saving will overwrite this cart item instead of creating a new one.
+                  </div>
+                </Callout>
               ) : null}
 
               <MeasurementsCard

@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, EmptyState, SectionHeader, cx } from "../components/ui/primitives";
+import { ActionButton, EmptyState, QuickActionTile, SectionHeader, SelectionChip, Surface, SurfaceHeader } from "../components/ui/primitives";
 import { AppointmentIssuePill, CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
@@ -68,32 +68,6 @@ function getRelativeDayLabel(dateValue: string) {
   return new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(target);
 }
 
-function FrontDeskActionTile({
-  label,
-  subtitle,
-  icon: Icon,
-  iconStyle,
-  onClick,
-}: FrontDeskAction) {
-  return (
-    <button
-      onClick={onClick}
-      className="group flex min-h-[112px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/18 px-4 py-4 text-left transition hover:bg-[var(--app-surface)]/34"
-    >
-      <div className="flex items-start justify-between gap-3">
-        <div className="app-icon-chip transition group-hover:border-[var(--app-border-strong)]" style={iconStyle}>
-          <Icon className="h-4 w-4" />
-        </div>
-        <span className="app-text-overline">Open</span>
-      </div>
-      <div>
-        <div className="app-text-value">{label}</div>
-        <div className="app-text-caption mt-1">{subtitle}</div>
-      </div>
-    </button>
-  );
-}
-
 function HomeEmptyState({
   title,
   detail,
@@ -106,24 +80,20 @@ function HomeEmptyState({
   secondaryAction?: { label: string; onClick: () => void };
 }) {
   return (
-    <div className="app-work-surface p-4">
+    <Surface tone="work" className="p-4">
       <EmptyState className="space-y-4 border-dashed border-[var(--app-border-strong)]/80 bg-[var(--app-surface-muted)]/85 px-5 py-5">
-        <div className="flex items-start gap-3">
-          <div
-            className="app-icon-chip"
-            style={{
-              borderColor: "#bfdbfe",
-              backgroundColor: "#eff6ff",
-              color: "#1d4ed8",
-            }}
-          >
-            <CalendarDays className="h-4 w-4" />
-          </div>
-          <div>
-            <div className="app-text-value">{title}</div>
-            <div className="app-text-caption mt-1">{detail}</div>
-          </div>
-        </div>
+        <SurfaceHeader
+          icon={CalendarDays}
+          iconStyle={{
+            borderColor: "#bfdbfe",
+            backgroundColor: "#eff6ff",
+            color: "#1d4ed8",
+          }}
+          title={title}
+          subtitle={detail}
+          titleClassName="app-text-value"
+          subtitleClassName="app-text-caption"
+        />
         {primaryAction || secondaryAction ? (
           <div className="flex flex-wrap gap-2">
             {primaryAction ? (
@@ -139,7 +109,7 @@ function HomeEmptyState({
           </div>
         ) : null}
       </EmptyState>
-    </div>
+    </Surface>
   );
 }
 
@@ -211,14 +181,14 @@ function AppointmentLane({
 }) {
   return (
     <div className="app-table-shell">
-      <div className="app-table-head flex items-start justify-between gap-3 px-4 py-3.5">
-        <div>
-          <div className="flex items-center gap-2">
-            <div className="app-text-value">{title}</div>
-            <div className="app-text-caption">{dateLabel}</div>
-          </div>
-        </div>
-        <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
+      <div className="app-table-head px-4 py-3.5">
+        <SurfaceHeader
+          title={title}
+          subtitle={dateLabel}
+          meta={<CountPill count={appointments.length} label="scheduled" icon={Clock3} />}
+          titleClassName="app-text-value"
+          subtitleClassName="app-text-caption"
+        />
       </div>
       <div>
         {appointments.length ? (
@@ -296,12 +266,14 @@ function PickupLane({
 }) {
   return (
     <div className="app-table-shell">
-      <div className="app-table-head flex items-start justify-between gap-3 px-4 py-3.5">
-        <div className="flex items-center gap-2">
-          <div className="app-text-value">{title}</div>
-          <div className="app-text-caption">{dateLabel}</div>
-        </div>
-        <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
+      <div className="app-table-head px-4 py-3.5">
+        <SurfaceHeader
+          title={title}
+          subtitle={dateLabel}
+          meta={<CountPill count={appointments.length} label="scheduled" icon={Clock3} />}
+          titleClassName="app-text-value"
+          subtitleClassName="app-text-caption"
+        />
       </div>
       <div>
         {appointments.length ? (
@@ -406,13 +378,20 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
     <div className="space-y-4">
       <SectionHeader icon={House} title="Home" subtitle="Front-of-house operations" />
 
-      <div className="app-control-deck px-4 py-4">
+      <Surface tone="control" className="px-4 py-4">
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {actions.map((action) => (
-            <FrontDeskActionTile key={action.label} {...action} />
+            <QuickActionTile
+              key={action.label}
+              title={action.label}
+              subtitle={action.subtitle}
+              icon={action.icon}
+              iconStyle={action.iconStyle}
+              onClick={action.onClick}
+            />
           ))}
         </div>
-      </div>
+      </Surface>
 
       <div className="px-1 py-1">
         <div className="flex flex-wrap items-center gap-4">
@@ -421,24 +400,21 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
             <div className="app-text-caption mt-1">Filter appointments and pickups.</div>
           </div>
           <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
-            <button
+            <SelectionChip
+              selected={allLocationsActive}
               onClick={() => setActiveLocations(allLocationsActive ? [] : locationOptions)}
-              className={cx(
-                "flex min-h-10 items-center gap-2.5 rounded-[var(--app-radius-sm)] border px-3 py-2 text-left text-[0.75rem] font-semibold tracking-[0.02em] transition",
-                allLocationsActive
-                  ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                  : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]",
-              )}
+              leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+              size="sm"
             >
-              {allLocationsActive ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
-              <span>All locations</span>
-            </button>
+              All locations
+            </SelectionChip>
             {locationOptions.map((location) => {
               const isActive = activeLocations.includes(location);
 
               return (
-                <button
+                <SelectionChip
                   key={location}
+                  selected={isActive}
                   onClick={() => {
                     setActiveLocations((current) => {
                       if (current.includes(location)) {
@@ -448,16 +424,11 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
                       return [...current, location];
                     });
                   }}
-                  className={cx(
-                    "flex min-h-10 items-center gap-2.5 rounded-[var(--app-radius-sm)] border px-3 py-2 text-left text-[0.75rem] font-semibold tracking-[0.02em] transition",
-                    isActive
-                      ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                      : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]",
-                  )}
+                  leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                  size="sm"
                 >
-                  {isActive ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
-                  <span>{location}</span>
-                </button>
+                  {location}
+                </SelectionChip>
               );
             })}
           </div>
@@ -466,26 +437,18 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
 
       {hasVisibleHomeWork ? (
         <>
-          <div className="app-work-surface p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div
-                  className="app-icon-chip"
-                  style={{
-                    borderColor: "#bae6fd",
-                    backgroundColor: "#f0f9ff",
-                    color: "#0369a1",
-                  }}
-                >
-                  <CalendarDays className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="app-section-title">Appointments</div>
-                  <div className="app-section-copy">Today and tomorrow</div>
-                </div>
-              </div>
-              <CountPill count={visibleAppointmentCount} label="appointments" icon={CalendarDays} tone="info" />
-            </div>
+          <Surface tone="work" className="p-4">
+            <SurfaceHeader
+              icon={CalendarDays}
+              iconStyle={{
+                borderColor: "#bae6fd",
+                backgroundColor: "#f0f9ff",
+                color: "#0369a1",
+              }}
+              title="Appointments"
+              subtitle="Today and tomorrow"
+              meta={<CountPill count={visibleAppointmentCount} label="appointments" icon={CalendarDays} tone="info" />}
+            />
 
             <div className="mt-4 grid gap-4 xl:grid-cols-2">
               <AppointmentLane
@@ -505,28 +468,20 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
                 onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
               />
             </div>
-          </div>
+          </Surface>
 
-          <div className="app-work-surface p-4">
-            <div className="flex items-center justify-between gap-3">
-              <div className="flex items-start gap-3">
-                <div
-                  className="app-icon-chip"
-                  style={{
-                    borderColor: "#a7f3d0",
-                    backgroundColor: "#ecfdf5",
-                    color: "#047857",
-                  }}
-                >
-                  <Package className="h-4 w-4" />
-                </div>
-                <div>
-                  <div className="app-section-title">Pickups</div>
-                  <div className="app-section-copy">Today and tomorrow</div>
-                </div>
-              </div>
-              <CountPill count={visiblePickupCount} label="pickups" icon={Package} tone="success" />
-            </div>
+          <Surface tone="work" className="p-4">
+            <SurfaceHeader
+              icon={Package}
+              iconStyle={{
+                borderColor: "#a7f3d0",
+                backgroundColor: "#ecfdf5",
+                color: "#047857",
+              }}
+              title="Pickups"
+              subtitle="Today and tomorrow"
+              meta={<CountPill count={visiblePickupCount} label="pickups" icon={Package} tone="success" />}
+            />
 
             <div className="mt-4 grid gap-4 xl:grid-cols-2">
               <PickupLane
@@ -546,7 +501,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
                 onEditPickup={() => onScreenChange("openOrders")}
               />
             </div>
-          </div>
+          </Surface>
         </>
       ) : !hasAnyLocationSelected ? (
         <HomeEmptyState
