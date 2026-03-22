@@ -36,10 +36,10 @@ const queueMeta: Array<{
   key: OrdersQueueKey;
   label: string;
 }> = [
-  { key: "all", label: "All active" },
+  { key: "all", label: "Everything needing work" },
   { key: "due_today", label: "Due today" },
   { key: "due_tomorrow", label: "Due tomorrow" },
-  { key: "ready_for_pickup", label: "Ready for pickup" },
+  { key: "ready_for_pickup", label: "Ready" },
   { key: "overdue", label: "Overdue" },
   { key: "in_house", label: "In-house" },
   { key: "factory", label: "Factory" },
@@ -183,14 +183,14 @@ function SearchFilterBar({
   return (
     <div className="flex flex-wrap items-end gap-3 border-b border-[var(--app-border)]/55 pb-4">
       <label className="block min-w-[280px] flex-1">
-        <div className="app-text-overline mb-2">Search orders</div>
+        <div className="app-text-overline mb-2">Search work and orders</div>
         <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-4 py-3.5 shadow-[var(--app-shadow-sm)]">
           <div className="flex items-center gap-3">
             <Search className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
             <input
               value={query}
               onChange={(event) => onQueryChange(event.target.value)}
-              placeholder="Search by customer, order type, garment, order ID, or pickup details"
+              placeholder="Search by customer, garment, order ID, or pickup details"
               className="min-w-0 flex-1 border-0 bg-transparent p-0 app-text-body outline-none placeholder:text-[var(--app-text-soft)]"
             />
           </div>
@@ -240,7 +240,7 @@ function QueueStrip({
 }) {
   return (
     <div className="space-y-3 border-b border-[var(--app-border)]/55 pb-4">
-      <div className="app-text-overline">Queue filters</div>
+      <div className="app-text-overline">Focus the worklist</div>
       <div className="flex flex-wrap gap-2">
         {queueMeta.map((queue) => (
           <button
@@ -282,9 +282,9 @@ function QueueOverview({
     <div className="space-y-3">
       <OpenSectionHeader
         icon={PackageSearch}
-        title="Queue overview"
+        title="Worklist overview"
         count={counts.all}
-        subtitle="Choose one lane to focus the worklist instead of expanding everything at once."
+        subtitle="Pick one queue to focus. This view mixes active orders with booked pickup visits."
       />
       <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
         {queueOverviewMeta.map((queue, index) => (
@@ -305,7 +305,7 @@ function QueueOverview({
             </div>
             <div className="flex items-center justify-between gap-3 md:justify-end">
               <CountPill count={counts[queue.key]} />
-              <div className="app-text-caption">Open queue</div>
+              <div className="app-text-caption">View queue</div>
             </div>
           </button>
         ))}
@@ -369,7 +369,7 @@ function WorkQueueOrderRow({
                 className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
               >
                 <div className="min-w-0">
-                  <div className="app-text-overline">Pickup target</div>
+                  <div className="app-text-overline">Promised ready by</div>
                   <div className={cx("mt-1 app-text-strong", getPickupToneClass(pickupAlert.tone))}>
                     {pickupSummary}
                   </div>
@@ -558,9 +558,15 @@ export function OpenOrdersScreen({
     [closedOrderHistory, query],
   );
 
-  const queuesSubtitle = queueCounts.all === 1 ? "1 active order or pickup" : `${queueCounts.all} active orders and pickups`;
-  const registrySubtitle = baseOpenOrders.length === 1 ? "1 active order in the registry" : `${baseOpenOrders.length} active orders in the registry`;
-  const historySubtitle = filteredHistoryItems.length === 1 ? "1 closed order" : `${filteredHistoryItems.length} closed orders`;
+  const queuesSubtitle = queueCounts.all === 1
+    ? "1 worklist item: active order or scheduled pickup"
+    : `${queueCounts.all} worklist items: ${baseOpenOrders.length} active orders and ${basePickupAppointments.length} scheduled pickups`;
+  const registrySubtitle = baseOpenOrders.length === 1
+    ? "1 active order only"
+    : `${baseOpenOrders.length} active orders only`;
+  const historySubtitle = filteredHistoryItems.length === 1
+    ? "1 closed order only"
+    : `${filteredHistoryItems.length} closed orders only`;
 
   const activeSubtitle = activeView === "queues"
     ? queuesSubtitle
@@ -584,9 +590,9 @@ export function OpenOrdersScreen({
 
         <div className="mb-4 flex flex-wrap gap-2 border-b border-[var(--app-border)] pb-4">
           {([
-            { key: "queues", label: "Work queues", count: queueCounts.all },
-            { key: "all", label: "All orders", count: baseOpenOrders.length },
-            { key: "history", label: "History", count: filteredHistoryItems.length },
+            { key: "queues", label: "Worklist", count: queueCounts.all },
+            { key: "all", label: "Order registry", count: baseOpenOrders.length },
+            { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
           ] as const).map((view) => (
             <button
               key={view.key}
@@ -633,7 +639,7 @@ export function OpenOrdersScreen({
                 <QueueSection
                   icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
                   title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
-                  subtitle="Focused operational queue view."
+                  subtitle={queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."}
                   openOrders={filteredQueueOrders}
                   pickupAppointments={filteredQueuePickups}
                   onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
