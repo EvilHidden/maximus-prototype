@@ -48,6 +48,18 @@ const queueMeta: Array<{
 
 const pickupLocations: Array<PickupLocation | "all"> = ["all", "Fifth Avenue", "Queens", "Long Island"];
 
+const selectedFilterClass =
+  "border-[var(--app-accent)] bg-[var(--app-surface-elevated)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)] shadow-[inset_0_0_0_1px_var(--app-accent)]";
+
+const selectedFilterCountClass =
+  "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]";
+
+const unselectedFilterClass =
+  "border-[var(--app-border)] bg-[var(--app-surface-muted)]/30 text-[var(--app-text-muted)] hover:text-[var(--app-text)]";
+
+const unselectedFilterCountClass =
+  "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]";
+
 function getPickupToneClass(tone: PickupAlertTone) {
   if (tone === "warn") {
     return "text-[var(--app-warn-text)]";
@@ -190,8 +202,8 @@ function QueueStrip({
             className={cx(
               "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3 py-2 transition",
               activeQueue === queue.key
-                ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                : "border-[var(--app-border)] bg-[var(--app-surface-muted)]/20 text-[var(--app-text-muted)] hover:text-[var(--app-text)]",
+                ? selectedFilterClass
+                : unselectedFilterClass,
             )}
           >
             <span className="app-text-body font-medium">{queue.label}</span>
@@ -201,8 +213,8 @@ function QueueStrip({
               className={cx(
                 "px-2 py-0.5 text-[11px]",
                 activeQueue === queue.key
-                  ? "border-transparent bg-[rgba(255,255,255,0.18)] text-[var(--app-accent-contrast)]"
-                  : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+                  ? selectedFilterCountClass
+                  : unselectedFilterCountClass,
               )}
             />
           </button>
@@ -501,8 +513,8 @@ export function OpenOrdersScreen({
               className={cx(
                 "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
                 activeView === view.key
-                  ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                  : "border-[var(--app-border)] bg-[var(--app-surface-muted)]/30 text-[var(--app-text-muted)] hover:text-[var(--app-text)]",
+                  ? selectedFilterClass
+                  : unselectedFilterClass,
               )}
             >
               {view.label}
@@ -512,8 +524,8 @@ export function OpenOrdersScreen({
                 className={cx(
                   "px-2 py-0.5 text-[11px]",
                   activeView === view.key
-                    ? "border-transparent bg-[rgba(255,255,255,0.18)] text-[var(--app-accent-contrast)]"
-                    : "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]",
+                    ? selectedFilterCountClass
+                    : unselectedFilterCountClass,
                 )}
               />
             </button>
