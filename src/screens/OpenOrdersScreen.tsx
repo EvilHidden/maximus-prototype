@@ -36,7 +36,7 @@ const queueMeta: Array<{
   key: OrdersQueueKey;
   label: string;
 }> = [
-  { key: "all", label: "Everything needing work" },
+  { key: "all", label: "All work" },
   { key: "due_today", label: "Due today" },
   { key: "due_tomorrow", label: "Due tomorrow" },
   { key: "ready_for_pickup", label: "Ready" },
@@ -259,13 +259,10 @@ function QueueStrip({
   onQueueChange: (queue: OrdersQueueKey) => void;
   counts: Record<OrdersQueueKey, number>;
 }) {
-  const primaryQueues = queueMeta.filter((queue) => queue.key !== "scheduled_pickups");
-  const pickupQueue = queueMeta.find((queue) => queue.key === "scheduled_pickups");
-
   return (
-    <div className="space-y-2">
-      <div className="flex flex-wrap gap-2">
-        {primaryQueues.map((queue) => (
+    <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
+      <div className="flex min-w-max gap-2 px-1">
+        {queueMeta.map((queue) => (
           <button
             key={queue.key}
             onClick={() => onQueueChange(queue.key)}
@@ -290,31 +287,6 @@ function QueueStrip({
           </button>
         ))}
       </div>
-      {pickupQueue ? (
-        <div className="flex justify-start">
-          <button
-            onClick={() => onQueueChange(pickupQueue.key)}
-            className={cx(
-              "inline-flex min-h-9 items-center gap-2 rounded-[var(--app-radius-md)] border px-3 py-2 transition",
-              activeQueue === pickupQueue.key
-                ? selectedFilterClass
-                : unselectedFilterClass,
-            )}
-          >
-            <span className="app-text-caption font-medium">{pickupQueue.label}</span>
-            <CountPill
-              count={counts[pickupQueue.key]}
-              icon={undefined}
-              className={cx(
-                "px-2 py-0.5 text-[11px]",
-                activeQueue === pickupQueue.key
-                  ? selectedFilterCountClass
-                  : unselectedFilterCountClass,
-              )}
-            />
-          </button>
-        </div>
-      ) : null}
     </div>
   );
 }
