@@ -473,19 +473,25 @@ function QueueSection({
 
   if (!count) {
     return (
-      <div className="space-y-3">
-        <OpenSectionHeader icon={icon} title={title} count={0} subtitle={subtitle} />
-        <EmptyState className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/15 shadow-none">
+      <div className="app-work-surface">
+        <div className="px-4 py-4">
+          <OpenSectionHeader icon={icon} title={title} count={0} subtitle={subtitle} />
+        </div>
+        <div className="border-t border-[var(--app-border)]/45">
+          <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
           <div className="app-text-body">{emptyMessage}</div>
         </EmptyState>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-3">
-      <OpenSectionHeader icon={icon} title={title} count={count} subtitle={subtitle} />
-      <div className="app-table-shell rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
+    <div className="app-work-surface">
+      <div className="px-4 py-4">
+        <OpenSectionHeader icon={icon} title={title} count={count} subtitle={subtitle} />
+      </div>
+      <div className="border-t border-[var(--app-border)]/45">
         {pickupAppointments.length > 0 ? (
           <div>
             <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
@@ -625,47 +631,49 @@ export function OpenOrdersScreen({
           }
         />
 
-        <div className="flex flex-wrap gap-2">
-          {([
-            { key: "queues", label: "Worklist", count: queueCounts.all },
-            { key: "all", label: "Order registry", count: baseOpenOrders.length },
-            { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
-          ] as const).map((view) => (
-            <button
-              key={view.key}
-              onClick={() => setActiveView(view.key)}
-              className={cx(
-                "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
-                activeView === view.key
-                  ? selectedFilterClass
-                  : unselectedFilterClass,
-              )}
-            >
-              {view.label}
-              <CountPill
-                count={view.count}
-                icon={undefined}
-                className={cx(
-                  "px-2 py-0.5 text-[11px]",
-                  activeView === view.key
-                    ? selectedFilterCountClass
-                    : unselectedFilterCountClass,
-                )}
-              />
-            </button>
-            ))}
-          </div>
-
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/18 px-4 py-4 shadow-[var(--app-shadow-sm)]">
+        <div className="app-control-deck px-4 py-4">
           <div className="space-y-4">
-            <SearchFilterBar
-              query={query}
-              onQueryChange={setQuery}
-              typeFilter={typeFilter}
-              onTypeFilterChange={setTypeFilter}
-              locationFilter={locationFilter}
-              onLocationFilterChange={setLocationFilter}
-            />
+            <div className="flex flex-wrap gap-2">
+              {([
+                { key: "queues", label: "Worklist", count: queueCounts.all },
+                { key: "all", label: "Order registry", count: baseOpenOrders.length },
+                { key: "history", label: "Closed orders", count: filteredHistoryItems.length },
+              ] as const).map((view) => (
+                <button
+                  key={view.key}
+                  onClick={() => setActiveView(view.key)}
+                  className={cx(
+                    "inline-flex min-h-10 items-center gap-2 rounded-[var(--app-radius-md)] border px-3.5 py-2 text-sm font-medium transition",
+                    activeView === view.key
+                      ? selectedFilterClass
+                      : unselectedFilterClass,
+                  )}
+                >
+                  {view.label}
+                  <CountPill
+                    count={view.count}
+                    icon={undefined}
+                    className={cx(
+                      "px-2 py-0.5 text-[11px]",
+                      activeView === view.key
+                        ? selectedFilterCountClass
+                        : unselectedFilterCountClass,
+                    )}
+                  />
+                </button>
+              ))}
+            </div>
+
+            <div className="border-t border-[var(--app-border)]/35 pt-4">
+              <SearchFilterBar
+                query={query}
+                onQueryChange={setQuery}
+                typeFilter={typeFilter}
+                onTypeFilterChange={setTypeFilter}
+                locationFilter={locationFilter}
+                onLocationFilterChange={setLocationFilter}
+              />
+            </div>
 
             {activeView === "queues" ? (
               <div className="border-t border-[var(--app-border)]/35 pt-4">
@@ -676,12 +684,12 @@ export function OpenOrdersScreen({
         </div>
       </div>
 
-      <div className="border-t border-[var(--app-border)]/55 pt-4">
+      <div className="pt-1">
         {activeView === "all" ? (
           baseOpenOrders.length === 0 ? (
             <EmptyState>No active orders match this search and filter set.</EmptyState>
           ) : (
-            <div className="app-table-shell rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
+            <div className="app-work-surface">
               {baseOpenOrders.map((openOrder, index) => (
                 <div
                   key={openOrder.id}
@@ -714,7 +722,7 @@ export function OpenOrdersScreen({
           filteredHistoryItems.length === 0 ? (
             <EmptyState>No closed orders match this search.</EmptyState>
           ) : (
-            <div className="app-table-shell rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
+            <div className="app-work-surface">
               {filteredHistoryItems.map((order, index) => (
                 <div
                   key={order.id}

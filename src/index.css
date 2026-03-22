@@ -111,7 +111,10 @@ button {
 .app-empty-state,
 .app-entity-row,
 .app-workflow-toggle,
-.app-table-shell {
+.app-table-shell,
+.app-control-deck,
+.app-work-surface,
+.app-support-rail {
   border-radius: var(--app-radius-md);
 }
 
@@ -125,6 +128,25 @@ button {
   border: 1px solid var(--app-border);
   background: var(--app-surface-muted);
   padding: 0.75rem;
+}
+
+.app-control-deck {
+  border: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 30%, var(--app-surface));
+  box-shadow: var(--app-shadow-sm);
+}
+
+.app-work-surface {
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--app-border) 78%, transparent);
+  background: var(--app-surface);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.app-support-rail {
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 50%, var(--app-surface));
+  box-shadow: var(--app-shadow-sm);
 }
 
 .app-input,

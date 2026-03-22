@@ -1,5 +1,5 @@
 import { CheckSquare, Layers3, Shirt, TriangleAlert, Type } from "lucide-react";
-import { ActionButton, Card, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
@@ -221,7 +221,7 @@ export function CustomGarmentBuilder({
 
   return (
     <>
-      <Card className="p-4">
+      <div className="app-work-surface p-4">
         <SectionHeader
           icon={Shirt}
           title={isEditing ? "Edit custom garment" : "Custom garment"}
@@ -439,9 +439,9 @@ export function CustomGarmentBuilder({
             )}
           </div>
         </div>
-      </Card>
+      </div>
 
-      <div className="flex items-center justify-between gap-4 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)]/38 px-4 py-3.5">
+      <div className="app-support-rail flex items-center justify-between gap-4 px-4 py-3.5">
         <div className="min-w-0 flex-1">
           <div className="app-text-overline">{isEditing ? "Current garment" : "Ready to add"}</div>
           <div className="app-text-caption mt-1">

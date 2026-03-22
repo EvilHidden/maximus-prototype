@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, Card, cx } from "../components/ui/primitives";
+import { ActionButton, cx } from "../components/ui/primitives";
 import { AppointmentIssuePill, CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
@@ -157,8 +157,8 @@ function AppointmentLane({
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
   return (
-    <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface)]/18 px-4 py-4">
-      <div className="flex items-start justify-between gap-3">
+    <div className="app-table-shell">
+      <div className="app-table-head flex items-start justify-between gap-3 px-4 py-3.5">
         <div>
           <div className="flex items-center gap-2">
             <div className="app-text-value">{title}</div>
@@ -167,12 +167,9 @@ function AppointmentLane({
         </div>
         <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
       </div>
-      <div className="mt-4 space-y-3">
+      <div>
         {appointments.map((appointment) => (
-          <div
-            key={appointment.id}
-            className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/34 px-4 py-4"
-          >
+          <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
             <ScheduleRow
               appointment={appointment}
               onCreateOrder={onCreateOrder}
@@ -234,22 +231,23 @@ function PickupLane({
   onEditPickup: (appointment: Appointment) => void;
 }) {
   return (
-    <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface)]/18 px-4 py-4">
-      <div className="flex items-start justify-between gap-3">
+    <div className="app-table-shell">
+      <div className="app-table-head flex items-start justify-between gap-3 px-4 py-3.5">
         <div className="flex items-center gap-2">
           <div className="app-text-value">{title}</div>
           <div className="app-text-caption">{dateLabel}</div>
         </div>
         <CountPill count={appointments.length} label="scheduled" icon={Clock3} />
       </div>
-      <div className="mt-4 space-y-3">
+      <div>
         {appointments.map((appointment) => (
-          <PickupRow
-            key={appointment.id}
-            appointment={appointment}
-            onCheckout={() => onCheckout(appointment)}
-            onEditPickup={() => onEditPickup(appointment)}
-          />
+          <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
+            <PickupRow
+              appointment={appointment}
+              onCheckout={() => onCheckout(appointment)}
+              onEditPickup={() => onEditPickup(appointment)}
+            />
+          </div>
         ))}
       </div>
     </div>
@@ -327,21 +325,19 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
 
   return (
     <div className="space-y-4">
-      <Card className="overflow-hidden p-0">
-        <div className="bg-[linear-gradient(135deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] px-4 py-4">
-          <div className="mb-4">
-            <div className="app-section-title">Maximus Custom Clothing</div>
-            <div className="app-section-copy">Front-of-house actions</div>
-          </div>
-          <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-            {actions.map((action) => (
-              <FrontDeskActionTile key={action.label} {...action} />
-            ))}
-          </div>
+      <div className="app-control-deck px-4 py-4">
+        <div className="mb-4">
+          <div className="app-section-title">Maximus Custom Clothing</div>
+          <div className="app-section-copy">Front-of-house actions</div>
         </div>
-      </Card>
+        <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+          {actions.map((action) => (
+            <FrontDeskActionTile key={action.label} {...action} />
+          ))}
+        </div>
+      </div>
 
-      <div className="rounded-[var(--app-radius-lg)] bg-[var(--app-surface-muted)]/24 px-4 py-3">
+      <div className="px-1 py-1">
         <div className="flex flex-wrap items-center gap-4">
           <div className="shrink-0 pt-0.5">
             <div className="app-text-overline">View locations</div>
@@ -353,7 +349,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
               className={cx(
                 "flex min-h-10 items-center gap-2.5 rounded-[var(--app-radius-sm)] border px-3 py-2 text-left text-[0.75rem] font-semibold tracking-[0.02em] transition",
                 allLocationsActive
-                  ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]/82 text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                  ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
                   : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]",
               )}
             >
@@ -378,7 +374,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
                   className={cx(
                     "flex min-h-10 items-center gap-2.5 rounded-[var(--app-radius-sm)] border px-3 py-2 text-left text-[0.75rem] font-semibold tracking-[0.02em] transition",
                     isActive
-                      ? "border-[var(--app-border-strong)] bg-[var(--app-surface)]/82 text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                      ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
                       : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)]",
                   )}
                 >
@@ -391,7 +387,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
         </div>
       </div>
 
-      <Card className="p-4">
+      <div className="app-work-surface p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div
@@ -433,9 +429,9 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
             onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
           />
         </div>
-      </Card>
+      </div>
 
-      <Card className="p-4">
+      <div className="app-work-surface p-4">
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-start gap-3">
             <div
@@ -472,7 +468,7 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
             onEditPickup={() => onScreenChange("openOrders")}
           />
         </div>
-      </Card>
+      </div>
     </div>
   );
 }

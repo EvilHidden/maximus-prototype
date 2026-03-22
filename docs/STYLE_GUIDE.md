@@ -36,8 +36,13 @@ Do not invent local text stacks unless there is a strong reason.
 - Keep screens composition-focused.
 - Put complex interaction patterns into feature components.
 - Prefer a main work surface plus a supporting rail when the workflow benefits from it.
+- For operational pages, standardize around three layers:
+  - `app-control-deck` for search, filters, mode toggles, and queue rails
+  - `app-work-surface` for the primary worksheet, table, calendar, or row surface
+  - `app-support-rail` for secondary context, saved sets, bags, and side actions
 - Avoid giant empty zones that make the user hunt for focus.
 - Avoid “card for every thing.” If something is just metadata, present it as metadata.
+- Do not stack lifted cards inside other lifted cards when a bordered section on the page plane will do the job.
 
 ## Calendar / table / list behavior
 
@@ -53,6 +58,8 @@ Do not invent local text stacks unless there is a strong reason.
   - `app-table-head`
   - `app-table-row`
 - If Customers has already established the correct table treatment for a pattern, other screens should follow that same shell, row border, and hover language instead of inventing a local variant.
+- Calendar-first screens can stay calendar-first, but the shell around the calendar should still use the same plane language as the rest of the app.
+- Support rails should feel attached to the page plane, not like a second application floating beside the main work.
 
 ## Orders language
 

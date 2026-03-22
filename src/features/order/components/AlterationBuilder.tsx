@@ -1,6 +1,6 @@
 import { Scissors, TriangleAlert } from "lucide-react";
 import type { AlterationService } from "../../../types";
-import { ActionButton, Card, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import { getAlterationGarmentVisual } from "../alterationGarmentVisuals";
 import { getAlterationServiceIcon, getAlterationServiceIconClassName } from "../alterationServiceVisuals";
 
@@ -39,7 +39,7 @@ export function AlterationBuilder({
   const showValidationBanner = showValidation && (missingGarment || missingServices);
 
   return (
-    <Card className="flex h-full min-h-0 flex-col p-4">
+    <div className="app-work-surface flex h-full min-h-0 flex-col p-4">
       <SectionHeader icon={Scissors} title="Alteration intake" subtitle="Build line item" />
 
       {showValidationBanner ? (
@@ -134,7 +134,7 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <div className="app-panel-section mt-4 xl:mt-5 flex flex-wrap items-start justify-between gap-3">
+      <div className="app-support-rail mt-4 xl:mt-5 flex flex-wrap items-start justify-between gap-3 p-4">
         <div className="shrink-0">
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption mt-1">
@@ -164,6 +164,6 @@ export function AlterationBuilder({
           </ActionButton>
         </div>
       </div>
-    </Card>
+    </div>
   );
 }
