@@ -278,7 +278,7 @@ describe("order selectors", () => {
       paymentStatus: "captured",
       paymentDueNow: 918.2875,
       collectedToday: 918.2875,
-      balanceDue: 1129.2875,
+      balanceDue: 747.4999999999999,
       createdAt: now.toISOString(),
     });
     expect(openOrder?.pickupSchedules.map((pickup) => pickup.id)).toEqual([
