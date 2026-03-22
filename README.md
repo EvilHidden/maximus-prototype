@@ -146,6 +146,7 @@ If the answer is `yes`, pause first and explicitly call out the tradeoff before 
 
 ```bash
 npm run dev
+npm run test
 npm run check
 npm run build
 npm run preview

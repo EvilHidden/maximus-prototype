@@ -1,23 +1,8 @@
-import { useMemo, useState } from "react";
 import { Receipt } from "lucide-react";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import type { Dispatch } from "react";
 import type { AppAction } from "../state/appState";
 import type { AppReferenceData } from "../db";
-import {
-  filterCustomers,
-} from "../features/customer/selectors";
-import {
-  getCanAddCustomDraftToOrder,
-  getHasAlterationContent,
-  getHasCustomContent,
-  getOrderBagLineItems,
-  getOrderType,
-  getPickupRequired,
-  getPricingSummary,
-  getSummaryGuardrail,
-} from "../features/order/selectors";
-import { getCustomMeasurementsCardModel, getMeasurementOptions } from "../features/measurements/selectors";
 import { WorkflowSelector } from "../features/order/components/WorkflowSelector";
 import { AlterationBuilder } from "../features/order/components/AlterationBuilder";
 import { MeasurementsCard } from "../features/order/components/MeasurementsCard";
@@ -31,8 +16,8 @@ import { EditAlterationItemModal } from "../features/order/modals/EditAlteration
 import { ConfirmRemoveItemModal } from "../features/order/modals/ConfirmRemoveItemModal";
 import { ConfirmClearBagModal } from "../features/order/modals/ConfirmClearBagModal";
 import type { AppState } from "../state/appState";
-import { useCustomMeasurementDefaults } from "../features/measurements/hooks/useCustomMeasurementDefaults";
 import { useToast } from "../components/ui/toast";
+import { useOrderBuilderController } from "../features/order/hooks/useOrderBuilderController";
 
 type OrderScreenProps = {
   customers: Customer[];
@@ -56,101 +41,16 @@ export function OrderScreen({
   onCompleteOrder,
 }: OrderScreenProps) {
   const { showToast } = useToast();
-  const [customerModalOpen, setCustomerModalOpen] = useState(false);
-  const [wearerModalOpen, setWearerModalOpen] = useState(false);
-  const [customerQuery, setCustomerQuery] = useState("");
-  const [pickupModalScope, setPickupModalScope] = useState<"alteration" | "custom" | null>(null);
-  const [measurementPickerOpen, setMeasurementPickerOpen] = useState(false);
-  const [editingItemId, setEditingItemId] = useState<number | null>(null);
-  const [editingCustomItemId, setEditingCustomItemId] = useState<number | null>(null);
-  const [pendingDeleteItemId, setPendingDeleteItemId] = useState<number | null>(null);
-  const [clearBagConfirmOpen, setClearBagConfirmOpen] = useState(false);
-  const [alterationValidationVisible, setAlterationValidationVisible] = useState(false);
-  const [customValidationVisible, setCustomValidationVisible] = useState(false);
-
-  const hasAlterationContent = getHasAlterationContent(order);
-  const hasCustomContent = getHasCustomContent(order);
-  const orderType = getOrderType(order);
-  const pickupRequired = getPickupRequired(order);
-  const pricing = getPricingSummary(order);
-  const lineItems = getOrderBagLineItems(order, customers);
-  const canAddCustomDraftToOrder = getCanAddCustomDraftToOrder(order);
-  const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
-  const wearerCustomer = useMemo(
-    () => customers.find((customer) => customer.id === order.custom.draft.wearerCustomerId) ?? null,
-    [customers, order.custom.draft.wearerCustomerId],
-  );
-  const continueLabel =
-    order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId
-      ? "Go to measurements"
-      : "Continue to checkout";
-  const addToCartDisabledReason = !order.alteration.selectedGarment
-    ? "Select a garment before adding anything to the cart."
-    : order.alteration.selectedModifiers.length === 0
-      ? "Choose at least one alteration service before adding this item to the cart."
-      : undefined;
-  const missingAlterationGarment = !order.alteration.selectedGarment;
-  const missingAlterationServices = Boolean(order.alteration.selectedGarment) && order.alteration.selectedModifiers.length === 0;
-
-  const garmentOptions = referenceData.alterationCatalog.map((garment) => garment.category);
-  const currentServices = referenceData.alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
-  const currentAlterationSubtotal = order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
-  const filteredCustomers = useMemo(() => filterCustomers(customers, customerQuery), [customers, customerQuery]);
-  const measurementsCardModel = getCustomMeasurementsCardModel(
-    wearerCustomer,
-    order.custom.draft.linkedMeasurementSetId ? measurementSets.find((set) => set.id === order.custom.draft.linkedMeasurementSetId) ?? null : null,
+  const controller = useOrderBuilderController({
+    customers,
     measurementSets,
-  );
-  const measurementOptions = getMeasurementOptions(measurementSets, wearerCustomer);
-  const editingItem = order.alteration.items.find((item) => item.id === editingItemId) ?? null;
-  const editingCustomItem = editingCustomItemId !== null
-    ? order.custom.items.find((item) => item.id === editingCustomItemId) ?? null
-    : null;
-  const editingServices = referenceData.alterationCatalog.find((garment) => garment.category === editingItem?.garment)?.services ?? [];
-  const continueDisabledReason =
-    orderType === null
-      ? "Add at least one item to the cart before moving forward."
-      : summaryGuardrail.missingCustomer
-        ? "Link a paying customer before moving this order forward."
-        : summaryGuardrail.missingPickup
-          ? orderType === "mixed"
-            ? "Set both the alteration pickup and custom pickup before moving this order forward."
-            : "Set the pickup date, time, and location before moving this order forward."
-          : summaryGuardrail.customIncomplete
-            ? "Finish the custom garment configuration before continuing to checkout."
-            : undefined;
-  const customAddDisabledReason = !order.custom.draft.gender
-    ? "Select a gender before building the custom garment."
-    : !order.custom.draft.selectedGarment
-      ? "Choose a garment before adding the custom item to the cart."
-      : !order.custom.draft.wearerCustomerId
-        ? "Assign a wearer before adding the custom garment to the cart."
-        : !order.custom.draft.linkedMeasurementSetId
-          ? "Choose or create a measurement set before adding the custom garment to the cart."
-            : !order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads
-          ? "Complete fabric, buttons, lining, and thread details before adding this garment to the cart."
-            : order.custom.draft.selectedGarment &&
-                referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
-                (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
-              ? "Choose the canvas, lapel, and pocket details before adding this jacket-based garment to the cart."
-              : undefined;
-  const missingCustomGender = !order.custom.draft.gender;
-  const missingCustomGarment = Boolean(order.custom.draft.gender) && !order.custom.draft.selectedGarment;
-  const missingCustomWearer = Boolean(order.custom.draft.selectedGarment) && !order.custom.draft.wearerCustomerId;
-  const missingCustomMeasurements = Boolean(order.custom.draft.wearerCustomerId) && !order.custom.draft.linkedMeasurementSetId;
-  const missingCustomBuildDetails =
-    Boolean(order.custom.draft.linkedMeasurementSetId) &&
-    (!order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads);
-  const missingCustomStyleDetails =
-    Boolean(order.custom.draft.selectedGarment) &&
-    referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
-    (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas);
-
-  useCustomMeasurementDefaults({
-    measurementSets,
-    wearerCustomerId: wearerCustomer?.id ?? null,
+    referenceData,
+    payerCustomer,
     order,
     dispatch,
+    onScreenChange,
+    onCompleteOrder,
+    showToast,
   });
 
   return (
@@ -171,31 +71,28 @@ export function OrderScreen({
         >
           <WorkflowSelector
             activeWorkflow={order.activeWorkflow}
-            hasAlterationContent={hasAlterationContent}
-            hasCustomContent={hasCustomContent}
+            hasAlterationContent={controller.hasAlterationContent}
+            hasCustomContent={controller.hasCustomContent}
             onActivate={(workflow) => dispatch({ type: "activateWorkflow", workflow })}
           />
 
           {order.activeWorkflow === "alteration" ? (
             <div className="xl:min-h-0 xl:flex-1">
               <AlterationBuilder
-                garmentOptions={garmentOptions}
+                garmentOptions={controller.garmentOptions}
                 selectedGarment={order.alteration.selectedGarment}
-                currentServices={currentServices}
+                currentServices={controller.currentServices}
                 selectedModifiers={order.alteration.selectedModifiers}
-                currentSubtotal={currentAlterationSubtotal}
-                addDisabledReason={addToCartDisabledReason}
-                onShowDisabledReason={(reason) => {
-                  setAlterationValidationVisible(true);
-                  showToast(reason);
-                }}
-                showValidation={alterationValidationVisible}
-                missingGarment={missingAlterationGarment}
-                missingServices={missingAlterationServices}
+                currentSubtotal={controller.currentAlterationSubtotal}
+                addDisabledReason={controller.addToCartDisabledReason}
+                onShowDisabledReason={controller.handleShowAlterationDisabledReason}
+                showValidation={controller.alterationValidationVisible}
+                missingGarment={controller.missingAlterationGarment}
+                missingServices={controller.missingAlterationServices}
                 onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
                 onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
                 onAddItem={() => {
-                  setAlterationValidationVisible(false);
+                  controller.setAlterationValidationVisible(false);
                   dispatch({ type: "addAlterationItem" });
                 }}
               />
@@ -204,7 +101,7 @@ export function OrderScreen({
 
           {order.activeWorkflow === "custom" ? (
             <div className="space-y-3.5">
-              {editingCustomItem ? (
+              {controller.editingCustomItem ? (
                 <Callout
                   tone="warn"
                   className="mb-0"
@@ -212,10 +109,7 @@ export function OrderScreen({
                     <ActionButton
                       tone="secondary"
                       className="shrink-0 border-[var(--app-warn-border)] bg-[var(--app-surface)]"
-                      onClick={() => {
-                        setEditingCustomItemId(null);
-                        dispatch({ type: "resetCustomDraft" });
-                      }}
+                      onClick={controller.handleCancelCustomEdit}
                     >
                       Cancel edit
                     </ActionButton>
@@ -223,11 +117,11 @@ export function OrderScreen({
                 >
                   <div className="app-text-overline text-[var(--app-warn-text)]">Editing existing line item</div>
                   <div className="app-text-value mt-1 truncate text-[var(--app-text)]">
-                    {editingCustomItem.selectedGarment ?? "Custom garment"}
+                    {controller.editingCustomItem.selectedGarment ?? "Custom garment"}
                   </div>
                   <div className="app-text-caption mt-1 text-[var(--app-text-muted)]">
-                    {editingCustomItem.wearerName ?? "Wearer required"}
-                    {editingCustomItem.linkedMeasurementLabel ? ` • ${editingCustomItem.linkedMeasurementLabel}` : ""}
+                    {controller.editingCustomItem.wearerName ?? "Wearer required"}
+                    {controller.editingCustomItem.linkedMeasurementLabel ? ` • ${controller.editingCustomItem.linkedMeasurementLabel}` : ""}
                   </div>
                   <div className="app-text-caption mt-2 text-[var(--app-warn-text)]">
                     Saving will overwrite this cart item instead of creating a new one.
@@ -236,15 +130,15 @@ export function OrderScreen({
               ) : null}
 
               <MeasurementsCard
-                model={measurementsCardModel}
-                showValidation={customValidationVisible}
-                missingWearer={missingCustomWearer}
-                missingMeasurementSet={missingCustomMeasurements}
-                onChooseWearer={() => setWearerModalOpen(true)}
-                onChooseAnother={() => setMeasurementPickerOpen(true)}
+                model={controller.measurementsCardModel}
+                showValidation={controller.customValidationVisible}
+                missingWearer={controller.missingCustomWearer}
+                missingMeasurementSet={controller.missingCustomMeasurements}
+                onChooseWearer={() => controller.setWearerModalOpen(true)}
+                onChooseAnother={() => controller.setMeasurementPickerOpen(true)}
                 onCreateNew={() => {
-                  if (wearerCustomer) {
-                    dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
+                  if (controller.wearerCustomer) {
+                    dispatch({ type: "setCustomer", customerId: controller.wearerCustomer.id });
                   }
                   onScreenChange("measurements");
                 }}
@@ -267,55 +161,23 @@ export function OrderScreen({
                 pocketType={order.custom.draft.pocketType}
                 lapel={order.custom.draft.lapel}
                 canvas={order.custom.draft.canvas}
-                canAddToOrder={canAddCustomDraftToOrder}
-                addDisabledReason={customAddDisabledReason}
-                onShowDisabledReason={(reason) => {
-                  setCustomValidationVisible(false);
-                  showToast(reason);
-                }}
-                showValidation={customValidationVisible}
-                missingGender={missingCustomGender}
-                missingGarment={missingCustomGarment}
-                missingWearer={missingCustomWearer}
-                missingMeasurements={missingCustomMeasurements}
-                missingBuildDetails={missingCustomBuildDetails}
-                missingStyleDetails={missingCustomStyleDetails}
-                isEditing={editingCustomItemId !== null}
-                editingLabel={editingCustomItem?.selectedGarment ?? null}
-                wearerName={wearerCustomer?.name ?? null}
+                canAddToOrder={controller.canAddCustomDraftToOrder}
+                addDisabledReason={controller.customAddDisabledReason}
+                onShowDisabledReason={controller.handleShowCustomDisabledReason}
+                showValidation={controller.customValidationVisible}
+                missingGender={controller.missingCustomGender}
+                missingGarment={controller.missingCustomGarment}
+                missingWearer={controller.missingCustomWearer}
+                missingMeasurements={controller.missingCustomMeasurements}
+                missingBuildDetails={controller.missingCustomBuildDetails}
+                missingStyleDetails={controller.missingCustomStyleDetails}
+                isEditing={controller.editingCustomItemId !== null}
+                editingLabel={controller.editingCustomItem?.selectedGarment ?? null}
+                wearerName={controller.wearerCustomer?.name ?? null}
                 onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
                 onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
-                onAddToOrder={() => {
-                  if (editingCustomItemId !== null) {
-                    dispatch({
-                      type: "saveCustomItem",
-                      payload: {
-                        itemId: editingCustomItemId,
-                        wearerName: wearerCustomer?.name ?? null,
-                        linkedMeasurementLabel:
-                          measurementsCardModel.kind === "linked" ? measurementsCardModel.set.version : wearerCustomer ? "Draft" : null,
-                      },
-                    });
-                    setEditingCustomItemId(null);
-                    setCustomValidationVisible(false);
-                    return;
-                  }
-
-                  setCustomValidationVisible(false);
-                  dispatch({
-                    type: "addCustomItem",
-                    payload: {
-                      wearerName: wearerCustomer?.name ?? null,
-                      linkedMeasurementLabel:
-                        measurementsCardModel.kind === "linked" ? measurementsCardModel.set.version : wearerCustomer ? "Draft" : null,
-                    },
-                  });
-                }}
-                onCancelEdit={() => {
-                  setEditingCustomItemId(null);
-                  setCustomValidationVisible(false);
-                  dispatch({ type: "resetCustomDraft" });
-                }}
+                onAddToOrder={controller.handleAddOrSaveCustomItem}
+                onCancelEdit={controller.handleCancelCustomEdit}
                 onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
               />
             </div>
@@ -325,179 +187,149 @@ export function OrderScreen({
         <div className={cx(order.activeWorkflow === "alteration" && "xl:min-h-0", "space-y-3.5")}>
           <OrderBag
             customer={payerCustomer}
-            lineItems={lineItems}
-            pricing={pricing}
-            orderType={orderType}
+            lineItems={controller.lineItems}
+            pricing={controller.pricing}
+            orderType={controller.orderType}
             activeWorkflow={order.activeWorkflow}
-            continueLabel={continueLabel}
-            pickupRequired={pickupRequired}
+            continueLabel={controller.continueLabel}
+            pickupRequired={controller.pickupRequired}
             pickupSchedules={order.fulfillment}
-            onOpenCustomerModal={() => setCustomerModalOpen(true)}
-            onOpenPickupModal={(scope) => setPickupModalScope(scope)}
-            onEditAlterationItem={(itemId) => setEditingItemId(itemId)}
-            onEditCustomItem={(itemId) => {
-              setEditingItemId(null);
-              setEditingCustomItemId(itemId);
-              dispatch({ type: "loadCustomItemForEdit", itemId });
-            }}
-            onRequestRemoveItem={(kind, itemId) => {
-              if (kind === "alteration") {
-                setPendingDeleteItemId(itemId);
-                return;
-              }
-
-              if (editingCustomItemId === itemId) {
-                setEditingCustomItemId(null);
-                dispatch({ type: "resetCustomDraft" });
-              }
-              dispatch({ type: "removeCustomItem", itemId });
-            }}
-            onClearCart={() => setClearBagConfirmOpen(true)}
-            onSchedulePayLater={() => {
-              onCompleteOrder("pay_later");
-            }}
-            onSchedulePrepay={() => {
-              dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
-              onScreenChange("checkout");
-            }}
+            onOpenCustomerModal={() => controller.setCustomerModalOpen(true)}
+            onOpenPickupModal={(scope) => controller.setPickupModalScope(scope)}
+            onEditAlterationItem={(itemId) => controller.setEditingItemId(itemId)}
+            onEditCustomItem={controller.handleOpenEditCustomItem}
+            onRequestRemoveItem={controller.handleRequestRemoveItem}
+            onClearCart={() => controller.setClearBagConfirmOpen(true)}
+            onSchedulePayLater={controller.handleSchedulePayLater}
+            onSchedulePrepay={controller.handleSchedulePrepay}
             onShowDisabledReason={showToast}
-            onContinue={() => {
-              if (order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId) {
-                if (wearerCustomer) {
-                  dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
-                }
-                onScreenChange("measurements");
-                return;
-              }
-
-              onScreenChange("checkout");
-            }}
+            onContinue={controller.handleContinue}
             continueDisabled={
-              orderType === null ||
-              summaryGuardrail.missingCustomer ||
-              summaryGuardrail.missingPickup ||
-              summaryGuardrail.customIncomplete
+              controller.orderType === null ||
+              controller.summaryGuardrail.missingCustomer ||
+              controller.summaryGuardrail.missingPickup ||
+              controller.summaryGuardrail.customIncomplete
             }
-            continueDisabledReason={continueDisabledReason}
+            continueDisabledReason={controller.continueDisabledReason}
           />
         </div>
       </div>
 
-      {customerModalOpen ? (
+      {controller.customerModalOpen ? (
         <CustomerPickerModal
-          customers={filteredCustomers}
-          query={customerQuery}
-          onQueryChange={setCustomerQuery}
+          customers={controller.filteredCustomers}
+          query={controller.customerQuery}
+          onQueryChange={controller.setCustomerQuery}
           onSelectCustomer={(customerId) => {
             dispatch({ type: "setOrderPayer", customerId });
             dispatch({ type: "setCustomer", customerId });
-            setCustomerModalOpen(false);
-            setCustomerQuery("");
+            controller.setCustomerModalOpen(false);
+            controller.setCustomerQuery("");
           }}
           onClose={() => {
-            setCustomerModalOpen(false);
-            setCustomerQuery("");
+            controller.setCustomerModalOpen(false);
+            controller.setCustomerQuery("");
           }}
         />
       ) : null}
 
-      {pickupModalScope ? (
+      {controller.pickupModalScope ? (
         <PickupScheduleModal
-          scope={pickupModalScope}
-          schedule={order.fulfillment[pickupModalScope]}
+          scope={controller.pickupModalScope}
+          schedule={order.fulfillment[controller.pickupModalScope]}
           pickupLocations={referenceData.pickupLocations}
-          onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: { scope: pickupModalScope, ...patch } })}
-          onClose={() => setPickupModalScope(null)}
+          onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: { scope: controller.pickupModalScope!, ...patch } })}
+          onClose={() => controller.setPickupModalScope(null)}
         />
       ) : null}
 
-      {wearerModalOpen ? (
+      {controller.wearerModalOpen ? (
         <CustomerPickerModal
-          customers={filteredCustomers}
-          query={customerQuery}
-          onQueryChange={setCustomerQuery}
+          customers={controller.filteredCustomers}
+          query={controller.customerQuery}
+          onQueryChange={controller.setCustomerQuery}
           onSelectCustomer={(customerId) => {
             dispatch({ type: "selectCustomWearer", customerId });
             dispatch({ type: "setCustomer", customerId });
-            setWearerModalOpen(false);
-            setCustomerQuery("");
+            controller.setWearerModalOpen(false);
+            controller.setCustomerQuery("");
           }}
           onClose={() => {
-            setWearerModalOpen(false);
-            setCustomerQuery("");
+            controller.setWearerModalOpen(false);
+            controller.setCustomerQuery("");
           }}
         />
       ) : null}
 
-      {measurementPickerOpen && wearerCustomer ? (
+      {controller.measurementPickerOpen && controller.wearerCustomer ? (
         <MeasurementSetModal
-          customerName={wearerCustomer.name}
+          customerName={controller.wearerCustomer.name}
           currentMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
-          options={measurementOptions}
+          options={controller.measurementOptions}
           onSelect={(measurementSetId) => {
-            const selectedSet = measurementOptions.find((option) => option.id === measurementSetId);
+            const selectedSet = controller.measurementOptions.find((option) => option.id === measurementSetId);
             dispatch({
               type: "replaceMeasurements",
               values: selectedSet?.values ?? {},
               measurementSetId,
             });
-            setMeasurementPickerOpen(false);
+            controller.setMeasurementPickerOpen(false);
           }}
           onCreateNew={() => {
-            setMeasurementPickerOpen(false);
-            dispatch({ type: "setCustomer", customerId: wearerCustomer.id });
+            controller.setMeasurementPickerOpen(false);
+            dispatch({ type: "setCustomer", customerId: controller.wearerCustomer!.id });
             onScreenChange("measurements");
           }}
-          onClose={() => setMeasurementPickerOpen(false)}
+          onClose={() => controller.setMeasurementPickerOpen(false)}
         />
       ) : null}
 
-      {editingItem ? (
+      {controller.editingItem ? (
         <EditAlterationItemModal
-          garment={editingItem.garment}
-          garmentOptions={garmentOptions}
-          services={editingServices}
-          selectedModifiers={editingItem.modifiers}
-          subtotal={editingItem.subtotal}
-          onSetGarment={(garment) => dispatch({ type: "setAlterationItem", payload: { itemId: editingItem.id, garment, modifiers: [] } })}
+          garment={controller.editingItem.garment}
+          garmentOptions={controller.garmentOptions}
+          services={controller.editingServices}
+          selectedModifiers={controller.editingItem.modifiers}
+          subtotal={controller.editingItem.subtotal}
+          onSetGarment={(garment) => dispatch({ type: "setAlterationItem", payload: { itemId: controller.editingItem!.id, garment, modifiers: [] } })}
           onToggleModifier={(modifier) => {
-            const isSelected = editingItem.modifiers.some((selectedModifier) => selectedModifier.name === modifier.name);
+            const isSelected = controller.editingItem!.modifiers.some((selectedModifier) => selectedModifier.name === modifier.name);
             dispatch({
               type: "setAlterationItem",
               payload: {
-                itemId: editingItem.id,
+                itemId: controller.editingItem!.id,
                 modifiers: isSelected
-                  ? editingItem.modifiers.filter((selectedModifier) => selectedModifier.name !== modifier.name)
-                  : [...editingItem.modifiers, modifier],
+                  ? controller.editingItem!.modifiers.filter((selectedModifier) => selectedModifier.name !== modifier.name)
+                  : [...controller.editingItem!.modifiers, modifier],
               },
             });
           }}
-          onRequestRemove={() => setPendingDeleteItemId(editingItem.id)}
-          onClose={() => setEditingItemId(null)}
+          onRequestRemove={() => controller.setPendingDeleteItemId(controller.editingItem!.id)}
+          onClose={() => controller.setEditingItemId(null)}
         />
       ) : null}
 
-      {pendingDeleteItemId !== null ? (
+      {controller.pendingDeleteItemId !== null ? (
         <ConfirmRemoveItemModal
           onConfirm={() => {
-            dispatch({ type: "removeAlterationItem", itemId: pendingDeleteItemId });
-            setEditingItemId(null);
-            setPendingDeleteItemId(null);
+            dispatch({ type: "removeAlterationItem", itemId: controller.pendingDeleteItemId! });
+            controller.setEditingItemId(null);
+            controller.setPendingDeleteItemId(null);
           }}
-          onClose={() => setPendingDeleteItemId(null)}
+          onClose={() => controller.setPendingDeleteItemId(null)}
         />
       ) : null}
 
-      {clearBagConfirmOpen ? (
+      {controller.clearBagConfirmOpen ? (
         <ConfirmClearBagModal
           onConfirm={() => {
             dispatch({ type: "clearOrder" });
-            setEditingItemId(null);
-            setEditingCustomItemId(null);
-            setPendingDeleteItemId(null);
-            setClearBagConfirmOpen(false);
+            controller.setEditingItemId(null);
+            controller.setEditingCustomItemId(null);
+            controller.setPendingDeleteItemId(null);
+            controller.setClearBagConfirmOpen(false);
           }}
-          onClose={() => setClearBagConfirmOpen(false)}
+          onClose={() => controller.setClearBagConfirmOpen(false)}
         />
       ) : null}
     </div>

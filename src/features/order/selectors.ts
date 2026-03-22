@@ -21,6 +21,14 @@ import { getMeasurementSetDisplay, getLinkedMeasurementSet } from "../measuremen
 
 const seedReferenceData = createSeedReferenceData();
 
+export type OrderTimeOptions = {
+  now?: Date;
+};
+
+export type BuildOpenOrderOptions = OrderTimeOptions & {
+  idFactory?: () => number;
+};
+
 function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
 }
@@ -337,9 +345,9 @@ export function getCustomFulfillmentSummary(eventType: CustomOrderEventType, eve
   return eventLabel;
 }
 
-export function getPickupTimingLabel(dateValue: string) {
+export function getPickupTimingLabel(dateValue: string, now = new Date()) {
   const target = new Date(`${dateValue}T12:00:00`);
-  const today = new Date();
+  const today = new Date(now);
   today.setHours(12, 0, 0, 0);
   const tomorrow = new Date(today);
   tomorrow.setDate(today.getDate() + 1);
@@ -359,7 +367,7 @@ export function getPickupTimingLabel(dateValue: string) {
   }).format(target);
 }
 
-export function getPickupAlertState(dateValue: string, timeValue: string, readyForPickup: boolean) {
+export function getPickupAlertState(dateValue: string, timeValue: string, readyForPickup: boolean, now = new Date()) {
   if (readyForPickup) {
     return {
       tone: "success" as const,
@@ -375,7 +383,7 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
     };
   }
 
-  const minutesUntilPickup = (pickupDateTime.getTime() - Date.now()) / 60000;
+  const minutesUntilPickup = (pickupDateTime.getTime() - now.getTime()) / 60000;
   if (minutesUntilPickup < 0) {
     return {
       tone: "danger" as const,
@@ -390,14 +398,14 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
     };
   }
 
-  if (isToday(dateValue)) {
+  if (isToday(dateValue, now)) {
     return {
       tone: "default" as const,
       label: "On track for today",
     };
   }
 
-  if (isTomorrow(dateValue)) {
+  if (isTomorrow(dateValue, now)) {
     return {
       tone: "default" as const,
       label: "Due tomorrow",
@@ -454,28 +462,28 @@ function normalizeSearchValue(value: string) {
   return value.trim().toLowerCase();
 }
 
-function getCurrentCalendarDate() {
-  const today = new Date();
+function getCurrentCalendarDate(now = new Date()) {
+  const today = new Date(now);
   today.setHours(12, 0, 0, 0);
   return today;
 }
 
-function isToday(dateValue: string) {
+function isToday(dateValue: string, now = new Date()) {
   const target = new Date(`${dateValue}T12:00:00`);
-  const today = getCurrentCalendarDate();
+  const today = getCurrentCalendarDate(now);
   return target.toDateString() === today.toDateString();
 }
 
-function isTomorrow(dateValue: string) {
+function isTomorrow(dateValue: string, now = new Date()) {
   const target = new Date(`${dateValue}T12:00:00`);
-  const tomorrow = getCurrentCalendarDate();
+  const tomorrow = getCurrentCalendarDate(now);
   tomorrow.setDate(tomorrow.getDate() + 1);
   return target.toDateString() === tomorrow.toDateString();
 }
 
-function isPastDue(dateValue: string, timeValue: string) {
+function isPastDue(dateValue: string, timeValue: string, now = new Date()) {
   const target = getPickupDateTime(dateValue, timeValue);
-  return Boolean(target && target.getTime() < Date.now());
+  return Boolean(target && target.getTime() < now.getTime());
 }
 
 function getOpenOrderSearchText(openOrder: OpenOrder) {
@@ -525,7 +533,7 @@ function openOrderMatchesLocation(openOrder: OpenOrder, locationFilter: PickupLo
   return openOrder.pickupSchedules.some((pickup) => pickup.pickupLocation === locationFilter);
 }
 
-function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey) {
+function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey, now = new Date()) {
   if (queue === "all") {
     return true;
   }
@@ -543,15 +551,15 @@ function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey) {
   }
 
   if (queue === "overdue") {
-    return openOrder.pickupSchedules.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime));
+    return openOrder.pickupSchedules.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime, now));
   }
 
   if (queue === "due_today") {
-    return openOrder.pickupSchedules.some((pickup) => pickup.pickupDate && isToday(pickup.pickupDate));
+    return openOrder.pickupSchedules.some((pickup) => pickup.pickupDate && isToday(pickup.pickupDate, now));
   }
 
   if (queue === "due_tomorrow") {
-    return openOrder.pickupSchedules.some((pickup) => pickup.pickupDate && isTomorrow(pickup.pickupDate));
+    return openOrder.pickupSchedules.some((pickup) => pickup.pickupDate && isTomorrow(pickup.pickupDate, now));
   }
 
   return false;
@@ -581,12 +589,12 @@ export function getOpenOrderOperationalLane(openOrder: OpenOrder) {
   return "In-house tailoring";
 }
 
-export function getOpenOrderOperationalPhase(openOrder: OpenOrder) {
+export function getOpenOrderOperationalPhase(openOrder: OpenOrder, now = new Date()) {
   if (openOrder.pickupSchedules.some((pickup) => pickup.readyForPickup)) {
     return "Ready for pickup";
   }
 
-  if (openOrder.pickupSchedules.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime))) {
+  if (openOrder.pickupSchedules.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime, now))) {
     return "Overdue";
   }
 
@@ -598,7 +606,8 @@ export function getOpenOrderLocationSummary(openOrder: OpenOrder) {
   return uniqueLocations.join(" • ");
 }
 
-export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments: Appointment[]) {
+export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments: Appointment[], options: OrderTimeOptions = {}) {
+  const now = options.now ?? new Date();
   const queueKeys: OrdersQueueKey[] = [
     "all",
     "due_today",
@@ -611,7 +620,7 @@ export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments:
   ];
 
   return queueKeys.reduce<Record<OrdersQueueKey, number>>((accumulator, queueKey) => {
-    const openOrderCount = openOrders.filter((openOrder) => openOrderMatchesQueue(openOrder, queueKey)).length;
+    const openOrderCount = openOrders.filter((openOrder) => openOrderMatchesQueue(openOrder, queueKey, now)).length;
     const pickupCount = pickupAppointments.filter((appointment) => pickupAppointmentMatchesQueue(appointment, queueKey)).length;
     accumulator[queueKey] = queueKey === "in_house" || queueKey === "factory"
       ? openOrderCount
@@ -632,7 +641,9 @@ export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments:
 export function filterOpenOrders(
   openOrders: OpenOrder[],
   { query, queue, typeFilter, locationFilter }: OpenOrderFilterOptions,
+  options: OrderTimeOptions = {},
 ) {
+  const now = options.now ?? new Date();
   const normalizedQuery = normalizeSearchValue(query);
 
   return openOrders.filter((openOrder) => {
@@ -644,7 +655,7 @@ export function filterOpenOrders(
       return false;
     }
 
-    if (!openOrderMatchesQueue(openOrder, queue)) {
+    if (!openOrderMatchesQueue(openOrder, queue, now)) {
       return false;
     }
 
@@ -753,7 +764,7 @@ export function formatPickupSchedule(pickupDate: string, pickupTime: string) {
   return `${date}. ${time}`;
 }
 
-function formatOperationalPickupSchedule(pickupDate: string, pickupTime: string) {
+function formatOperationalPickupSchedule(pickupDate: string, pickupTime: string, now = new Date()) {
   if (!pickupDate || !pickupTime) {
     return null;
   }
@@ -768,9 +779,9 @@ function formatOperationalPickupSchedule(pickupDate: string, pickupTime: string)
     return null;
   }
 
-  const dateLabel = isToday(pickupDate)
+  const dateLabel = isToday(pickupDate, now)
     ? "Today"
-    : isTomorrow(pickupDate)
+    : isTomorrow(pickupDate, now)
       ? "Tomorrow"
       : new Intl.DateTimeFormat("en-US", {
         month: "short",
@@ -786,8 +797,8 @@ function formatOperationalPickupSchedule(pickupDate: string, pickupTime: string)
   return `${dateLabel} · ${time}`;
 }
 
-export function getOperationalPickupDateLabel(pickupDate: string, pickupTime: string) {
-  const compactSchedule = formatOperationalPickupSchedule(pickupDate, pickupTime);
+export function getOperationalPickupDateLabel(pickupDate: string, pickupTime: string, now = new Date()) {
+  const compactSchedule = formatOperationalPickupSchedule(pickupDate, pickupTime, now);
   if (!compactSchedule) {
     return null;
   }
@@ -796,8 +807,8 @@ export function getOperationalPickupDateLabel(pickupDate: string, pickupTime: st
   return dateLabel ?? compactSchedule;
 }
 
-export function getOperationalPickupTimeLabel(pickupDate: string, pickupTime: string) {
-  const compactSchedule = formatOperationalPickupSchedule(pickupDate, pickupTime);
+export function getOperationalPickupTimeLabel(pickupDate: string, pickupTime: string, now = new Date()) {
+  const compactSchedule = formatOperationalPickupSchedule(pickupDate, pickupTime, now);
   if (!compactSchedule) {
     return null;
   }
@@ -810,12 +821,15 @@ export function buildOpenOrder(
   order: OrderWorkflowState,
   customers: Customer[],
   paymentStatus: OpenOrderPaymentStatus,
+  options: BuildOpenOrderOptions = {},
 ): OpenOrder | null {
   const orderType = getOrderType(order);
   if (!orderType) {
     return null;
   }
 
+  const now = options.now ?? new Date();
+  const orderId = options.idFactory?.() ?? now.getTime();
   const lineItems = getOrderBagLineItems(order, customers);
   const pricing = getPricingSummary(order);
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
@@ -825,7 +839,7 @@ export function buildOpenOrder(
     const matchingItems = lineItems.filter((item) => item.kind === scope);
 
     return {
-      id: `${Date.now()}-${scope}`,
+      id: `${orderId}-${scope}`,
       scope,
       label: scope === "alteration" ? "Alteration pickup" : "Custom pickup",
       itemSummary: matchingItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
@@ -840,7 +854,7 @@ export function buildOpenOrder(
   });
 
   return {
-    id: Date.now(),
+    id: orderId,
     payerCustomerId: order.payerCustomerId,
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
@@ -850,7 +864,7 @@ export function buildOpenOrder(
     paymentStatus,
     collectedToday,
     total: pricing.total,
-    createdAt: new Date().toISOString(),
+    createdAt: now.toISOString(),
   };
 }
 
