@@ -83,6 +83,16 @@ export function LocationPill({ location }: { location: string }) {
   );
 }
 
+export function MeasurementVersionPill({
+  version,
+  isCurrent = false,
+}: {
+  version: string;
+  isCurrent?: boolean;
+}) {
+  return <StatusPill tone={isCurrent ? "dark" : "default"}>{version}</StatusPill>;
+}
+
 export function CountPill({
   count,
   label,

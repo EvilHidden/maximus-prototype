@@ -1,6 +1,7 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { Customer, MeasurementSet } from "../../../types";
-import { ActionButton, EmptyState, StatusPill } from "../../../components/ui/primitives";
+import { ActionButton, EmptyState } from "../../../components/ui/primitives";
+import { MeasurementVersionPill } from "../../../components/ui/pills";
 import { getMeasurementSetDisplay } from "../selectors";
 
 type SavedMeasurementsRailProps = {
@@ -44,17 +45,17 @@ export function SavedMeasurementsRail({
             return (
               <div
                 key={set.id}
-                className={`relative block p-0 transition ${isCurrent ? "bg-[var(--app-surface)]/34" : ""}`}
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 p-0 transition ${isCurrent ? "bg-[var(--app-surface)]/34" : ""}`}
               >
-                <button onClick={() => onApplySet(set)} className="block w-full min-w-0 px-4 py-3 pr-14 text-left">
-                  <div className="flex items-start justify-between gap-2">
+                <button onClick={() => onApplySet(set)} className="block w-full min-w-0 px-4 py-3 text-left">
+                  <div className="flex items-start justify-between gap-3">
                     <div className="min-w-0 flex-1">
                       <div className="truncate app-text-strong">{display.title}</div>
                       {display.status ? <div className="mt-1 app-text-caption">{display.status}</div> : null}
                       {display.subline ? <div className="mt-1 app-text-caption">{display.subline}</div> : null}
                     </div>
-                    <div className="absolute right-4 top-3 shrink-0">
-                      <StatusPill tone={isCurrent ? "dark" : "default"}>{display.version}</StatusPill>
+                    <div className="shrink-0 pl-3">
+                      <MeasurementVersionPill version={display.version} isCurrent={isCurrent} />
                     </div>
                   </div>
                 </button>
@@ -63,7 +64,7 @@ export function SavedMeasurementsRail({
                     event.stopPropagation();
                     onDeleteSet(set.id);
                   }}
-                  className="absolute bottom-3 right-4 text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
+                  className="mr-4 mt-3 self-start text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
                   aria-label={`Delete ${display.version}`}
                 >
                   <Trash2 className="h-4 w-4" />
