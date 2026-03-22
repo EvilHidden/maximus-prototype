@@ -48,6 +48,9 @@ export function AppScreenContent({
         measurementSets={measurementSets}
         selectedCustomer={selectedCustomer}
         onSelectCustomer={(customer) => dispatch({ type: "setCustomer", customerId: customer.id })}
+        onAddCustomer={(customer) => dispatch({ type: "addCustomer", customer })}
+        onUpdateCustomer={(customer) => dispatch({ type: "updateCustomer", customer })}
+        onDeleteCustomer={(customerId) => dispatch({ type: "deleteCustomer", customerId })}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       />
     );
