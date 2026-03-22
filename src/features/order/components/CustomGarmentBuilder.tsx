@@ -1,5 +1,5 @@
 import { CheckSquare, Layers3, Shirt, TriangleAlert, Type } from "lucide-react";
-import { ActionButton, Card, EmptyState, FieldLabel, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, Card, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import { jacketBasedCustomGarments } from "../../../data";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
@@ -174,25 +174,6 @@ function VerticalOptionList({
   );
 }
 
-function InlinePlaceholder({
-  children,
-  className,
-}: {
-  children: string;
-  className?: string;
-}) {
-  return (
-    <div
-      className={cx(
-        "rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/18 px-4 py-3 app-text-body-muted",
-        className,
-      )}
-    >
-      {children}
-    </div>
-  );
-}
-
 export function CustomGarmentBuilder({
   garmentOptionsByGender,
   lapelOptions,
@@ -319,9 +300,9 @@ export function CustomGarmentBuilder({
                     />
                   </div>
                 ) : (
-                  <InlinePlaceholder className={cx("mt-3", showValidation && missingGender && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
+                  <InlineEmptyState className={cx("mt-3", showValidation && missingGender && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
                     Select cut first.
-                  </InlinePlaceholder>
+                  </InlineEmptyState>
                 )}
               </div>
             </div>
@@ -392,9 +373,9 @@ export function CustomGarmentBuilder({
                 </div>
               </div>
             ) : (
-              <InlinePlaceholder className={cx(showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
+              <InlineEmptyState className={cx(showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
                 Select a garment first.
-              </InlinePlaceholder>
+              </InlineEmptyState>
             )}
           </div>
 
@@ -454,7 +435,7 @@ export function CustomGarmentBuilder({
                 <div className="app-text-caption mt-1">Canvas, lapel, and pocket selections only appear for jacket-based garments.</div>
               </div>
             ) : (
-              <InlinePlaceholder>Select a garment first.</InlinePlaceholder>
+              <InlineEmptyState>Select a garment first.</InlineEmptyState>
             )}
           </div>
         </div>

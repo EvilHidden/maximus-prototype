@@ -1,6 +1,6 @@
 import { Scissors, TriangleAlert } from "lucide-react";
 import type { AlterationService } from "../../../types";
-import { ActionButton, Card, EmptyState, FieldLabel, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, Card, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import { getAlterationGarmentVisual } from "../alterationGarmentVisuals";
 import { getAlterationServiceIcon, getAlterationServiceIconClassName } from "../alterationServiceVisuals";
 
@@ -88,9 +88,9 @@ export function AlterationBuilder({
           })}
         </div>
         {!selectedGarment ? (
-          <EmptyState className={cx("mt-3", showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
+          <InlineEmptyState className={cx("mt-3", showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
             Select a garment.
-          </EmptyState>
+          </InlineEmptyState>
         ) : null}
       </div>
 

@@ -1,5 +1,5 @@
 import { Ruler, TriangleAlert } from "lucide-react";
-import { ActionButton, Card, EmptyState, SectionHeader, StatusPill } from "../../../components/ui/primitives";
+import { ActionButton, Card, EmptyState, InlineEmptyState, SectionHeader, StatusPill } from "../../../components/ui/primitives";
 import type { CustomMeasurementsCardModel } from "../../measurements/types";
 
 type MeasurementsCardProps = {
@@ -125,9 +125,13 @@ export function MeasurementsCard({
       ) : (
         <div className="space-y-3">
           {wearerBlock}
-          <div className={showValidation && missingMeasurementSet ? "rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30 p-3" : ""}>
-            {unlinkedSetBlock}
-          </div>
+          {showValidation && missingMeasurementSet ? (
+            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30 p-3">
+              {unlinkedSetBlock}
+            </div>
+          ) : (
+            unlinkedSetBlock
+          )}
         </div>
       )}
     </Card>
