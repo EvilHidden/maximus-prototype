@@ -46,6 +46,13 @@ The goal is not to be production-perfect yet. The goal is to stop spreading busi
 
 This is what allows mixed orders to be partially ready without pretending the whole order moves as one indivisible block.
 
+UI note:
+- The schema can contain multiple scopes under one order, but operator-facing UI should not surface raw schema wording like `mixed` or `scope count` unless it directly helps someone act.
+- Prefer human display language like:
+  - `Custom + Alterations`
+  - grouped garment summaries
+  - one promised-ready line for a shared timing group
+
 ### `order_scope_line`
 - The line items that live under a scope
 - Used for:
@@ -108,6 +115,25 @@ This is what allows mixed orders to be partially ready without pretending the wh
   - partial pickup
   - repeat notification as remaining scopes become available
 - Hold behavior is inferred in selectors for now, not locked into a rigid schema flag yet
+
+## Orders UI semantics
+
+The Orders UI should reflect the domain model with operator language, not schema language:
+
+- `Worklist`
+  - active operational items needing action now
+  - may include active orders and scheduled pickup appointments
+- `Order Registry`
+  - active orders only
+- `Closed Orders`
+  - completed/picked-up work
+- `Promised ready by`
+  - the shop promise for when work should be ready
+  - not the same thing as a customer pickup appointment
+- `Payment Due`
+  - unpaid merchant-facing payment state
+
+Avoid surfacing schema/internal phrases directly in the UI when a clearer operator phrase exists.
 
 ## Runtime model
 

@@ -42,6 +42,25 @@ This repo is structured for fast two-person prototyping:
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching
 
+## Orders terminology
+
+The Orders surface now uses a specific operator-facing vocabulary. Keep that language consistent across UI, selectors, docs, and seed scenarios:
+
+- `Worklist`
+  - operational items needing action now
+  - can include both active orders and scheduled pickup appointments
+- `Order Registry`
+  - active orders only
+- `Closed Orders`
+  - completed and picked-up work
+- `Promised ready by`
+  - the shop's promised-ready time
+  - not the same thing as a pickup appointment
+- `Payment Due`
+  - unpaid operator-facing payment state
+
+Avoid older or ambiguous phrasing like `Open orders`, `Mixed`, `Pickup target`, or `Pay later` unless you are explicitly migrating legacy code and immediately replacing it.
+
 ## Runtime entry point
 
 The app should consume canonical prototype business data through `src/db/appRuntime.ts`.
@@ -54,6 +73,23 @@ The app should consume canonical prototype business data through `src/db/appRunt
   - the single app-facing bootstrap boundary used by `App.tsx`
 
 If you need to change seeded customers, appointments, open orders, readiness, pickup state, or order history, start from `src/db/` and only fall back to `src/data/` for static lookup/config work.
+
+## Orders worklist hierarchy
+
+When refining the Orders worklist, preserve the current scan path:
+
+- left
+  - customer and order identity
+- middle
+  - promised-ready detail, location context, and item summary
+- right
+  - operator status, money, and supporting payment notice
+
+Do not let the row drift back into:
+- duplicate ready/overdue messaging
+- verbose footer metadata
+- aggressive payment/status language that competes with the work detail
+- receipt-like exactness when rounded operational values are easier to scan
 
 ## Shared pills
 

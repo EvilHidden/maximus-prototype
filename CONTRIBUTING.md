@@ -86,6 +86,31 @@ Use these to avoid conflict:
   - pickup locations
 - If you need to change what the app considers “real” prototype business data, start in `src/db/`, not `src/data/`.
 
+## Orders language and UI compliance
+
+If you touch the Orders subsystem, keep the current working language and hierarchy intact unless the branch is explicitly about changing it:
+
+- top-level modes:
+  - `Worklist`
+  - `Order Registry`
+  - `Closed Orders`
+- queue/payment terms:
+  - `Promised ready by`
+  - `Payment Due`
+  - `Pending`
+  - `Ready`
+  - `Overdue`
+
+Before merging Orders changes, quickly check:
+
+- Did we accidentally bring back older terms like `Open orders`, `Mixed`, `Pickup target`, or `Pay later`?
+- Did we make the worklist row noisier by repeating the same state in multiple places?
+- Did we keep the row scan path clear:
+  - left = customer
+  - middle = promise/work detail
+  - right = status/money
+- Did we keep operator-facing cues stronger than decorative or explanatory text?
+
 ## Pull request / merge checklist
 
 Before merging, make sure the answer to all of these is `yes`:
