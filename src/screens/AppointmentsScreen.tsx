@@ -2,18 +2,16 @@ import { CalendarDays, ChevronLeft, ChevronRight } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Appointment } from "../types";
 import { ActionButton, CalendarDayCard, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader } from "../components/ui/primitives";
+import {
+  compareAppointments,
+  getAppointmentDateKey,
+  getAppointmentDateLabel,
+  getAppointmentTimeLabel,
+} from "../features/appointments/selectors";
 
 type AppointmentsScreenProps = {
   appointments: Appointment[];
 };
-
-function formatDateLabel(dateValue: string) {
-  return new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(new Date(`${dateValue}T12:00:00`));
-}
 
 function getMonthDays(anchorDate: Date) {
   const year = anchorDate.getFullYear();
@@ -92,13 +90,17 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
   }).format(anchorDate);
   const dayCells = useMemo(() => getMonthDays(anchorDate), [anchorDate]);
   const todayKey = toDateKey(today);
-  const sortedAppointments = [...appointments].sort((left, right) =>
-    `${left.date}${left.time}`.localeCompare(`${right.date}${right.time}`),
-  );
+  const sortedAppointments = [...appointments].sort(compareAppointments);
   const railAppointments = selectedDateKey
-    ? sortedAppointments.filter((appointment) => appointment.date === selectedDateKey)
+    ? sortedAppointments.filter((appointment) => getAppointmentDateKey(appointment) === selectedDateKey)
     : sortedAppointments;
-  const railSubtitle = selectedDateKey ? formatDateLabel(selectedDateKey) : "Appointments and pickups";
+  const railSubtitle = selectedDateKey
+    ? new Intl.DateTimeFormat("en-US", {
+        weekday: "short",
+        month: "short",
+        day: "numeric",
+      }).format(new Date(`${selectedDateKey}T12:00:00`))
+    : "Appointments and pickups";
 
   return (
     <div className="space-y-4">
@@ -164,7 +166,7 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
 
               {dayCells.map((day) => {
                 const dayKey = toDateKey(day);
-                const dayAppointments = appointments.filter((appointment) => appointment.date === dayKey);
+                const dayAppointments = appointments.filter((appointment) => getAppointmentDateKey(appointment) === dayKey);
                 const isCurrentMonth = day.getMonth() === anchorDate.getMonth();
                 const isToday = dayKey === todayKey;
                 const isSelected = dayKey === selectedDateKey;
@@ -190,7 +192,7 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
                               : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22"
                           }`}
                         >
-                          <div className="text-[12px] font-semibold text-[var(--app-text)]">{appointment.time}</div>
+                          <div className="text-[12px] font-semibold text-[var(--app-text)]">{getAppointmentTimeLabel(appointment)}</div>
                           <div className="mt-1 truncate text-[12px] font-medium text-[var(--app-text-muted)]">{appointment.customer}</div>
                           <div className="mt-0.5 truncate text-[11px] leading-snug text-[var(--app-text-soft)]">
                             {getCalendarLine(appointment)}
@@ -240,8 +242,8 @@ export function AppointmentsScreen({ appointments }: AppointmentsScreenProps) {
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-[78px] shrink-0 pt-0.5">
-                      <div className="app-text-caption">{formatDateLabel(appointment.date)}</div>
-                      <div className="app-text-body mt-1 font-medium">{appointment.time}</div>
+                      <div className="app-text-caption">{getAppointmentDateLabel(appointment)}</div>
+                      <div className="app-text-body mt-1 font-medium">{getAppointmentTimeLabel(appointment)}</div>
                     </div>
 
                     <div className="min-w-0 flex-1">

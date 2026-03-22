@@ -1,11 +1,11 @@
 import { useEffect, useState } from "react";
-import { pickupLocations } from "../../../data";
 import type { CustomOrderEventType, PickupLocation, PickupSchedule, WorkflowMode } from "../../../types";
 import { ActionButton, FieldLabel, ModalShell } from "../../../components/ui/primitives";
 
 type PickupScheduleModalProps = {
   scope: WorkflowMode;
   schedule: PickupSchedule;
+  pickupLocations: PickupLocation[];
   onChange: (patch: PickupSchedule) => void;
   onClose: () => void;
 };
@@ -76,7 +76,7 @@ const customEventOptions: Array<{ value: CustomOrderEventType; label: string }> 
   { value: "prom", label: "Prom" },
 ];
 
-export function PickupScheduleModal({ scope, schedule, onChange, onClose }: PickupScheduleModalProps) {
+export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange, onClose }: PickupScheduleModalProps) {
   const [now, setNow] = useState(() => new Date());
 
   useEffect(() => {

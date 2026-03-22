@@ -21,6 +21,7 @@ type MeasurementsScreenProps = {
   customers: Customer[];
   selectedCustomer: Customer | null;
   measurementSets: MeasurementSet[];
+  measurementFields: string[];
   order: OrderWorkflowState;
   onCreateDraftSet: () => void;
   onSelectCustomer: (customerId: string) => void;
@@ -42,6 +43,7 @@ export function MeasurementsScreen({
   customers,
   selectedCustomer,
   measurementSets,
+  measurementFields,
   order,
   onCreateDraftSet,
   onSelectCustomer,
@@ -93,6 +95,7 @@ export function MeasurementsScreen({
             <div className="grid gap-4 xl:grid-cols-[0.72fr_1.28fr]">
               <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/36 bg-[var(--app-surface-muted)]/22 p-3">
                 <MeasurementFieldGrid
+                  fieldNames={measurementFields}
                   activeField={activeField}
                   values={order.custom.draft.measurements}
                   onSelectField={setActiveField}

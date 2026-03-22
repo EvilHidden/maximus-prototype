@@ -1,4 +1,5 @@
 import type { Appointment } from "../../types";
+import { getAppointmentDateKey } from "../appointments/selectors";
 
 function toDateKey(date: Date) {
   const year = date.getFullYear();
@@ -9,13 +10,13 @@ function toDateKey(date: Date) {
 
 export function getTodayAppointments(appointments: Appointment[]) {
   const today = toDateKey(new Date());
-  return appointments.filter((appointment) => appointment.date === today && appointment.kind === "appointment");
+  return appointments.filter((appointment) => getAppointmentDateKey(appointment) === today && appointment.kind === "appointment");
 }
 
 export function getTomorrowAppointments(appointments: Appointment[]) {
   const tomorrow = new Date();
   tomorrow.setDate(tomorrow.getDate() + 1);
-  return appointments.filter((appointment) => appointment.date === toDateKey(tomorrow) && appointment.kind === "appointment");
+  return appointments.filter((appointment) => getAppointmentDateKey(appointment) === toDateKey(tomorrow) && appointment.kind === "appointment");
 }
 
 export function getPickupAppointments(appointments: Appointment[]) {

@@ -1,15 +1,14 @@
-import { measurementFields } from "../../../data";
-
 type MeasurementFieldGridProps = {
+  fieldNames: string[];
   activeField: string;
   values: Record<string, string>;
   onSelectField: (field: string) => void;
 };
 
-export function MeasurementFieldGrid({ activeField, values, onSelectField }: MeasurementFieldGridProps) {
+export function MeasurementFieldGrid({ fieldNames, activeField, values, onSelectField }: MeasurementFieldGridProps) {
   return (
     <div className="grid gap-2 sm:grid-cols-2">
-      {measurementFields.map((field) => {
+      {fieldNames.map((field) => {
         const isActive = activeField === field;
         return (
           <button

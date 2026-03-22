@@ -1,9 +1,11 @@
-import { measurementFields } from "../../data";
+import { createSeedReferenceData } from "../../db/referenceData";
 import type { Customer, MeasurementSet } from "../../types";
 import type { MeasurementSaveResult } from "./types";
 
+const seedReferenceData = createSeedReferenceData();
+
 export function createEmptyMeasurementValues() {
-  return measurementFields.reduce<Record<string, string>>((accumulator, field) => {
+  return seedReferenceData.measurementFields.reduce<Record<string, string>>((accumulator, field) => {
     accumulator[field] = "";
     return accumulator;
   }, {});

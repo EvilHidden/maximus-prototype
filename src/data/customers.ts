@@ -75,17 +75,17 @@ export const customers: Customer[] = [
 
 export const customerOrders: Record<string, CustomerOrder[]> = {
   "C-1042": [
-    { id: "ORD-8821", label: "Custom navy suit", date: "Feb 28", status: "Delivered", total: "$1,495" },
-    { id: "ORD-8610", label: "Trouser hem + taper", date: "Jan 17", status: "Picked up", total: "$65" },
-    { id: "ORD-8443", label: "Dinner jacket consult", date: "Dec 05", status: "Quoted", total: "$0" },
+    { id: "ORD-8821", label: "Custom navy suit", createdAt: "2026-02-28T10:00:00", status: "Delivered", total: 1495 },
+    { id: "ORD-8610", label: "Trouser hem + taper", createdAt: "2026-01-17T14:00:00", status: "Picked up", total: 65 },
+    { id: "ORD-8443", label: "Dinner jacket consult", createdAt: "2025-12-05T15:00:00", status: "Quoted", total: 0 },
   ],
   "C-1078": [
-    { id: "ORD-8904", label: "Wedding party alteration set", date: "Mar 10", status: "In progress", total: "$320" },
-    { id: "ORD-8732", label: "Bridesmaid dress fitting", date: "Feb 12", status: "Picked up", total: "$95" },
+    { id: "ORD-8904", label: "Wedding party alteration set", createdAt: "2026-03-10T13:15:00", status: "In progress", total: 320 },
+    { id: "ORD-8732", label: "Bridesmaid dress fitting", createdAt: "2026-02-12T11:30:00", status: "Picked up", total: 95 },
   ],
   "C-1116": [
-    { id: "ORD-8940", label: "Rush suit sleeve adjustment", date: "Mar 14", status: "Ready today", total: "$80" },
-    { id: "ORD-8528", label: "Pant waist suppression", date: "Jan 08", status: "Delivered", total: "$35" },
+    { id: "ORD-8940", label: "Rush suit sleeve adjustment", createdAt: "2026-03-14T08:45:00", status: "Ready today", total: 80 },
+    { id: "ORD-8528", label: "Pant waist suppression", createdAt: "2026-01-08T09:00:00", status: "Delivered", total: 35 },
   ],
 };
 
