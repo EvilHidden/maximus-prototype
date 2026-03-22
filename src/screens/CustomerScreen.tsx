@@ -1,4 +1,4 @@
-import { ChevronRight, Mail, Phone, Plus, Search, Users } from "lucide-react";
+import { ChevronRight, Mail, MapPin, Phone, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../types";
 import { ActionButton, EmptyState, SectionHeader } from "../components/ui/primitives";
@@ -56,19 +56,22 @@ function CustomerRow({
       </div>
 
       <div className="min-w-0">
-        <div className="app-text-overline">Measurements</div>
+        <div className="app-text-overline xl:hidden">Measurements</div>
         <div className="mt-1">
           <MeasurementStatusPill status={customer.measurementsStatus} />
         </div>
       </div>
 
       <div className="min-w-0">
-        <div className="app-text-overline">Location</div>
-        <div className="app-text-body mt-1 font-medium">{customer.preferredLocation}</div>
+        <div className="app-text-overline xl:hidden">Location</div>
+        <div className="app-text-body mt-1 inline-flex items-center gap-1.5 font-medium">
+          <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+          <span>{customer.preferredLocation}</span>
+        </div>
       </div>
 
       <div className="min-w-0">
-        <div className="app-text-overline">Last order</div>
+        <div className="app-text-overline xl:hidden">Last order</div>
         {lastOrderSummary ? (
           <>
             <div className="app-text-body mt-1 font-medium">{lastOrderDate ?? "Recent"}</div>
