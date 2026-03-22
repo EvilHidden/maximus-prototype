@@ -164,11 +164,6 @@ export type DbSquareLink = {
   squareOrderId: string;
 };
 
-export type DbAirtableLink = {
-  orderId: string;
-  airtableRecordId: string;
-};
-
 export type PrototypeDatabase = {
   generatedAt: string;
   locations: DbLocation[];
@@ -187,5 +182,4 @@ export type PrototypeDatabase = {
   serviceAppointments: DbServiceAppointment[];
   payments: DbPaymentRecord[];
   squareLinks: DbSquareLink[];
-  airtableLinks: DbAirtableLink[];
 };
