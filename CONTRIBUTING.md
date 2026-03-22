@@ -60,13 +60,31 @@ Use these to avoid conflict:
   - measurement set lifecycle, body map, measurement editor, measurement selectors
 - `src/state/`
   - reducer actions, state shape, initialization
+- `src/db/`
+  - canonical schema, normalized runtime seed generation, and app-facing adapters for business records
 - `src/data/`
-  - fixtures, catalogs, seeded scenarios
+  - static catalogs, navigation, pickup locations, and non-canonical lookup data
 - `src/components/ui/`
   - shared reusable UI primitives
   - use `primitives.tsx` for base controls and `pills.tsx` for shared badge/pill patterns
 - `src/screens/`
   - composition only; avoid growing business logic here
+
+## Canonical data boundary
+
+- Put canonical business records in `src/db/`.
+  - customers
+  - appointments
+  - open orders
+  - order scopes
+  - notifications
+  - runtime-relative seed scenarios
+- Put static lookup/config data in `src/data/`.
+  - catalogs
+  - measurement field definitions
+  - navigation
+  - pickup locations
+- If you need to change what the app considers “real” prototype business data, start in `src/db/`, not `src/data/`.
 
 ## Pull request / merge checklist
 

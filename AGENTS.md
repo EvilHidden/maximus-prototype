@@ -60,10 +60,12 @@ Use these ownership boundaries to reduce merge conflicts:
   - dashboard grouping and derived appointment/pickup views
 - `src/state/`
   - reducer state shape, action definitions, initialization
+- `src/db/`
+  - canonical business entities, normalized runtime schema, runtime-relative seed generation, and app-facing data adapters
 - `src/components/ui/`
   - shared operational primitives and reusable interaction patterns
 - `src/data/`
-  - seeded fixtures, catalogs, navigation, scenario definitions
+  - static lookup data, catalogs, navigation, and non-canonical scenario helpers
 - `src/screens/`
   - composition only; avoid pushing new business logic here unless there is a strong reason
 
@@ -81,8 +83,9 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
   - workflow status / completeness checks
 
 ## Data and Scenario Rules
-- Keep fixture data split by concern inside `src/data/`.
-- Add new reusable lookup/seed data there instead of embedding arrays in screens.
+- Put canonical business entities, lifecycle records, and runtime-relative prototype scenarios in `src/db/`.
+- Keep `src/data/` for static lookup data and UI-facing catalogs such as navigation, pickup locations, alteration catalogs, and measurement field definitions.
+- Do not add new canonical customers, appointments, order history, or open-order records back into `src/data/`.
 - If a view needs transformed data, create or extend a selector rather than shaping it inline in JSX.
 - Keep the prototype local-only. Do not add backend, persistence, or API assumptions unless explicitly requested.
 
