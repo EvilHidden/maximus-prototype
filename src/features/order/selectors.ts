@@ -392,7 +392,7 @@ export function getPickupStatusSummary(pickup: OpenOrderPickup) {
   }
 
   const pickupSummary = formatPickupSchedule(pickup.pickupDate, pickup.pickupTime);
-  return `${pickupSummary ?? "Pickup details pending"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
+  return `${pickupSummary ?? "Pickup timing not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
 }
 
 export function getOpenOrderPaymentSummary(paymentStatus: OpenOrderPaymentStatus) {
@@ -541,22 +541,6 @@ function pickupAppointmentMatchesQueue(appointment: Appointment, queue: OrdersQu
     return true;
   }
 
-  if (queue === "ready_for_pickup") {
-    return appointment.missing === "Complete";
-  }
-
-  if (queue === "overdue") {
-    return isPastDue(appointment.date, appointment.time);
-  }
-
-  if (queue === "due_today") {
-    return isToday(appointment.date);
-  }
-
-  if (queue === "due_tomorrow") {
-    return isTomorrow(appointment.date);
-  }
-
   return false;
 }
 
@@ -692,7 +676,12 @@ export function formatPickupSchedule(pickupDate: string, pickupTime: string) {
     return null;
   }
 
-  const pickupDateTime = new Date(`${pickupDate}T${pickupTime}`);
+  const normalizedTime = normalizePickupTime(pickupTime);
+  if (!normalizedTime) {
+    return null;
+  }
+
+  const pickupDateTime = new Date(`${pickupDate}T${normalizedTime}`);
   if (Number.isNaN(pickupDateTime.getTime())) {
     return null;
   }

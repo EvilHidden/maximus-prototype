@@ -55,13 +55,13 @@ const queueOverviewMeta: Array<{
   {
     key: "due_today",
     title: "Due today",
-    subtitle: "Orders and pickups that need same-day movement.",
+    subtitle: "Orders promised for today that still need operational movement.",
     icon: Clock3,
   },
   {
     key: "due_tomorrow",
     title: "Due tomorrow",
-    subtitle: "Next-day work that should be prepared now.",
+    subtitle: "Orders promised for tomorrow that should be staged now.",
     icon: Clock3,
   },
   {
@@ -91,7 +91,7 @@ const queueOverviewMeta: Array<{
   {
     key: "scheduled_pickups",
     title: "Scheduled pickups",
-    subtitle: "Pickup appointments pulled into the queue workspace.",
+    subtitle: "Customer pickup appointments that are already booked on the calendar.",
     icon: Clock3,
   },
 ];
@@ -319,7 +319,7 @@ function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
     <div className="grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1.1fr)_220px_180px] md:items-center">
       <div className="min-w-0">
         <div className="app-text-strong">{appointment.customer}</div>
-        <div className="app-text-caption mt-1">{getPickupAppointmentSummary(appointment)}</div>
+        <div className="app-text-caption mt-1">Scheduled pickup appointment • {getPickupAppointmentSummary(appointment)}</div>
       </div>
       <div className="min-w-0">
         <div className="app-text-body font-medium">{`${getPickupTimingLabel(appointment.date)} • ${appointment.time}`}</div>
@@ -340,15 +340,15 @@ function WorkQueueOrderRow({
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
+  const lane = getOpenOrderOperationalLane(openOrder);
+  const locationSummary = getOpenOrderLocationSummary(openOrder);
 
   return (
     <div className="px-4 py-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0">
+        <div className="min-w-0 flex-1">
           <div className="app-text-value">{openOrder.payerName}</div>
-          <div className="app-text-caption mt-1">
-            {getOpenOrderTypeLabel(openOrder.orderType)} • {openOrder.createdAtLabel}
-          </div>
+          <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {openOrder.createdAtLabel}</div>
         </div>
         <div className="flex flex-wrap items-center gap-2">
           <StatusPill tone={getPhaseTone(phase)}>{phase}</StatusPill>
@@ -357,8 +357,8 @@ function WorkQueueOrderRow({
         </div>
       </div>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[minmax(0,1fr)_240px]">
-        <div className="space-y-2">
+      <div className="mt-3 border-t border-[var(--app-border)]/35 pt-3">
+        <div className="space-y-3">
           {openOrder.pickupSchedules.map((pickup) => {
             const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
             const pickupSummary = getPickupStatusSummary(pickup);
@@ -366,11 +366,11 @@ function WorkQueueOrderRow({
             return (
               <div
                 key={pickup.id}
-                className="grid gap-3 rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
+                className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
               >
                 <div className="min-w-0">
-                  <div className="app-text-overline">{pickup.label}</div>
-                  <div className={cx("mt-1 text-sm font-semibold", getPickupToneClass(pickupAlert.tone))}>
+                  <div className="app-text-overline">Pickup target</div>
+                  <div className={cx("mt-1 app-text-strong", getPickupToneClass(pickupAlert.tone))}>
                     {pickupSummary}
                   </div>
                   <div className="app-text-caption mt-1">{pickup.itemSummary.join(", ")}</div>
@@ -397,17 +397,19 @@ function WorkQueueOrderRow({
             );
           })}
         </div>
+      </div>
 
-        <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3">
-          <div className="app-text-overline">Lane</div>
-          <div className="mt-1 app-text-strong">{getOpenOrderOperationalLane(openOrder)}</div>
-          <div className="app-text-caption mt-1">{getOpenOrderLocationSummary(openOrder) || "Pickup location pending"}</div>
-          <div className="mt-4 border-t border-[var(--app-border)]/45 pt-3">
-            <div className="app-text-overline">Collected today</div>
-            <div className="mt-1 app-text-strong">{formatSummaryCurrency(openOrder.collectedToday)}</div>
-            <div className="app-text-caption mt-1">{getOpenOrderPaymentSummary(openOrder.paymentStatus)}</div>
-          </div>
+      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[var(--app-border)]/35 pt-3">
+        <div className="app-text-caption">
+          <span className="app-text-overline">Lane</span> {lane}
         </div>
+        <div className="app-text-caption">
+          <span className="app-text-overline">Locations</span> {locationSummary || "Pickup location pending"}
+        </div>
+        <div className="app-text-caption">
+          <span className="app-text-overline">Collected today</span> {formatSummaryCurrency(openOrder.collectedToday)}
+        </div>
+        <div className="app-text-caption">{getOpenOrderPaymentSummary(openOrder.paymentStatus)}</div>
       </div>
     </div>
   );
@@ -447,22 +449,36 @@ function QueueSection({
     <div className="space-y-3">
       <OpenSectionHeader icon={icon} title={title} count={count} subtitle={subtitle} />
       <div className="overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">
-        {pickupAppointments.map((appointment, index) => (
-          <div
-            key={appointment.id}
-            className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
-          >
-            <WorkQueuePickupRow appointment={appointment} />
+        {pickupAppointments.length > 0 ? (
+          <div>
+            <div className="border-b border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/20 px-4 py-2">
+              <div className="app-text-overline">Scheduled pickup appointments</div>
+            </div>
+            {pickupAppointments.map((appointment, index) => (
+              <div
+                key={appointment.id}
+                className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
+              >
+                <WorkQueuePickupRow appointment={appointment} />
+              </div>
+            ))}
           </div>
-        ))}
-        {openOrders.map((openOrder, index) => (
-          <div
-            key={openOrder.id}
-            className={cx((pickupAppointments.length > 0 || index > 0) && "border-t border-[var(--app-border)]/35")}
-          >
-            <WorkQueueOrderRow openOrder={openOrder} onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady} />
+        ) : null}
+        {openOrders.length > 0 ? (
+          <div className={cx(pickupAppointments.length > 0 && "border-t border-[var(--app-border)]/45")}>
+            <div className="border-b border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/20 px-4 py-2">
+              <div className="app-text-overline">Active orders</div>
+            </div>
+            {openOrders.map((openOrder, index) => (
+              <div
+                key={openOrder.id}
+                className={cx(index > 0 && "border-t border-[var(--app-border)]/35")}
+              >
+                <WorkQueueOrderRow openOrder={openOrder} onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady} />
+              </div>
+            ))}
           </div>
-        ))}
+        ) : null}
       </div>
     </div>
   );
