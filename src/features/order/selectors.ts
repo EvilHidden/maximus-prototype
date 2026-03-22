@@ -405,7 +405,7 @@ export function getPickupStatusSummary(pickup: OpenOrderPickup) {
     return getCustomFulfillmentSummary(pickup.eventType, pickup.eventDate, pickup.pickupLocation);
   }
 
-  const pickupSummary = formatPickupSchedule(pickup.pickupDate, pickup.pickupTime);
+  const pickupSummary = formatOperationalPickupSchedule(pickup.pickupDate, pickup.pickupTime);
   return `${pickupSummary ?? "Promised ready time not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
 }
 
@@ -718,6 +718,59 @@ export function formatPickupSchedule(pickupDate: string, pickupTime: string) {
     .replace(/\s/g, "");
 
   return `${date}. ${time}`;
+}
+
+function formatOperationalPickupSchedule(pickupDate: string, pickupTime: string) {
+  if (!pickupDate || !pickupTime) {
+    return null;
+  }
+
+  const normalizedTime = normalizePickupTime(pickupTime);
+  if (!normalizedTime) {
+    return null;
+  }
+
+  const pickupDateTime = new Date(`${pickupDate}T${normalizedTime}`);
+  if (Number.isNaN(pickupDateTime.getTime())) {
+    return null;
+  }
+
+  const dateLabel = isToday(pickupDate)
+    ? "Today"
+    : isTomorrow(pickupDate)
+      ? "Tomorrow"
+      : new Intl.DateTimeFormat("en-US", {
+        month: "short",
+        day: "numeric",
+      }).format(pickupDateTime);
+
+  const time = new Intl.DateTimeFormat("en-US", {
+    hour: "numeric",
+    minute: "2-digit",
+    hour12: true,
+  }).format(pickupDateTime);
+
+  return `${dateLabel} · ${time}`;
+}
+
+export function getOperationalPickupDateLabel(pickupDate: string, pickupTime: string) {
+  const compactSchedule = formatOperationalPickupSchedule(pickupDate, pickupTime);
+  if (!compactSchedule) {
+    return null;
+  }
+
+  const [dateLabel] = compactSchedule.split(" · ");
+  return dateLabel ?? compactSchedule;
+}
+
+export function getOperationalPickupTimeLabel(pickupDate: string, pickupTime: string) {
+  const compactSchedule = formatOperationalPickupSchedule(pickupDate, pickupTime);
+  if (!compactSchedule) {
+    return null;
+  }
+
+  const [, timeLabel] = compactSchedule.split(" · ");
+  return timeLabel ?? compactSchedule;
 }
 
 export function buildOpenOrder(

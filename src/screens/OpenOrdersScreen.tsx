@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ClipboardList, Clock3, PackageCheck, PackageSearch, Search, type LucideIcon } from "lucide-react";
+import { ClipboardList, Clock3, MapPin, PackageCheck, PackageSearch, Search, type LucideIcon } from "lucide-react";
 import type { Appointment, ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../types";
 import { ActionButton, Card, EmptyState, SectionHeader, StatusPill, cx } from "../components/ui/primitives";
 import { CountPill, LocationPill, OrderStatusPill, PaymentStatusPill } from "../components/ui/pills";
@@ -11,8 +11,9 @@ import {
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
   getOpenOrderOperationalPhase,
-  getOpenOrderPaymentSummary,
   getOpenOrderTypeLabel,
+  getOperationalPickupDateLabel,
+  getOperationalPickupTimeLabel,
   getOrderQueueCounts,
   getPickupAlertState,
   getPickupAppointmentSummary,
@@ -323,54 +324,110 @@ function WorkQueueOrderRow({
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
-  const lane = getOpenOrderOperationalLane(openOrder);
-  const locationSummary = getOpenOrderLocationSummary(openOrder);
+  const pickupGroups = openOrder.pickupSchedules.reduce<Array<{
+    key: string;
+    summary: string;
+    alertTone: ReturnType<typeof getPickupAlertState>["tone"];
+    alertLabel: string;
+    readyCount: number;
+    pendingIds: string[];
+    items: string[];
+  }>>((groups, pickup) => {
+    const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
+    const pickupSummary = getPickupStatusSummary(pickup);
+    const key = `${pickupSummary}__${pickupAlert.label}`;
+    const existingGroup = groups.find((group) => group.key === key);
+
+    if (existingGroup) {
+      existingGroup.items.push(...pickup.itemSummary);
+      if (pickup.readyForPickup) {
+        existingGroup.readyCount += 1;
+      } else {
+        existingGroup.pendingIds.push(pickup.id);
+      }
+      return groups;
+    }
+
+    groups.push({
+      key,
+      summary: pickupSummary,
+      alertTone: pickupAlert.tone,
+      alertLabel: pickupAlert.label,
+      readyCount: pickup.readyForPickup ? 1 : 0,
+      pendingIds: pickup.readyForPickup ? [] : [pickup.id],
+      items: [...pickup.itemSummary],
+    });
+
+    return groups;
+  }, []);
+
+  const getGroupedItemSummary = (items: string[]) => {
+    const uniqueItems = [...new Set(items)];
+    if (uniqueItems.length <= 2) {
+      return uniqueItems.join(", ");
+    }
+
+    return `${uniqueItems[0]}, ${uniqueItems[1]} +${uniqueItems.length - 2} more`;
+  };
 
   return (
     <div className="px-4 py-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div className="min-w-0 flex-1">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.15fr)_220px] lg:items-start">
+        <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {openOrder.createdAtLabel}</div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill tone={getPhaseTone(phase)}>{phase}</StatusPill>
-          <PaymentStatusPill status={openOrder.paymentStatus} />
-          <div className="app-text-strong">Total {formatSummaryCurrency(openOrder.total)}</div>
-        </div>
-      </div>
 
-      <div className="mt-3 border-t border-[var(--app-border)]/35 pt-3">
-        <div className="space-y-3">
-          {openOrder.pickupSchedules.map((pickup) => {
-            const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
-            const pickupSummary = getPickupStatusSummary(pickup);
+        <div className="min-w-0 space-y-3">
+          {pickupGroups.map((group) => {
+            const uniqueItems = [...new Set(group.items)];
+            const pendingCount = group.pendingIds.length;
+            const isFullyReady = pendingCount === 0;
+            const representativePickup = openOrder.pickupSchedules.find((pickup) => {
+              const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
+              const pickupSummary = getPickupStatusSummary(pickup);
+              return `${pickupSummary}__${pickupAlert.label}` === group.key;
+            });
+            const dateLabel = representativePickup
+              ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+              : null;
+            const timeLabel = representativePickup
+              ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+              : null;
+            const location = representativePickup?.pickupLocation ?? "";
 
             return (
               <div
-                key={pickup.id}
-                className="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto] md:items-start"
+                key={group.key}
+                className="grid gap-2 md:grid-cols-[minmax(0,1fr)_auto] md:items-center"
               >
                 <div className="min-w-0">
                   <div className="app-text-overline">Promised ready by</div>
-                  <div className="mt-1 app-text-strong">
-                    {pickupSummary}
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    <div className="app-text-body font-medium">
+                      {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
+                    </div>
+                    {location ? (
+                      <div className="app-text-caption inline-flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                        <span>{location}</span>
+                      </div>
+                    ) : null}
                   </div>
-                  <div className="app-text-caption mt-1">{pickup.itemSummary.join(", ")}</div>
-                  <div className="mt-2">
-                    <StatusPill tone={pickupAlert.tone}>{pickupAlert.label}</StatusPill>
+                  <div className="app-text-caption mt-1">
+                    {getGroupedItemSummary(uniqueItems)}
                   </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
-                  {pickup.readyForPickup ? (
-                    <StatusPill tone="success">Ready</StatusPill>
-                  ) : (
+                  {isFullyReady ? null : (
                     <ActionButton
                       tone="secondary"
                       className="px-3 py-2 text-xs"
-                      onClick={() => onMarkOpenOrderPickupReady(openOrder.id, pickup.id)}
+                      onClick={() => {
+                        group.pendingIds.forEach((pickupId) => onMarkOpenOrderPickupReady(openOrder.id, pickupId));
+                      }}
                     >
-                      Mark ready
+                      {pendingCount > 1 ? `Mark ${pendingCount} ready` : "Mark ready"}
                     </ActionButton>
                   )}
                 </div>
@@ -378,19 +435,18 @@ function WorkQueueOrderRow({
             );
           })}
         </div>
-      </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-x-4 gap-y-1 border-t border-[var(--app-border)]/35 pt-3">
-        <div className="app-text-caption">
-          <span className="app-text-overline">Lane</span> {lane}
+        <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end">
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
+            <StatusPill tone={getPhaseTone(phase)}>{phase}</StatusPill>
+          </div>
+          <div className="text-right">
+            <div className="app-text-strong">Total {formatSummaryCurrency(openOrder.total)}</div>
+            <div className="app-text-caption mt-1">
+              {openOrder.paymentStatus === "prepaid" ? "Prepaid" : "Pay later"}
+            </div>
+          </div>
         </div>
-        <div className="app-text-caption">
-          <span className="app-text-overline">Locations</span> {locationSummary || "Pickup location pending"}
-        </div>
-        <div className="app-text-caption">
-          <span className="app-text-overline">Collected today</span> {formatSummaryCurrency(openOrder.collectedToday)}
-        </div>
-        <div className="app-text-caption">{getOpenOrderPaymentSummary(openOrder.paymentStatus)}</div>
       </div>
     </div>
   );
