@@ -1,4 +1,4 @@
-import { CalendarDays, Mail, MapPin, Package, Phone, type LucideIcon } from "lucide-react";
+import { CalendarDays, Mail, MapPin, Megaphone, Package, Phone, type LucideIcon } from "lucide-react";
 import type { Appointment } from "../../../types";
 import {
   ActionButton,
@@ -9,7 +9,8 @@ import {
 import { AppointmentIssuePill, CountPill } from "../../../components/ui/pills";
 import {
   getAppointmentContextFlagLabel,
-  getAppointmentPrepStatusLabel,
+  getAppointmentPrepFlagLabel,
+  getAppointmentProfileFlagLabel,
   getAppointmentTimeLabel,
   getRelativeAppointmentDayLabel,
 } from "../../appointments/selectors";
@@ -18,9 +19,12 @@ import { HomeLaneEmptyState } from "./HomeLaneEmptyState";
 function getAppointmentCallouts(appointment: Appointment) {
   const callouts: Array<{ label: string; tone?: "default" | "warn" }> = [];
 
-  if (appointment.prepStatus !== "ready" && appointment.prepStatus !== "needs_profile") {
-    callouts.push({ label: getAppointmentPrepStatusLabel(appointment.prepStatus), tone: "warn" });
-  }
+  callouts.push(
+    ...appointment.prepFlags.map((flag) => ({
+      label: getAppointmentPrepFlagLabel(flag),
+      tone: "warn" as const,
+    })),
+  );
 
   callouts.push(
     ...appointment.contextFlags.map((flag) => ({
@@ -37,15 +41,31 @@ function getProfileAlertIcons(appointment: Appointment) {
     if (flag === "missing_email") {
       return {
         key: flag,
-        label: "Missing email",
+        label: getAppointmentProfileFlagLabel(flag),
         Icon: Mail,
+      };
+    }
+
+    if (flag === "missing_phone") {
+      return {
+        key: flag,
+        label: getAppointmentProfileFlagLabel(flag),
+        Icon: Phone,
+      };
+    }
+
+    if (flag === "missing_address") {
+      return {
+        key: flag,
+        label: getAppointmentProfileFlagLabel(flag),
+        Icon: MapPin,
       };
     }
 
     return {
       key: flag,
-      label: "Missing phone",
-      Icon: Phone,
+      label: getAppointmentProfileFlagLabel(flag),
+      Icon: Megaphone,
     };
   });
 }

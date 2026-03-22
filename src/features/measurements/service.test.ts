@@ -15,6 +15,7 @@ const customer: Customer = {
   preferredLocation: "Fifth Avenue",
   lastVisit: "Mar 1",
   measurementsStatus: "on_file",
+  marketingOptIn: true,
   notes: "",
 };
 

@@ -11,6 +11,7 @@ const jordan: Customer = {
   preferredLocation: "Fifth Avenue",
   lastVisit: "Mar 22",
   measurementsStatus: "on_file",
+  marketingOptIn: true,
   notes: "VIP fitting",
   isVip: true,
 };
@@ -24,6 +25,7 @@ const sam: Customer = {
   preferredLocation: "Queens",
   lastVisit: "Mar 20",
   measurementsStatus: "missing",
+  marketingOptIn: false,
   notes: "",
 };
 

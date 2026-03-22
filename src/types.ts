@@ -21,9 +21,10 @@ export type AppointmentTypeKey = ServiceAppointmentType | PickupAppointmentType;
 export type ServiceAppointmentStatus = "scheduled" | "ready_to_check_in" | "prep_required" | "completed" | "canceled";
 export type PickupAppointmentStatus = "scheduled" | "completed" | "canceled";
 export type AppointmentStatusKey = ServiceAppointmentStatus | PickupAppointmentStatus;
-export type AppointmentPrepStatus = "ready" | "needs_profile" | "needs_measurements" | "needs_materials" | "needs_review";
-export type AppointmentProfileFlag = "missing_phone" | "missing_email";
-export type AppointmentContextFlag = "confirmed" | "unconfirmed" | "wedding" | "prom" | "rush";
+export type AppointmentConfirmationStatus = "confirmed" | "unconfirmed";
+export type AppointmentPrepFlag = "needs_measurements";
+export type AppointmentProfileFlag = "missing_phone" | "missing_email" | "missing_address" | "needs_marketing_opt_in";
+export type AppointmentContextFlag = AppointmentConfirmationStatus | "rush";
 export type PickupSchedule = {
   pickupDate: string;
   pickupTime: string;
@@ -50,6 +51,7 @@ export type Customer = {
   preferredLocation: PickupLocation;
   lastVisit: string;
   measurementsStatus: MeasurementStatus;
+  marketingOptIn: boolean;
   notes: string;
   isVip?: boolean;
 };
@@ -79,7 +81,7 @@ export type Appointment = {
   statusKey: AppointmentStatusKey;
   pickupSummary?: string;
   status: string;
-  prepStatus: AppointmentPrepStatus;
+  prepFlags: AppointmentPrepFlag[];
   profileFlags: AppointmentProfileFlag[];
   contextFlags: AppointmentContextFlag[];
   route: WorkflowMode | "pickup";

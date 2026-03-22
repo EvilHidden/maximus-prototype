@@ -8,7 +8,7 @@ import type {
 } from "../../types";
 import {
   getAppointmentContextFlagLabel,
-  getAppointmentPrepStatusLabel,
+  getAppointmentPrepFlagLabel,
   getAppointmentProfileFlagLabel,
 } from "../appointments/selectors";
 import {
@@ -65,7 +65,7 @@ function getPickupAppointmentSearchText(appointment: Appointment) {
       appointment.scheduledFor,
       appointment.location,
       appointment.status,
-      getAppointmentPrepStatusLabel(appointment.prepStatus),
+      ...appointment.prepFlags.map(getAppointmentPrepFlagLabel),
       ...appointment.profileFlags.map(getAppointmentProfileFlagLabel),
       ...appointment.contextFlags.map(getAppointmentContextFlagLabel),
     ]

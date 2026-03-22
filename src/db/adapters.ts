@@ -1,5 +1,8 @@
 import type {
   Appointment,
+  AppointmentContextFlag,
+  AppointmentPrepFlag,
+  AppointmentProfileFlag,
   AppointmentStatusKey,
   AppointmentTypeKey,
   ClosedOrderHistoryItem,
@@ -21,6 +24,54 @@ import type {
 
 function findLocationName(locations: DbLocation[], locationId: string) {
   return locations.find((location) => location.id === locationId)?.name ?? "Fifth Avenue";
+}
+
+function getCustomerProfileFlags(customer?: PrototypeDatabase["customers"][number]): AppointmentProfileFlag[] {
+  if (!customer) {
+    return [];
+  }
+
+  const flags: AppointmentProfileFlag[] = [];
+  if (!customer.phone.trim()) {
+    flags.push("missing_phone");
+  }
+  if (!customer.email.trim()) {
+    flags.push("missing_email");
+  }
+  if (!customer.address.trim()) {
+    flags.push("missing_address");
+  }
+  if (!customer.marketingOptIn) {
+    flags.push("needs_marketing_opt_in");
+  }
+
+  return flags;
+}
+
+function getAppointmentPrepFlags(
+  customer: PrototypeDatabase["customers"][number] | undefined,
+  kind: Appointment["kind"],
+): AppointmentPrepFlag[] {
+  if (kind !== "appointment" || !customer) {
+    return [];
+  }
+
+  return customer.measurementsStatus === "on_file" ? [] : ["needs_measurements"];
+}
+
+function getAppointmentContextFlags(
+  confirmationStatus: PrototypeDatabase["serviceAppointments"][number]["confirmationStatus"],
+  rush: boolean,
+): AppointmentContextFlag[] {
+  const flags: AppointmentContextFlag[] = [];
+  if (confirmationStatus) {
+    flags.push(confirmationStatus);
+  }
+  if (rush) {
+    flags.push("rush");
+  }
+
+  return flags;
 }
 
 function getAppointmentTypeLabel(typeKey: AppointmentTypeKey) {
@@ -166,6 +217,7 @@ export function adaptCustomers(database: PrototypeDatabase): Customer[] {
     preferredLocation: findLocationName(database.locations, customer.preferredLocationId),
     lastVisit: customer.lastVisitLabel,
     measurementsStatus: customer.measurementsStatus,
+    marketingOptIn: customer.marketingOptIn,
     notes: customer.notes,
     isVip: customer.isVip,
   }));
@@ -218,37 +270,46 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
 }
 
 export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
-  const serviceAppointments: Appointment[] = database.serviceAppointments.map((appointment) => ({
-    id: appointment.id,
-    scheduledFor: appointment.scheduledFor,
-    kind: "appointment",
-    source: appointment.source,
-    location: findLocationName(database.locations, appointment.locationId),
-    customerId: appointment.customerId,
-    orderId: appointment.orderId,
-    scopeId: appointment.scopeId,
-    scopeLineId: appointment.scopeLineId,
-    customer: appointment.customerName,
-    durationMinutes: appointment.durationMinutes,
-    typeKey: appointment.typeKey,
-    type: getAppointmentTypeLabel(appointment.typeKey),
-    statusKey: appointment.statusKey,
-    status: getAppointmentStatusLabel(appointment.statusKey),
-    prepStatus: appointment.prepStatus,
-    profileFlags: appointment.profileFlags,
-    contextFlags: appointment.contextFlags,
-    route: appointment.workflow,
-  }));
+  const serviceAppointments: Appointment[] = database.serviceAppointments.map((appointment) => {
+    const customer = database.customers.find((candidate) => candidate.id === appointment.customerId);
+    const profileFlags = getCustomerProfileFlags(customer);
+
+    return {
+      id: appointment.id,
+      scheduledFor: appointment.scheduledFor,
+      kind: "appointment",
+      source: appointment.source,
+      location: findLocationName(database.locations, appointment.locationId),
+      customerId: appointment.customerId,
+      orderId: appointment.orderId,
+      scopeId: appointment.scopeId,
+      scopeLineId: appointment.scopeLineId,
+      customer: appointment.customerName,
+      durationMinutes: appointment.durationMinutes,
+      typeKey: appointment.typeKey,
+      type: getAppointmentTypeLabel(appointment.typeKey),
+      statusKey: appointment.statusKey,
+      status: getAppointmentStatusLabel(appointment.statusKey),
+      prepFlags: getAppointmentPrepFlags(customer, "appointment"),
+      profileFlags,
+      contextFlags: getAppointmentContextFlags(appointment.confirmationStatus, appointment.rush),
+      route: appointment.workflow,
+    };
+  });
 
   const pickupAppointments: Appointment[] = database.pickupAppointments.map((appointment) => {
     const order = database.orders.find((candidate) => candidate.id === appointment.orderId);
+    const customerId = appointment.customerId ?? order?.payerCustomerId ?? undefined;
+    const customer = database.customers.find((candidate) => candidate.id === customerId);
+    const profileFlags = getCustomerProfileFlags(customer);
+
     return {
       id: appointment.id,
       scheduledFor: appointment.scheduledFor,
       kind: "pickup",
       source: appointment.source,
       location: findLocationName(database.locations, appointment.locationId),
-      customerId: appointment.customerId ?? undefined,
+      customerId,
       orderId: appointment.orderId,
       scopeId: appointment.scopeId,
       scopeLineId: appointment.scopeLineId,
@@ -259,9 +320,9 @@ export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
       pickupSummary: appointment.summary,
       statusKey: appointment.statusKey,
       status: getAppointmentStatusLabel(appointment.statusKey),
-      prepStatus: appointment.prepStatus,
-      profileFlags: appointment.profileFlags,
-      contextFlags: appointment.contextFlags,
+      prepFlags: getAppointmentPrepFlags(customer, "pickup"),
+      profileFlags,
+      contextFlags: getAppointmentContextFlags(appointment.confirmationStatus, appointment.rush),
       route: "pickup",
     };
   });
