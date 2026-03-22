@@ -2,6 +2,7 @@ import {
   CalendarDays,
   CheckSquare2,
   Clock3,
+  House,
   MapPin,
   Square,
   Package,
@@ -11,7 +12,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, PickupLocation, Screen, WorkflowMode } from "../types";
-import { ActionButton, cx } from "../components/ui/primitives";
+import { ActionButton, SectionHeader, cx } from "../components/ui/primitives";
 import { AppointmentIssuePill, CountPill } from "../components/ui/pills";
 import { useToast } from "../components/ui/toast";
 import { getTodayAppointments, getTomorrowAppointments } from "../features/home/selectors";
@@ -325,11 +326,9 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
 
   return (
     <div className="space-y-4">
+      <SectionHeader icon={House} title="Home" subtitle="Front-of-house operations" />
+
       <div className="app-control-deck px-4 py-4">
-        <div className="mb-4">
-          <div className="app-section-title">Maximus Custom Clothing</div>
-          <div className="app-section-copy">Front-of-house actions</div>
-        </div>
         <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
           {actions.map((action) => (
             <FrontDeskActionTile key={action.label} {...action} />
