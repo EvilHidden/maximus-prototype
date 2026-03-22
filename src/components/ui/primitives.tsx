@@ -67,6 +67,11 @@ type EmptyStateProps = {
   className?: string;
 };
 
+type InlineEmptyStateProps = {
+  children: ReactNode;
+  className?: string;
+};
+
 type WorkflowToggleProps = {
   icon: LucideIcon;
   title: string;
@@ -255,6 +260,19 @@ export function EntityRow({ title, subtitle, meta, action, onClick, className = 
 
 export function EmptyState({ children, className = "" }: EmptyStateProps) {
   return <div className={cx("app-empty-state", className)}>{children}</div>;
+}
+
+export function InlineEmptyState({ children, className = "" }: InlineEmptyStateProps) {
+  return (
+    <div
+      className={cx(
+        "rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/18 px-4 py-3 app-text-body-muted",
+        className,
+      )}
+    >
+      {children}
+    </div>
+  );
 }
 
 export function WorkflowToggle({ icon: Icon, title, subtitle, isActive, isEnabled, onClick }: WorkflowToggleProps) {

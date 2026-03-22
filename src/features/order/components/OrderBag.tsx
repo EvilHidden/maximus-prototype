@@ -4,6 +4,7 @@ import {
   ActionButton,
   Card,
   EmptyState,
+  InlineEmptyState,
   PanelSection,
   SectionHeader,
   SummaryStack,
@@ -201,7 +202,7 @@ export function OrderBag({
                   </div>
                 </div>
               ) : (
-                <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
+                <InlineEmptyState className="border-[var(--app-border-strong)] px-3.5 py-3.5">
                   <div className="app-text-body font-medium">
                     {scope === "custom" ? "Custom order timing" : "Pickup details needed"}
                   </div>
@@ -212,7 +213,7 @@ export function OrderBag({
                       )
                       : "Set the pickup date, time, and location before moving this order forward."}
                   </div>
-                </div>
+                </InlineEmptyState>
               )}
             </PanelSection>
           );
