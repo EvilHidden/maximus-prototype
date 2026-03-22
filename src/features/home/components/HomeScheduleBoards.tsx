@@ -30,7 +30,7 @@ function getAppointmentAlertIcons(appointment: Appointment) {
     key: string;
     label: string;
     Icon: LucideIcon;
-    tone?: "warn" | "danger";
+    tone?: "info" | "muted" | "danger";
   }> = [];
 
   icons.push(
@@ -38,7 +38,7 @@ function getAppointmentAlertIcons(appointment: Appointment) {
       key: flag,
       label: getAppointmentPrepFlagLabel(flag),
       Icon: Ruler,
-      tone: "warn" as const,
+      tone: "info" as const,
     })),
   );
 
@@ -60,7 +60,7 @@ function getAppointmentAlertIcons(appointment: Appointment) {
         key: flag,
         label: getAppointmentProfileFlagLabel(flag),
         Icon: Mail,
-        tone: "warn" as const,
+        tone: "muted" as const,
       };
     }
 
@@ -69,7 +69,7 @@ function getAppointmentAlertIcons(appointment: Appointment) {
         key: flag,
         label: getAppointmentProfileFlagLabel(flag),
         Icon: Phone,
-        tone: "warn" as const,
+        tone: "muted" as const,
       };
     }
 
@@ -78,7 +78,7 @@ function getAppointmentAlertIcons(appointment: Appointment) {
         key: flag,
         label: getAppointmentProfileFlagLabel(flag),
         Icon: MapPin,
-        tone: "warn" as const,
+        tone: "muted" as const,
       };
     }
 
@@ -86,7 +86,7 @@ function getAppointmentAlertIcons(appointment: Appointment) {
       key: flag,
       label: getAppointmentProfileFlagLabel(flag),
       Icon: Megaphone,
-      tone: "warn" as const,
+      tone: "muted" as const,
     };
     }),
   );
@@ -169,7 +169,9 @@ function ScheduleRow({
                     "inline-flex h-6 w-6 items-center justify-center rounded-full border",
                     tone === "danger"
                       ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
-                      : "border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] text-[var(--app-warn-text)]",
+                      : tone === "info"
+                        ? "border-sky-200 bg-sky-50 text-sky-700"
+                        : "border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/85 text-[var(--app-text-muted)]",
                   ].join(" ")}
                   title={label}
                   aria-label={label}
