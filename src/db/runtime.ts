@@ -34,6 +34,13 @@ function withOffset(base: Date, days: number, hours = 12, minutes = 0) {
   return next;
 }
 
+function withMinuteDelta(base: Date, minutes: number) {
+  const next = new Date(base);
+  next.setSeconds(0, 0);
+  next.setMinutes(next.getMinutes() + minutes);
+  return next;
+}
+
 function createLocationId(location: PickupLocation) {
   return `loc_${location.toLowerCase().replace(/\s+/g, "_")}`;
 }
@@ -75,6 +82,8 @@ const davidValues = {
 };
 
 export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDatabase {
+  const liveReference = new Date(referenceDate);
+  liveReference.setSeconds(0, 0);
   const baseDate = new Date(referenceDate);
   baseDate.setHours(12, 0, 0, 0);
 
@@ -225,6 +234,26 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
       holdUntilAllScopesReady: false,
     },
     {
+      id: "order-9005",
+      displayId: "ORD-9005",
+      payerCustomerId: "C-1078",
+      payerName: "Maria Ellis",
+      orderType: "alteration",
+      createdAt: toDateTimeString(withOffset(baseDate, -1, 10, 20)),
+      status: "open",
+      holdUntilAllScopesReady: false,
+    },
+    {
+      id: "order-9006",
+      displayId: "ORD-9006",
+      payerCustomerId: "C-1042",
+      payerName: "James Carter",
+      orderType: "custom",
+      createdAt: toDateTimeString(withOffset(baseDate, 0, 9, 10)),
+      status: "open",
+      holdUntilAllScopesReady: false,
+    },
+    {
       id: "order-8821",
       displayId: "ORD-8821",
       payerCustomerId: "C-1042",
@@ -348,6 +377,26 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
       appointmentOptional: true,
     },
     {
+      id: "scope-9005-alteration",
+      orderId: "order-9005",
+      workflow: "alteration",
+      phase: "in_progress",
+      promisedReadyAt: toDateTimeString(withMinuteDelta(liveReference, 45)),
+      readyAt: null,
+      eventId: null,
+      appointmentOptional: true,
+    },
+    {
+      id: "scope-9006-custom",
+      orderId: "order-9006",
+      workflow: "custom",
+      phase: "in_progress",
+      promisedReadyAt: toDateTimeString(withMinuteDelta(liveReference, 150)),
+      readyAt: null,
+      eventId: null,
+      appointmentOptional: true,
+    },
+    {
       id: "scope-8821-custom",
       orderId: "order-8821",
       workflow: "custom",
@@ -437,6 +486,8 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     { id: "line-9003-2", scopeId: "scope-9003-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1495 },
     { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, unitPrice: 741.85 },
     { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, unitPrice: 54.45 },
+    { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, unitPrice: 95 },
+    { id: "line-9006-1", scopeId: "scope-9006-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1495 },
     { id: "line-8821-1", scopeId: "scope-8821-custom", label: "Custom navy suit", quantity: 1, unitPrice: 1495 },
     { id: "line-8610-1", scopeId: "scope-8610-alteration", label: "Trouser hem + taper", quantity: 1, unitPrice: 65 },
     { id: "line-8443-1", scopeId: "scope-8443-custom", label: "Dinner jacket consult", quantity: 1, unitPrice: 0 },
@@ -615,6 +666,24 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
       amount: 0,
       collectedAt: null,
       squarePaymentId: null,
+    },
+    {
+      id: "pay-9005",
+      orderId: "order-9005",
+      source: "prototype",
+      status: "pay_later",
+      amount: 0,
+      collectedAt: null,
+      squarePaymentId: null,
+    },
+    {
+      id: "pay-9006",
+      orderId: "order-9006",
+      source: "square",
+      status: "prepaid",
+      amount: 747.5,
+      collectedAt: toDateTimeString(withOffset(baseDate, 0, 10, 30)),
+      squarePaymentId: "sq_pay_9006",
     },
     {
       id: "pay-8821",

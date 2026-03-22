@@ -360,8 +360,8 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
   const pickupDateTime = getPickupDateTime(dateValue, timeValue);
   if (!pickupDateTime) {
     return {
-      tone: "default" as const,
-      label: null,
+      tone: "warn" as const,
+      label: "Promised ready time not set",
     };
   }
 
@@ -380,9 +380,23 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
     };
   }
 
+  if (isToday(dateValue)) {
+    return {
+      tone: "default" as const,
+      label: "On track for today",
+    };
+  }
+
+  if (isTomorrow(dateValue)) {
+    return {
+      tone: "default" as const,
+      label: "Due tomorrow",
+    };
+  }
+
   return {
     tone: "default" as const,
-    label: null,
+    label: "Future promise",
   };
 }
 

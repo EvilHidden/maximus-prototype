@@ -30,7 +30,6 @@ type OpenOrdersScreenProps = {
 };
 
 type OrdersView = "queues" | "all" | "history";
-type PickupAlertTone = "default" | "warn" | "danger" | "success";
 
 const queueMeta: Array<{
   key: OrdersQueueKey;
@@ -109,22 +108,6 @@ const unselectedFilterClass =
 
 const unselectedFilterCountClass =
   "border-transparent bg-[var(--app-surface)] text-[var(--app-text-soft)]";
-
-function getPickupToneClass(tone: PickupAlertTone) {
-  if (tone === "warn") {
-    return "text-[var(--app-warn-text)]";
-  }
-
-  if (tone === "danger") {
-    return "text-[var(--app-danger-text)]";
-  }
-
-  if (tone === "success") {
-    return "text-[var(--app-success-text)]";
-  }
-
-  return "text-[var(--app-text)]";
-}
 
 function getPhaseTone(phase: string) {
   if (phase === "Ready for pickup") {
@@ -370,15 +353,13 @@ function WorkQueueOrderRow({
               >
                 <div className="min-w-0">
                   <div className="app-text-overline">Promised ready by</div>
-                  <div className={cx("mt-1 app-text-strong", getPickupToneClass(pickupAlert.tone))}>
+                  <div className="mt-1 app-text-strong">
                     {pickupSummary}
                   </div>
                   <div className="app-text-caption mt-1">{pickup.itemSummary.join(", ")}</div>
-                  {pickupAlert.label ? (
-                    <div className={cx("mt-1 text-xs font-medium", getPickupToneClass(pickupAlert.tone))}>
-                      {pickupAlert.label}
-                    </div>
-                  ) : null}
+                  <div className="mt-2">
+                    <StatusPill tone={pickupAlert.tone}>{pickupAlert.label}</StatusPill>
+                  </div>
                 </div>
                 <div className="flex flex-wrap items-center gap-2 md:justify-end">
                   {pickup.readyForPickup ? (
