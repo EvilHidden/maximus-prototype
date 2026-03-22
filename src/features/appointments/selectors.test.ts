@@ -21,7 +21,9 @@ const baseAppointment: Appointment = {
   type: "Custom consult",
   statusKey: "scheduled",
   status: "Upcoming",
-  missing: "None",
+  prepStatus: "ready",
+  profileFlags: [],
+  contextFlags: [],
   route: "custom",
 };
 

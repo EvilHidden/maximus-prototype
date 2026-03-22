@@ -1,4 +1,7 @@
 import type {
+  AppointmentContextFlag,
+  AppointmentPrepStatus,
+  AppointmentProfileFlag,
   AppointmentSource,
   AppointmentStatusKey,
   AppointmentTypeKey,
@@ -126,7 +129,9 @@ export type DbPickupAppointment = {
   typeKey: Extract<AppointmentTypeKey, "pickup">;
   statusKey: Extract<AppointmentStatusKey, "scheduled" | "completed" | "canceled">;
   summary: string;
-  issue: string;
+  prepStatus: AppointmentPrepStatus;
+  profileFlags: AppointmentProfileFlag[];
+  contextFlags: AppointmentContextFlag[];
 };
 
 export type DbServiceAppointment = {
@@ -146,7 +151,9 @@ export type DbServiceAppointment = {
     "alteration_fitting" | "custom_consult" | "first_fitting" | "custom_fitting" | "wedding_party_fitting"
   >;
   statusKey: Extract<AppointmentStatusKey, "scheduled" | "ready_to_check_in" | "prep_required" | "completed" | "canceled">;
-  issue: string;
+  prepStatus: AppointmentPrepStatus;
+  profileFlags: AppointmentProfileFlag[];
+  contextFlags: AppointmentContextFlag[];
 };
 
 export type DbPaymentRecord = {

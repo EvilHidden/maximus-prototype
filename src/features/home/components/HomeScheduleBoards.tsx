@@ -1,4 +1,4 @@
-import { CalendarDays, MapPin, Package, type LucideIcon } from "lucide-react";
+import { CalendarDays, Mail, MapPin, Package, Phone, type LucideIcon } from "lucide-react";
 import type { Appointment } from "../../../types";
 import {
   ActionButton,
@@ -7,17 +7,47 @@ import {
   SurfaceHeader,
 } from "../../../components/ui/primitives";
 import { AppointmentIssuePill, CountPill } from "../../../components/ui/pills";
-import { getAppointmentTimeLabel, getRelativeAppointmentDayLabel } from "../../appointments/selectors";
+import {
+  getAppointmentContextFlagLabel,
+  getAppointmentPrepStatusLabel,
+  getAppointmentTimeLabel,
+  getRelativeAppointmentDayLabel,
+} from "../../appointments/selectors";
 import { HomeLaneEmptyState } from "./HomeLaneEmptyState";
 
 function getAppointmentCallouts(appointment: Appointment) {
   const callouts: Array<{ label: string; tone?: "default" | "warn" }> = [];
 
-  if (appointment.missing !== "Complete") {
-    callouts.push({ label: appointment.missing, tone: "warn" });
+  if (appointment.prepStatus !== "ready" && appointment.prepStatus !== "needs_profile") {
+    callouts.push({ label: getAppointmentPrepStatusLabel(appointment.prepStatus), tone: "warn" });
   }
 
+  callouts.push(
+    ...appointment.contextFlags.map((flag) => ({
+      label: getAppointmentContextFlagLabel(flag),
+      tone: "default" as const,
+    })),
+  );
+
   return callouts;
+}
+
+function getProfileAlertIcons(appointment: Appointment) {
+  return appointment.profileFlags.map((flag) => {
+    if (flag === "missing_email") {
+      return {
+        key: flag,
+        label: "Missing email",
+        Icon: Mail,
+      };
+    }
+
+    return {
+      key: flag,
+      label: "Missing phone",
+      Icon: Phone,
+    };
+  });
 }
 
 export function HomeEmptyState({
@@ -75,6 +105,7 @@ function ScheduleRow({
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
   const callouts = getAppointmentCallouts(appointment);
+  const profileAlertIcons = getProfileAlertIcons(appointment);
 
   return (
     <div className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
@@ -83,7 +114,23 @@ function ScheduleRow({
       </div>
 
       <div className="min-w-0 space-y-2">
-        <div className="app-text-value leading-tight">{appointment.customer}</div>
+        <div className="flex flex-wrap items-center gap-2">
+          <div className="app-text-value leading-tight">{appointment.customer}</div>
+          {profileAlertIcons.length ? (
+            <div className="flex items-center gap-1.5">
+              {profileAlertIcons.map(({ key, label, Icon }) => (
+                <span
+                  key={key}
+                  className="inline-flex h-6 w-6 items-center justify-center rounded-full border border-[var(--app-warn-border)] bg-[var(--app-warn-bg)] text-[var(--app-warn-text)]"
+                  title={label}
+                  aria-label={label}
+                >
+                  <Icon className="h-3.5 w-3.5" />
+                </span>
+              ))}
+            </div>
+          ) : null}
+        </div>
         <div className="space-y-1">
           <div className="app-text-body font-medium leading-tight">{appointment.type}</div>
           <div className="app-text-caption flex items-center gap-1.5">

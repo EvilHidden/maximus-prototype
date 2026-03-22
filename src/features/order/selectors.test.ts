@@ -147,7 +147,9 @@ function createPickupAppointment(overrides: Partial<Appointment>): Appointment {
     type: "Pickup appointment",
     statusKey: "scheduled",
     status: "Upcoming",
-    missing: "Complete",
+    prepStatus: "ready",
+    profileFlags: [],
+    contextFlags: [],
     route: "pickup",
     ...overrides,
   };
