@@ -96,6 +96,45 @@ function getAppointmentAlertIcons(appointment: Appointment) {
   return icons;
 }
 
+function AppointmentAlertIconButton({
+  label,
+  Icon,
+  tone,
+  isOpen,
+  onToggle,
+}: {
+  label: string;
+  Icon: LucideIcon;
+  tone?: "info" | "muted" | "danger";
+  isOpen: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      className={[
+        "relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-surface)]",
+        tone === "danger"
+          ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
+          : tone === "info"
+            ? "border-sky-200 bg-sky-50 text-sky-700"
+            : "border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/85 text-[var(--app-text-muted)]",
+      ].join(" ")}
+      aria-label={label}
+      aria-expanded={isOpen}
+      onClick={onToggle}
+    >
+      <Icon className="h-4 w-4" />
+      {isOpen ? (
+        <span className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-20 w-max max-w-[12rem] -translate-x-1/2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/80 bg-[var(--app-surface)] px-2.5 py-2 text-center text-[0.7rem] font-medium leading-tight text-[var(--app-text)] shadow-lg">
+          {label}
+        </span>
+      ) : null}
+    </button>
+  );
+}
+
 export function HomeEmptyState({
   title,
   detail,
@@ -152,9 +191,26 @@ function ScheduleRow({
 }) {
   const confirmationPills = getAppointmentConfirmationPills(appointment);
   const alertIcons = getAppointmentAlertIcons(appointment);
+  const [activeAlertIcon, setActiveAlertIcon] = useState<string | null>(null);
+  const rowRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (!activeAlertIcon) {
+      return;
+    }
+
+    const handlePointerDown = (event: PointerEvent) => {
+      if (!rowRef.current?.contains(event.target as Node)) {
+        setActiveAlertIcon(null);
+      }
+    };
+
+    window.addEventListener("pointerdown", handlePointerDown);
+    return () => window.removeEventListener("pointerdown", handlePointerDown);
+  }, [activeAlertIcon]);
 
   return (
-    <div className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
+    <div ref={rowRef} className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
       <div>
         <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
       </div>
@@ -165,21 +221,14 @@ function ScheduleRow({
           {alertIcons.length ? (
             <div className="flex items-center gap-1.5">
               {alertIcons.map(({ key, label, Icon, tone }) => (
-                <span
+                <AppointmentAlertIconButton
                   key={key}
-                  className={[
-                    "inline-flex h-6 w-6 items-center justify-center rounded-full border",
-                    tone === "danger"
-                      ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
-                      : tone === "info"
-                        ? "border-sky-200 bg-sky-50 text-sky-700"
-                        : "border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/85 text-[var(--app-text-muted)]",
-                  ].join(" ")}
-                  title={label}
-                  aria-label={label}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                </span>
+                  label={label}
+                  Icon={Icon}
+                  tone={tone}
+                  isOpen={activeAlertIcon === key}
+                  onToggle={() => setActiveAlertIcon((current) => (current === key ? null : key))}
+                />
               ))}
             </div>
           ) : null}
