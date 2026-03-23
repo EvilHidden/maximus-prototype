@@ -7,6 +7,7 @@ import type {
   CustomGarmentGender,
   MeasurementStatus,
   OpenOrderPaymentStatus,
+  OrderLineComponentKind,
   OrderType,
   PickupLocation,
   WorkflowMode,
@@ -102,8 +103,23 @@ export type DbOrderScopeLine = {
   id: string;
   scopeId: string;
   label: string;
+  garmentLabel: string;
   quantity: number;
   unitPrice: number;
+  wearerCustomerId: string | null;
+  wearerName: string | null;
+  measurementSetId: string | null;
+  measurementSetLabel: string | null;
+  measurementSnapshot: Record<string, string> | null;
+};
+
+export type DbOrderScopeLineComponent = {
+  id: string;
+  lineId: string;
+  kind: OrderLineComponentKind;
+  label: string;
+  value: string;
+  sortOrder: number;
 };
 
 export type DbPickupNotification = {
@@ -181,6 +197,7 @@ export type PrototypeDatabase = {
   orders: DbOrder[];
   orderScopes: DbOrderScope[];
   orderScopeLines: DbOrderScopeLine[];
+  orderScopeLineComponents: DbOrderScopeLineComponent[];
   pickupNotifications: DbPickupNotification[];
   pickupAppointments: DbPickupAppointment[];
   serviceAppointments: DbServiceAppointment[];

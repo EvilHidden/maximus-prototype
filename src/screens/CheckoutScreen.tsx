@@ -66,10 +66,6 @@ function getSavedPickupSummary(openOrder: OpenOrder) {
     .join(openOrder.pickupSchedules.length > 1 ? "\n" : "");
 }
 
-function getCheckoutLineItemTitle(title: string) {
-  return title.replace(/^\d+\.\s*/, "");
-}
-
 function formatCheckoutCurrency(value: number) {
   return new Intl.NumberFormat("en-US", {
     style: "currency",
@@ -132,72 +128,6 @@ function getReadyBySummary(openOrder: OpenOrder | null, pickupSummary: string) {
   };
 }
 
-function inferAlterationGarment(label: string) {
-  const normalized = label.toLowerCase();
-  if (normalized.includes("trouser") || normalized.includes("pant")) {
-    return "Alteration - Trousers";
-  }
-  if (normalized.includes("jacket")) {
-    return "Alteration - Jacket";
-  }
-  if (normalized.includes("vest")) {
-    return "Alteration - Vest";
-  }
-  if (normalized.includes("dress")) {
-    return "Alteration - Dress";
-  }
-  if (normalized.includes("skirt")) {
-    return "Alteration - Skirt";
-  }
-  if (normalized.includes("blouse")) {
-    return "Alteration - Blouse";
-  }
-  if (normalized.includes("gown")) {
-    return "Alteration - Gown";
-  }
-  if (normalized.includes("sari")) {
-    return "Alteration - Sari blouse";
-  }
-  if (normalized.includes("sleeve")) {
-    return "Alteration - Jacket";
-  }
-
-  return "Alteration";
-}
-
-function inferAlterationDetail(label: string) {
-  const normalized = label.toLowerCase();
-  if (normalized.includes("trouser")) {
-    return label.replace(/trouser\s*/i, "").trim();
-  }
-  if (normalized.includes("pant")) {
-    return label.replace(/pant\s*/i, "").trim();
-  }
-  if (normalized.includes("jacket")) {
-    return label.replace(/jacket\s*/i, "").trim();
-  }
-  if (normalized.includes("vest")) {
-    return label.replace(/vest\s*/i, "").trim();
-  }
-  if (normalized.includes("dress")) {
-    return label.replace(/dress\s*/i, "").trim();
-  }
-  if (normalized.includes("skirt")) {
-    return label.replace(/skirt\s*/i, "").trim();
-  }
-  if (normalized.includes("blouse")) {
-    return label.replace(/blouse\s*/i, "").trim();
-  }
-  if (normalized.includes("gown")) {
-    return label.replace(/gown\s*/i, "").trim();
-  }
-  if (normalized.includes("sari")) {
-    return label.replace(/sari\s*blouse\s*/i, "").trim();
-  }
-
-  return label;
-}
-
 function toSentenceCase(value: string) {
   if (!value) {
     return "";
@@ -207,19 +137,30 @@ function toSentenceCase(value: string) {
 }
 
 function getCheckoutDisplayLineItem(item: OpenOrder["lineItems"][number]) {
-  const title = getCheckoutLineItemTitle(item.title);
-
   if (item.kind === "alteration") {
-    const detail = inferAlterationDetail(title);
+    const detail = item.components
+      .filter((component) => component.kind === "alteration_service")
+      .map((component) => toSentenceCase(component.value))
+      .join(", ");
+
     return {
-      title: inferAlterationGarment(title),
+      title: `Alteration - ${item.garmentLabel}`,
       subtitle: detail ? toSentenceCase(detail) : "",
     };
   }
 
+  const primaryDetail = item.components
+    .filter((component) => component.kind === "wearer" || component.kind === "measurement_set")
+    .map((component) => component.value)
+    .join(" • ");
+  const optionDetail = item.components
+    .filter((component) => component.kind !== "wearer" && component.kind !== "measurement_set")
+    .map((component) => `${component.label} ${component.value}`)
+    .join(" • ");
+
   return {
-    title: `Custom garment - ${title}`,
-    subtitle: item.subtitle === "Custom garments" ? "" : item.subtitle,
+    title: `Custom garment - ${item.garmentLabel}`,
+    subtitle: [primaryDetail, optionDetail].filter(Boolean).join("\n"),
   };
 }
 

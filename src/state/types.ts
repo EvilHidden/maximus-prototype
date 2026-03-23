@@ -4,19 +4,20 @@ import type {
   Customer,
   CustomOrderEventType,
   CustomGarmentGender,
+  MeasurementSet,
   OpenOrder,
   OrderWorkflowState,
   PickupLocation,
   Screen,
   WorkflowMode,
 } from "../types";
+import type { PrototypeDatabase } from "../db/schema";
 
 export type AppState = {
   screen: Screen;
   selectedCustomerId: string | null;
   checkoutOpenOrderId: number | null;
-  customers: Customer[];
-  openOrders: OpenOrder[];
+  database: PrototypeDatabase;
   order: OrderWorkflowState;
 };
 
@@ -55,7 +56,7 @@ export type AppAction =
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
-  | { type: "saveOpenOrder"; openOrder: OpenOrder; openCheckout: boolean }
+  | { type: "saveOpenOrder"; paymentStatus: OpenOrder["paymentStatus"]; openCheckout: boolean }
   | { type: "startOpenOrderPayment"; openOrderId: number }
   | { type: "captureOpenOrderPayment"; openOrderId: number }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }
@@ -77,4 +78,5 @@ export type AppAction =
   | { type: "updateMeasurements"; field: string; value: string }
   | { type: "replaceMeasurements"; values: Record<string, string>; measurementSetId: string | null }
   | { type: "linkMeasurementSet"; measurementSetId: string | null }
+  | { type: "replaceMeasurementSetRecords"; measurementSets: MeasurementSet[] }
   | { type: "clearOrder" };

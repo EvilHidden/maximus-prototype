@@ -1,4 +1,12 @@
 import type { AppAction, AppState } from "./types";
+import { adaptCustomers } from "../db/adapters";
+import {
+  captureOrderPayment,
+  markOrderScopePickupReady,
+  replaceMeasurementSetRecords,
+  saveOrderWorkflowToDatabase,
+  startOrderPaymentCollection,
+} from "../db/mutations";
 import {
   createEmptyMeasurements,
   createInitialCustomDraft,
@@ -57,76 +65,42 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         },
       };
     case "saveOpenOrder":
-      return {
-        ...state,
-        screen: action.openCheckout ? "checkout" : "openOrders",
-        checkoutOpenOrderId: action.openCheckout ? action.openOrder.id : null,
-        openOrders: [action.openOrder, ...state.openOrders],
-        order: createInitialOrderState(),
-      };
+      {
+        const savedOrder = saveOrderWorkflowToDatabase(
+          state.database,
+          state.order,
+          adaptCustomers(state.database),
+          action.paymentStatus,
+          { now: getNow(options), idFactory: options?.idFactory },
+        );
+
+        if (!savedOrder) {
+          return state;
+        }
+
+        return {
+          ...state,
+          screen: action.openCheckout ? "checkout" : "openOrders",
+          checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
+          database: savedOrder.database,
+          order: createInitialOrderState(),
+        };
+      }
     case "startOpenOrderPayment":
       return {
         ...state,
-        openOrders: state.openOrders.map((openOrder) => (
-          openOrder.id === action.openOrderId
-            ? {
-                ...openOrder,
-                paymentStatus: "pending",
-                paymentDueNow: openOrder.balanceDue,
-              }
-            : openOrder
-        )),
+        database: startOrderPaymentCollection(state.database, action.openOrderId),
       };
     case "captureOpenOrderPayment":
       return {
         ...state,
-        openOrders: state.openOrders.map((openOrder) => (
-          openOrder.id === action.openOrderId
-            ? (() => {
-                const capturedAmount = openOrder.paymentDueNow;
-                const nextTotalCollected = openOrder.totalCollected + capturedAmount;
-                const nextCollectedToday = openOrder.collectedToday + capturedAmount;
-                const nextBalanceDue = Math.max(openOrder.balanceDue - capturedAmount, 0);
-
-                return {
-                  ...openOrder,
-                  paymentStatus: "captured",
-                  totalCollected: nextTotalCollected,
-                  collectedToday: nextCollectedToday,
-                  balanceDue: nextBalanceDue,
-                  paymentDueNow: nextBalanceDue,
-                };
-              })()
-            : openOrder
-        )),
+        database: captureOrderPayment(state.database, action.openOrderId, getNow(options)),
       };
     case "markOpenOrderPickupReady":
-      {
-        const now = getNow(options);
-        const pickupDate = now.toISOString().slice(0, 10);
-        const pickupTime = now.toTimeString().slice(0, 5);
-
-        return {
-          ...state,
-          openOrders: state.openOrders.map((openOrder) => (
-            openOrder.id === action.openOrderId
-              ? {
-                  ...openOrder,
-                  pickupSchedules: openOrder.pickupSchedules.map((pickup) => (
-                    pickup.id === action.pickupId
-                      ? {
-                          ...pickup,
-                          readyForPickup: true,
-                          pickupDate: pickup.pickupDate || pickupDate,
-                          pickupTime: pickup.pickupTime || pickupTime,
-                        }
-                      : pickup
-                  )),
-                }
-              : openOrder
-          )),
-        };
-      }
+      return {
+        ...state,
+        database: markOrderScopePickupReady(state.database, action.pickupId, getNow(options)),
+      };
     case "selectAlterationGarment":
       return {
         ...state,
@@ -459,6 +433,11 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
             },
           },
         },
+      };
+    case "replaceMeasurementSetRecords":
+      return {
+        ...state,
+        database: replaceMeasurementSetRecords(state.database, action.measurementSets),
       };
     case "clearOrder":
       return {

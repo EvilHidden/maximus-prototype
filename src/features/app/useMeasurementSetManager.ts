@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback } from "react";
 import {
   createDraftMeasurementSet,
   deleteMeasurementSetAndPreserveDraft,
@@ -8,7 +8,7 @@ import type { AppAction, AppState } from "../../state/appState";
 import type { Customer, MeasurementSet } from "../../types";
 
 type UseMeasurementSetManagerArgs = {
-  baseMeasurementSets: MeasurementSet[];
+  measurementSets: MeasurementSet[];
   selectedCustomer: Customer | null;
   linkedMeasurementSetId: string | null;
   measurements: AppState["order"]["custom"]["draft"]["measurements"];
@@ -16,14 +16,12 @@ type UseMeasurementSetManagerArgs = {
 };
 
 export function useMeasurementSetManager({
-  baseMeasurementSets,
+  measurementSets,
   selectedCustomer,
   linkedMeasurementSetId,
   measurements,
   dispatch,
 }: UseMeasurementSetManagerArgs) {
-  const [measurementSets, setMeasurementSets] = useState<MeasurementSet[]>(baseMeasurementSets);
-
   const saveMeasurements = useCallback((mode: "draft" | "saved", title: string) => {
     if (!selectedCustomer) {
       return;
@@ -38,13 +36,13 @@ export function useMeasurementSetManager({
       title,
     );
 
-    setMeasurementSets(result.measurementSets);
+    dispatch({ type: "replaceMeasurementSetRecords", measurementSets: result.measurementSets });
     dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
   }, [dispatch, linkedMeasurementSetId, measurementSets, measurements, selectedCustomer]);
 
   const createDraftMeasurements = useCallback(() => {
     const result = createDraftMeasurementSet(measurementSets, selectedCustomer);
-    setMeasurementSets(result.measurementSets);
+    dispatch({ type: "replaceMeasurementSetRecords", measurementSets: result.measurementSets });
     dispatch({
       type: "replaceMeasurements",
       values: result.values,
@@ -60,7 +58,7 @@ export function useMeasurementSetManager({
       selectedCustomer,
       measurements,
     );
-    setMeasurementSets(result.measurementSets);
+    dispatch({ type: "replaceMeasurementSetRecords", measurementSets: result.measurementSets });
     dispatch({ type: "linkMeasurementSet", measurementSetId: result.linkedMeasurementSetId });
   }, [dispatch, linkedMeasurementSetId, measurementSets, measurements, selectedCustomer]);
 

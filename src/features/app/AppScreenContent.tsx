@@ -16,6 +16,7 @@ export function AppScreenContent({
   customers,
   customerOrders,
   appointments,
+  openOrders,
   measurementSets,
   closedOrderHistory,
   selectedCustomer,
@@ -102,7 +103,7 @@ export function AppScreenContent({
   if (state.screen === "openOrders") {
     return (
       <OpenOrdersScreen
-        openOrders={state.openOrders}
+        openOrders={openOrders}
         closedOrderHistory={closedOrderHistory}
         pickupAppointments={pickupAppointments}
         pickupLocations={referenceData.pickupLocations}

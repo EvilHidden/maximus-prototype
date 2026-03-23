@@ -85,6 +85,7 @@ export function createSeedReferenceData(): AppReferenceData {
     orders: [],
     orderScopes: [],
     orderScopeLines: [],
+    orderScopeLineComponents: [],
     pickupNotifications: [],
     pickupAppointments: [],
     serviceAppointments: [],
