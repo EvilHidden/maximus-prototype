@@ -15,7 +15,7 @@ type AppointmentsScheduleRailProps = {
   onShowAll: () => void;
   onOpenReschedule: (appointment: Appointment) => void;
   onCompleteAppointment: (appointmentId: string) => void;
-  onCancelAppointment: (appointmentId: string) => void;
+  onCancelAppointment: (appointment: Appointment) => void;
 };
 
 function getScheduleLine(appointment: Appointment) {
@@ -127,7 +127,7 @@ export function AppointmentsScheduleRail({
                         <ActionButton
                           tone="secondary"
                           className="px-2.5 py-1.5 text-xs"
-                          onClick={() => onCancelAppointment(appointment.id)}
+                          onClick={() => onCancelAppointment(appointment)}
                         >
                           {appointment.kind === "pickup" ? "Cancel pickup" : "Cancel"}
                         </ActionButton>
