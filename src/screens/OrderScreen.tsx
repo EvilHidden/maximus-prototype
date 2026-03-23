@@ -209,8 +209,6 @@ export function OrderScreen({
             onEditCustomItem={controller.handleOpenEditCustomItem}
             onRequestRemoveItem={controller.handleRequestRemoveItem}
             onClearCart={() => controller.setClearBagConfirmOpen(true)}
-            onSchedulePayLater={controller.handleSchedulePayLater}
-            onSchedulePrepay={controller.handleSchedulePrepay}
             onShowDisabledReason={showToast}
             onContinue={controller.handleContinue}
             continueDisabled={

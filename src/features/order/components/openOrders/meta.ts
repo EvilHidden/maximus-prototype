@@ -76,6 +76,10 @@ export function formatWorklistTotal(value: number) {
 }
 
 export function getPhaseTone(phase: string) {
+  if (phase === "Accepted") {
+    return "dark" as const;
+  }
+
   if (phase === "In progress") {
     return "default" as const;
   }
@@ -92,10 +96,6 @@ export function getPhaseTone(phase: string) {
 }
 
 export function getWorklistPhaseLabel(phase: string) {
-  if (phase === "In progress") {
-    return "Pending";
-  }
-
   if (phase === "Ready for pickup") {
     return "Ready";
   }

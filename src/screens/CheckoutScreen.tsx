@@ -1,4 +1,4 @@
-import { ClipboardList, CreditCard } from "lucide-react";
+import { CheckCircle2, ClipboardList, CreditCard } from "lucide-react";
 import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, DefinitionList, EmptyState, SectionHeader, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import {
@@ -18,6 +18,7 @@ type CheckoutScreenProps = {
   customers: Customer[];
   payerCustomer: Customer | null;
   openOrder: OpenOrder | null;
+  showAcceptedConfirmation: boolean;
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
   onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
@@ -171,6 +172,7 @@ export function CheckoutScreen({
   customers,
   payerCustomer,
   openOrder,
+  showAcceptedConfirmation,
   order,
   onScreenChange,
   onSaveDraftOrder,
@@ -187,8 +189,9 @@ export function CheckoutScreen({
   const draftLineItems = getOrderBagLineItems(order, []);
   const pricing = getPricingSummary(order);
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
-  const isAlterationPrepayFlow = orderType === "alteration" && order.checkoutIntent === "prepay_now";
-  const draftShouldCollectNow = hasCustom || isAlterationPrepayFlow;
+  const isDraftAlterationOnly = !openOrder && orderType === "alteration";
+  const isAcceptedOpenOrder = openOrder?.paymentStatus === "due_later";
+  const draftShouldCollectNow = hasCustom;
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
   const pickupSummary = openOrder ? getSavedPickupSummary(openOrder) : getDraftPickupSummary(order);
   const activeLineItems = openOrder ? openOrder.lineItems : draftLineItems;
@@ -201,22 +204,34 @@ export function CheckoutScreen({
   const checkoutSubtitle = openOrder
     ? openOrder.paymentStatus === "pending"
       ? "Finish collecting payment for this order."
-      : openOrder.balanceDue > 0
-        ? openOrder.totalCollected > 0
-          ? "Deposit recorded. Collect the remaining balance when the customer checks out."
-          : "Review the order and collect payment."
-        : "This order is prepaid and ready to close out."
-    : draftShouldCollectNow
-      ? "Review the order, save it, and collect payment."
-      : "Review the order and save it.";
+      : isAcceptedOpenOrder
+        ? showAcceptedConfirmation
+          ? "The order is in and payment can wait until later."
+          : "Payment is still due for this order."
+        : openOrder.balanceDue > 0
+          ? openOrder.totalCollected > 0
+            ? "Deposit recorded. Collect the remaining balance when the customer checks out."
+            : "Review the order and collect payment."
+          : "This order is prepaid and ready to close out."
+    : isDraftAlterationOnly
+      ? "Review the order and send it through."
+      : draftShouldCollectNow
+        ? "Review the order, send it through, and collect payment."
+        : "Review the order and send it through.";
 
   const pageMeta = openOrder ? (
     <div className="text-right">
-      <div className="app-text-overline">Balance due</div>
+      <div className="app-text-overline">{isAcceptedOpenOrder ? "Payment due later" : "Balance due"}</div>
       <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
         {openOrder.balanceDue > 0 ? formatCheckoutCurrency(openOrder.balanceDue) : "Prepaid"}
       </div>
-      <div className="app-text-caption mt-1">{openOrder.balanceDue > 0 ? "Still due at checkout" : "No balance due"}</div>
+      <div className="app-text-caption mt-1">
+        {openOrder.balanceDue > 0
+          ? isAcceptedOpenOrder
+            ? "Collect later or at pickup"
+            : "Still due at checkout"
+          : "No balance due"}
+      </div>
       {openOrder.totalCollected > 0 && openOrder.balanceDue > 0 ? (
         <div className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[var(--app-text-soft)]">
           Collected {formatCheckoutCurrency(openOrder.totalCollected)}
@@ -229,12 +244,15 @@ export function CheckoutScreen({
       <div className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.02em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
         {draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "No payment due today"}
       </div>
-      <div className="app-text-caption mt-1">{checkoutBlocked ? "Order still needs setup before save." : "Order is ready to save."}</div>
+      <div className="app-text-caption mt-1">
+        {checkoutBlocked ? "Order still needs setup before save." : "Order is ready to send through."}
+      </div>
     </div>
   );
 
   const totalsItems = openOrder
     ? [
+        ...(isAcceptedOpenOrder ? [{ label: "Status", value: "Accepted" }] : []),
         { label: "Collected", value: formatCheckoutCurrency(openOrder.totalCollected) },
         { label: "Due", value: formatCheckoutCurrency(openOrder.balanceDue) },
         { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
@@ -253,7 +271,7 @@ export function CheckoutScreen({
         icon={CreditCard}
         title="Checkout"
         subtitle={checkoutSubtitle}
-        action={
+        action={!isAcceptedOpenOrder ? (
           <ActionButton
             tone="secondary"
             className="px-3 py-2 text-xs"
@@ -261,7 +279,7 @@ export function CheckoutScreen({
           >
             {openOrder ? "Back to orders" : "Back to order"}
           </ActionButton>
-        }
+        ) : undefined}
       />
 
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
@@ -269,17 +287,50 @@ export function CheckoutScreen({
           <div className="px-4 py-4">
             <div className="flex flex-wrap items-end justify-between gap-4">
               <div>
-                <div className="app-text-overline">{openOrder ? "Order review" : "Checkout review"}</div>
-                <div className="mt-1 app-text-value">{openOrder ? `Order #${openOrder.id}` : "Checkout review"}</div>
+                <div className="app-text-overline">
+                  {openOrder
+                    ? isAcceptedOpenOrder
+                      ? showAcceptedConfirmation ? "Order accepted" : "Open order"
+                      : "Order review"
+                    : "Checkout review"}
+                </div>
+                <div className="mt-1 app-text-value">
+                  {openOrder ? `Order #${openOrder.id}` : "Checkout review"}
+                </div>
                 <div className="app-text-caption mt-1 max-w-[36rem]">
                   {openOrder
-                    ? "Review customer details, check the order, and collect any remaining payment."
-                    : "Review the order, then save it and collect payment if needed."}
+                    ? isAcceptedOpenOrder
+                      ? showAcceptedConfirmation
+                        ? "You accepted this order, saved it to Square, and set the promised-ready details. Payment is still due later."
+                        : "This order is saved, the promised-ready details are set, and payment is still due later."
+                      : "Review customer details, check the order, and collect any remaining payment."
+                    : "Review the order, confirm fulfillment, and send it through."}
                 </div>
               </div>
               {pageMeta}
             </div>
           </div>
+
+          {isAcceptedOpenOrder && showAcceptedConfirmation ? (
+            <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
+              <div className="rounded-[var(--app-radius-md)] border border-emerald-200/80 bg-emerald-50/85 px-4 py-4 text-emerald-900 shadow-[0_14px_34px_-28px_rgba(5,150,105,0.55)]">
+                <div className="flex flex-wrap items-start gap-3">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                    <CheckCircle2 className="h-5 w-5" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="app-text-overline text-emerald-700">All set</div>
+                    <div className="mt-1 text-[1.05rem] font-semibold tracking-[-0.015em] text-emerald-950">
+                      Order #{openOrder.id} has been accepted.
+                    </div>
+                    <div className="mt-1 text-sm leading-relaxed text-emerald-800/90">
+                      {openOrder.payerName}'s order is saved, the due date is set, and the team can start work. No payment was collected, so {formatCheckoutCurrency(openOrder.balanceDue)} will be due later or at pickup.
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : null}
 
           {activeLineItems.length === 0 ? (
             <div className="border-t border-[var(--app-border)]/45">
@@ -345,7 +396,7 @@ export function CheckoutScreen({
 
               <div className="border-t border-[var(--app-border)]/45">
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="app-text-overline">Order review</div>
+                  <div className="app-text-overline">{isAcceptedOpenOrder && showAcceptedConfirmation ? "Accepted order" : "Order review"}</div>
                   <div className="app-text-overline text-right">Amount</div>
                 </div>
                 {activeLineItems.map((item, index) => (
@@ -380,8 +431,8 @@ export function CheckoutScreen({
         <div className="space-y-4">
           <Surface tone="support" className="p-4">
             <SurfaceHeader
-              title={openOrder ? "Payment summary" : "Order totals"}
-              subtitle={openOrder ? "Collected, due, and total." : "What will save with the order."}
+              title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
+              subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "Order saved, with payment still due." : "Collected, due, and total.") : "What will save with the order."}
             />
 
             <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
@@ -395,29 +446,59 @@ export function CheckoutScreen({
                     <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
                       Revise order
                     </ActionButton>
-                    <ActionButton
-                      tone="primary"
-                      disabled={checkoutBlocked}
-                      onClick={() => onSaveDraftOrder(draftShouldCollectNow ? "ready_to_collect" : "due_later", draftShouldCollectNow)}
-                    >
-                      {draftShouldCollectNow ? "Save order" : "Save to order registry"}
-                    </ActionButton>
+                    {isDraftAlterationOnly ? (
+                      <>
+                        <ActionButton
+                          tone="primary"
+                          disabled={checkoutBlocked}
+                          onClick={() => onSaveDraftOrder("due_later", true)}
+                        >
+                          Accept order
+                        </ActionButton>
+                        <ActionButton
+                          tone="secondary"
+                          disabled={checkoutBlocked}
+                          onClick={() => onSaveDraftOrder("ready_to_collect", true)}
+                        >
+                          Accept + prepay
+                        </ActionButton>
+                      </>
+                    ) : (
+                      <ActionButton
+                        tone="primary"
+                        disabled={checkoutBlocked}
+                        onClick={() => onSaveDraftOrder(draftShouldCollectNow ? "ready_to_collect" : "due_later", true)}
+                      >
+                        {draftShouldCollectNow ? "Send order and continue to payment" : "Send order"}
+                      </ActionButton>
+                    )}
                   </>
                 ) : (
                   <>
-                    <div className="grid gap-2">
-                      <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
-                        Back to orders
-                      </ActionButton>
-                      <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
-                        Revise order
-                      </ActionButton>
-                    </div>
+                    {isAcceptedOpenOrder ? (
+                      <>
+                        <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
+                          Return to orders
+                        </ActionButton>
+                        <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
+                          Revise order
+                        </ActionButton>
+                      </>
+                    ) : (
+                      <div className="grid gap-2">
+                        <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
+                          Back to orders
+                        </ActionButton>
+                        <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
+                          Revise order
+                        </ActionButton>
+                      </div>
+                    )}
                     {openOrder.paymentStatus === "pending" ? (
                       <ActionButton tone="primary" onClick={() => onCaptureOpenOrderPayment(openOrder.id)}>
                         Confirm payment
                       </ActionButton>
-                    ) : openOrder.balanceDue > 0 ? (
+                    ) : isAcceptedOpenOrder ? null : openOrder.balanceDue > 0 ? (
                       <ActionButton tone="primary" onClick={() => onStartOpenOrderPayment(openOrder.id)}>
                         {openOrder.totalCollected > 0 ? "Collect balance" : "Collect payment"}
                       </ActionButton>

@@ -29,8 +29,6 @@ type OrderBagProps = {
   onRequestRemoveItem: (kind: WorkflowMode, itemId: number) => void;
   onClearCart: () => void;
   onContinue: () => void;
-  onSchedulePayLater: () => void;
-  onSchedulePrepay: () => void;
   continueDisabled: boolean;
   continueDisabledReason?: string;
   onShowDisabledReason?: (reason: string) => void;
@@ -52,8 +50,6 @@ export function OrderBag({
   onRequestRemoveItem,
   onClearCart,
   onContinue,
-  onSchedulePayLater,
-  onSchedulePrepay,
   continueDisabled,
   continueDisabledReason,
   onShowDisabledReason,
@@ -65,7 +61,6 @@ export function OrderBag({
       : orderType === "custom"
         ? (["custom"] as WorkflowMode[])
         : [];
-  const showAlterationSchedulingCtas = orderType === "alteration";
   const pickupSectionTitles: Record<WorkflowMode, string> = {
     alteration: orderType === "mixed" ? "Alteration pickup" : "Pickup",
     custom: orderType === "mixed" ? "Custom pickup" : "Pickup",
@@ -225,40 +220,17 @@ export function OrderBag({
           <EmptyState>No summary yet.</EmptyState>
         )}
 
-        {showAlterationSchedulingCtas ? (
-          <div className="grid grid-cols-2 gap-2 border-t border-[var(--app-border)] pt-3">
-            <ActionButton
-              tone="primary"
-              disabled={continueDisabled}
-              disabledReason={continueDisabledReason}
-              onDisabledPress={onShowDisabledReason}
-              onClick={onSchedulePayLater}
-            >
-              Schedule Order and Pay Later
-            </ActionButton>
-            <ActionButton
-              tone="secondary"
-              disabled={continueDisabled}
-              disabledReason={continueDisabledReason}
-              onDisabledPress={onShowDisabledReason}
-              onClick={onSchedulePrepay}
-            >
-              Schedule Order and Prepay Now
-            </ActionButton>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border)] pt-3">
-            <ActionButton
-              tone="primary"
-              disabled={continueDisabled}
-              disabledReason={continueDisabledReason}
-              onDisabledPress={onShowDisabledReason}
-              onClick={onContinue}
-            >
-              {continueLabel}
-            </ActionButton>
-          </div>
-        )}
+        <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border)] pt-3">
+          <ActionButton
+            tone="primary"
+            disabled={continueDisabled}
+            disabledReason={continueDisabledReason}
+            onDisabledPress={onShowDisabledReason}
+            onClick={onContinue}
+          >
+            {continueLabel}
+          </ActionButton>
+        </div>
       </SummaryStack>
     </Surface>
   );
