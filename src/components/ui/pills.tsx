@@ -53,9 +53,14 @@ export function PaymentStatusPill({ status }: { status: OpenOrderPaymentStatus }
     ? "Paid"
     : status === "pending"
       ? "Payment pending"
-      : "Payment Due";
+      : "PAYMENT DUE";
+  const className = status === "captured"
+    ? undefined
+    : status === "pending"
+      ? undefined
+      : "uppercase tracking-[0.08em]";
 
-  return <StatusPill tone={tone}>{label}</StatusPill>;
+  return <StatusPill tone={tone} className={className}>{label}</StatusPill>;
 }
 
 export function ReadinessPill({
