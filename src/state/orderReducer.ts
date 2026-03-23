@@ -84,12 +84,14 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           openOrder.id === action.openOrderId
             ? (() => {
                 const capturedAmount = openOrder.paymentDueNow;
+                const nextTotalCollected = openOrder.totalCollected + capturedAmount;
                 const nextCollectedToday = openOrder.collectedToday + capturedAmount;
                 const nextBalanceDue = Math.max(openOrder.balanceDue - capturedAmount, 0);
 
                 return {
                   ...openOrder,
                   paymentStatus: "captured",
+                  totalCollected: nextTotalCollected,
                   collectedToday: nextCollectedToday,
                   balanceDue: nextBalanceDue,
                   paymentDueNow: nextBalanceDue,

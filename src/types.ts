@@ -197,6 +197,7 @@ export type OpenOrder = {
   pickupSchedules: OpenOrderPickup[];
   paymentStatus: OpenOrderPaymentStatus;
   paymentDueNow: number;
+  totalCollected: number;
   collectedToday: number;
   balanceDue: number;
   total: number;

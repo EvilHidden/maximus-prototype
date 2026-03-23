@@ -117,14 +117,18 @@ function getPaymentSummary(
   database: PrototypeDatabase,
   orderId: string,
   orderType: OpenOrder["orderType"],
-): { paymentStatus: OpenOrderPaymentStatus; collectedToday: number } {
+): { paymentStatus: OpenOrderPaymentStatus; totalCollected: number; collectedToday: number } {
   const records = database.payments.filter((payment) => payment.orderId === orderId);
   const latest = records[records.length - 1];
   const today = new Date(database.generatedAt);
   today.setHours(0, 0, 0, 0);
 
+  const totalCollected = records.reduce((sum, record) => (
+    record.status === "captured" ? sum + record.amount : sum
+  ), 0);
+
   const collectedToday = records.reduce((sum, record) => {
-    if (!record.collectedAt) {
+    if (record.status !== "captured" || !record.collectedAt) {
       return sum;
     }
 
@@ -147,6 +151,7 @@ function getPaymentSummary(
             ? ("due_later" satisfies OpenOrderPaymentStatus)
             : ("ready_to_collect" satisfies OpenOrderPaymentStatus)
     ),
+    totalCollected,
     collectedToday,
   };
 }
@@ -362,11 +367,8 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
       const lineItems = getOpenOrderLineItems(database, order.id);
       const payment = getPaymentSummary(database, order.id, order.orderType);
       const total = getOrderTotal(database, order.id);
-      const paymentDueNow = payment.paymentStatus === "captured"
-        ? payment.collectedToday
-        : payment.paymentStatus === "due_later"
-          ? 0
-          : Math.max(total - payment.collectedToday, 0);
+      const balanceDue = Math.max(total - payment.totalCollected, 0);
+      const paymentDueNow = balanceDue;
 
       return {
         id: Number.parseInt(order.displayId.replace(/\D/g, ""), 10),
@@ -379,8 +381,9 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         pickupSchedules: scopes.map((scope) => getOpenOrderPickup(database, order, scope)),
         paymentStatus: payment.paymentStatus,
         paymentDueNow,
+        totalCollected: payment.totalCollected,
         collectedToday: payment.collectedToday,
-        balanceDue: Math.max(total - payment.collectedToday, 0),
+        balanceDue,
         total,
         createdAt: order.createdAt,
       };

@@ -32,7 +32,6 @@ import {
   formatSummaryCurrency,
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
-  getOpenOrderPaymentSummary,
   getOpenOrderOperationalPhase,
   getOpenOrderTypeLabel,
   getOperationalPickupDateLabel,
@@ -144,6 +143,34 @@ function getWorklistPhaseLabel(phase: string) {
   }
 
   return phase;
+}
+
+function getWorklistPaymentLabel(openOrder: OpenOrder) {
+  if (openOrder.balanceDue > 0) {
+    return "PAYMENT DUE";
+  }
+
+  return "PREPAID";
+}
+
+function getWorklistPaymentLineClassName(openOrder: OpenOrder) {
+  if (openOrder.balanceDue > 0) {
+    return "mt-1.5";
+  }
+
+  if (openOrder.paymentStatus === "pending") {
+    return "mt-1.5";
+  }
+
+  return "mt-1.5";
+}
+
+function getWorklistPaymentTextClassName(openOrder: OpenOrder) {
+  if (openOrder.balanceDue > 0) {
+    return "text-[0.76rem] font-semibold uppercase leading-none tracking-[0.18em] text-[var(--app-warn-text)]";
+  }
+
+  return "text-[0.66rem] font-medium uppercase leading-none tracking-[0.12em] text-[color:color-mix(in_srgb,var(--app-text-soft)_92%,var(--app-success-text))]";
 }
 
 function OpenSectionHeader({
@@ -487,13 +514,14 @@ function WorkQueueOrderRow({
         <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>
-            <PaymentStatusPill status={openOrder.paymentStatus} />
           </div>
           <div>
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(openOrder.total)}
             </div>
-            <div className="app-text-caption mt-1">{getOpenOrderPaymentSummary(openOrder)}</div>
+            <div className={getWorklistPaymentLineClassName(openOrder)}>
+              <span className={getWorklistPaymentTextClassName(openOrder)}>{getWorklistPaymentLabel(openOrder)}</span>
+            </div>
           </div>
         </div>
       </div>

@@ -99,6 +99,7 @@ describe("order reducer", () => {
           ],
           paymentStatus: "due_later",
           paymentDueNow: 0,
+          totalCollected: 0,
           collectedToday: 0,
           balanceDue: 35,
           total: 35,

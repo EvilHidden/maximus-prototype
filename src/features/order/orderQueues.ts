@@ -267,22 +267,6 @@ export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][numb
   return `${pickupSummary ?? "Promised ready time not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
 }
 
-export function getOpenOrderPaymentSummary(openOrder: OpenOrder) {
-  if (openOrder.paymentStatus === "pending") {
-    return "Square collection in progress";
-  }
-
-  if (openOrder.balanceDue > 0 && openOrder.pickupSchedules.some((pickup) => pickup.readyForPickup)) {
-    return "Collect at pickup";
-  }
-
-  if (openOrder.balanceDue > 0) {
-    return "Balance still due";
-  }
-
-  return "Paid in full";
-}
-
 export function getPickupAppointmentSummary(appointment: Appointment) {
   return appointment.pickupSummary ?? appointment.type;
 }
