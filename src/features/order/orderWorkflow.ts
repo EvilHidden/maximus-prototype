@@ -266,8 +266,10 @@ export function buildOpenOrder(
   const lineItems = getOrderBagLineItems(order, customers);
   const pricing = getPricingSummary(order);
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
-  const paymentDueNow = paymentStatus === "due_later" ? 0 : getCheckoutCollectionAmount(order);
-  const collectedToday = paymentStatus === "captured" ? paymentDueNow : 0;
+  const totalCollected = paymentStatus === "captured" ? getCheckoutCollectionAmount(order) : 0;
+  const balanceDue = Math.max(pricing.total - totalCollected, 0);
+  const paymentDueNow = balanceDue;
+  const collectedToday = totalCollected;
   const pickupSchedules = getRequiredPickupScopes(order).map((scope) => {
     const schedule = getPickupScheduleForScope(order, scope);
     const matchingItems = lineItems.filter((item) => item.kind === scope);
@@ -298,8 +300,9 @@ export function buildOpenOrder(
     pickupSchedules,
     paymentStatus,
     paymentDueNow,
+    totalCollected,
     collectedToday,
-    balanceDue: Math.max(pricing.total - collectedToday, 0),
+    balanceDue,
     total: pricing.total,
     createdAt: now.toISOString(),
   };

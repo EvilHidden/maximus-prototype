@@ -930,11 +930,11 @@ export function createPayments({ baseDate }: RuntimeSeedDates): DbPaymentRecord[
     {
       id: "pay-9017",
       orderId: "order-9017",
-      source: "prototype",
-      status: "due_later",
-      amount: 0,
-      collectedAt: null,
-      squarePaymentId: null,
+      source: "square",
+      status: "captured",
+      amount: 150,
+      collectedAt: toDateTimeString(withOffset(baseDate, -1, 13, 20)),
+      squarePaymentId: "sq_pay_9017",
     },
     {
       id: "pay-9018",

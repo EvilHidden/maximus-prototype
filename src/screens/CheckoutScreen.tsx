@@ -110,7 +110,7 @@ export function CheckoutScreen({
   const financialItems = openOrder
     ? [
         { label: "Amount due now", value: formatSummaryCurrency(openOrder.paymentDueNow) },
-        { label: "Captured today", value: formatSummaryCurrency(openOrder.collectedToday) },
+        { label: "Collected so far", value: formatSummaryCurrency(openOrder.totalCollected) },
         { label: "Remaining balance", value: formatSummaryCurrency(openOrder.balanceDue) },
         { label: "Order total", value: formatSummaryCurrency(openOrder.total) },
       ]
