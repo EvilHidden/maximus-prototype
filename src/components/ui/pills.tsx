@@ -48,14 +48,12 @@ export function MeasurementStatusPill({
 }
 
 export function PaymentStatusPill({ status }: { status: OpenOrderPaymentStatus }) {
-  const tone = status === "captured" ? "success" : status === "due_later" ? "default" : "warn";
+  const tone = status === "captured" ? "success" : "warn";
   const label = status === "captured"
-    ? "Payment captured"
+    ? "Paid"
     : status === "pending"
       ? "Payment pending"
-      : status === "ready_to_collect"
-        ? "Ready to collect"
-        : "Due later";
+      : "Payment Due";
 
   return <StatusPill tone={tone}>{label}</StatusPill>;
 }

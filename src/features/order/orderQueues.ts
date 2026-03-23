@@ -2,7 +2,6 @@ import type {
   Appointment,
   ClosedOrderHistoryItem,
   OpenOrder,
-  OpenOrderPaymentStatus,
   PickupLocation,
   WorkflowMode,
 } from "../../types";
@@ -268,20 +267,20 @@ export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][numb
   return `${pickupSummary ?? "Promised ready time not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
 }
 
-export function getOpenOrderPaymentSummary(paymentStatus: OpenOrderPaymentStatus) {
-  if (paymentStatus === "captured") {
-    return "Payment captured";
+export function getOpenOrderPaymentSummary(openOrder: OpenOrder) {
+  if (openOrder.paymentStatus === "pending") {
+    return "Square collection in progress";
   }
 
-  if (paymentStatus === "pending") {
-    return "Payment is pending";
+  if (openOrder.balanceDue > 0 && openOrder.pickupSchedules.some((pickup) => pickup.readyForPickup)) {
+    return "Collect at pickup";
   }
 
-  if (paymentStatus === "ready_to_collect") {
-    return "Collection can start now";
+  if (openOrder.balanceDue > 0) {
+    return "Balance still due";
   }
 
-  return "No payment required right now";
+  return "Paid in full";
 }
 
 export function getPickupAppointmentSummary(appointment: Appointment) {

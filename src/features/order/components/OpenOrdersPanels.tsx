@@ -492,7 +492,7 @@ function WorkQueueOrderRow({
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(openOrder.total)}
             </div>
-            <div className="app-text-caption mt-1">{getOpenOrderPaymentSummary(openOrder.paymentStatus)}</div>
+            <div className="app-text-caption mt-1">{getOpenOrderPaymentSummary(openOrder)}</div>
           </div>
         </div>
       </div>
