@@ -119,6 +119,7 @@ export function AppScreenContent({
 
   return (
     <CheckoutScreen
+      customers={customers}
       payerCustomer={payerCustomer}
       openOrder={checkoutOpenOrder}
       order={state.order}

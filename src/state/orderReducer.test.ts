@@ -77,7 +77,7 @@ describe("order reducer", () => {
               id: "line-1",
               kind: "alteration",
               title: "1. Trouser hem",
-              subtitle: "Alteration workflow",
+              subtitle: "Alterations",
               amount: 35,
             },
           ],

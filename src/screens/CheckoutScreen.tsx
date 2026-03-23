@@ -1,12 +1,9 @@
 import { ClipboardList, CreditCard } from "lucide-react";
 import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
-import { ActionButton, DefinitionList, EmptyState, EntityRow, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
-import { PaymentStatusPill } from "../components/ui/pills";
+import { ActionButton, DefinitionList, EmptyState, SectionHeader, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import {
   formatPickupSchedule,
-  formatSummaryCurrency,
   getCheckoutCollectionAmount,
-  getCustomFulfillmentSummary,
   getOrderBagLineItems,
   getOrderType,
   getPickupRequired,
@@ -15,8 +12,10 @@ import {
   getRequiredPickupScopes,
   getSummaryGuardrail,
 } from "../features/order/selectors";
+import { getPickupDateTime } from "../features/order/orderDateUtils";
 
 type CheckoutScreenProps = {
+  customers: Customer[];
   payerCustomer: Customer | null;
   openOrder: OpenOrder | null;
   order: OrderWorkflowState;
@@ -32,13 +31,18 @@ function getDraftPickupSummary(order: OrderWorkflowState) {
   return requiredPickupScopes
     .map((scope) => {
       const schedule = getPickupScheduleForScope(order, scope);
-      const scopeLabel = scope === "alteration" ? "Alterations" : "Custom";
-      if (scope === "custom") {
-        return `${scopeLabel}: ${getCustomFulfillmentSummary(schedule.eventType, schedule.eventDate, schedule.pickupLocation)}`;
+      const scopeLabel = scope === "alteration" ? "Alterations" : "Custom garments";
+      const formatted = formatPickupSchedule(schedule.pickupDate, schedule.pickupTime);
+
+      if (formatted) {
+        return `${scopeLabel}: ${formatted}`;
       }
 
-      const formatted = formatPickupSchedule(schedule.pickupDate, schedule.pickupTime);
-      return formatted && schedule.pickupLocation ? `${scopeLabel}: ${formatted} • ${schedule.pickupLocation}` : `${scopeLabel}: Required`;
+      if (scope === "custom" && schedule.eventDate) {
+        return `${scopeLabel}: Event due ${schedule.eventDate}`;
+      }
+
+      return `${scopeLabel}: Timing needed`;
     })
     .join(requiredPickupScopes.length > 1 ? "\n" : "");
 }
@@ -46,18 +50,181 @@ function getDraftPickupSummary(order: OrderWorkflowState) {
 function getSavedPickupSummary(openOrder: OpenOrder) {
   return openOrder.pickupSchedules
     .map((pickup) => {
-      const scopeLabel = pickup.scope === "alteration" ? "Alterations" : "Custom";
-      if (pickup.scope === "custom" && !pickup.pickupDate) {
-        return `${scopeLabel}: ${getCustomFulfillmentSummary(pickup.eventType, pickup.eventDate, pickup.pickupLocation)}`;
+      const scopeLabel = pickup.scope === "alteration" ? "Alterations" : "Custom garments";
+      const formatted = formatPickupSchedule(pickup.pickupDate, pickup.pickupTime);
+
+      if (formatted) {
+        return `${scopeLabel}: ${formatted}`;
       }
 
-      const formatted = formatPickupSchedule(pickup.pickupDate, pickup.pickupTime);
-      return formatted && pickup.pickupLocation ? `${scopeLabel}: ${formatted} • ${pickup.pickupLocation}` : `${scopeLabel}: Required`;
+      if (pickup.scope === "custom" && pickup.eventDate) {
+        return `${scopeLabel}: Event due ${pickup.eventDate}`;
+      }
+
+      return `${scopeLabel}: Timing needed`;
     })
     .join(openOrder.pickupSchedules.length > 1 ? "\n" : "");
 }
 
+function getCheckoutLineItemTitle(title: string) {
+  return title.replace(/^\d+\.\s*/, "");
+}
+
+function formatCheckoutCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(value);
+}
+
+function formatCompactReadyBy(dateValue: string, timeValue: string) {
+  const pickupDateTime = getPickupDateTime(dateValue, timeValue);
+  if (!pickupDateTime) {
+    return null;
+  }
+
+  const dateLabel = new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(pickupDateTime);
+  return dateLabel;
+}
+
+function getReadyBySummary(openOrder: OpenOrder | null, pickupSummary: string) {
+  const pickupLines = pickupSummary.split("\n").filter(Boolean);
+
+  if (!openOrder) {
+    return {
+      headline: pickupLines[0] ?? "",
+      detail: pickupLines.slice(1).join("\n"),
+    };
+  }
+
+  const compactEntries = openOrder.pickupSchedules
+    .map((pickup) => ({
+      scopeLabel: pickup.scope === "alteration" ? "Alterations" : "Custom garments",
+      value: formatCompactReadyBy(pickup.pickupDate, pickup.pickupTime),
+    }))
+    .filter((entry): entry is { scopeLabel: string; value: string } => Boolean(entry.value));
+
+  if (!compactEntries.length) {
+    return {
+      headline: pickupLines[0] ?? "",
+      detail: pickupLines.slice(1).join("\n"),
+    };
+  }
+
+  const uniqueTimes = [...new Set(compactEntries.map((entry) => entry.value))];
+  if (uniqueTimes.length === 1) {
+    const scopeSummary = compactEntries.map((entry) => entry.scopeLabel).join(" + ");
+    return {
+      headline: uniqueTimes[0],
+      detail: scopeSummary,
+    };
+  }
+
+  return {
+    headline: "Multiple ready dates",
+    detail: compactEntries.map((entry) => `${entry.scopeLabel}: ${entry.value}`).join("\n"),
+  };
+}
+
+function inferAlterationGarment(label: string) {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("trouser") || normalized.includes("pant")) {
+    return "Alteration - Trousers";
+  }
+  if (normalized.includes("jacket")) {
+    return "Alteration - Jacket";
+  }
+  if (normalized.includes("vest")) {
+    return "Alteration - Vest";
+  }
+  if (normalized.includes("dress")) {
+    return "Alteration - Dress";
+  }
+  if (normalized.includes("skirt")) {
+    return "Alteration - Skirt";
+  }
+  if (normalized.includes("blouse")) {
+    return "Alteration - Blouse";
+  }
+  if (normalized.includes("gown")) {
+    return "Alteration - Gown";
+  }
+  if (normalized.includes("sari")) {
+    return "Alteration - Sari blouse";
+  }
+  if (normalized.includes("sleeve")) {
+    return "Alteration - Jacket";
+  }
+
+  return "Alteration";
+}
+
+function inferAlterationDetail(label: string) {
+  const normalized = label.toLowerCase();
+  if (normalized.includes("trouser")) {
+    return label.replace(/trouser\s*/i, "").trim();
+  }
+  if (normalized.includes("pant")) {
+    return label.replace(/pant\s*/i, "").trim();
+  }
+  if (normalized.includes("jacket")) {
+    return label.replace(/jacket\s*/i, "").trim();
+  }
+  if (normalized.includes("vest")) {
+    return label.replace(/vest\s*/i, "").trim();
+  }
+  if (normalized.includes("dress")) {
+    return label.replace(/dress\s*/i, "").trim();
+  }
+  if (normalized.includes("skirt")) {
+    return label.replace(/skirt\s*/i, "").trim();
+  }
+  if (normalized.includes("blouse")) {
+    return label.replace(/blouse\s*/i, "").trim();
+  }
+  if (normalized.includes("gown")) {
+    return label.replace(/gown\s*/i, "").trim();
+  }
+  if (normalized.includes("sari")) {
+    return label.replace(/sari\s*blouse\s*/i, "").trim();
+  }
+
+  return label;
+}
+
+function toSentenceCase(value: string) {
+  if (!value) {
+    return "";
+  }
+
+  return value.charAt(0).toUpperCase() + value.slice(1);
+}
+
+function getCheckoutDisplayLineItem(item: OpenOrder["lineItems"][number]) {
+  const title = getCheckoutLineItemTitle(item.title);
+
+  if (item.kind === "alteration") {
+    const detail = inferAlterationDetail(title);
+    return {
+      title: inferAlterationGarment(title),
+      subtitle: detail ? toSentenceCase(detail) : "",
+    };
+  }
+
+  return {
+    title: `Custom garment - ${title}`,
+    subtitle: item.subtitle === "Custom garments" ? "" : item.subtitle,
+  };
+}
+
 export function CheckoutScreen({
+  customers,
   payerCustomer,
   openOrder,
   order,
@@ -78,48 +245,58 @@ export function CheckoutScreen({
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
   const pickupSummary = openOrder ? getSavedPickupSummary(openOrder) : getDraftPickupSummary(order);
   const activeLineItems = openOrder ? openOrder.lineItems : draftLineItems;
+  const checkoutCustomer = openOrder
+    ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null
+    : payerCustomer;
+  const readyBySummary = getReadyBySummary(openOrder, pickupSummary);
 
   const checkoutSubtitle = openOrder
     ? openOrder.paymentStatus === "pending"
-      ? "Payment is in flight. Wait for confirmation or close the loop manually in the prototype."
+      ? "Finish collecting payment for this order."
       : openOrder.balanceDue > 0
-        ? "Order saved. You can collect the remaining balance whenever the customer is ready."
-        : "Payment captured. Return to the order registry to continue fulfillment."
+        ? openOrder.totalCollected > 0
+          ? "Deposit recorded. Collect the remaining balance when the customer checks out."
+          : "Review the order and collect payment."
+        : "This order is prepaid and ready to close out."
     : draftShouldCollectNow
-      ? "Review the order, save it, then start collection."
-      : "Review the order and save it into the active registry.";
+      ? "Review the order, save it, and collect payment."
+      : "Review the order and save it.";
 
   const pageMeta = openOrder ? (
-    <div className="flex flex-wrap items-center gap-2">
-      <PaymentStatusPill status={openOrder.paymentStatus} />
-      <StatusPill tone={openOrder.balanceDue > 0 ? "warn" : "success"}>
-        {openOrder.balanceDue > 0 ? `${formatSummaryCurrency(openOrder.balanceDue)} due` : "Settled"}
-      </StatusPill>
+    <div className="text-right">
+      <div className="app-text-overline">Balance due</div>
+      <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+        {openOrder.balanceDue > 0 ? formatCheckoutCurrency(openOrder.balanceDue) : "Prepaid"}
+      </div>
+      <div className="app-text-caption mt-1">{openOrder.balanceDue > 0 ? "Still due at checkout" : "No balance due"}</div>
+      {openOrder.totalCollected > 0 && openOrder.balanceDue > 0 ? (
+        <div className="mt-2 text-[0.68rem] uppercase tracking-[0.14em] text-[var(--app-text-soft)]">
+          Collected {formatCheckoutCurrency(openOrder.totalCollected)}
+        </div>
+      ) : null}
     </div>
   ) : (
-    <div className="flex flex-wrap items-center gap-2">
-      <StatusPill tone={draftShouldCollectNow ? "dark" : "default"}>
-        {draftShouldCollectNow ? `${formatSummaryCurrency(checkoutCollectionAmount)} due now` : "No payment due now"}
-      </StatusPill>
-      <StatusPill tone={checkoutBlocked ? "warn" : "success"}>
-        {checkoutBlocked ? "Needs setup" : "Ready to save"}
-      </StatusPill>
+    <div className="text-right">
+      <div className="app-text-overline">{draftShouldCollectNow ? "To collect today" : "Save status"}</div>
+      <div className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.02em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+        {draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "No payment due today"}
+      </div>
+      <div className="app-text-caption mt-1">{checkoutBlocked ? "Order still needs setup before save." : "Order is ready to save."}</div>
     </div>
   );
 
-  const financialItems = openOrder
+  const totalsItems = openOrder
     ? [
-        { label: "Amount due now", value: formatSummaryCurrency(openOrder.paymentDueNow) },
-        { label: "Collected so far", value: formatSummaryCurrency(openOrder.totalCollected) },
-        { label: "Remaining balance", value: formatSummaryCurrency(openOrder.balanceDue) },
-        { label: "Order total", value: formatSummaryCurrency(openOrder.total) },
+        { label: "Collected", value: formatCheckoutCurrency(openOrder.totalCollected) },
+        { label: "Due", value: formatCheckoutCurrency(openOrder.balanceDue) },
+        { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
       ]
     : [
-        { label: "Alterations", value: formatSummaryCurrency(pricing.alterationsSubtotal) },
-        { label: "Custom garments", value: formatSummaryCurrency(pricing.customSubtotal) },
-        { label: "Tax", value: formatSummaryCurrency(pricing.taxAmount) },
-        { label: "Due now", value: draftShouldCollectNow ? formatSummaryCurrency(checkoutCollectionAmount) : "None" },
-        { label: "Order total", value: formatSummaryCurrency(pricing.total) },
+        { label: "Alterations", value: formatCheckoutCurrency(pricing.alterationsSubtotal) },
+        { label: "Custom", value: formatCheckoutCurrency(pricing.customSubtotal) },
+        { label: "Tax", value: formatCheckoutCurrency(pricing.taxAmount) },
+        { label: "Due today", value: draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "None" },
+        { label: "Total", value: formatCheckoutCurrency(pricing.total) },
       ];
 
   return (
@@ -139,30 +316,21 @@ export function CheckoutScreen({
         }
       />
 
-      <Surface tone="control" className="p-4">
-        <div className="flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <div className="app-text-value">
-              {openOrder ? `Saved order #${openOrder.id}` : "Draft checkout review"}
-            </div>
-            <div className="app-text-caption mt-1">
-              {openOrder
-                ? "Use this surface to continue collection on a saved order without leaving the operational flow."
-                : "Confirm the payer, pickup handoff, and line items before the draft becomes a live order."}
-            </div>
-          </div>
-          {pageMeta}
-        </div>
-      </Surface>
-
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
-            <SurfaceHeader
-              title={openOrder ? "Order handoff" : "Checkout worksheet"}
-              subtitle={openOrder ? "Saved order context, customer handoff, and collection-ready line items." : "Review the draft in the same operator language used across the registry and worklist."}
-              meta={<div className="app-text-overline">{activeLineItems.length} line items</div>}
-            />
+            <div className="flex flex-wrap items-end justify-between gap-4">
+              <div>
+                <div className="app-text-overline">{openOrder ? "Order review" : "Checkout review"}</div>
+                <div className="mt-1 app-text-value">{openOrder ? `Order #${openOrder.id}` : "Checkout review"}</div>
+                <div className="app-text-caption mt-1 max-w-[36rem]">
+                  {openOrder
+                    ? "Review customer details, check the order, and collect any remaining payment."
+                    : "Review the order, then save it and collect payment if needed."}
+                </div>
+              </div>
+              {pageMeta}
+            </div>
           </div>
 
           {activeLineItems.length === 0 ? (
@@ -175,12 +343,12 @@ export function CheckoutScreen({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="app-text-overline">
-                        {openOrder ? "Checkout payload unavailable" : "Nothing staged for checkout"}
+                        {openOrder ? "Order details unavailable" : "No order ready for checkout"}
                       </div>
                       <div className="app-text-body mt-2">
                         {openOrder
-                          ? "This saved order is missing the review payload that checkout expects. Return to the registry and reopen a collectible order."
-                          : "Build the order bag first, then come back here to review payer, pickup handoff, and collection."}
+                          ? "This order is missing its checkout details. Return to Orders and reopen it there."
+                          : "Build the order first, then come back here to review it and take payment."}
                       </div>
                       <div className="mt-3">
                         <ActionButton
@@ -199,43 +367,38 @@ export function CheckoutScreen({
           ) : (
             <>
               <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-                <div className="grid gap-4 lg:grid-cols-2">
-                  <div className="space-y-2">
-                    <div className="app-text-overline">Payer</div>
-                    <EntityRow
-                      className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/35 px-3.5 py-3"
-                      title={openOrder?.payerName ?? payerCustomer?.name ?? "Payer required"}
-                      subtitle={
-                        openOrder
-                          ? openOrder.payerCustomerId
-                            ? `Order #${openOrder.id} • ready for operational follow-through`
-                            : `Order #${openOrder.id} • walk-in customer`
-                          : payerCustomer
-                            ? `${payerCustomer.phone} • ${payerCustomer.lastVisit}`
-                            : "Link the paying customer before checkout."
-                      }
-                      meta={openOrder ? <PaymentStatusPill status={openOrder.paymentStatus} /> : null}
-                    />
+                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
+                  <div className="min-w-0">
+                    <div className="app-text-overline">Customer details</div>
+                    <div className="mt-2 space-y-1.5">
+                      <div className="app-text-strong">
+                        {openOrder?.payerName ?? checkoutCustomer?.name ?? "Customer required"}
+                      </div>
+                      {checkoutCustomer?.phone ? <div className="app-text-caption">{checkoutCustomer.phone}</div> : null}
+                      {checkoutCustomer?.email ? <div className="app-text-caption">{checkoutCustomer.email}</div> : null}
+                      {checkoutCustomer?.address ? <div className="app-text-caption whitespace-pre-line">{checkoutCustomer.address}</div> : null}
+                      {!checkoutCustomer && openOrder?.payerCustomerId === null ? (
+                        <div className="app-text-caption">Walk-in customer</div>
+                      ) : null}
+                    </div>
                   </div>
 
-                  <div className="space-y-2">
-                    <div className="app-text-overline">Pickup handoff</div>
-                    <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/35 px-3.5 py-3">
-                      <div className="app-text-body font-medium">
-                        {pickupRequired || openOrder ? "Promised ready by" : "No pickup handoff needed"}
-                      </div>
-                      <div className="app-text-caption mt-1 whitespace-pre-line leading-relaxed">
-                        {pickupRequired || openOrder ? pickupSummary || "Pickup details required before save." : "This order does not require pickup scheduling."}
-                      </div>
-                    </div>
+                  <div className="lg:text-right">
+                    <div className="app-text-overline">Ready by</div>
+                    <div className="mt-2 app-text-strong">{pickupRequired || openOrder ? readyBySummary.headline || "Timing needed" : "No pickup timing needed"}</div>
+                    {pickupRequired || openOrder ? (
+                      readyBySummary.detail ? <div className="app-text-caption mt-1 whitespace-pre-line leading-relaxed">{readyBySummary.detail}</div> : null
+                    ) : (
+                      <div className="app-text-caption mt-1">This order does not need pickup scheduling.</div>
+                    )}
                   </div>
                 </div>
               </div>
 
               <div className="border-t border-[var(--app-border)]/45">
-                <div className="app-table-head grid grid-cols-[minmax(0,1fr)_120px] gap-3 px-4 py-2">
-                  <span>Line items</span>
-                  <span className="text-right">Amount</span>
+                <div className="flex items-center justify-between gap-3 px-4 py-3">
+                  <div className="app-text-overline">Order review</div>
+                  <div className="app-text-overline text-right">Amount</div>
                 </div>
                 {activeLineItems.map((item, index) => (
                   <div
@@ -243,10 +406,22 @@ export function CheckoutScreen({
                     className={cx("app-table-row grid grid-cols-[minmax(0,1fr)_120px] gap-3 px-4 py-3.5", index > 0 && "border-t border-[var(--app-border)]/35")}
                   >
                     <div className="min-w-0">
-                      <div className="app-text-body font-medium">{item.title}</div>
-                      <div className="app-text-caption mt-1 whitespace-pre-line leading-relaxed">{item.subtitle}</div>
+                      {(() => {
+                        const displayItem = getCheckoutDisplayLineItem(item);
+
+                        return (
+                          <>
+                            <div className="app-text-strong">{displayItem.title}</div>
+                            {displayItem.subtitle ? (
+                              <div className="app-text-caption mt-1 whitespace-pre-line leading-relaxed">{displayItem.subtitle}</div>
+                            ) : null}
+                          </>
+                        );
+                      })()}
                     </div>
-                    <div className="app-text-strong text-right">{formatSummaryCurrency(item.amount)}</div>
+                    <div className="text-right text-[1.02rem] font-semibold tracking-[-0.015em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                      {formatCheckoutCurrency(item.amount)}
+                    </div>
                   </div>
                 ))}
               </div>
@@ -257,12 +432,12 @@ export function CheckoutScreen({
         <div className="space-y-4">
           <Surface tone="support" className="p-4">
             <SurfaceHeader
-              title="Financials"
-              subtitle={openOrder ? "Collection state and remaining balance for this saved order." : "What saves now versus what remains on the order."}
+              title={openOrder ? "Payment summary" : "Order totals"}
+              subtitle={openOrder ? "Collected, due, and total." : "What will save with the order."}
             />
 
             <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-              <DefinitionList items={financialItems} />
+              <DefinitionList items={totalsItems} />
             </div>
 
             <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
@@ -283,19 +458,19 @@ export function CheckoutScreen({
                 ) : (
                   <>
                     <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
-                      Open order registry
+                      Back to orders
                     </ActionButton>
                     {openOrder.paymentStatus === "pending" ? (
                       <ActionButton tone="primary" onClick={() => onCaptureOpenOrderPayment(openOrder.id)}>
-                        Mark payment captured
+                        Confirm payment
                       </ActionButton>
                     ) : openOrder.balanceDue > 0 ? (
                       <ActionButton tone="primary" onClick={() => onStartOpenOrderPayment(openOrder.id)}>
-                        {`Send ${formatSummaryCurrency(openOrder.balanceDue)} to Square`}
+                        {openOrder.totalCollected > 0 ? "Collect balance" : "Collect payment"}
                       </ActionButton>
                     ) : (
                       <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
-                        Return to orders
+                        Finish checkout
                       </ActionButton>
                     )}
                   </>

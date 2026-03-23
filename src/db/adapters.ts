@@ -193,7 +193,7 @@ function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): Op
       id: `${orderId}-${line.id}`,
       kind: scope?.workflow ?? "alteration",
       title: `${index + 1}. ${line.label}`,
-      subtitle: scope?.workflow === "custom" ? "Custom workflow" : "Alteration workflow",
+      subtitle: scope?.workflow === "custom" ? "Custom garments" : "Alterations",
       amount: line.quantity * line.unitPrice,
     };
   });
