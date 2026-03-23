@@ -15,6 +15,10 @@ What it does:
   5. Creates or reuses a pull request to main
   6. Enables auto-merge with branch deletion after the full GitHub build passes
   7. Waits for the merge, then switches back to main and deletes the local topic branch
+
+Important:
+  - Never reuse a codex/ branch after its PR has been merged or closed.
+  - If a branch has already shipped once, start a fresh topic branch before continuing.
 EOF
 }
 
@@ -35,6 +39,13 @@ fi
 
 if [[ "$current_branch" != codex/* ]]; then
   echo "Refusing to ship from ${current_branch}. Use a codex/ branch for shippable topic work."
+  exit 1
+fi
+
+existing_pr_state="$(gh pr view "$current_branch" --json state --jq '.state' 2>/dev/null || true)"
+if [[ "$existing_pr_state" == "MERGED" || "$existing_pr_state" == "CLOSED" ]]; then
+  echo "Refusing to ship from ${current_branch}. Its previous pull request is already ${existing_pr_state,,}."
+  echo "Start a fresh topic branch with: npm run start-topic -- \"short topic name\""
   exit 1
 fi
 
