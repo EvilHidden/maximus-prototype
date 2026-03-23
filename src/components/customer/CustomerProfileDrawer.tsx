@@ -12,6 +12,7 @@ type CustomerProfileDrawerProps = {
   onClose: () => void;
   onEditCustomer: () => void;
   onDeleteCustomer: () => void;
+  onStartOrderForCustomer: (customerId: string) => void;
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -79,6 +80,7 @@ export function CustomerProfileDrawer({
   onClose,
   onEditCustomer,
   onDeleteCustomer,
+  onStartOrderForCustomer,
   onScreenChange,
 }: CustomerProfileDrawerProps) {
   const hasVisitHistory = Boolean(customer?.lastVisit && customer.lastVisit !== "New");
@@ -147,7 +149,9 @@ export function CustomerProfileDrawer({
               disabled={archived}
               onClick={archived ? undefined : () => {
                 onClose();
-                onScreenChange("order");
+                if (customer) {
+                  onStartOrderForCustomer(customer.id);
+                }
               }}
             />
             <ToolTile
