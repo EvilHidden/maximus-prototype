@@ -25,6 +25,7 @@ type OrderScreenProps = {
   referenceData: AppReferenceData;
   payerCustomer: Customer | null;
   order: AppState["order"];
+  editingOpenOrderId: number | null;
   dispatch: Dispatch<AppAction>;
   onScreenChange: (screen: Screen) => void;
   onOpenDraftCheckout: () => void;
@@ -37,6 +38,7 @@ export function OrderScreen({
   referenceData,
   payerCustomer,
   order,
+  editingOpenOrderId,
   dispatch,
   onScreenChange,
   onOpenDraftCheckout,
@@ -58,7 +60,11 @@ export function OrderScreen({
 
   return (
     <div className="space-y-4">
-      <SectionHeader icon={Receipt} title="Create Order" subtitle="Set up tailoring work and prepare checkout." />
+      <SectionHeader
+        icon={Receipt}
+        title={editingOpenOrderId ? `Edit Order #${editingOpenOrderId}` : "Create Order"}
+        subtitle={editingOpenOrderId ? "Update the order and save the changes back into the registry." : "Set up tailoring work and prepare checkout."}
+      />
 
       <div
         className={cx(

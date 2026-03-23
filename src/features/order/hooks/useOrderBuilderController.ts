@@ -3,7 +3,7 @@ import type { Dispatch } from "react";
 import type { AppReferenceData } from "../../../db";
 import type { AppAction, AppState } from "../../../state/appState";
 import type { Customer, MeasurementSet, Screen } from "../../../types";
-import { filterCustomers } from "../../customer/selectors";
+import { filterCustomers, getActiveCustomers } from "../../customer/selectors";
 import {
   getCanAddCustomDraftToOrder,
   getHasAlterationContent,
@@ -81,7 +81,8 @@ export function useOrderBuilderController({
   const garmentOptions = referenceData.alterationCatalog.map((garment) => garment.category);
   const currentServices = referenceData.alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
   const currentAlterationSubtotal = order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
-  const filteredCustomers = useMemo(() => filterCustomers(customers, customerQuery), [customers, customerQuery]);
+  const activeCustomers = useMemo(() => getActiveCustomers(customers), [customers]);
+  const filteredCustomers = useMemo(() => filterCustomers(activeCustomers, customerQuery), [activeCustomers, customerQuery]);
   const measurementsCardModel = getCustomMeasurementsCardModel(
     wearerCustomer,
     order.custom.draft.linkedMeasurementSetId ? measurementSets.find((set) => set.id === order.custom.draft.linkedMeasurementSetId) ?? null : null,

@@ -40,6 +40,7 @@ export function AppScreenContent({
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
         onStartWorkflow={startWorkflow}
         onOpenAppointment={openWorkflowAppointment}
+        onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
       />
     );
   }
@@ -54,7 +55,7 @@ export function AppScreenContent({
         onSelectCustomer={(customer) => dispatch({ type: "setCustomer", customerId: customer.id })}
         onAddCustomer={(customer) => dispatch({ type: "addCustomer", customer })}
         onUpdateCustomer={(customer) => dispatch({ type: "updateCustomer", customer })}
-        onDeleteCustomer={(customerId) => dispatch({ type: "deleteCustomer", customerId })}
+        onArchiveCustomer={(customerId) => dispatch({ type: "archiveCustomer", customerId })}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       />
     );
@@ -68,6 +69,7 @@ export function AppScreenContent({
         referenceData={referenceData}
         payerCustomer={payerCustomer}
         order={state.order}
+        editingOpenOrderId={state.editingOpenOrderId}
         dispatch={dispatch}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
         onOpenDraftCheckout={() => dispatch({ type: "openCheckoutForDraft" })}
@@ -115,7 +117,17 @@ export function AppScreenContent({
   }
 
   if (state.screen === "appointments") {
-    return <AppointmentsScreen appointments={appointments} />;
+    return (
+      <AppointmentsScreen
+        appointments={appointments}
+        customers={customers}
+        pickupLocations={referenceData.pickupLocations}
+        onCreateAppointment={(payload) => dispatch({ type: "createAppointment", payload })}
+        onRescheduleAppointment={(payload) => dispatch({ type: "rescheduleAppointment", payload })}
+        onCompleteAppointment={(appointmentId) => dispatch({ type: "completeAppointment", appointmentId })}
+        onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
+      />
+    );
   }
 
   return (
@@ -128,6 +140,9 @@ export function AppScreenContent({
       onSaveDraftOrder={saveDraftOrder}
       onStartOpenOrderPayment={startOpenOrderPayment}
       onCaptureOpenOrderPayment={captureOpenOrderPayment}
+      onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
+      onCancelOpenOrder={(openOrderId) => dispatch({ type: "cancelOpenOrder", openOrderId })}
+      onCompleteOpenOrderPickup={(openOrderId) => dispatch({ type: "completeOpenOrderPickup", openOrderId })}
     />
   );
 }

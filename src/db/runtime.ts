@@ -69,6 +69,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     customers,
     customerEvents,
     measurementSets,
+    draftOrders: [],
     orders,
     orderScopes,
     orderScopeLines,

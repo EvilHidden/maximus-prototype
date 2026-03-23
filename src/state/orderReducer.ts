@@ -1,6 +1,10 @@
 import type { AppAction, AppState } from "./types";
 import { adaptCustomers } from "../db/adapters";
 import {
+  cancelOpenOrder,
+  cancelAppointmentRecord,
+  completeAppointmentRecord,
+  completeOpenOrderPickup,
   captureOrderPayment,
   markOrderScopePickupReady,
   replaceMeasurementSetRecords,
@@ -72,6 +76,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           adaptCustomers(state.database),
           action.paymentStatus,
           { now: getNow(options), idFactory: options?.idFactory },
+          state.editingOpenOrderId,
         );
 
         if (!savedOrder) {
@@ -82,6 +87,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           ...state,
           screen: action.openCheckout ? "checkout" : "openOrders",
           checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
+          editingOpenOrderId: null,
           database: savedOrder.database,
           order: createInitialOrderState(),
         };
@@ -100,6 +106,32 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
       return {
         ...state,
         database: markOrderScopePickupReady(state.database, action.pickupId, getNow(options)),
+      };
+    case "completeOpenOrderPickup":
+      return {
+        ...state,
+        screen: "openOrders",
+        checkoutOpenOrderId: null,
+        editingOpenOrderId: null,
+        database: completeOpenOrderPickup(state.database, action.openOrderId, getNow(options)),
+      };
+    case "cancelOpenOrder":
+      return {
+        ...state,
+        screen: "openOrders",
+        checkoutOpenOrderId: null,
+        editingOpenOrderId: null,
+        database: cancelOpenOrder(state.database, action.openOrderId, getNow(options)),
+      };
+    case "completeAppointment":
+      return {
+        ...state,
+        database: completeAppointmentRecord(state.database, action.appointmentId, getNow(options)),
+      };
+    case "cancelAppointment":
+      return {
+        ...state,
+        database: cancelAppointmentRecord(state.database, action.appointmentId, getNow(options)),
       };
     case "selectAlterationGarment":
       return {
@@ -442,6 +474,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
     case "clearOrder":
       return {
         ...state,
+        editingOpenOrderId: null,
         order: createInitialOrderState(),
       };
     default:

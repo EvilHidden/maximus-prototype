@@ -82,6 +82,7 @@ export function createSeedReferenceData(): AppReferenceData {
     customers: [],
     customerEvents: [],
     measurementSets: [],
+    draftOrders: [],
     orders: [],
     orderScopes: [],
     orderScopeLines: [],

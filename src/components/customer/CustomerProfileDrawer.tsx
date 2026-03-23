@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ArrowRight, History, MessageSquare, PencilRuler, Ruler, Trash2, User } from "lucide-react";
+import { Archive, ArrowRight, History, MessageSquare, PencilRuler, Ruler, User } from "lucide-react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../../types";
 import { ActionButton, ModalShell, StatusPill } from "../ui/primitives";
 import { MeasurementStatusPill, OrderStatusPill, VipPill } from "../ui/pills";
@@ -20,16 +20,23 @@ function ToolTile({
   label,
   subtitle,
   onClick,
+  disabled = false,
 }: {
   icon: typeof Ruler;
   label: string;
   subtitle: string;
   onClick?: () => void;
+  disabled?: boolean;
 }) {
   return (
     <button
       onClick={onClick}
-      className="flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/85 px-3 py-3 text-left transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]"
+      disabled={disabled}
+      className={`flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border px-3 py-3 text-left transition ${
+        disabled
+          ? "cursor-not-allowed border-[var(--app-border)]/25 bg-[var(--app-surface-muted)]/35 opacity-65"
+          : "border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/85 hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]"
+      }`}
     >
       <div className="flex min-w-0 items-center gap-3">
         <div className="app-icon-chip">
@@ -76,6 +83,7 @@ export function CustomerProfileDrawer({
 }: CustomerProfileDrawerProps) {
   const hasVisitHistory = Boolean(customer?.lastVisit && customer.lastVisit !== "New");
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const archived = customer?.archived ?? false;
 
   return (
     <div className="fixed inset-0 z-40">
@@ -92,6 +100,7 @@ export function CustomerProfileDrawer({
                 <div className="flex items-center gap-2">
                   <div className="app-text-value truncate">{customer?.name ?? "Select customer"}</div>
                   {customer?.isVip ? <VipPill /> : null}
+                  {archived ? <StatusPill>Archived</StatusPill> : null}
                 </div>
                 <div className="app-text-body-muted mt-1">{customer?.phone ?? "No phone on file"}</div>
               </div>
@@ -134,8 +143,9 @@ export function CustomerProfileDrawer({
             <ToolTile
               icon={User}
               label="New order"
-              subtitle="Start a new order for this customer."
-              onClick={() => {
+              subtitle={archived ? "Archived profiles are historical only." : "Start a new order for this customer."}
+              disabled={archived}
+              onClick={archived ? undefined : () => {
                 onClose();
                 onScreenChange("order");
               }}
@@ -143,8 +153,9 @@ export function CustomerProfileDrawer({
             <ToolTile
               icon={Ruler}
               label="Open measurements"
-              subtitle="Review or update saved measurement sets."
-              onClick={() => {
+              subtitle={archived ? "Archived profiles are view-only." : "Review or update saved measurement sets."}
+              disabled={archived}
+              onClick={archived ? undefined : () => {
                 onClose();
                 onScreenChange("measurements");
               }}
@@ -152,8 +163,9 @@ export function CustomerProfileDrawer({
             <ToolTile
               icon={PencilRuler}
               label="Add new set"
-              subtitle="Capture a fresh measurement profile."
-              onClick={() => {
+              subtitle={archived ? "Archived profiles are view-only." : "Capture a fresh measurement profile."}
+              disabled={archived}
+              onClick={archived ? undefined : () => {
                 onClose();
                 onScreenChange("measurements");
               }}
@@ -216,27 +228,33 @@ export function CustomerProfileDrawer({
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="app-text-overline">Profile actions</div>
-              <div className="app-text-caption mt-1">Edit or remove this customer record.</div>
+              <div className="app-text-caption mt-1">
+                {archived ? "Archived profiles stay available for historical lookup." : "Edit or archive this customer record."}
+              </div>
             </div>
             <div className="flex items-center gap-2">
-              <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-12 px-4 py-2.5 text-sm">
-                Edit
-              </ActionButton>
-              <button
-                onClick={() => setConfirmDeleteOpen(true)}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 hover:text-red-800"
-              >
-                <Trash2 className="h-4 w-4" />
-                Delete
-              </button>
+              {!archived ? (
+                <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-12 px-4 py-2.5 text-sm">
+                  Edit
+                </ActionButton>
+              ) : null}
+              {!archived ? (
+                <button
+                  onClick={() => setConfirmDeleteOpen(true)}
+                  className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
+                >
+                  <Archive className="h-4 w-4" />
+                  Archive
+                </button>
+              ) : null}
             </div>
           </div>
         </div>
       </div>
       {confirmDeleteOpen ? (
         <ModalShell
-          title="Delete customer"
-          subtitle={customer ? `Remove ${customer.name} from the customer list?` : "Remove this customer from the customer list?"}
+          title="Archive customer"
+          subtitle={customer ? `Archive ${customer.name} and keep the history attached?` : "Archive this customer and keep the history attached?"}
           onClose={() => setConfirmDeleteOpen(false)}
           showCloseButton={false}
           widthClassName="max-w-[460px]"
@@ -250,16 +268,16 @@ export function CustomerProfileDrawer({
                   setConfirmDeleteOpen(false);
                   onDeleteCustomer();
                 }}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-red-200 bg-red-50 px-4 py-2.5 text-sm font-medium text-red-700 transition hover:border-red-300 hover:bg-red-100 hover:text-red-800"
+                className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
               >
-                <Trash2 className="h-4 w-4" />
-                Delete customer
+                <Archive className="h-4 w-4" />
+                Archive customer
               </button>
             </div>
           }
         >
           <div className="app-text-body">
-            This will permanently delete the customer. This action can’t be undone.
+            This customer will be removed from new operational workflows, but their past orders, appointments, and measurements will stay attached for lookup.
           </div>
         </ModalShell>
       ) : null}

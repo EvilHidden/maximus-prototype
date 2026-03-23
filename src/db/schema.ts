@@ -11,6 +11,7 @@ import type {
   OrderType,
   PickupLocation,
   WorkflowMode,
+  OrderWorkflowState,
 } from "../types";
 
 export type DbLocation = {
@@ -56,6 +57,7 @@ export type DbCustomer = {
   marketingOptIn: boolean;
   notes: string;
   isVip?: boolean;
+  status?: "active" | "archived";
 };
 
 export type DbCustomerEvent = {
@@ -77,6 +79,13 @@ export type DbMeasurementSet = {
   isDraft?: boolean;
 };
 
+export type DbDraftOrder = {
+  id: string;
+  payerCustomerId: string | null;
+  updatedAt: string;
+  snapshot: OrderWorkflowState;
+};
+
 export type DbOrder = {
   id: string;
   displayId: string;
@@ -84,7 +93,7 @@ export type DbOrder = {
   payerName: string;
   orderType: OrderType;
   createdAt: string;
-  status: "open" | "partially_ready" | "partially_picked_up" | "complete";
+  status: "open" | "partially_ready" | "partially_picked_up" | "complete" | "canceled";
   holdUntilAllScopesReady: boolean;
 };
 
@@ -194,6 +203,7 @@ export type PrototypeDatabase = {
   customers: DbCustomer[];
   customerEvents: DbCustomerEvent[];
   measurementSets: DbMeasurementSet[];
+  draftOrders: DbDraftOrder[];
   orders: DbOrder[];
   orderScopes: DbOrderScope[];
   orderScopeLines: DbOrderScopeLine[];

@@ -3,6 +3,7 @@ import { useMemo, useState } from "react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../types";
 import { ActionButton, EmptyState, SearchField, SectionHeader, Surface } from "../components/ui/primitives";
 import { MeasurementStatusPill, VipPill } from "../components/ui/pills";
+import { StatusPill } from "../components/ui/primitives";
 import { useToast } from "../components/ui/toast";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDrawer";
@@ -20,7 +21,7 @@ type CustomerScreenProps = {
   onSelectCustomer: (customer: Customer) => void;
   onAddCustomer: (customer: Customer) => void;
   onUpdateCustomer: (customer: Customer) => void;
-  onDeleteCustomer: (customerId: string) => void;
+  onArchiveCustomer: (customerId: string) => void;
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -46,6 +47,7 @@ function CustomerRow({
         <div className="flex min-w-0 items-center gap-2">
           <div className="app-text-strong truncate">{customer.name}</div>
           {customer.isVip ? <VipPill /> : null}
+          {customer.archived ? <StatusPill tone="default">Archived</StatusPill> : null}
         </div>
         <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
           <div className="app-text-caption flex items-center gap-1.5">
@@ -101,7 +103,7 @@ export function CustomerScreen({
   onSelectCustomer,
   onAddCustomer,
   onUpdateCustomer,
-  onDeleteCustomer,
+  onArchiveCustomer,
   onScreenChange,
 }: CustomerScreenProps) {
   const { showToast } = useToast();
@@ -205,8 +207,8 @@ export function CustomerScreen({
               return;
             }
 
-            onDeleteCustomer(activeCustomer.id);
-            showToast(`${activeCustomer.name} deleted.`);
+            onArchiveCustomer(activeCustomer.id);
+            showToast(`${activeCustomer.name} archived.`);
             setDrawerOpen(false);
             setActiveCustomerId(null);
           }}

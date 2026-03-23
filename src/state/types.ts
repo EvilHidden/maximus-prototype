@@ -1,6 +1,7 @@
 import type {
   AlterationCheckoutIntent,
   AlterationService,
+  AppointmentTypeKey,
   Customer,
   CustomOrderEventType,
   CustomGarmentGender,
@@ -8,6 +9,7 @@ import type {
   OpenOrder,
   OrderWorkflowState,
   PickupLocation,
+  ServiceAppointmentType,
   Screen,
   WorkflowMode,
 } from "../types";
@@ -17,6 +19,7 @@ export type AppState = {
   screen: Screen;
   selectedCustomerId: string | null;
   checkoutOpenOrderId: number | null;
+  editingOpenOrderId: number | null;
   database: PrototypeDatabase;
   order: OrderWorkflowState;
 };
@@ -45,14 +48,28 @@ export type SaveCustomItemPayload = AddCustomItemPayload & {
   itemId: number;
 };
 
+export type CreateAppointmentPayload = {
+  customerId: string;
+  typeKey: ServiceAppointmentType;
+  location: PickupLocation;
+  scheduledFor: string;
+};
+
+export type RescheduleAppointmentPayload = {
+  appointmentId: string;
+  location: PickupLocation;
+  scheduledFor: string;
+};
+
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "openCheckoutForDraft" }
   | { type: "openCheckoutForOpenOrder"; openOrderId: number }
+  | { type: "openOrderForEdit"; openOrderId: number }
   | { type: "setCustomer"; customerId: string | null }
   | { type: "addCustomer"; customer: Customer }
   | { type: "updateCustomer"; customer: Customer }
-  | { type: "deleteCustomer"; customerId: string }
+  | { type: "archiveCustomer"; customerId: string }
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
@@ -60,6 +77,12 @@ export type AppAction =
   | { type: "startOpenOrderPayment"; openOrderId: number }
   | { type: "captureOpenOrderPayment"; openOrderId: number }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }
+  | { type: "completeOpenOrderPickup"; openOrderId: number }
+  | { type: "cancelOpenOrder"; openOrderId: number }
+  | { type: "createAppointment"; payload: CreateAppointmentPayload }
+  | { type: "rescheduleAppointment"; payload: RescheduleAppointmentPayload }
+  | { type: "completeAppointment"; appointmentId: string }
+  | { type: "cancelAppointment"; appointmentId: string }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
   | { type: "addAlterationItem" }

@@ -79,6 +79,8 @@ export function OrderStatusPill({ status }: { status: string }) {
   let tone: StatusTone = "default";
   if (normalized === "delivered" || normalized === "picked up" || normalized === "ready" || normalized === "ready today") {
     tone = "success";
+  } else if (normalized === "canceled") {
+    tone = "danger";
   } else if (normalized === "quoted" || normalized === "in progress") {
     tone = "warn";
   }

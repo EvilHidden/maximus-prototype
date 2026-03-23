@@ -273,7 +273,7 @@ export function getPickupAppointmentSummary(appointment: Appointment) {
 
 export function getOpenOrderOperationalLane(openOrder: OpenOrder) {
   if (openOrder.orderType === "mixed") {
-    return "Mixed lane";
+    return "Alterations + custom";
   }
 
   if (openOrder.orderType === "custom") {

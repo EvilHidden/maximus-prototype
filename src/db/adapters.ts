@@ -169,6 +169,10 @@ function getOrderTotal(database: PrototypeDatabase, orderId: string) {
 }
 
 function deriveOrderStatus(order: DbOrder, scopes: DbOrderScope[]) {
+  if (order.status === "canceled") {
+    return "Canceled";
+  }
+
   if (order.status === "complete" || scopes.every((scope) => scope.phase === "picked_up")) {
     return "Picked up";
   }
@@ -304,6 +308,7 @@ export function adaptCustomers(database: PrototypeDatabase): Customer[] {
     marketingOptIn: customer.marketingOptIn,
     notes: customer.notes,
     isVip: customer.isVip,
+    archived: customer.status === "archived",
   }));
 }
 
@@ -342,13 +347,13 @@ export function adaptCustomerOrders(database: PrototypeDatabase): Record<string,
 
 export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrderHistoryItem[] {
   return database.orders
-    .filter((order) => order.status === "complete")
+    .filter((order) => order.status === "complete" || order.status === "canceled")
     .map((order) => ({
       id: order.displayId,
       customerName: order.payerName,
       label: getOrderLabel(database, order.id),
       createdAt: order.createdAt,
-      status: "Picked up",
+      status: order.status === "canceled" ? "Canceled" : "Picked up",
       total: getOrderTotal(database, order.id),
     }));
 }
@@ -416,7 +421,7 @@ export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
 
 export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
   return database.orders
-    .filter((order) => order.status !== "complete")
+    .filter((order) => order.status !== "complete" && order.status !== "canceled")
     .map((order) => {
       const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
       const lineItems = getOpenOrderLineItems(database, order.id);
