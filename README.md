@@ -162,4 +162,6 @@ For the local side of the rapid loop, start each new idea with `npm run start-to
 
 For the rapid branch-to-main loop, use `npm run ship -- "Short PR title"` from a `codex/` branch. It runs `npm run check` locally for a faster preflight, commits and pushes the branch, opens or reuses a PR, enables auto-merge, then returns the local repo to `main` and deletes the local topic branch after the full GitHub build passes.
 
+Do not ship after every accepted tweak. Continue iterating locally until the user explicitly says `ship`, then use `npm run ship -- "Short PR title"` for the release pass.
+
 Do not keep working on the same `codex/` branch after its PR has been merged or closed. Start a fresh branch with `npm run start-topic -- "short topic name"` for every new follow-up pass.
