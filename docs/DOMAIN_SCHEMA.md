@@ -179,6 +179,8 @@ The current prototype runtime is:
   - derives screen-facing operational catalogs from canonical reference tables
 - `src/db/adapters.ts`
   - adapts canonical records into current screen-facing view models
+- `src/db/orderWorkflowSerializer.ts`
+  - translates in-progress order-builder state into canonical persisted order records
 - `src/db/appRuntime.ts`
   - provides the single app-facing bootstrap boundary consumed by `App.tsx`
 
@@ -186,6 +188,7 @@ This means:
 - business truth lives in the schema/runtime layer
 - UI compatibility is preserved through adapters
 - app bootstrap should happen through one runtime entry point instead of hand-wiring multiple adapters at the app root
+- order-save serialization should happen through db/domain serializers, not through screen-oriented feature view models
 - future PostgreSQL migration starts from the normalized model, not from scattered fixture arrays
 - if the UI shows item detail, payment state, or relationship context, it should come from modeled records or derived selectors over modeled records, not decorative placeholders
 
