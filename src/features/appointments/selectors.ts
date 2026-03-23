@@ -75,6 +75,14 @@ export function compareAppointments(left: Appointment, right: Appointment) {
   return left.scheduledFor.localeCompare(right.scheduledFor);
 }
 
+export function isActiveAppointment(appointment: Appointment) {
+  return appointment.statusKey !== "canceled" && appointment.statusKey !== "completed";
+}
+
+export function filterActiveAppointments(appointments: Appointment[]) {
+  return appointments.filter(isActiveAppointment);
+}
+
 export function getAppointmentPrepFlagLabel(flag: AppointmentPrepFlag) {
   switch (flag) {
     case "needs_measurements":
