@@ -26,22 +26,19 @@ function AllOrdersRow({
   const phase = getOpenOrderOperationalPhase(openOrder);
   const lane = getOpenOrderOperationalLane(openOrder);
   const locations = getOpenOrderLocationSummary(openOrder);
-  const hasCollectibleBalance = openOrder.balanceDue > 0;
-  const allPickupScopesReady = openOrder.pickupSchedules.length > 0 && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
-  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending" || allPickupScopesReady;
 
   return (
     <div
-      className={cx("grid gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_180px_160px_140px_auto] lg:items-center", rowIsActionable && "cursor-pointer")}
-      role={rowIsActionable ? "button" : undefined}
-      tabIndex={rowIsActionable ? 0 : undefined}
-      onClick={rowIsActionable ? () => onOpenOrderCheckout(openOrder.id) : undefined}
-      onKeyDown={rowIsActionable ? (event) => {
+      className="grid cursor-pointer gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_180px_160px_140px_auto] lg:items-center"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenOrderCheckout(openOrder.id)}
+      onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpenOrderCheckout(openOrder.id);
         }
-      } : undefined}
+      }}
     >
       <div className="min-w-0">
         <div className="app-text-strong">{openOrder.payerName}</div>

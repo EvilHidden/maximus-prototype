@@ -111,6 +111,7 @@ function createOpenOrder(overrides: Partial<OpenOrder>): OpenOrder {
     payerCustomerId: "cus_1",
     payerName: "Jordan Patel",
     orderType: "alteration",
+    operationalStatus: "accepted",
     itemCount: 1,
     lineItems: [
       {
@@ -292,6 +293,7 @@ describe("order selectors", () => {
       payerCustomerId: "cus_1",
       payerName: "Jordan Patel",
       orderType: "mixed",
+      operationalStatus: "accepted",
       paymentStatus: "captured",
       paymentDueNow: 747.4999999999999,
       totalCollected: 918.2875,

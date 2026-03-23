@@ -40,7 +40,6 @@ export function createInitialOrderState(): OrderWorkflowState {
   return {
     activeWorkflow: null,
     payerCustomerId: null,
-    checkoutIntent: null,
     alteration: {
       selectedGarment: "",
       selectedModifiers: [],

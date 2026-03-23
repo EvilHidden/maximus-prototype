@@ -8,6 +8,7 @@ import type {
   PickupLocation,
   WorkflowMode,
 } from "../types";
+import { getCheckoutCollectionAmount } from "../features/order/paymentSummary";
 import type {
   DbCustomerEvent,
   DbOrder,
@@ -104,25 +105,6 @@ function getRequiredPickupScopes(order: OrderWorkflowState): WorkflowMode[] {
   return [];
 }
 
-function getCheckoutCollectionAmount(order: OrderWorkflowState) {
-  const alterationsSubtotal = order.alteration.items.reduce((sum, item) => sum + item.subtotal, 0);
-  const customSubtotal = order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item.selectedGarment), 0);
-  const subtotal = alterationsSubtotal + customSubtotal;
-  const taxAmount = subtotal * 0.08875;
-  const depositDue = customSubtotal > 0 ? Math.round(customSubtotal * 0.5 * 100) / 100 : 0;
-  const orderType = getOrderType(order);
-
-  if (orderType === "custom") {
-    return depositDue;
-  }
-
-  if (orderType === "mixed") {
-    return alterationsSubtotal + taxAmount + depositDue;
-  }
-
-  return subtotal + taxAmount;
-}
-
 function getWearerName(customerId: string | null, customers: Customer[], fallback?: string | null) {
   if (fallback) {
     return fallback;
@@ -209,6 +191,7 @@ export function serializeOrderWorkflowToRecords({
     orderType,
     createdAt: existingOrder?.createdAt ?? toDateTimeString(now),
     status: "open",
+    operationalStatus: existingOrder?.operationalStatus ?? "accepted",
     holdUntilAllScopesReady: orderType === "mixed",
   };
 
@@ -340,7 +323,7 @@ export function serializeOrderWorkflowToRecords({
     }
   });
 
-  const totalCollected = paymentStatus === "captured" ? getCheckoutCollectionAmount(order) : 0;
+  const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
 
   return {
     openOrderId: Number.parseInt(displayId.replace(/\D/g, ""), 10) || orderSequence,
@@ -350,7 +333,7 @@ export function serializeOrderWorkflowToRecords({
     scopeLines,
     lineComponents,
     pickupAppointments,
-    paymentRecords: createInitialPaymentRecords(orderId, paymentStatus, totalCollected, now),
+    paymentRecords: createInitialPaymentRecords(orderId, paymentStatus, checkoutCollectionAmount, now),
   };
 }
 
@@ -520,7 +503,6 @@ export function deserializeOrderWorkflowFromRecords(
   return {
     activeWorkflow: customItems.length > 0 ? "custom" : alterationItems.length > 0 ? "alteration" : null,
     payerCustomerId: order.payerCustomerId,
-    checkoutIntent: null,
     alteration: {
       selectedGarment: "",
       selectedModifiers: [],
