@@ -41,6 +41,7 @@ function getOpenOrderSearchText(openOrder: OpenOrder) {
     [
       openOrder.id,
       openOrder.payerName,
+      openOrder.inHouseAssignee?.name,
       getOpenOrderTypeLabel(openOrder.orderType),
       ...openOrder.itemSummary,
       ...openOrder.pickupSchedules.flatMap((pickup) => [
@@ -83,6 +84,20 @@ function openOrderMatchesLocation(openOrder: OpenOrder, locationFilter: PickupLo
   }
 
   return openOrder.pickupSchedules.some((pickup) => pickup.pickupLocation === locationFilter);
+}
+
+export type AssigneeFilterValue = "all" | "unassigned" | string;
+
+function openOrderMatchesAssignee(openOrder: OpenOrder, assigneeFilter: AssigneeFilterValue) {
+  if (assigneeFilter === "all") {
+    return true;
+  }
+
+  if (assigneeFilter === "unassigned") {
+    return (openOrder.orderType === "alteration" || openOrder.orderType === "mixed") && !openOrder.inHouseAssignee;
+  }
+
+  return openOrder.inHouseAssignee?.id === assigneeFilter;
 }
 
 function pickupAppointmentMatchesQueue(appointment: Appointment, queue: OrdersQueueKey) {
@@ -177,6 +192,7 @@ type OpenOrderFilterOptions = {
   queue: OrdersQueueKey;
   typeFilter: OpenOrder["orderType"] | "all";
   locationFilter: PickupLocation | "all";
+  assigneeFilter: AssigneeFilterValue;
 };
 
 type PickupAppointmentFilterOptions = {
@@ -338,7 +354,7 @@ export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments:
 
 export function filterOpenOrders(
   openOrders: OpenOrder[],
-  { query, queue, typeFilter, locationFilter }: OpenOrderFilterOptions,
+  { query, queue, typeFilter, locationFilter, assigneeFilter }: OpenOrderFilterOptions,
   options: { now?: Date } = {},
 ) {
   const now = options.now ?? new Date();
@@ -350,6 +366,10 @@ export function filterOpenOrders(
     }
 
     if (!openOrderMatchesLocation(openOrder, locationFilter)) {
+      return false;
+    }
+
+    if (!openOrderMatchesAssignee(openOrder, assigneeFilter)) {
       return false;
     }
 

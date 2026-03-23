@@ -104,6 +104,7 @@ describe("order reducer", () => {
       id: "order-9501-alteration",
       orderId: "order-9501",
       workflow: "alteration",
+      assigneeStaffId: "staff-tailor-nina",
     });
     expect(next?.database.orderScopeLines.find((line) => line.scopeId === "order-9501-alteration")).toMatchObject({
       scopeId: "order-9501-alteration",
@@ -150,6 +151,7 @@ describe("order reducer", () => {
       orderId: "order-55",
       workflow: "alteration",
       phase: "in_progress",
+      assigneeStaffId: null,
       promisedReadyAt: null,
       readyAt: null,
       eventId: null,
@@ -189,6 +191,69 @@ describe("order reducer", () => {
       readyForPickup: true,
       pickupDate: "2026-03-22",
       pickupTime: "10:45 AM",
+    });
+  });
+
+  it("starts work on an accepted order without leaving checkout", () => {
+    const state = createInitialAppState();
+    state.order.activeWorkflow = "alteration";
+    state.order.payerCustomerId = "C-1042";
+    state.order.alteration.items = [
+      {
+        id: 101,
+        garment: "Trousers",
+        modifiers: [{ name: "Hem", price: 35 }],
+        subtotal: 35,
+      },
+    ];
+    state.order.fulfillment.alteration = {
+      pickupDate: "2026-03-24",
+      pickupTime: "15:30",
+      pickupLocation: "Queens",
+      eventType: "none",
+      eventDate: "",
+    };
+
+    const saved = tryReduceOrderAction(
+      state,
+      { type: "saveOpenOrder", paymentStatus: "due_later", openCheckout: true },
+      { now: new Date(2026, 2, 22, 9, 30, 0, 0), idFactory: () => 9502 },
+    )!;
+
+    const next = tryReduceOrderAction(
+      saved,
+      { type: "startOpenOrderWork", openOrderId: 9502 },
+      { now: new Date(2026, 2, 22, 9, 45, 0, 0) },
+    );
+
+    expect(next?.checkoutOpenOrderId).toBe(9502);
+    expect(next?.checkoutJustSavedOpenOrderId).toBeNull();
+    expect(next?.database.orders.find((order) => order.displayId === "ORD-9502")).toMatchObject({
+      operationalStatus: "in_progress",
+    });
+    expect(adaptOpenOrders(next!.database).find((order) => order.id === 9502)).toMatchObject({
+      operationalStatus: "in_progress",
+    });
+  });
+
+  it("reassigns in-house tailoring work from the work queue", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const state = createInitialAppState({ database });
+
+    const next = tryReduceOrderAction(
+      state,
+      { type: "assignOpenOrderTailor", openOrderId: 9005, staffId: "staff-tailor-luis" },
+      { now: new Date("2026-03-22T16:15:00.000Z") },
+    );
+
+    expect(next?.database.orderScopes.find((scope) => scope.id === "scope-9005-alteration")).toMatchObject({
+      assigneeStaffId: "staff-tailor-luis",
+    });
+    expect(adaptOpenOrders(next!.database).find((order) => order.id === 9005)).toMatchObject({
+      inHouseAssignee: {
+        id: "staff-tailor-luis",
+        name: "Luis Rivera",
+      },
     });
   });
 

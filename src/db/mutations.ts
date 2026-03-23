@@ -54,6 +54,7 @@ type DeleteMeasurementSetPayload = {
 function cloneDatabase(database: PrototypeDatabase): PrototypeDatabase {
   return {
     ...database,
+    staffMembers: [...database.staffMembers],
     customers: [...database.customers],
     customerEvents: [...database.customerEvents],
     measurementSets: [...database.measurementSets],
@@ -510,10 +511,13 @@ export function saveOrderWorkflowToDatabase(
   const serialized = serializeOrderWorkflowToRecords({
     order,
     customers,
+    locations: database.locations,
     paymentStatus,
     orderSequence: nextSequence,
     now,
     existingOrder,
+    existingScopes: existingOrder ? database.orderScopes.filter((scope) => scope.orderId === existingOrder.id) : [],
+    staffMembers: database.staffMembers,
   });
   if (!serialized) {
     return null;
@@ -608,6 +612,55 @@ export function startOrderPaymentCollection(
         squarePaymentId: null,
       },
     ],
+  };
+}
+
+export function assignOpenOrderTailor(
+  database: PrototypeDatabase,
+  openOrderId: number,
+  staffId: string | null,
+  now = new Date(),
+): PrototypeDatabase {
+  const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
+  if (!orderId) {
+    return database;
+  }
+
+  return {
+    ...database,
+    orderScopes: database.orderScopes.map((scope) => (
+      scope.orderId === orderId && scope.workflow === "alteration"
+        ? {
+            ...scope,
+            assigneeStaffId: staffId,
+          }
+        : scope
+    )),
+    generatedAt: toDateTimeString(now),
+  };
+}
+
+export function startOpenOrderWork(
+  database: PrototypeDatabase,
+  openOrderId: number,
+  now = new Date(),
+): PrototypeDatabase {
+  const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
+  if (!orderId) {
+    return database;
+  }
+
+  return {
+    ...database,
+    orders: database.orders.map((order) => (
+      order.id === orderId
+        ? {
+            ...order,
+            operationalStatus: "in_progress",
+          }
+        : order
+    )),
+    generatedAt: toDateTimeString(now),
   };
 }
 

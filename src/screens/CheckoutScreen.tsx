@@ -22,6 +22,7 @@ type CheckoutScreenProps = {
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
   onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
+  onStartOpenOrderWork: (openOrderId: number) => void;
   onStartOpenOrderPayment: (openOrderId: number) => void;
   onCaptureOpenOrderPayment: (openOrderId: number) => void;
   onEditOpenOrder: (openOrderId: number) => void;
@@ -176,6 +177,7 @@ export function CheckoutScreen({
   order,
   onScreenChange,
   onSaveDraftOrder,
+  onStartOpenOrderWork,
   onStartOpenOrderPayment,
   onCaptureOpenOrderPayment,
   onEditOpenOrder,
@@ -267,8 +269,8 @@ export function CheckoutScreen({
             ? "The order is in and payment can wait until later."
             : "The order is in and payment has already been collected."
           : acceptedOrderNeedsPayment
-            ? "This order has been accepted and payment is still due."
-            : "This order has been accepted and payment is already collected."
+            ? "This order has been accepted and is waiting for work to begin."
+            : "This order has been accepted and is ready for work to begin."
         : openOrder.balanceDue > 0
           ? openOrder.totalCollected > 0
             ? "Deposit recorded. Collect the remaining balance when the customer checks out."
@@ -372,8 +374,8 @@ export function CheckoutScreen({
                           ? "You accepted this order, saved it to Square, and set the promised-ready details. Payment is still due later."
                           : "You accepted this order, saved it to Square, and the payment is already in."
                         : acceptedOrderNeedsPayment
-                          ? "This order is saved, the promised-ready details are set, and payment is still due later."
-                          : "This order is saved, the promised-ready details are set, and payment is already collected."
+                          ? "This order is saved, the promised-ready details are set, and the team can start work whenever they are ready."
+                          : "This order is saved, the promised-ready details are set, and the team can start work now."
                       : "Review customer details, check the order, and collect any remaining payment."
                     : "Review the order, confirm fulfillment, and send it through."}
                 </div>
@@ -559,7 +561,10 @@ export function CheckoutScreen({
                   <>
                     {isAcceptedOpenOrder ? (
                       <>
-                        <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
+                        <ActionButton tone="primary" onClick={() => onStartOpenOrderWork(openOrder.id)}>
+                          Start work
+                        </ActionButton>
+                        <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
                           Return to orders
                         </ActionButton>
                         <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>

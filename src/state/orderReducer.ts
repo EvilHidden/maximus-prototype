@@ -1,6 +1,7 @@
 import type { AppAction, AppState } from "./types";
 import { adaptCustomers } from "../db/adapters";
 import {
+  assignOpenOrderTailor,
   cancelOpenOrder,
   cancelAppointmentRecord,
   completeAppointmentRecord,
@@ -8,6 +9,7 @@ import {
   captureOrderPayment,
   markOrderScopePickupReady,
   saveOrderWorkflowToDatabase,
+  startOpenOrderWork,
   startOrderPaymentCollection,
 } from "../db/mutations";
 import {
@@ -83,6 +85,17 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           order: createInitialOrderState(),
         };
       }
+    case "assignOpenOrderTailor":
+      return {
+        ...state,
+        database: assignOpenOrderTailor(state.database, action.openOrderId, action.staffId, getNow(options)),
+      };
+    case "startOpenOrderWork":
+      return {
+        ...state,
+        checkoutJustSavedOpenOrderId: null,
+        database: startOpenOrderWork(state.database, action.openOrderId, getNow(options)),
+      };
     case "startOpenOrderPayment":
       return {
         ...state,

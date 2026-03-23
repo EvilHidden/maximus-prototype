@@ -417,6 +417,7 @@ export function buildOpenOrder(
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
     operationalStatus: "accepted",
+    inHouseAssignee: null,
     itemCount: lineItems.length,
     lineItems,
     itemSummary: lineItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),

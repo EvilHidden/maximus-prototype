@@ -33,6 +33,12 @@ export type PickupSchedule = {
   eventDate: string;
 };
 
+export type StaffMember = {
+  id: string;
+  name: string;
+  primaryLocation: PickupLocation;
+};
+
 export type OpenOrderPickup = PickupSchedule & {
   id: string;
   scope: WorkflowMode;
@@ -221,6 +227,7 @@ export type OpenOrder = {
   payerName: string;
   orderType: OrderType;
   operationalStatus: OpenOrderOperationalStatus;
+  inHouseAssignee: StaffMember | null;
   itemCount: number;
   lineItems: OrderBagLineItem[];
   itemSummary: string[];

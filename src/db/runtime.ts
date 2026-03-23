@@ -18,6 +18,7 @@ import {
   createPickupNotifications,
   createServiceAppointments,
 } from "./runtime/scheduleSeed";
+import { createStaffMembers } from "./runtime/staffSeed";
 import {
   createAlterationServiceDefinitions,
   createCustomGarmentDefinitions,
@@ -42,6 +43,7 @@ function getSeedDates(referenceDate: Date): RuntimeSeedDates {
 export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDatabase {
   const seedDates = getSeedDates(referenceDate);
   const locations = createLocations();
+  const staffMembers = createStaffMembers();
   const alterationServiceDefinitions = createAlterationServiceDefinitions();
   const customGarmentDefinitions = createCustomGarmentDefinitions();
   const styleOptionDefinitions = createStyleOptionDefinitions();
@@ -62,6 +64,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   return {
     generatedAt: toDateTimeString(seedDates.baseDate),
     locations,
+    staffMembers,
     alterationServiceDefinitions,
     customGarmentDefinitions,
     styleOptionDefinitions,
