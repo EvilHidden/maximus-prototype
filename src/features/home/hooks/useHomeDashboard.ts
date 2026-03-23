@@ -3,10 +3,12 @@ import type { Appointment, PickupLocation } from "../../../types";
 import { getAppointmentDateKey } from "../../appointments/selectors";
 import { getPickupAppointments, getTodayAppointments, getTomorrowAppointments } from "../selectors";
 
-export const homeLocationOptions: PickupLocation[] = ["Fifth Avenue", "Queens", "Long Island"];
-
-export function useHomeDashboard(appointments: Appointment[], pickupAppointments: Appointment[]) {
-  const [activeLocations, setActiveLocations] = useState<PickupLocation[]>(homeLocationOptions);
+export function useHomeDashboard(
+  appointments: Appointment[],
+  pickupAppointments: Appointment[],
+  locationOptions: PickupLocation[],
+) {
+  const [activeLocations, setActiveLocations] = useState<PickupLocation[]>(locationOptions);
 
   const filteredAppointments = useMemo(
     () => appointments.filter((appointment) => activeLocations.includes(appointment.location)),
@@ -33,7 +35,7 @@ export function useHomeDashboard(appointments: Appointment[], pickupAppointments
   const tomorrowKey = tomorrowDate.toISOString().slice(0, 10);
   const todayPickups = filteredPickups.filter((appointment) => getAppointmentDateKey(appointment) === todayKey);
   const tomorrowPickups = filteredPickups.filter((appointment) => getAppointmentDateKey(appointment) === tomorrowKey);
-  const allLocationsActive = activeLocations.length === homeLocationOptions.length;
+  const allLocationsActive = activeLocations.length === locationOptions.length;
   const visibleAppointmentCount = todayAppointments.length + tomorrowAppointments.length;
   const visiblePickupCount = todayPickups.length + tomorrowPickups.length;
   const hasVisibleHomeWork = visibleAppointmentCount > 0 || visiblePickupCount > 0;
@@ -45,6 +47,7 @@ export function useHomeDashboard(appointments: Appointment[], pickupAppointments
   return {
     activeLocations,
     setActiveLocations,
+    locationOptions,
     allLocationsActive,
     todayAppointments,
     tomorrowAppointments,

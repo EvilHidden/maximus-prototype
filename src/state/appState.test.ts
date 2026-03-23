@@ -264,6 +264,84 @@ describe("app state", () => {
     });
   });
 
+  it("creates a draft measurement set through db mutations and updates customer status", () => {
+    const database = createPrototypeDatabase();
+    database.customers.push({
+      id: "C-1999",
+      name: "Taylor Brooks",
+      phone: "555-0199",
+      email: "taylor@example.com",
+      address: "99 New St",
+      preferredLocationId: "loc_fifth_avenue",
+      lastVisitLabel: "New",
+      measurementsStatus: "missing",
+      marketingOptIn: true,
+      notes: "",
+      status: "active",
+    });
+    const state = createInitialAppState({ database });
+    const targetCustomer = database.customers.find((customer) => customer.id === "C-1999")!;
+    state.selectedCustomerId = targetCustomer.id;
+
+    const next = appReducer(state, { type: "createDraftMeasurementSet" });
+
+    expect(next.order.custom.draft.linkedMeasurementSetId).toMatch(/^SET-.*-DRAFT-/);
+    expect(next.database.measurementSets.find((set) => set.id === next.order.custom.draft.linkedMeasurementSetId)).toMatchObject({
+      customerId: targetCustomer.id,
+      label: "Draft",
+      isDraft: true,
+    });
+    expect(adaptCustomers(next.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("needs_update");
+  });
+
+  it("saves and deletes measurement sets through canonical db mutations", () => {
+    const database = createPrototypeDatabase();
+    database.customers.push({
+      id: "C-1998",
+      name: "Avery Stone",
+      phone: "555-0198",
+      email: "avery@example.com",
+      address: "98 New St",
+      preferredLocationId: "loc_queens",
+      lastVisitLabel: "New",
+      measurementsStatus: "missing",
+      marketingOptIn: true,
+      notes: "",
+      status: "active",
+    });
+    const state = createInitialAppState({ database });
+    const targetCustomer = database.customers.find((customer) => customer.id === "C-1998")!;
+    state.selectedCustomerId = targetCustomer.id;
+    const withDraft = appReducer(state, { type: "createDraftMeasurementSet" });
+    withDraft.order.custom.draft.measurements = { Chest: "41" };
+    const saved = appReducer(withDraft, {
+      type: "saveMeasurementSet",
+      payload: { mode: "saved", title: "Wedding fit" },
+    });
+
+    const savedId = saved.order.custom.draft.linkedMeasurementSetId;
+    expect(saved.database.measurementSets.find((set) => set.id === savedId)).toMatchObject({
+      label: "Version 1",
+      isDraft: false,
+      suggested: true,
+    });
+    expect(adaptCustomers(saved.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("on_file");
+
+    const deleted = appReducer(saved, {
+      type: "deleteMeasurementSet",
+      measurementSetId: savedId!,
+    });
+
+    expect(deleted.order.custom.draft.linkedMeasurementSetId).toBeTruthy();
+    expect(deleted.database.measurementSets.find((set) => set.id === deleted.order.custom.draft.linkedMeasurementSetId)).toMatchObject({
+      customerId: targetCustomer.id,
+      label: "Draft",
+      isDraft: true,
+      values: { Chest: "41" },
+    });
+    expect(adaptCustomers(deleted.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("needs_update");
+  });
+
   it("creates a manual service appointment for an active customer", () => {
     const database = createPrototypeDatabase();
     const state = createInitialAppState({ database });

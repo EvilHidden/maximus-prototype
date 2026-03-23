@@ -1,7 +1,6 @@
 import type {
   Customer,
   DraftOrderRecord,
-  MeasurementSet,
   OpenOrderPaymentStatus,
   OrderWorkflowState,
   PickupLocation,
@@ -34,6 +33,21 @@ type RescheduleAppointmentPayload = {
   appointmentId: string;
   location: PickupLocation;
   scheduledFor: string;
+};
+
+type SaveMeasurementSetPayload = {
+  customerId: string;
+  measurementSetId: string | null;
+  measurements: Record<string, string>;
+  mode: "draft" | "saved";
+  title: string;
+};
+
+type DeleteMeasurementSetPayload = {
+  measurementSetId: string;
+  linkedMeasurementSetId: string | null;
+  customerId: string | null;
+  measurements: Record<string, string>;
 };
 
 function cloneDatabase(database: PrototypeDatabase): PrototypeDatabase {
@@ -107,6 +121,49 @@ function getAppointmentWorkflow(typeKey: CreateAppointmentPayload["typeKey"]) {
   return typeKey === "alteration_fitting" ? "alteration" : "custom";
 }
 
+function createEmptyMeasurementValuesFromDatabase(database: PrototypeDatabase) {
+  return database.measurementFieldDefinitions
+    .slice()
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .reduce<Record<string, string>>((accumulator, field) => {
+      accumulator[field.label] = "";
+      return accumulator;
+    }, {});
+}
+
+function formatMeasurementDateLabel(now: Date) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "2-digit",
+  }).format(now);
+}
+
+function deriveCustomerMeasurementStatus(measurementSets: DbMeasurementSet[]): DbCustomer["measurementsStatus"] {
+  if (measurementSets.some((set) => !set.isDraft)) {
+    return "on_file";
+  }
+
+  if (measurementSets.some((set) => set.isDraft)) {
+    return "needs_update";
+  }
+
+  return "missing";
+}
+
+function syncCustomerMeasurementStatus(database: PrototypeDatabase, customerId: string): PrototypeDatabase {
+  const customerMeasurementSets = database.measurementSets.filter((set) => set.customerId === customerId);
+  const nextStatus = deriveCustomerMeasurementStatus(customerMeasurementSets);
+
+  return {
+    ...database,
+    customers: database.customers.map((customer) => (
+      customer.id === customerId
+        ? { ...customer, measurementsStatus: nextStatus }
+        : customer
+    )),
+  };
+}
+
 function getOrderTotal(database: PrototypeDatabase, orderId: string) {
   const scopeIds = database.orderScopes.filter((scope) => scope.orderId === orderId).map((scope) => scope.id);
   return database.orderScopeLines
@@ -157,13 +214,274 @@ export function archiveCustomerRecord(database: PrototypeDatabase, customerId: s
   };
 }
 
-export function replaceMeasurementSetRecords(
+export function createDraftMeasurementSetRecord(
   database: PrototypeDatabase,
-  measurementSets: MeasurementSet[],
-): PrototypeDatabase {
+  customerId: string | null,
+  now = new Date(),
+): { database: PrototypeDatabase; linkedMeasurementSetId: string; values: Record<string, string> } {
+  const values = createEmptyMeasurementValuesFromDatabase(database);
+
+  if (!customerId) {
+    return {
+      database,
+      linkedMeasurementSetId: "",
+      values,
+    };
+  }
+
+  const customer = database.customers.find((record) => record.id === customerId);
+  if (!customer) {
+    return {
+      database,
+      linkedMeasurementSetId: "",
+      values,
+    };
+  }
+
+  const nextMeasurementSetId = `SET-${customer.id}-DRAFT-${now.getTime()}`;
+  const dateLabel = formatMeasurementDateLabel(now);
+  const draftSet: DbMeasurementSet = {
+    id: nextMeasurementSetId,
+    customerId: customer.id,
+    label: "Draft",
+    takenAt: dateLabel,
+    note: `${dateLabel} • ${customer.name} draft`,
+    values,
+    isDraft: true,
+    suggested: false,
+  };
+
   return {
-    ...database,
-    measurementSets: measurementSets.map<DbMeasurementSet>((set) => ({ ...set })),
+    linkedMeasurementSetId: nextMeasurementSetId,
+    values,
+    database: syncCustomerMeasurementStatus({
+      ...database,
+      measurementSets: [...database.measurementSets, draftSet],
+    }, customer.id),
+  };
+}
+
+export function saveMeasurementSetRecord(
+  database: PrototypeDatabase,
+  payload: SaveMeasurementSetPayload,
+  now = new Date(),
+): { database: PrototypeDatabase; linkedMeasurementSetId: string } {
+  const customer = database.customers.find((record) => record.id === payload.customerId);
+  if (!customer) {
+    return {
+      database,
+      linkedMeasurementSetId: payload.measurementSetId ?? "",
+    };
+  }
+
+  const dateLabel = formatMeasurementDateLabel(now);
+  const currentSet = database.measurementSets.find((set) => set.id === payload.measurementSetId) ?? null;
+  const sameCustomerCurrentSet = currentSet?.customerId === customer.id ? currentSet : null;
+  const normalizedTitle = payload.title.trim() || `${customer.name} ${payload.mode === "draft" ? "draft" : "measurements"}`;
+
+  if (payload.mode === "draft" && sameCustomerCurrentSet?.isDraft) {
+    const nextDatabase = {
+      ...database,
+      measurementSets: database.measurementSets.map((set) => (
+        set.id === sameCustomerCurrentSet.id
+          ? {
+              ...set,
+              takenAt: dateLabel,
+              note: `${dateLabel} • ${normalizedTitle}`,
+              values: { ...payload.measurements },
+              isDraft: true,
+              suggested: false,
+            }
+          : set
+      )),
+    };
+
+    return {
+      linkedMeasurementSetId: sameCustomerCurrentSet.id,
+      database: syncCustomerMeasurementStatus(nextDatabase, customer.id),
+    };
+  }
+
+  if (payload.mode === "saved" && sameCustomerCurrentSet && !sameCustomerCurrentSet.isDraft && sameCustomerCurrentSet.label.startsWith("Version ")) {
+    const nextDatabase = {
+      ...database,
+      measurementSets: database.measurementSets.map((set) => {
+        if (set.customerId !== customer.id) {
+          return set;
+        }
+
+        if (set.id === sameCustomerCurrentSet.id) {
+          return {
+            ...set,
+            takenAt: dateLabel,
+            note: `${dateLabel} • ${normalizedTitle}`,
+            values: { ...payload.measurements },
+            isDraft: false,
+            suggested: true,
+          };
+        }
+
+        return {
+          ...set,
+          suggested: false,
+        };
+      }),
+    };
+
+    return {
+      linkedMeasurementSetId: sameCustomerCurrentSet.id,
+      database: syncCustomerMeasurementStatus(nextDatabase, customer.id),
+    };
+  }
+
+  if (payload.mode === "saved") {
+    const nextVersion =
+      database.measurementSets
+        .filter((set) => set.customerId === customer.id)
+        .reduce((maxVersion, set) => {
+          const match = set.label.match(/^Version (\d+)$/);
+          return match ? Math.max(maxVersion, Number.parseInt(match[1], 10)) : maxVersion;
+        }, 0) + 1;
+
+    if (sameCustomerCurrentSet?.isDraft) {
+      const nextDatabase = {
+        ...database,
+        measurementSets: database.measurementSets.map((set) => {
+          if (set.customerId !== customer.id) {
+            return set;
+          }
+
+          if (set.id === sameCustomerCurrentSet.id) {
+            return {
+              ...set,
+              label: `Version ${nextVersion}`,
+              takenAt: dateLabel,
+              note: `${dateLabel} • ${normalizedTitle}`,
+              values: { ...payload.measurements },
+              isDraft: false,
+              suggested: true,
+            };
+          }
+
+          return {
+            ...set,
+            suggested: false,
+          };
+        }),
+      };
+
+      return {
+        linkedMeasurementSetId: sameCustomerCurrentSet.id,
+        database: syncCustomerMeasurementStatus(nextDatabase, customer.id),
+      };
+    }
+
+    const nextMeasurementSetId = `SET-${customer.id}-V${nextVersion}-${now.getTime()}`;
+    const nextSet: DbMeasurementSet = {
+      id: nextMeasurementSetId,
+      customerId: customer.id,
+      label: `Version ${nextVersion}`,
+      takenAt: dateLabel,
+      note: `${dateLabel} • ${normalizedTitle}`,
+      values: { ...payload.measurements },
+      isDraft: false,
+      suggested: true,
+    };
+
+    const nextDatabase = {
+      ...database,
+      measurementSets: [
+        ...database.measurementSets.map((set) => (
+          set.customerId === customer.id
+            ? {
+                ...set,
+                suggested: false,
+              }
+            : set
+        )),
+        nextSet,
+      ],
+    };
+
+    return {
+      linkedMeasurementSetId: nextMeasurementSetId,
+      database: syncCustomerMeasurementStatus(nextDatabase, customer.id),
+    };
+  }
+
+  const nextMeasurementSetId = `SET-${customer.id}-DRAFT-${now.getTime()}`;
+  const draftSet: DbMeasurementSet = {
+    id: nextMeasurementSetId,
+    customerId: customer.id,
+    label: "Draft",
+    takenAt: dateLabel,
+    note: `${dateLabel} • ${normalizedTitle}`,
+    values: { ...payload.measurements },
+    isDraft: true,
+    suggested: false,
+  };
+
+  return {
+    linkedMeasurementSetId: nextMeasurementSetId,
+    database: syncCustomerMeasurementStatus({
+      ...database,
+      measurementSets: [...database.measurementSets, draftSet],
+    }, customer.id),
+  };
+}
+
+export function deleteMeasurementSetRecord(
+  database: PrototypeDatabase,
+  payload: DeleteMeasurementSetPayload,
+  now = new Date(),
+): { database: PrototypeDatabase; linkedMeasurementSetId: string | null } {
+  const remainingSets = database.measurementSets.filter((set) => set.id !== payload.measurementSetId);
+
+  if (payload.linkedMeasurementSetId !== payload.measurementSetId) {
+    const nextDatabase = {
+      ...database,
+      measurementSets: remainingSets,
+    };
+
+    return {
+      linkedMeasurementSetId: payload.linkedMeasurementSetId,
+      database: payload.customerId ? syncCustomerMeasurementStatus(nextDatabase, payload.customerId) : nextDatabase,
+    };
+  }
+
+  const hasMeasurements = Object.values(payload.measurements).some((value) => value.trim().length > 0);
+  const customer = payload.customerId ? database.customers.find((record) => record.id === payload.customerId) ?? null : null;
+  if (!hasMeasurements || !customer) {
+    const nextDatabase = {
+      ...database,
+      measurementSets: remainingSets,
+    };
+
+    return {
+      linkedMeasurementSetId: null,
+      database: payload.customerId ? syncCustomerMeasurementStatus(nextDatabase, payload.customerId) : nextDatabase,
+    };
+  }
+
+  const nextMeasurementSetId = `SET-${customer.id}-DRAFT-${now.getTime()}`;
+  const dateLabel = formatMeasurementDateLabel(now);
+  const draftSet: DbMeasurementSet = {
+    id: nextMeasurementSetId,
+    customerId: customer.id,
+    label: "Draft",
+    takenAt: dateLabel,
+    note: `${dateLabel} • ${customer.name} draft`,
+    values: { ...payload.measurements },
+    isDraft: true,
+    suggested: false,
+  };
+
+  return {
+    linkedMeasurementSetId: nextMeasurementSetId,
+    database: syncCustomerMeasurementStatus({
+      ...database,
+      measurementSets: [...remainingSets, draftSet],
+    }, customer.id),
   };
 }
 

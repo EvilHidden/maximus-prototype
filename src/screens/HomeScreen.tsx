@@ -12,11 +12,12 @@ import { SectionHeader, SelectionChip } from "../components/ui/primitives";
 import { useToast } from "../components/ui/toast";
 import { HomeEmptyState, HomeWorkboards } from "../features/home/components/HomeScheduleBoards";
 import { HomeQuickActionsDeck } from "../features/home/components/HomeQuickActionsDeck";
-import { homeLocationOptions, useHomeDashboard } from "../features/home/hooks/useHomeDashboard";
+import { useHomeDashboard } from "../features/home/hooks/useHomeDashboard";
 
 type HomeScreenProps = {
   appointments: Appointment[];
   pickupAppointments: Appointment[];
+  pickupLocations: import("../types").PickupLocation[];
   onScreenChange: (screen: Screen) => void;
   onStartWorkflow: (workflow: WorkflowMode) => void;
   onOpenAppointment: (appointment: Appointment) => void;
@@ -26,6 +27,7 @@ type HomeScreenProps = {
 export function HomeScreen({
   appointments,
   pickupAppointments,
+  pickupLocations,
   onScreenChange,
   onStartWorkflow,
   onOpenAppointment,
@@ -48,7 +50,7 @@ export function HomeScreen({
     hasAnyLocationSelected,
     hasFilteredLaterWork,
     singleActiveLocationLabel,
-  } = useHomeDashboard(appointments, pickupAppointments);
+  } = useHomeDashboard(appointments, pickupAppointments, pickupLocations);
 
   const actions = [
     {
@@ -112,13 +114,13 @@ export function HomeScreen({
           <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
             <SelectionChip
               selected={allLocationsActive}
-              onClick={() => setActiveLocations(allLocationsActive ? [] : homeLocationOptions)}
+              onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
               leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
               size="sm"
             >
               All locations
             </SelectionChip>
-            {homeLocationOptions.map((location) => {
+            {pickupLocations.map((location) => {
               const isActive = activeLocations.includes(location);
 
               return (
@@ -168,7 +170,7 @@ export function HomeScreen({
         <HomeEmptyState
           title="No locations selected"
           detail="Choose at least one location to bring appointments and pickups back into view."
-          primaryAction={{ label: "Show all locations", onClick: () => setActiveLocations(homeLocationOptions) }}
+          primaryAction={{ label: "Show all locations", onClick: () => setActiveLocations(pickupLocations) }}
         />
       ) : hasFilteredLaterWork ? (
         <HomeEmptyState

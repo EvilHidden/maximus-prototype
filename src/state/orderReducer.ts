@@ -7,7 +7,6 @@ import {
   completeOpenOrderPickup,
   captureOrderPayment,
   markOrderScopePickupReady,
-  replaceMeasurementSetRecords,
   saveOrderWorkflowToDatabase,
   startOrderPaymentCollection,
 } from "../db/mutations";
@@ -465,11 +464,6 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
             },
           },
         },
-      };
-    case "replaceMeasurementSetRecords":
-      return {
-        ...state,
-        database: replaceMeasurementSetRecords(state.database, action.measurementSets),
       };
     case "clearOrder":
       return {
