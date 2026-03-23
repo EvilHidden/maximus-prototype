@@ -2,10 +2,13 @@ import { createPrototypeDatabase } from "../db/runtime";
 import {
   addCustomerRecord,
   archiveCustomerRecord,
+  createDraftMeasurementSetRecord,
   createManualAppointmentRecord,
+  deleteMeasurementSetRecord,
   loadOrderWorkflowForEdit,
   replaceDraftOrderRecords,
   rescheduleAppointmentRecord,
+  saveMeasurementSetRecord,
   updateCustomerRecord,
 } from "../db/mutations";
 import { createEmptyMeasurements } from "./orderState";
@@ -135,6 +138,82 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         database: rescheduleAppointmentRecord(state.database, action.payload),
       });
+    case "createDraftMeasurementSet": {
+      const result = createDraftMeasurementSetRecord(
+        state.database,
+        state.selectedCustomerId,
+      );
+
+      return syncDraftOrderRecord({
+        ...state,
+        database: result.database,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: result.linkedMeasurementSetId || null,
+              measurements: {
+                ...createEmptyMeasurements(),
+                ...result.values,
+              },
+            },
+          },
+        },
+      });
+    }
+    case "saveMeasurementSet": {
+      if (!state.selectedCustomerId) {
+        return state;
+      }
+
+      const result = saveMeasurementSetRecord(state.database, {
+        customerId: state.selectedCustomerId,
+        measurementSetId: state.order.custom.draft.linkedMeasurementSetId,
+        measurements: state.order.custom.draft.measurements,
+        mode: action.payload.mode,
+        title: action.payload.title,
+      });
+
+      return syncDraftOrderRecord({
+        ...state,
+        database: result.database,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: result.linkedMeasurementSetId || null,
+            },
+          },
+        },
+      });
+    }
+    case "deleteMeasurementSet": {
+      const result = deleteMeasurementSetRecord(state.database, {
+        measurementSetId: action.measurementSetId,
+        linkedMeasurementSetId: state.order.custom.draft.linkedMeasurementSetId,
+        customerId: state.selectedCustomerId,
+        measurements: state.order.custom.draft.measurements,
+      });
+
+      return syncDraftOrderRecord({
+        ...state,
+        database: result.database,
+        order: {
+          ...state.order,
+          custom: {
+            ...state.order.custom,
+            draft: {
+              ...state.order.custom.draft,
+              linkedMeasurementSetId: result.linkedMeasurementSetId,
+            },
+          },
+        },
+      });
+    }
     case "archiveCustomer":
       return syncDraftOrderRecord({
         ...state,

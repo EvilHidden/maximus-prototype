@@ -51,9 +51,6 @@ export function useAppController() {
 
   const { measurementSets, saveMeasurements, createDraftMeasurements, deleteMeasurementSet } = useMeasurementSetManager({
     measurementSets: derivedMeasurementSets,
-    selectedCustomer,
-    linkedMeasurementSetId: state.order.custom.draft.linkedMeasurementSetId,
-    measurements: state.order.custom.draft.measurements,
     dispatch,
   });
   const { startWorkflow, openWorkflowAppointment, saveDraftOrder, startOpenOrderPayment, captureOpenOrderPayment } = useAppWorkflowActions({ dispatch, order: state.order });

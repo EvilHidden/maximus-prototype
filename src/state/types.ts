@@ -5,7 +5,6 @@ import type {
   Customer,
   CustomOrderEventType,
   CustomGarmentGender,
-  MeasurementSet,
   OpenOrder,
   OrderWorkflowState,
   PickupLocation,
@@ -61,6 +60,11 @@ export type RescheduleAppointmentPayload = {
   scheduledFor: string;
 };
 
+export type SaveMeasurementSetPayload = {
+  mode: "draft" | "saved";
+  title: string;
+};
+
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "startOrderForCustomer"; customerId: string }
@@ -84,6 +88,9 @@ export type AppAction =
   | { type: "rescheduleAppointment"; payload: RescheduleAppointmentPayload }
   | { type: "completeAppointment"; appointmentId: string }
   | { type: "cancelAppointment"; appointmentId: string }
+  | { type: "createDraftMeasurementSet" }
+  | { type: "saveMeasurementSet"; payload: SaveMeasurementSetPayload }
+  | { type: "deleteMeasurementSet"; measurementSetId: string }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
   | { type: "addAlterationItem" }
@@ -102,5 +109,4 @@ export type AppAction =
   | { type: "updateMeasurements"; field: string; value: string }
   | { type: "replaceMeasurements"; values: Record<string, string>; measurementSetId: string | null }
   | { type: "linkMeasurementSet"; measurementSetId: string | null }
-  | { type: "replaceMeasurementSetRecords"; measurementSets: MeasurementSet[] }
   | { type: "clearOrder" };

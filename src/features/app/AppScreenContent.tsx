@@ -37,6 +37,7 @@ export function AppScreenContent({
       <HomeScreen
         appointments={appointments}
         pickupAppointments={pickupAppointments}
+        pickupLocations={referenceData.pickupLocations}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
         onStartWorkflow={startWorkflow}
         onOpenAppointment={openWorkflowAppointment}

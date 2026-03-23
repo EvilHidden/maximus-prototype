@@ -1,4 +1,4 @@
-import type { Customer, MeasurementSet } from "../../types";
+import type { Customer } from "../../types";
 
 export type MeasurementSetDisplay = {
   id: string;
@@ -18,8 +18,3 @@ export type CustomMeasurementsCardModel =
   | { kind: "no_wearer" }
   | { kind: "linked"; customer: Customer; set: MeasurementSetDisplay }
   | { kind: "empty"; customer: Customer; hasHistory: boolean };
-
-export type MeasurementSaveResult = {
-  measurementSets: MeasurementSet[];
-  linkedMeasurementSetId: string;
-};
