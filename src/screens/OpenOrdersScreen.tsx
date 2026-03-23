@@ -1,4 +1,4 @@
-import type { Appointment, ClosedOrderHistoryItem, OpenOrder, PickupLocation } from "../types";
+import type { Appointment, ClosedOrderHistoryItem, OpenOrder, PickupLocation, StaffMember } from "../types";
 import { OpenOrdersBody, OpenOrdersControls, OpenOrdersHeader } from "../features/order/components/OpenOrdersPanels";
 import { useOpenOrdersView } from "../features/order/hooks/useOpenOrdersView";
 
@@ -7,6 +7,9 @@ type OpenOrdersScreenProps = {
   closedOrderHistory: ClosedOrderHistoryItem[];
   pickupAppointments: Appointment[];
   pickupLocations: PickupLocation[];
+  inHouseTailors: StaffMember[];
+  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
+  onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
   onStartNewOrder: () => void;
@@ -17,6 +20,9 @@ export function OpenOrdersScreen({
   closedOrderHistory,
   pickupAppointments,
   pickupLocations,
+  inHouseTailors,
+  onAssignOpenOrderTailor,
+  onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
   onStartNewOrder,
@@ -32,10 +38,14 @@ export function OpenOrdersScreen({
     setTypeFilter,
     locationFilter,
     setLocationFilter,
+    assigneeFilter,
+    setAssigneeFilter,
     baseOpenOrders,
     queueCounts,
     filteredQueueOrders,
     filteredQueuePickups,
+    filteredOperatorOrders,
+    operatorQueueCounts,
     filteredHistoryItems,
     activeSubtitle,
   } = useOpenOrdersView(openOrders, closedOrderHistory, pickupAppointments);
@@ -50,6 +60,7 @@ export function OpenOrdersScreen({
           onViewChange={setActiveView}
           viewCounts={{
             queues: queueCounts.all,
+            operator: filteredOperatorOrders.length,
             all: baseOpenOrders.length,
             history: filteredHistoryItems.length,
           }}
@@ -57,6 +68,9 @@ export function OpenOrdersScreen({
           onQueryChange={setQuery}
           typeFilter={typeFilter}
           onTypeFilterChange={setTypeFilter}
+          inHouseTailors={inHouseTailors}
+          assigneeFilter={assigneeFilter}
+          onAssigneeFilterChange={setAssigneeFilter}
           pickupLocations={pickupLocations}
           locationFilter={locationFilter}
           onLocationFilterChange={setLocationFilter}
@@ -72,7 +86,12 @@ export function OpenOrdersScreen({
         baseOpenOrders={baseOpenOrders}
         filteredQueueOrders={filteredQueueOrders}
         filteredQueuePickups={filteredQueuePickups}
+        filteredOperatorOrders={filteredOperatorOrders}
+        operatorQueueCounts={operatorQueueCounts}
         filteredHistoryItems={filteredHistoryItems}
+        inHouseTailors={inHouseTailors}
+        onAssignOpenOrderTailor={onAssignOpenOrderTailor}
+        onStartOpenOrderWork={onStartOpenOrderWork}
         onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
         onOpenOrderCheckout={onOpenOrderCheckout}
       />

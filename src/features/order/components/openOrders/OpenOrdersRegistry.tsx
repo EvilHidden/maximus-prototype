@@ -1,7 +1,8 @@
-import type { Appointment, ClosedOrderHistoryItem, OpenOrder } from "../../../../types";
+import type { Appointment, ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
 import { EmptyState, StatusPill, cx } from "../../../../components/ui/primitives";
 import { OrderStatusPill, PaymentStatusPill } from "../../../../components/ui/pills";
 import {
+  type OperatorQueueStageCounts,
   formatClosedOrderDate,
   formatClosedOrderTotal,
   formatOpenOrderCreatedAt,
@@ -13,6 +14,7 @@ import {
   type OrdersQueueKey,
 } from "../../selectors";
 import type { OrdersView } from "../../hooks/useOpenOrdersView";
+import { OperatorQueuePanel } from "./OperatorQueuePanel";
 import { QueueSection } from "./OpenOrdersWorklist";
 import { getPhaseTone } from "./meta";
 
@@ -47,6 +49,9 @@ function AllOrdersRow({
       <div className="min-w-0">
         <div className="app-text-overline">Lane</div>
         <div className="app-text-body mt-1 font-medium">{lane}</div>
+        {openOrder.inHouseAssignee ? (
+          <div className="app-text-caption mt-1">Assigned to {openOrder.inHouseAssignee.name}</div>
+        ) : null}
       </div>
       <div className="min-w-0">
         <div className="app-text-overline">Pickup</div>
@@ -70,7 +75,12 @@ export function OpenOrdersBody({
   baseOpenOrders,
   filteredQueueOrders,
   filteredQueuePickups,
+  filteredOperatorOrders,
+  operatorQueueCounts,
   filteredHistoryItems,
+  inHouseTailors,
+  onAssignOpenOrderTailor,
+  onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
 }: {
@@ -79,7 +89,12 @@ export function OpenOrdersBody({
   baseOpenOrders: OpenOrder[];
   filteredQueueOrders: OpenOrder[];
   filteredQueuePickups: Appointment[];
+  filteredOperatorOrders: OpenOrder[];
+  operatorQueueCounts: OperatorQueueStageCounts;
   filteredHistoryItems: ClosedOrderHistoryItem[];
+  inHouseTailors: StaffMember[];
+  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
+  onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
@@ -107,6 +122,21 @@ export function OpenOrdersBody({
           activeQueue={activeQueue}
           openOrders={filteredQueueOrders}
           pickupAppointments={filteredQueuePickups}
+          inHouseTailors={inHouseTailors}
+          onAssignOpenOrderTailor={onAssignOpenOrderTailor}
+          onStartOpenOrderWork={onStartOpenOrderWork}
+          onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+          onOpenOrderCheckout={onOpenOrderCheckout}
+        />
+      ) : null}
+
+      {activeView === "operator" ? (
+        <OperatorQueuePanel
+          openOrders={filteredOperatorOrders}
+          stageCounts={operatorQueueCounts}
+          inHouseTailors={inHouseTailors}
+          onAssignOpenOrderTailor={onAssignOpenOrderTailor}
+          onStartOpenOrderWork={onStartOpenOrderWork}
           onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
           onOpenOrderCheckout={onOpenOrderCheckout}
         />

@@ -13,6 +13,7 @@ import type {
   OpenOrder,
   OpenOrderOperationalStatus,
   OpenOrderPickup,
+  StaffMember,
 } from "../types";
 import type {
   DbLocation,
@@ -123,6 +124,14 @@ function getScopeLineComponents(database: PrototypeDatabase, lineId: string) {
 
 function getOrderTotal(database: PrototypeDatabase, orderId: string) {
   return getOrderLines(database, orderId).reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+}
+
+function adaptStaffMember(database: PrototypeDatabase, staffMember: PrototypeDatabase["staffMembers"][number]): StaffMember {
+  return {
+    id: staffMember.id,
+    name: staffMember.name,
+    primaryLocation: findLocationName(database.locations, staffMember.primaryLocationId),
+  };
 }
 
 function deriveOrderStatus(order: DbOrder, scopes: DbOrderScope[]) {
@@ -294,6 +303,10 @@ export function adaptMeasurementSets(database: PrototypeDatabase): MeasurementSe
   }));
 }
 
+export function adaptStaffMembers(database: PrototypeDatabase): StaffMember[] {
+  return database.staffMembers.map((staffMember) => adaptStaffMember(database, staffMember));
+}
+
 export function adaptCustomerOrders(database: PrototypeDatabase): Record<string, CustomerOrder[]> {
   return database.orders.reduce<Record<string, CustomerOrder[]>>((accumulator, order) => {
     if (!order.payerCustomerId) {
@@ -408,6 +421,15 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         payerName: order.payerName,
         orderType: order.orderType,
         operationalStatus: deriveOperationalStatus(order, scopes),
+        inHouseAssignee: (() => {
+          const alterationScope = scopes.find((scope) => scope.workflow === "alteration");
+          if (!alterationScope?.assigneeStaffId) {
+            return null;
+          }
+
+          const staffMember = database.staffMembers.find((candidate) => candidate.id === alterationScope.assigneeStaffId);
+          return staffMember ? adaptStaffMember(database, staffMember) : null;
+        })(),
         itemCount: lineItems.length,
         lineItems,
         itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),

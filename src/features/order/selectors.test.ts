@@ -5,6 +5,8 @@ import {
   buildOpenOrder,
   filterOpenOrders,
   getCheckoutCollectionAmount,
+  getOperatorQueueStage,
+  getOperatorQueueStageCounts,
   getOrderQueueCounts,
   getPickupAlertState,
   getPricingSummary,
@@ -112,6 +114,7 @@ function createOpenOrder(overrides: Partial<OpenOrder>): OpenOrder {
     payerName: "Jordan Patel",
     orderType: "alteration",
     operationalStatus: "accepted",
+    inHouseAssignee: null,
     itemCount: 1,
     lineItems: [
       {
@@ -273,10 +276,79 @@ describe("order selectors", () => {
           queue: "due_today",
           typeFilter: "all",
           locationFilter: "all",
+          assigneeFilter: "all",
         },
         { now },
       ).map((order) => order.id),
     ).toEqual([1001, 1003]);
+  });
+
+  it("filters open orders by in-house tailor assignment", () => {
+    const luisOrder = createOpenOrder({
+      id: 1004,
+      inHouseAssignee: {
+        id: "staff-tailor-luis",
+        name: "Luis Rivera",
+        primaryLocation: "Fifth Avenue",
+      },
+    });
+    const unassignedOrder = createOpenOrder({
+      id: 1005,
+      inHouseAssignee: null,
+    });
+
+    expect(filterOpenOrders([luisOrder, unassignedOrder], {
+      query: "",
+      queue: "in_house",
+      typeFilter: "all",
+      locationFilter: "all",
+      assigneeFilter: "staff-tailor-luis",
+    })).toEqual([luisOrder]);
+
+    expect(filterOpenOrders([luisOrder, unassignedOrder], {
+      query: "",
+      queue: "in_house",
+      typeFilter: "all",
+      locationFilter: "all",
+      assigneeFilter: "unassigned",
+    })).toEqual([unassignedOrder]);
+  });
+
+  it("groups in-house work into operator queue stages", () => {
+    const needsAssignment = createOpenOrder({ id: 1006, inHouseAssignee: null, operationalStatus: "accepted" });
+    const readyToStart = createOpenOrder({
+      id: 1007,
+      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
+      operationalStatus: "accepted",
+    });
+    const inProgress = createOpenOrder({
+      id: 1008,
+      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
+      operationalStatus: "in_progress",
+    });
+    const ready = createOpenOrder({
+      id: 1009,
+      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-ready",
+          readyForPickup: true,
+        },
+      ],
+    });
+
+    expect(getOperatorQueueStage(needsAssignment)).toBe("needs_assignment");
+    expect(getOperatorQueueStage(readyToStart)).toBe("ready_to_start");
+    expect(getOperatorQueueStage(inProgress)).toBe("in_progress");
+    expect(getOperatorQueueStage(ready)).toBe("ready");
+
+    expect(getOperatorQueueStageCounts([needsAssignment, readyToStart, inProgress, ready])).toEqual({
+      needs_assignment: 1,
+      ready_to_start: 1,
+      in_progress: 1,
+      ready: 1,
+    });
   });
 
   it("builds open orders deterministically for tests", () => {

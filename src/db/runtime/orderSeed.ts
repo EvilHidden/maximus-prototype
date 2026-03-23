@@ -14,6 +14,25 @@ import {
   withOffset,
 } from "./support";
 
+function getSeedAlterationAssignee(scopeId: string) {
+  if (!scopeId.includes("alteration")) {
+    return null;
+  }
+
+  const ninaAssignments = new Set([
+    "scope-9002-alteration",
+    "scope-9005-alteration",
+    "scope-9007-alteration",
+    "scope-9009-alteration",
+    "scope-9012-alteration",
+    "scope-8940-alteration",
+    "scope-9020-alteration",
+    "scope-9022-alteration",
+  ]);
+
+  return ninaAssignments.has(scopeId) ? "staff-tailor-nina" : "staff-tailor-luis";
+}
+
 export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
   return [
     {
@@ -320,7 +339,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
 }
 
 export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates): DbOrderScope[] {
-  return [
+  const scopes: Array<Omit<DbOrderScope, "assigneeStaffId">> = [
     {
       id: "scope-9001-custom",
       orderId: "order-9001",
@@ -672,6 +691,11 @@ export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates)
       appointmentOptional: true,
     },
   ];
+
+  return scopes.map((scope) => ({
+    ...scope,
+    assigneeStaffId: getSeedAlterationAssignee(scope.id),
+  }));
 }
 
 function inferAlterationGarment(label: string) {

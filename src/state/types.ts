@@ -78,6 +78,8 @@ export type AppAction =
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "saveOpenOrder"; paymentStatus: OpenOrder["paymentStatus"]; openCheckout: boolean }
+  | { type: "assignOpenOrderTailor"; openOrderId: number; staffId: string | null }
+  | { type: "startOpenOrderWork"; openOrderId: number }
   | { type: "startOpenOrderPayment"; openOrderId: number }
   | { type: "captureOpenOrderPayment"; openOrderId: number }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }

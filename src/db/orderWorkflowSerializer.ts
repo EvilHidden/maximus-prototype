@@ -11,12 +11,14 @@ import type {
 import { getCheckoutCollectionAmount } from "../features/order/paymentSummary";
 import type {
   DbCustomerEvent,
+  DbLocation,
   DbOrder,
   DbOrderScope,
   DbOrderScopeLine,
   DbOrderScopeLineComponent,
   DbPaymentRecord,
   DbPickupAppointment,
+  DbStaffMember,
 } from "./schema";
 import { createLocationId, toDateTimeString } from "./runtime/support";
 import {
@@ -39,10 +41,13 @@ type SerializedOrderWorkflow = {
 type SerializeOrderWorkflowArgs = {
   order: OrderWorkflowState;
   customers: Customer[];
+  locations: DbLocation[];
   paymentStatus: OpenOrderPaymentStatus;
   orderSequence: number;
   now: Date;
   existingOrder?: DbOrder | null;
+  existingScopes?: DbOrderScope[];
+  staffMembers: DbStaffMember[];
 };
 
 const seedReferenceData = getSeedReferenceData();
@@ -167,13 +172,33 @@ function createInitialPaymentRecords(
   return [];
 }
 
+function getDefaultAlterationAssigneeStaffId(
+  staffMembers: DbStaffMember[],
+  locations: DbLocation[],
+  pickupLocation: PickupLocation | "",
+) {
+  if (!pickupLocation) {
+    return null;
+  }
+
+  const pickupLocationId = locations.find((location) => location.name === pickupLocation)?.id ?? null;
+  if (!pickupLocationId) {
+    return null;
+  }
+
+  return staffMembers.find((staffMember) => staffMember.primaryLocationId === pickupLocationId)?.id ?? null;
+}
+
 export function serializeOrderWorkflowToRecords({
   order,
   customers,
+  locations,
   paymentStatus,
   orderSequence,
   now,
   existingOrder = null,
+  existingScopes = [],
+  staffMembers,
 }: SerializeOrderWorkflowArgs): SerializedOrderWorkflow | null {
   const orderType = getOrderType(order);
   if (!orderType) {
@@ -221,11 +246,16 @@ export function serializeOrderWorkflowToRecords({
       });
     }
 
+    const existingScope = existingScopes.find((candidate) => candidate.workflow === scope);
+
     scopes.push({
       id: scopeId,
       orderId,
       workflow: scope,
       phase: "in_progress",
+      assigneeStaffId: scope === "alteration"
+        ? existingScope?.assigneeStaffId ?? getDefaultAlterationAssigneeStaffId(staffMembers, locations, schedule.pickupLocation)
+        : null,
       promisedReadyAt,
       readyAt: null,
       eventId,

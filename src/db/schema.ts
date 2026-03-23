@@ -19,6 +19,13 @@ export type DbLocation = {
   name: PickupLocation;
 };
 
+export type DbStaffMember = {
+  id: string;
+  name: string;
+  role: "tailor";
+  primaryLocationId: string;
+};
+
 export type DbAlterationServiceDefinition = {
   id: string;
   category: string;
@@ -103,6 +110,7 @@ export type DbOrderScope = {
   orderId: string;
   workflow: WorkflowMode;
   phase: "in_progress" | "ready" | "picked_up";
+  assigneeStaffId: string | null;
   promisedReadyAt: string | null;
   readyAt: string | null;
   eventId: string | null;
@@ -197,6 +205,7 @@ export type DbSquareLink = {
 export type PrototypeDatabase = {
   generatedAt: string;
   locations: DbLocation[];
+  staffMembers: DbStaffMember[];
   alterationServiceDefinitions: DbAlterationServiceDefinition[];
   customGarmentDefinitions: DbCustomGarmentDefinition[];
   styleOptionDefinitions: DbStyleOptionDefinition[];

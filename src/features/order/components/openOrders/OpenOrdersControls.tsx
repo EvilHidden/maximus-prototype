@@ -1,8 +1,8 @@
-import type { OrderType, PickupLocation } from "../../../../types";
+import type { OrderType, PickupLocation, StaffMember } from "../../../../types";
 import { CountPill } from "../../../../components/ui/pills";
 import { SearchField, SelectField, SelectionChip, cx } from "../../../../components/ui/primitives";
 import { Search } from "lucide-react";
-import type { OrdersQueueKey } from "../../selectors";
+import type { AssigneeFilterValue, OrdersQueueKey } from "../../selectors";
 import type { OrdersView } from "../../hooks/useOpenOrdersView";
 import { getLocationOptions, queueMeta } from "./meta";
 
@@ -14,6 +14,9 @@ export function OpenOrdersControls({
   onQueryChange,
   typeFilter,
   onTypeFilterChange,
+  inHouseTailors,
+  assigneeFilter,
+  onAssigneeFilterChange,
   pickupLocations,
   locationFilter,
   onLocationFilterChange,
@@ -23,11 +26,14 @@ export function OpenOrdersControls({
 }: {
   activeView: OrdersView;
   onViewChange: (view: OrdersView) => void;
-  viewCounts: { queues: number; all: number; history: number };
+  viewCounts: { queues: number; operator: number; all: number; history: number };
   query: string;
   onQueryChange: (value: string) => void;
   typeFilter: OrderType | "all";
   onTypeFilterChange: (value: OrderType | "all") => void;
+  inHouseTailors: StaffMember[];
+  assigneeFilter: AssigneeFilterValue;
+  onAssigneeFilterChange: (value: AssigneeFilterValue) => void;
   pickupLocations: PickupLocation[];
   locationFilter: PickupLocation | "all";
   onLocationFilterChange: (value: PickupLocation | "all") => void;
@@ -36,6 +42,7 @@ export function OpenOrdersControls({
   queueCounts: Record<OrdersQueueKey, number>;
 }) {
   const locationOptions = getLocationOptions(pickupLocations);
+  const showOperatorControls = activeView === "operator";
 
   return (
     <div className="app-control-deck px-4 py-4">
@@ -43,6 +50,7 @@ export function OpenOrdersControls({
         <div className="flex flex-wrap gap-2">
           {([
             { key: "queues", label: "Worklist", count: viewCounts.queues },
+            { key: "operator", label: "Operator queue", count: viewCounts.operator },
             { key: "all", label: "Order registry", count: viewCounts.all },
             { key: "history", label: "Closed orders", count: viewCounts.history },
           ] as const).map((view) => (
@@ -91,6 +99,23 @@ export function OpenOrdersControls({
               <option value="custom">Custom Garment</option>
               <option value="mixed">Custom + Alterations</option>
             </SelectField>
+
+            {activeView !== "history" ? (
+              <SelectField
+                label={showOperatorControls ? "Viewing queue" : "Assigned to"}
+                value={assigneeFilter}
+                onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
+                className="min-w-[200px]"
+              >
+                <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
+                <option value="unassigned">Unassigned</option>
+                {inHouseTailors.map((staffMember) => (
+                  <option key={staffMember.id} value={staffMember.id}>
+                    {staffMember.name}
+                  </option>
+                ))}
+              </SelectField>
+            ) : null}
 
             <SelectField
               label="Location"

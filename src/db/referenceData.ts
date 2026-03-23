@@ -1,4 +1,4 @@
-import type { AlterationCategory, CustomGarmentGender, PickupLocation } from "../types";
+import type { AlterationCategory, CustomGarmentGender, PickupLocation, StaffMember } from "../types";
 import type { PrototypeDatabase } from "./schema";
 import {
   createAlterationServiceDefinitions,
@@ -10,6 +10,7 @@ import {
 export type AppReferenceData = {
   alterationCatalog: AlterationCategory[];
   customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
+  inHouseTailors: StaffMember[];
   jacketBasedCustomGarments: Set<string>;
   lapelOptions: string[];
   pocketTypeOptions: string[];
@@ -96,6 +97,13 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
   return {
     alterationCatalog,
     customGarmentOptionsByGender,
+    inHouseTailors: database.staffMembers
+      .filter((staffMember) => staffMember.role === "tailor")
+      .map((staffMember) => ({
+        id: staffMember.id,
+        name: staffMember.name,
+        primaryLocation: getPickupLocationNameById(database.locations, staffMember.primaryLocationId) as PickupLocation,
+      })),
     jacketBasedCustomGarments: new Set(
       database.customGarmentDefinitions.filter((definition) => definition.jacketBased).map((definition) => definition.label),
     ),
@@ -110,6 +118,20 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
 const seedReferenceData = createReferenceData({
   generatedAt: "",
   locations: seedLocations,
+  staffMembers: [
+    {
+      id: "staff-tailor-luis",
+      name: "Luis Rivera",
+      role: "tailor",
+      primaryLocationId: "loc_fifth_avenue",
+    },
+    {
+      id: "staff-tailor-nina",
+      name: "Nina Patel",
+      role: "tailor",
+      primaryLocationId: "loc_queens",
+    },
+  ],
   alterationServiceDefinitions: seedAlterationServiceDefinitions,
   customGarmentDefinitions: seedCustomGarmentDefinitions,
   styleOptionDefinitions: seedStyleOptionDefinitions,
