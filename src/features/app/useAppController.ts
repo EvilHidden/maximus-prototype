@@ -7,6 +7,7 @@ import {
   adaptMeasurementSets,
   adaptOpenOrders,
 } from "../../db/adapters";
+import { filterActiveAppointments } from "../appointments/selectors";
 import { getPickupAppointments } from "../home/selectors";
 import { appReducer, createInitialAppState } from "../../state/appState";
 import type { Customer } from "../../types";
@@ -29,7 +30,7 @@ export function useAppController() {
 
   const customers = useMemo(() => adaptCustomers(state.database), [state.database]);
   const customerOrders = useMemo(() => adaptCustomerOrders(state.database), [state.database]);
-  const appointments = useMemo(() => adaptAppointments(state.database), [state.database]);
+  const appointments = useMemo(() => filterActiveAppointments(adaptAppointments(state.database)), [state.database]);
   const derivedMeasurementSets = useMemo(() => adaptMeasurementSets(state.database), [state.database]);
   const openOrders = useMemo(() => adaptOpenOrders(state.database), [state.database]);
   const closedOrderHistory = useMemo(() => adaptClosedOrderHistory(state.database), [state.database]);

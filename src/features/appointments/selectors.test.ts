@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import type { Appointment } from "../../types";
 import {
   compareAppointments,
+  filterActiveAppointments,
   getAppointmentDateKey,
   getAppointmentDateLabel,
   getAppointmentTimeLabel,
@@ -48,5 +49,13 @@ describe("appointment selectors", () => {
     const earlier = { ...baseAppointment, id: "apt_0", scheduledFor: "2026-03-22T13:00:00.000Z" };
 
     expect([baseAppointment, earlier].sort(compareAppointments).map((appointment) => appointment.id)).toEqual(["apt_0", "apt_1"]);
+  });
+
+  it("filters canceled and completed appointments out of active work feeds", () => {
+    const scheduled = baseAppointment;
+    const canceled = { ...baseAppointment, id: "apt_2", statusKey: "canceled" as const, status: "Canceled" };
+    const completed = { ...baseAppointment, id: "apt_3", statusKey: "completed" as const, status: "Completed" };
+
+    expect(filterActiveAppointments([scheduled, canceled, completed]).map((appointment) => appointment.id)).toEqual(["apt_1"]);
   });
 });
