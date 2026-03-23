@@ -195,6 +195,7 @@ export function CheckoutScreen({
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
   const pickupSummary = openOrder ? getSavedPickupSummary(openOrder) : getDraftPickupSummary(order);
   const activeLineItems = openOrder ? openOrder.lineItems : draftLineItems;
+  const isEmptyDraftCheckout = !openOrder && activeLineItems.length === 0;
   const checkoutCustomer = openOrder
     ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null
     : payerCustomer;
@@ -213,6 +214,8 @@ export function CheckoutScreen({
             ? "Deposit recorded. Collect the remaining balance when the customer checks out."
             : "Review the order and collect payment."
           : "This order is prepaid and ready to close out."
+    : isEmptyDraftCheckout
+      ? "Checkout opens after you build an order."
     : isDraftAlterationOnly
       ? "Review the order and send it through."
       : draftShouldCollectNow
@@ -237,6 +240,16 @@ export function CheckoutScreen({
           Collected {formatCheckoutCurrency(openOrder.totalCollected)}
         </div>
       ) : null}
+    </div>
+  ) : isEmptyDraftCheckout ? (
+    <div className="text-right">
+      <div className="app-text-overline">Checkout</div>
+      <div className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.02em] text-[var(--app-text)]">
+        No order in progress
+      </div>
+      <div className="app-text-caption mt-1">
+        Start an order first, then return here to finish checkout.
+      </div>
     </div>
   ) : (
     <div className="text-right">
@@ -277,7 +290,7 @@ export function CheckoutScreen({
             className="px-3 py-2 text-xs"
             onClick={() => onScreenChange(openOrder ? "openOrders" : "order")}
           >
-            {openOrder ? "Back to orders" : "Back to order"}
+            {openOrder ? "Back to orders" : "New order"}
           </ActionButton>
         ) : undefined}
       />
@@ -292,10 +305,12 @@ export function CheckoutScreen({
                     ? isAcceptedOpenOrder
                       ? showAcceptedConfirmation ? "Order accepted" : "Open order"
                       : "Order review"
-                    : "Checkout review"}
+                    : isEmptyDraftCheckout
+                      ? "Checkout"
+                      : "Checkout review"}
                 </div>
                 <div className="mt-1 app-text-value">
-                  {openOrder ? `Order #${openOrder.id}` : "Checkout review"}
+                  {openOrder ? `Order #${openOrder.id}` : isEmptyDraftCheckout ? "No order in progress" : "Checkout review"}
                 </div>
                 <div className="app-text-caption mt-1 max-w-[36rem]">
                   {openOrder
@@ -304,7 +319,9 @@ export function CheckoutScreen({
                         ? "You accepted this order, saved it to Square, and set the promised-ready details. Payment is still due later."
                         : "This order is saved, the promised-ready details are set, and payment is still due later."
                       : "Review customer details, check the order, and collect any remaining payment."
-                    : "Review the order, confirm fulfillment, and send it through."}
+                    : isEmptyDraftCheckout
+                      ? "Checkout becomes available once an order has been started and built."
+                      : "Review the order, confirm fulfillment, and send it through."}
                 </div>
               </div>
               {pageMeta}
@@ -342,20 +359,20 @@ export function CheckoutScreen({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="app-text-overline">
-                        {openOrder ? "Order details unavailable" : "No order ready for checkout"}
+                        {openOrder ? "Order details unavailable" : "No order yet"}
                       </div>
                       <div className="app-text-body mt-2">
                         {openOrder
                           ? "This order is missing its checkout details. Return to Orders and reopen it there."
-                          : "Build the order first, then come back here to review it and take payment."}
+                          : "Start a new order to add the customer, the work, and the promised-ready details."}
                       </div>
                       <div className="mt-3">
                         <ActionButton
-                          tone="secondary"
+                          tone="primary"
                           className="px-3 py-2 text-xs"
                           onClick={() => onScreenChange(openOrder ? "openOrders" : "order")}
                         >
-                          {openOrder ? "Back to orders" : "Return to order builder"}
+                          {openOrder ? "Back to orders" : "New order"}
                         </ActionButton>
                       </div>
                     </div>
@@ -431,23 +448,35 @@ export function CheckoutScreen({
         <div className="space-y-4">
           <Surface tone="support" className="p-4">
             <SurfaceHeader
-              title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
-              subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "Order saved, with payment still due." : "Collected, due, and total.") : "What will save with the order."}
+              title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : isEmptyDraftCheckout ? "Next step" : "Order totals"}
+              subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "Order saved, with payment still due." : "Collected, due, and total.") : isEmptyDraftCheckout ? "Start an order to continue to checkout." : "What will save with the order."}
             />
 
-            <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-              <DefinitionList items={totalsItems} />
-            </div>
+            {isEmptyDraftCheckout ? (
+              <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
+                <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/25 px-4 py-4">
+                  <div className="app-text-body">There is nothing to check out yet.</div>
+                </div>
+              </div>
+            ) : (
+              <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
+                <DefinitionList items={totalsItems} />
+              </div>
+            )}
 
             <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
               <div className="grid gap-2">
                 {!openOrder ? (
                   <>
-                    <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
-                      Revise order
-                    </ActionButton>
-                    {isDraftAlterationOnly ? (
+                    {isEmptyDraftCheckout ? (
+                      <ActionButton tone="primary" onClick={() => onScreenChange("order")}>
+                        New order
+                      </ActionButton>
+                    ) : isDraftAlterationOnly ? (
                       <>
+                        <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
+                          Revise order
+                        </ActionButton>
                         <ActionButton
                           tone="primary"
                           disabled={checkoutBlocked}
@@ -464,13 +493,18 @@ export function CheckoutScreen({
                         </ActionButton>
                       </>
                     ) : (
-                      <ActionButton
-                        tone="primary"
-                        disabled={checkoutBlocked}
-                        onClick={() => onSaveDraftOrder(draftShouldCollectNow ? "ready_to_collect" : "due_later", true)}
-                      >
-                        {draftShouldCollectNow ? "Send order and continue to payment" : "Send order"}
-                      </ActionButton>
+                      <>
+                        <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
+                          Revise order
+                        </ActionButton>
+                        <ActionButton
+                          tone="primary"
+                          disabled={checkoutBlocked}
+                          onClick={() => onSaveDraftOrder(draftShouldCollectNow ? "ready_to_collect" : "due_later", true)}
+                        >
+                          {draftShouldCollectNow ? "Send order and continue to payment" : "Send order"}
+                        </ActionButton>
+                      </>
                     )}
                   </>
                 ) : (
