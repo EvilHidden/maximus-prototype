@@ -96,11 +96,11 @@ export function AlterationBuilder({
       {selectedGarment ? (
         <div
           className={cx(
-            "rounded-[var(--app-radius-md)]",
+            "flex min-h-0 flex-1 flex-col rounded-[var(--app-radius-md)]",
             showValidation && missingServices && "border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30 px-3 py-3",
           )}
         >
-          <div className="grid min-h-0 flex-1 auto-rows-[7.5rem] gap-2 overflow-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid min-h-0 flex-1 auto-rows-[7.5rem] content-start gap-2 overflow-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
             {currentServices.map((service) => {
               const isSelected = selectedModifiers.some((modifier) => modifier.name === service.name);
               const ServiceIcon = getAlterationServiceIcon(service.name);
@@ -133,7 +133,7 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-3 p-4 xl:mt-5">
+      <Surface tone="support" className="mt-4 flex flex-none flex-wrap items-start justify-between gap-3 p-4 xl:mt-5">
         <div className="shrink-0">
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption mt-1">
