@@ -22,11 +22,11 @@ If two people are actively iterating in this repo, use these first:
 This repo is structured for fast two-person prototyping:
 
 - `src/state/`
-  - reducer-driven app and order workflow state
+  - reducer-driven app, order, appointment, and measurement workflow state
 - `src/data/`
-  - static lookup data, catalogs, navigation, and UI-facing config
+  - navigation, UI-only config, and non-canonical helpers
 - `src/db/`
-  - normalized prototype database schema, runtime seed generation, and adapters back to UI models
+  - normalized prototype database schema, runtime seed generation, reference helpers, canonical mutations, and adapters back to UI models
 - `src/features/order/`
   - order workflow selectors, builders, summary rail, and modals
 - `src/features/home/`, `src/features/customer/`
@@ -34,10 +34,36 @@ This repo is structured for fast two-person prototyping:
 - `src/components/ui/`
   - shared operational UI primitives and layout patterns
 
+## Current architecture status
+
+The app now behaves like a local db-backed mini application for its core operational flows:
+
+- customers
+  - create, update, archive, and historical lookup
+- measurement sets
+  - db-backed draft, save, and delete flows
+- orders
+  - draft -> save -> edit -> payment -> ready -> pickup completion
+- appointments
+  - create, reschedule, complete, cancel
+- checkout
+  - reads canonical saved order records rather than decorative summary strings
+
+What is still intentionally static:
+
+- alteration service definitions
+- custom garment definitions
+- style option definitions
+- measurement field definitions
+- pickup location definitions
+
+Those reference catalogs still live in `src/db/` and are treated as canonical seed/reference tables, but they are not operator-editable CRUD entities yet.
+
 ## Working rules
 
 - Put static lookup data and catalogs in `src/data/`
 - Put canonical business entities, relationships, runtime-relative seed logic, and app bootstrap data in `src/db/`
+- Put shared reference helpers in `src/db/referenceData.ts`
 - Put derived view logic in feature `selectors.ts` files, not inside screens
 - Put reusable interaction patterns in `src/components/ui/primitives.tsx`
 - Use [`docs/UI_SYSTEM_BLUEPRINT.md`](/Users/daniel/Dev%20Work/maximus/docs/UI_SYSTEM_BLUEPRINT.md) as the source of truth for what belongs in tokens vs primitives vs feature composites vs screens
@@ -70,12 +96,22 @@ The app should consume canonical prototype business data through `src/db/appRunt
 
 - `src/db/runtime.ts`
   - builds the normalized local prototype database relative to the current date
+- `src/db/mutations.ts`
+  - canonical create/update/archive/closeout mutations over database records
 - `src/db/adapters.ts`
   - adapts canonical records into current UI-facing view models
 - `src/db/appRuntime.ts`
   - the single app-facing bootstrap boundary used by `App.tsx`
+- `src/features/app/useAppController.ts`
+  - derives screen-facing collections from `state.database`
 
 If you need to change seeded customers, appointments, open orders, readiness, pickup state, or order history, start from `src/db/` and only fall back to `src/data/` for static lookup/config work.
+
+Rule of thumb:
+
+- `createAppRuntime()` should return canonical `database + referenceData`
+- screens should consume adapted/selected views over `state.database`
+- do not recreate private seed catalogs in feature or state modules just to answer helper questions
 
 ## Orders worklist hierarchy
 
