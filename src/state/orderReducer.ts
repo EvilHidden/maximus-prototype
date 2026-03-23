@@ -45,7 +45,6 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         order: {
           ...state.order,
           activeWorkflow: action.workflow,
-          checkoutIntent: null,
           payerCustomerId: state.order.payerCustomerId ?? state.selectedCustomerId,
           custom:
             action.workflow === "custom" && !state.order.custom.draft.wearerCustomerId
@@ -57,14 +56,6 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
                   },
                 }
               : state.order.custom,
-        },
-      };
-    case "setAlterationCheckoutIntent":
-      return {
-        ...state,
-        order: {
-          ...state.order,
-          checkoutIntent: action.intent,
         },
       };
     case "saveOpenOrder":

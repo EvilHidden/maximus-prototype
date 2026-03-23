@@ -190,7 +190,7 @@ export function CheckoutScreen({
   const pricing = getPricingSummary(order);
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
   const isDraftAlterationOnly = !openOrder && orderType === "alteration";
-  const isAcceptedOpenOrder = openOrder?.paymentStatus === "due_later";
+  const isAcceptedOpenOrder = openOrder?.operationalStatus === "accepted";
   const draftShouldCollectNow = hasCustom;
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
   const pickupSummary = openOrder ? getSavedPickupSummary(openOrder) : getDraftPickupSummary(order);
@@ -201,21 +201,79 @@ export function CheckoutScreen({
     : payerCustomer;
   const readyBySummary = getReadyBySummary(openOrder, pickupSummary);
   const allPickupScopesReady = Boolean(openOrder?.pickupSchedules.length) && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
+  const acceptedOrderNeedsPayment = Boolean(openOrder && isAcceptedOpenOrder && openOrder.balanceDue > 0);
+
+  if (isEmptyDraftCheckout) {
+    return (
+      <div className="space-y-4">
+        <SectionHeader
+          icon={CreditCard}
+          title="Checkout"
+          subtitle="Start an order first, then come back here to finish checkout."
+        />
+
+        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+          <Surface tone="work" className="overflow-hidden">
+            <div className="px-4 py-4">
+              <div className="app-text-overline">Checkout</div>
+              <div className="mt-1 app-text-value">No order in progress</div>
+              <div className="app-text-caption mt-1 max-w-[36rem]">
+                Checkout becomes available after you start an order, add the work, and set the promised-ready details.
+              </div>
+            </div>
+
+            <div className="border-t border-[var(--app-border)]/45 px-4 py-8">
+              <EmptyState className="rounded-[var(--app-radius-md)] border-dashed bg-[var(--app-surface-muted)]/25 px-6 py-8 shadow-none">
+                <div className="flex items-start gap-3">
+                  <div className="app-icon-chip">
+                    <ClipboardList className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="app-text-overline">Nothing to check out yet</div>
+                    <div className="app-text-body mt-2">
+                      Start a new order to add the customer, the work, and the pickup timing.
+                    </div>
+                  </div>
+                </div>
+              </EmptyState>
+            </div>
+          </Surface>
+
+          <div className="space-y-4">
+            <Surface tone="support" className="p-4">
+              <SurfaceHeader
+                title="Next step"
+                subtitle="Start a new order to continue."
+              />
+
+              <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
+                <ActionButton tone="primary" onClick={() => onScreenChange("order")}>
+                  New order
+                </ActionButton>
+              </div>
+            </Surface>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const checkoutSubtitle = openOrder
     ? openOrder.paymentStatus === "pending"
       ? "Finish collecting payment for this order."
       : isAcceptedOpenOrder
         ? showAcceptedConfirmation
-          ? "The order is in and payment can wait until later."
-          : "Payment is still due for this order."
+          ? acceptedOrderNeedsPayment
+            ? "The order is in and payment can wait until later."
+            : "The order is in and payment has already been collected."
+          : acceptedOrderNeedsPayment
+            ? "This order has been accepted and payment is still due."
+            : "This order has been accepted and payment is already collected."
         : openOrder.balanceDue > 0
           ? openOrder.totalCollected > 0
             ? "Deposit recorded. Collect the remaining balance when the customer checks out."
             : "Review the order and collect payment."
           : "This order is prepaid and ready to close out."
-    : isEmptyDraftCheckout
-      ? "Checkout opens after you build an order."
     : isDraftAlterationOnly
       ? "Review the order and send it through."
       : draftShouldCollectNow
@@ -224,7 +282,13 @@ export function CheckoutScreen({
 
   const pageMeta = openOrder ? (
     <div className="text-right">
-      <div className="app-text-overline">{isAcceptedOpenOrder ? "Payment due later" : "Balance due"}</div>
+      <div className="app-text-overline">
+        {isAcceptedOpenOrder
+          ? acceptedOrderNeedsPayment
+            ? "Still due"
+            : "Paid"
+          : "Balance due"}
+      </div>
       <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
         {openOrder.balanceDue > 0 ? formatCheckoutCurrency(openOrder.balanceDue) : "Prepaid"}
       </div>
@@ -241,21 +305,11 @@ export function CheckoutScreen({
         </div>
       ) : null}
     </div>
-  ) : isEmptyDraftCheckout ? (
-    <div className="text-right">
-      <div className="app-text-overline">Checkout</div>
-      <div className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.02em] text-[var(--app-text)]">
-        No order in progress
-      </div>
-      <div className="app-text-caption mt-1">
-        Start an order first, then return here to finish checkout.
-      </div>
-    </div>
   ) : (
     <div className="text-right">
-      <div className="app-text-overline">{draftShouldCollectNow ? "To collect today" : "Save status"}</div>
+      <div className="app-text-overline">{draftShouldCollectNow ? "Due today" : "Payment today"}</div>
       <div className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.02em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-        {draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "No payment due today"}
+        {draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "None due"}
       </div>
       <div className="app-text-caption mt-1">
         {checkoutBlocked ? "Order still needs setup before save." : "Order is ready to send through."}
@@ -305,23 +359,23 @@ export function CheckoutScreen({
                     ? isAcceptedOpenOrder
                       ? showAcceptedConfirmation ? "Order accepted" : "Open order"
                       : "Order review"
-                    : isEmptyDraftCheckout
-                      ? "Checkout"
-                      : "Checkout review"}
+                    : "Checkout review"}
                 </div>
                 <div className="mt-1 app-text-value">
-                  {openOrder ? `Order #${openOrder.id}` : isEmptyDraftCheckout ? "No order in progress" : "Checkout review"}
+                  {openOrder ? `Order #${openOrder.id}` : "Checkout review"}
                 </div>
                 <div className="app-text-caption mt-1 max-w-[36rem]">
                   {openOrder
                     ? isAcceptedOpenOrder
                       ? showAcceptedConfirmation
-                        ? "You accepted this order, saved it to Square, and set the promised-ready details. Payment is still due later."
-                        : "This order is saved, the promised-ready details are set, and payment is still due later."
+                        ? acceptedOrderNeedsPayment
+                          ? "You accepted this order, saved it to Square, and set the promised-ready details. Payment is still due later."
+                          : "You accepted this order, saved it to Square, and the payment is already in."
+                        : acceptedOrderNeedsPayment
+                          ? "This order is saved, the promised-ready details are set, and payment is still due later."
+                          : "This order is saved, the promised-ready details are set, and payment is already collected."
                       : "Review customer details, check the order, and collect any remaining payment."
-                    : isEmptyDraftCheckout
-                      ? "Checkout becomes available once an order has been started and built."
-                      : "Review the order, confirm fulfillment, and send it through."}
+                    : "Review the order, confirm fulfillment, and send it through."}
                 </div>
               </div>
               {pageMeta}
@@ -341,7 +395,9 @@ export function CheckoutScreen({
                       Order #{openOrder.id} has been accepted.
                     </div>
                     <div className="mt-1 text-sm leading-relaxed text-emerald-800/90">
-                      {openOrder.payerName}'s order is saved, the due date is set, and the team can start work. No payment was collected, so {formatCheckoutCurrency(openOrder.balanceDue)} will be due later or at pickup.
+                      {acceptedOrderNeedsPayment
+                        ? `${openOrder.payerName}'s order is saved, the due date is set, and the team can start work. No payment was collected, so ${formatCheckoutCurrency(openOrder.balanceDue)} will be due later or at pickup.`
+                        : `${openOrder.payerName}'s order is saved, the due date is set, and the payment is already in. The team can start work.`}
                     </div>
                   </div>
                 </div>
@@ -448,21 +504,13 @@ export function CheckoutScreen({
         <div className="space-y-4">
           <Surface tone="support" className="p-4">
             <SurfaceHeader
-              title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : isEmptyDraftCheckout ? "Next step" : "Order totals"}
-              subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "Order saved, with payment still due." : "Collected, due, and total.") : isEmptyDraftCheckout ? "Start an order to continue to checkout." : "What will save with the order."}
+              title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
+              subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, due, and total.") : "What will save with the order."}
             />
 
-            {isEmptyDraftCheckout ? (
-              <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-                <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/25 px-4 py-4">
-                  <div className="app-text-body">There is nothing to check out yet.</div>
-                </div>
-              </div>
-            ) : (
-              <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-                <DefinitionList items={totalsItems} />
-              </div>
-            )}
+            <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
+              <DefinitionList items={totalsItems} />
+            </div>
 
             <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
               <div className="grid gap-2">

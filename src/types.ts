@@ -6,8 +6,8 @@ export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
 export type MeasurementStatus = "on_file" | "needs_update" | "missing";
 export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
-export type AlterationCheckoutIntent = "pay_later" | "prepay_now" | null;
 export type OpenOrderPaymentStatus = "due_later" | "ready_to_collect" | "pending" | "captured";
+export type OpenOrderOperationalStatus = "accepted" | "in_progress" | "partially_ready" | "ready_for_pickup";
 export type CustomOrderEventType = "none" | "wedding" | "prom";
 export type AppointmentSource = "square" | "manual" | "prototype";
 export type ServiceAppointmentType =
@@ -207,7 +207,6 @@ export type CustomBuilderState = {
 export type OrderWorkflowState = {
   activeWorkflow: WorkflowMode | null;
   payerCustomerId: string | null;
-  checkoutIntent: AlterationCheckoutIntent;
   alteration: AlterationBuilderState;
   custom: CustomBuilderState;
   fulfillment: {
@@ -221,6 +220,7 @@ export type OpenOrder = {
   payerCustomerId: string | null;
   payerName: string;
   orderType: OrderType;
+  operationalStatus: OpenOrderOperationalStatus;
   itemCount: number;
   lineItems: OrderBagLineItem[];
   itemSummary: string[];

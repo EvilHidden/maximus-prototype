@@ -15,6 +15,7 @@ import type {
 import { getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
+import { getDraftPaymentSummary } from "./paymentSummary";
 
 const seedReferenceData = getSeedReferenceData();
 
@@ -371,21 +372,6 @@ export function getCustomFulfillmentSummary(eventType: CustomOrderEventType, eve
   return eventLabel;
 }
 
-export function getCheckoutCollectionAmount(order: OrderWorkflowState) {
-  const pricing = getPricingSummary(order);
-  const orderType = getOrderType(order);
-
-  if (orderType === "custom") {
-    return pricing.depositDue;
-  }
-
-  if (orderType === "mixed") {
-    return pricing.alterationsSubtotal + pricing.taxAmount + pricing.depositDue;
-  }
-
-  return pricing.total;
-}
-
 export function getCanAddCustomDraftToOrder(order: OrderWorkflowState) {
   return getCustomDraftReady(order);
 }
@@ -404,12 +390,8 @@ export function buildOpenOrder(
   const now = options.now ?? new Date();
   const orderId = options.idFactory?.() ?? now.getTime();
   const lineItems = getOrderBagLineItems(order, customers);
-  const pricing = getPricingSummary(order);
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
-  const totalCollected = paymentStatus === "captured" ? getCheckoutCollectionAmount(order) : 0;
-  const balanceDue = Math.max(pricing.total - totalCollected, 0);
-  const paymentDueNow = balanceDue;
-  const collectedToday = totalCollected;
+  const paymentSummary = getDraftPaymentSummary(order, paymentStatus);
   const pickupSchedules = getRequiredPickupScopes(order).map((scope) => {
     const schedule = getPickupScheduleForScope(order, scope);
     const matchingItems = lineItems.filter((item) => item.kind === scope);
@@ -434,16 +416,17 @@ export function buildOpenOrder(
     payerCustomerId: order.payerCustomerId,
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
+    operationalStatus: "accepted",
     itemCount: lineItems.length,
     lineItems,
     itemSummary: lineItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
     pickupSchedules,
-    paymentStatus,
-    paymentDueNow,
-    totalCollected,
-    collectedToday,
-    balanceDue,
-    total: pricing.total,
+    paymentStatus: paymentSummary.paymentStatus,
+    paymentDueNow: paymentSummary.paymentDueNow,
+    totalCollected: paymentSummary.totalCollected,
+    collectedToday: paymentSummary.collectedToday,
+    balanceDue: paymentSummary.balanceDue,
+    total: paymentSummary.total,
     createdAt: now.toISOString(),
   };
 }

@@ -94,6 +94,7 @@ export type DbOrder = {
   orderType: OrderType;
   createdAt: string;
   status: "open" | "partially_ready" | "partially_picked_up" | "complete" | "canceled";
+  operationalStatus?: "accepted" | "in_progress";
   holdUntilAllScopesReady: boolean;
 };
 

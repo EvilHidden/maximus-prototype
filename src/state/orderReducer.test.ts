@@ -98,6 +98,7 @@ describe("order reducer", () => {
       displayId: "ORD-9501",
       payerCustomerId: "C-1042",
       orderType: "alteration",
+      operationalStatus: "accepted",
     });
     expect(next?.database.orderScopes.find((scope) => scope.orderId === "order-9501")).toMatchObject({
       id: "order-9501-alteration",
@@ -124,6 +125,7 @@ describe("order reducer", () => {
     const openOrders = adaptOpenOrders(next!.database);
     expect(openOrders[0]).toMatchObject({
       id: 9501,
+      operationalStatus: "accepted",
       paymentStatus: "due_later",
       balanceDue: 35,
       payerCustomerId: "C-1042",
@@ -140,6 +142,7 @@ describe("order reducer", () => {
       orderType: "alteration",
       createdAt: "2026-03-20T15:00:00",
       status: "open",
+      operationalStatus: "in_progress",
       holdUntilAllScopesReady: false,
     }];
     database.orderScopes = [{

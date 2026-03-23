@@ -205,7 +205,6 @@ describe("app state", () => {
       snapshot: {
         activeWorkflow: "alteration",
         payerCustomerId: "C-1001",
-        checkoutIntent: null,
         alteration: {
           selectedGarment: "Trousers",
           selectedModifiers: [{ name: "Hem", price: 20 }],

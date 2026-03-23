@@ -11,8 +11,8 @@ import type {
   MeasurementSet,
   OrderLineComponent,
   OpenOrder,
+  OpenOrderOperationalStatus,
   OpenOrderPickup,
-  OpenOrderPaymentStatus,
 } from "../types";
 import type {
   DbLocation,
@@ -20,9 +20,9 @@ import type {
   DbOrderScope,
   DbOrderScopeLine,
   DbOrderScopeLineComponent,
-  DbPaymentRecord,
   PrototypeDatabase,
 } from "./schema";
+import { getRecordedPaymentSummary } from "../features/order/paymentSummary";
 
 function findLocationName(locations: DbLocation[], locationId: string) {
   return locations.find((location) => location.id === locationId)?.name ?? "Fifth Avenue";
@@ -121,49 +121,6 @@ function getScopeLineComponents(database: PrototypeDatabase, lineId: string) {
     .sort((left, right) => left.sortOrder - right.sortOrder);
 }
 
-function getPaymentSummary(
-  database: PrototypeDatabase,
-  orderId: string,
-  orderType: OpenOrder["orderType"],
-): { paymentStatus: OpenOrderPaymentStatus; totalCollected: number; collectedToday: number } {
-  const records = database.payments.filter((payment) => payment.orderId === orderId);
-  const latest = records[records.length - 1];
-  const today = new Date(database.generatedAt);
-  today.setHours(0, 0, 0, 0);
-
-  const totalCollected = records.reduce((sum, record) => (
-    record.status === "captured" ? sum + record.amount : sum
-  ), 0);
-
-  const collectedToday = records.reduce((sum, record) => {
-    if (record.status !== "captured" || !record.collectedAt) {
-      return sum;
-    }
-
-    const collectedAt = new Date(record.collectedAt);
-    if (Number.isNaN(collectedAt.getTime())) {
-      return sum;
-    }
-
-    collectedAt.setHours(0, 0, 0, 0);
-    return collectedAt.getTime() === today.getTime() ? sum + record.amount : sum;
-  }, 0);
-
-  return {
-    paymentStatus: (
-      latest?.status === "captured"
-        ? ("captured" satisfies OpenOrderPaymentStatus)
-        : latest?.status === "pending"
-          ? ("pending" satisfies OpenOrderPaymentStatus)
-          : orderType === "alteration"
-            ? ("due_later" satisfies OpenOrderPaymentStatus)
-            : ("ready_to_collect" satisfies OpenOrderPaymentStatus)
-    ),
-    totalCollected,
-    collectedToday,
-  };
-}
-
 function getOrderTotal(database: PrototypeDatabase, orderId: string) {
   return getOrderLines(database, orderId).reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
 }
@@ -185,7 +142,19 @@ function deriveOrderStatus(order: DbOrder, scopes: DbOrderScope[]) {
     return "Partially ready";
   }
 
-  return "In progress";
+  return order.operationalStatus === "accepted" ? "Accepted" : "In progress";
+}
+
+function deriveOperationalStatus(order: DbOrder, scopes: DbOrderScope[]): OpenOrderOperationalStatus {
+  if (scopes.every((scope) => scope.phase === "ready")) {
+    return "ready_for_pickup";
+  }
+
+  if (scopes.some((scope) => scope.phase === "ready")) {
+    return "partially_ready";
+  }
+
+  return order.operationalStatus ?? "in_progress";
 }
 
 function getOrderLabel(database: PrototypeDatabase, orderId: string) {
@@ -425,26 +394,30 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
     .map((order) => {
       const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
       const lineItems = getOpenOrderLineItems(database, order.id);
-      const payment = getPaymentSummary(database, order.id, order.orderType);
       const total = getOrderTotal(database, order.id);
-      const balanceDue = Math.max(total - payment.totalCollected, 0);
-      const paymentDueNow = balanceDue;
+      const payment = getRecordedPaymentSummary({
+        payments: database.payments.filter((candidate) => candidate.orderId === order.id),
+        generatedAt: database.generatedAt,
+        orderType: order.orderType,
+        total,
+      });
 
       return {
         id: Number.parseInt(order.displayId.replace(/\D/g, ""), 10),
         payerCustomerId: order.payerCustomerId,
         payerName: order.payerName,
         orderType: order.orderType,
+        operationalStatus: deriveOperationalStatus(order, scopes),
         itemCount: lineItems.length,
         lineItems,
         itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),
         pickupSchedules: scopes.map((scope) => getOpenOrderPickup(database, order, scope)),
         paymentStatus: payment.paymentStatus,
-        paymentDueNow,
+        paymentDueNow: payment.paymentDueNow,
         totalCollected: payment.totalCollected,
         collectedToday: payment.collectedToday,
-        balanceDue,
-        total,
+        balanceDue: payment.balanceDue,
+        total: payment.total,
         createdAt: order.createdAt,
       };
     });

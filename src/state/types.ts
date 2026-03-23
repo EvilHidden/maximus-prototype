@@ -1,5 +1,4 @@
 import type {
-  AlterationCheckoutIntent,
   AlterationService,
   AppointmentTypeKey,
   Customer,
@@ -78,7 +77,6 @@ export type AppAction =
   | { type: "archiveCustomer"; customerId: string }
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
-  | { type: "setAlterationCheckoutIntent"; intent: AlterationCheckoutIntent }
   | { type: "saveOpenOrder"; paymentStatus: OpenOrder["paymentStatus"]; openCheckout: boolean }
   | { type: "startOpenOrderPayment"; openOrderId: number }
   | { type: "captureOpenOrderPayment"; openOrderId: number }

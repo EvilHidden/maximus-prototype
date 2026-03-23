@@ -83,9 +83,6 @@ function WorkQueueOrderRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
-  const hasCollectibleBalance = openOrder.balanceDue > 0;
-  const allPickupScopesReady = openOrder.pickupSchedules.length > 0 && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
-  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending" || allPickupScopesReady;
   const pickupGroups = openOrder.pickupSchedules.reduce<Array<{
     key: string;
     summary: string;
@@ -128,16 +125,16 @@ function WorkQueueOrderRow({
 
   return (
     <div
-      className={cx("px-4 py-4", rowIsActionable && "cursor-pointer")}
-      role={rowIsActionable ? "button" : undefined}
-      tabIndex={rowIsActionable ? 0 : undefined}
-      onClick={rowIsActionable ? () => onOpenOrderCheckout(openOrder.id) : undefined}
-      onKeyDown={rowIsActionable ? (event) => {
+      className="cursor-pointer px-4 py-4"
+      role="button"
+      tabIndex={0}
+      onClick={() => onOpenOrderCheckout(openOrder.id)}
+      onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
           onOpenOrderCheckout(openOrder.id);
         }
-      } : undefined}
+      }}
     >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.15fr)_220px] lg:items-start">
         <div className="min-w-0">
