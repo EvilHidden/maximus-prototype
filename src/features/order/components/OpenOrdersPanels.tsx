@@ -485,8 +485,9 @@ function WorkQueueOrderRow({
         </div>
 
         <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
-          <div>
+          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>
+            <PaymentStatusPill status={openOrder.paymentStatus} />
           </div>
           <div>
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
