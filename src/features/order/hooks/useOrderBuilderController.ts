@@ -69,7 +69,7 @@ export function useOrderBuilderController({
   const continueLabel =
     order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId
       ? "Go to measurements"
-      : "Continue to checkout";
+      : "Review order";
   const addToCartDisabledReason = !order.alteration.selectedGarment
     ? "Select a garment before adding anything to the cart."
     : order.alteration.selectedModifiers.length === 0
@@ -253,11 +253,6 @@ export function useOrderBuilderController({
     handleAddOrSaveCustomItem,
     handleCancelCustomEdit,
     handleContinue,
-    handleSchedulePayLater: () => onSaveDraftOrder("due_later", false),
-    handleSchedulePrepay: () => {
-      dispatch({ type: "setAlterationCheckoutIntent", intent: "prepay_now" });
-      onOpenDraftCheckout();
-    },
     handleOpenEditCustomItem: (itemId: number) => {
       setEditingItemId(null);
       setEditingCustomItemId(itemId);

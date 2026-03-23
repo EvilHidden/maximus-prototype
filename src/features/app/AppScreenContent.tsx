@@ -137,6 +137,7 @@ export function AppScreenContent({
       customers={customers}
       payerCustomer={payerCustomer}
       openOrder={checkoutOpenOrder}
+      showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
       order={state.order}
       onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       onSaveDraftOrder={saveDraftOrder}

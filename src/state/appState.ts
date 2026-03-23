@@ -58,6 +58,7 @@ export function createInitialAppState({ database = createPrototypeDatabase() }: 
     screen: "home",
     selectedCustomerId: order.payerCustomerId,
     checkoutOpenOrderId: null,
+    checkoutJustSavedOpenOrderId: null,
     editingOpenOrderId: null,
     database: nextDatabase,
     order,
@@ -71,6 +72,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         screen: action.screen,
         checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
       });
     case "startOrderForCustomer":
       return syncDraftOrderRecord({
@@ -78,6 +80,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         screen: "order",
         selectedCustomerId: action.customerId,
         checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
         editingOpenOrderId: null,
         order: {
           ...createInitialOrderState(),
@@ -89,6 +92,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         screen: "checkout",
         checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
       });
     case "openCheckoutForOpenOrder":
       return syncDraftOrderRecord({
@@ -96,6 +100,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         screen: "checkout",
         editingOpenOrderId: null,
         checkoutOpenOrderId: action.openOrderId,
+        checkoutJustSavedOpenOrderId: null,
       });
     case "openOrderForEdit": {
       const nextOrder = loadOrderWorkflowForEdit(state.database, action.openOrderId);
@@ -107,6 +112,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         screen: "order",
         checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
         editingOpenOrderId: action.openOrderId,
         selectedCustomerId: nextOrder.payerCustomerId,
         order: nextOrder,

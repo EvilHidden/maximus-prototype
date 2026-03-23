@@ -292,6 +292,10 @@ export function getOpenOrderOperationalPhase(openOrder: OpenOrder, now = new Dat
     return "Overdue";
   }
 
+  if (openOrder.paymentStatus === "due_later") {
+    return "Accepted";
+  }
+
   return "In progress";
 }
 

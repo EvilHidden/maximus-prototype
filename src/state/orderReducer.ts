@@ -86,6 +86,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           ...state,
           screen: action.openCheckout ? "checkout" : "openOrders",
           checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
+          checkoutJustSavedOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           editingOpenOrderId: null,
           database: savedOrder.database,
           order: createInitialOrderState(),
@@ -111,6 +112,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         ...state,
         screen: "openOrders",
         checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
         editingOpenOrderId: null,
         database: completeOpenOrderPickup(state.database, action.openOrderId, getNow(options)),
       };
@@ -119,6 +121,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         ...state,
         screen: "openOrders",
         checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
         editingOpenOrderId: null,
         database: cancelOpenOrder(state.database, action.openOrderId, getNow(options)),
       };

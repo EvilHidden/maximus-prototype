@@ -18,6 +18,7 @@ export type AppState = {
   screen: Screen;
   selectedCustomerId: string | null;
   checkoutOpenOrderId: number | null;
+  checkoutJustSavedOpenOrderId: number | null;
   editingOpenOrderId: number | null;
   database: PrototypeDatabase;
   order: OrderWorkflowState;
