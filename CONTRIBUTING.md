@@ -76,17 +76,35 @@ Use these to avoid conflict:
 
 - Put canonical business records in `src/db/`.
   - customers
+  - draft orders
   - appointments
-  - open orders
+  - orders
   - order scopes
+  - order scope lines / components
   - notifications
+  - payments
   - runtime-relative seed scenarios
 - Put static lookup/config data in `src/data/`.
-  - catalogs
-  - measurement field definitions
   - navigation
-  - pickup locations
+  - UI-only config
+  - non-canonical helpers
 - If you need to change what the app considers “real” prototype business data, start in `src/db/`, not `src/data/`.
+
+Reference catalog note:
+
+- operational reference catalogs now live in `src/db/` too:
+  - alteration service definitions
+  - custom garment definitions
+  - style option definitions
+  - measurement field definitions
+  - pickup locations
+- those are canonical seed/reference tables, not ad hoc feature constants
+- if a helper needs those values, prefer `src/db/referenceData.ts` over privately recreating seed data in a feature or state module
+
+Mutation rule:
+
+- if the user can create, edit, archive, complete, cancel, or reschedule something in the UI, the state change should flow through `src/db/mutations.ts` and reducer actions
+- do not add new “replace the whole array” patterns for customers, measurements, appointments, or orders
 
 ## Orders language and UI compliance
 
@@ -119,6 +137,8 @@ Before merging, make sure the answer to all of these is `yes`:
 
 - Is the branch still focused on one problem?
 - Did we keep new logic out of screens when a feature module already existed?
+- Did we keep business mutations in `src/db/` instead of hiding them in view helpers?
+- Did we avoid recreating seed/reference catalogs locally when shared reference helpers already exist?
 - Did we remove dead code introduced during the change?
 - Did we run `npm run build`?
 - Did we sanity-check the affected UI flow in the running app?

@@ -85,10 +85,19 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
 
 ## Data and Scenario Rules
 - Put canonical business entities, lifecycle records, and runtime-relative prototype scenarios in `src/db/`.
-- Keep `src/data/` for static lookup data and UI-facing catalogs such as navigation, pickup locations, alteration catalogs, and measurement field definitions.
+- Keep `src/data/` for static lookup data and UI-facing config such as navigation and non-canonical helpers.
+- Keep operational reference catalogs in `src/db/`, including pickup locations, alteration service definitions, custom garment definitions, style options, and measurement field definitions.
 - Do not add new canonical customers, appointments, order history, or open-order records back into `src/data/`.
+- Use `src/db/referenceData.ts` for shared reference helpers and derived reference catalogs. Do not recreate private seed/reference singletons inside feature, state, or serializer modules.
 - If a view needs transformed data, create or extend a selector rather than shaping it inline in JSX.
 - Keep the prototype local-only. Do not add backend, persistence, or API assumptions unless explicitly requested.
+
+## Database-first Rules
+- Treat `state.database` as the source of truth for operational records.
+- `createAppRuntime()` should provide canonical `database + referenceData` only.
+- Screen-facing collections should be derived through adapters/selectors over `state.database`, not stored as parallel runtime arrays.
+- If the user can create, edit, archive, cancel, complete, or reschedule something, the mutation should live in `src/db/mutations.ts` and flow through reducer actions.
+- Prefer archive/inactive semantics over destructive deletion for historical business records unless the user explicitly wants destructive behavior.
 
 ## UI System Rules
 - Reuse primitives from `src/components/ui/primitives.tsx` before inventing new one-off markup patterns.

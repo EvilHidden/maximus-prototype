@@ -18,16 +18,20 @@ Operational display data should now come from:
 - `src/db/runtime.ts`
 - `src/db/runtime/*.ts`
 - `src/db/schema.ts`
+- `src/db/mutations.ts`
 - `src/db/referenceData.ts`
 - `src/db/appRuntime.ts`
 
 That includes:
 - customers
+  - with archive/inactive semantics for history preservation
 - customer events
 - measurements
+- draft orders
 - orders
 - order scopes
 - order scope lines
+- order scope line components
 - pickup notifications
 - pickup appointments
 - service appointments
@@ -40,6 +44,15 @@ That includes:
 Intentional exception:
 - `src/data/navigation.ts` remains UI config, not business data
 
+Still intentionally static for now:
+- alteration service definitions
+- custom garment definitions
+- style option definitions
+- measurement field definitions
+- pickup locations
+
+Those are canonical reference tables, but they are still seed-managed rather than operator-editable.
+
 ## Review Checklist For Remaining Issues
 
 Before each follow-up pass, review these issue classes repo-wide:
@@ -47,6 +60,7 @@ Before each follow-up pass, review these issue classes repo-wide:
 1. Data-source drift
 - No operational screen should pull business records or business lookup values from `src/data/`
 - No screen should inline business literals that already belong to DB seed/reference data
+- No feature/state/serializer helper should recreate private seed catalogs when `src/db/referenceData.ts` already exposes the needed helper or derived reference values
 
 2. Formatting leakage
 - Canonical types should store raw values
@@ -188,6 +202,7 @@ Those belong in frontend selectors or a thin view-model layer.
 - Keep removing stray operational fixture imports
 - Keep moving operational lookup sets into DB seed/reference tables
 - Keep screens dependent on `createAppRuntime()` outputs only
+- Keep screen-facing collections derived from `state.database` through adapters/selectors rather than parallel runtime arrays
 
 ### Phase 2: Backend readiness
 - Prepare the canonical schema for owned backend implementation

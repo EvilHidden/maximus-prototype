@@ -13,6 +13,8 @@ The goal is not to be production-perfect yet. The goal is to stop spreading busi
   - optional events
   - appointments
   - orders through `payer_customer_id`
+- customer records should archive instead of being destructively deleted
+- archived customers remain available for historical lookup, but should drop out of active picker/search flows
 
 ### `customer_event`
 - Optional event tied to a customer, such as a wedding or prom
@@ -109,6 +111,15 @@ They should also remain expressive enough to carry normalized scheduling metadat
 ### `measurement_set`
 - Versioned customer measurement history
 - Measurements should follow the most correct and flexible tailoring model, not a legacy fixed-column shape
+- Measurement set create/save/delete flows are now db mutations, not feature-layer whole-array rewrites
+
+### `draft_order`
+- Canonical working order record used before an order is saved
+- Stores:
+  - payer linkage
+  - current workflow snapshot
+  - update timestamp
+- Exists so the active order-builder state is part of the local database model, not just reducer-only temporary state
 
 ### Reference definitions
 - The prototype also carries seeded operational reference tables for:
@@ -118,6 +129,10 @@ They should also remain expressive enough to carry normalized scheduling metadat
   - measurement field definitions
 
 These now live under `src/db/` so operational lookup data is sourced from the same canonical layer as business records.
+
+Note:
+- these tables are canonical reference data for the prototype
+- they are still intentionally static/seed-backed, not operator-editable CRUD entities yet
 
 ### `payment_record`
 - Local mirror of payment state
@@ -148,7 +163,11 @@ These now live under `src/db/` so operational lookup data is sourced from the sa
   - partial readiness
   - partial pickup
   - repeat notification as remaining scopes become available
-- Hold behavior is inferred in selectors for now, not locked into a rigid schema flag yet
+- Hold behavior is persisted on the order record through `hold_until_all_scopes_ready`
+
+### Appointment feeds
+- canceled and completed appointments remain in the canonical database for history
+- active operational boards like Home and Appointments should filter those out of the live feed instead of deleting them
 
 ## Orders UI semantics
 
@@ -175,19 +194,22 @@ The current prototype runtime is:
 
 - `src/db/runtime.ts`
   - creates a local normalized database seeded relative to the current date
+- `src/db/mutations.ts`
+  - owns canonical business mutations for customers, appointments, measurements, drafts, orders, payments, and pickup progression
 - `src/db/referenceData.ts`
-  - derives screen-facing operational catalogs from canonical reference tables
+  - derives screen-facing operational catalogs and shared reference helpers from canonical reference tables
 - `src/db/adapters.ts`
   - adapts canonical records into current screen-facing view models
 - `src/db/orderWorkflowSerializer.ts`
   - translates in-progress order-builder state into canonical persisted order records
 - `src/db/appRuntime.ts`
-  - provides the single app-facing bootstrap boundary consumed by `App.tsx`
+  - provides the single app-facing bootstrap boundary consumed by `App.tsx` as `database + referenceData`
 
 This means:
 - business truth lives in the schema/runtime layer
 - UI compatibility is preserved through adapters
 - app bootstrap should happen through one runtime entry point instead of hand-wiring multiple adapters at the app root
+- reducer state should mutate canonical records and derive screen-facing collections from `state.database`
 - order-save serialization should happen through db/domain serializers, not through screen-oriented feature view models
 - future PostgreSQL migration starts from the normalized model, not from scattered fixture arrays
 - if the UI shows item detail, payment state, or relationship context, it should come from modeled records or derived selectors over modeled records, not decorative placeholders
