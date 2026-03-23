@@ -92,6 +92,27 @@ export type AlterationService = {
   price: number;
 };
 
+export type OrderLineComponentKind =
+  | "alteration_service"
+  | "wearer"
+  | "measurement_set"
+  | "fabric"
+  | "buttons"
+  | "lining"
+  | "threads"
+  | "canvas"
+  | "lapel"
+  | "pocket_type"
+  | "monogram";
+
+export type OrderLineComponent = {
+  id: string;
+  kind: OrderLineComponentKind;
+  label: string;
+  value: string;
+  sortOrder: number;
+};
+
 export type AlterationCategory = {
   category: string;
   services: AlterationService[];
@@ -125,6 +146,14 @@ export type OrderBagLineItem = {
   title: string;
   subtitle: string;
   amount: number;
+  sourceLabel: string;
+  garmentLabel: string;
+  wearerCustomerId?: string | null;
+  wearerName?: string | null;
+  linkedMeasurementSetId?: string | null;
+  linkedMeasurementLabel?: string | null;
+  measurementSnapshot?: Record<string, string> | null;
+  components: OrderLineComponent[];
   removable?: boolean;
   editable?: boolean;
   itemId?: number;

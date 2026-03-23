@@ -9,6 +9,7 @@ import type {
   Customer,
   CustomerOrder,
   MeasurementSet,
+  OrderLineComponent,
   OpenOrder,
   OpenOrderPickup,
   OpenOrderPaymentStatus,
@@ -18,6 +19,7 @@ import type {
   DbOrder,
   DbOrderScope,
   DbOrderScopeLine,
+  DbOrderScopeLineComponent,
   DbPaymentRecord,
   PrototypeDatabase,
 } from "./schema";
@@ -113,6 +115,12 @@ function getScopeLines(database: PrototypeDatabase, scopeId: string) {
   return database.orderScopeLines.filter((line) => line.scopeId === scopeId);
 }
 
+function getScopeLineComponents(database: PrototypeDatabase, lineId: string) {
+  return database.orderScopeLineComponents
+    .filter((component) => component.lineId === lineId)
+    .sort((left, right) => left.sortOrder - right.sortOrder);
+}
+
 function getPaymentSummary(
   database: PrototypeDatabase,
   orderId: string,
@@ -185,16 +193,63 @@ function getOrderLabel(database: PrototypeDatabase, orderId: string) {
   return lines.map((line) => line.label).join(", ");
 }
 
+function createOpenOrderLineTitle(line: DbOrderScopeLine, scope: DbOrderScope | undefined) {
+  return scope?.workflow === "custom"
+    ? `Custom garment - ${line.garmentLabel}`
+    : `Alteration - ${line.garmentLabel}`;
+}
+
+function createOpenOrderLineSubtitle(
+  line: DbOrderScopeLine,
+  components: DbOrderScopeLineComponent[],
+  scope: DbOrderScope | undefined,
+) {
+  if (scope?.workflow === "custom") {
+    const primary = components
+      .filter((component) => component.kind === "wearer" || component.kind === "measurement_set")
+      .map((component) => component.value);
+    const secondary = components
+      .filter((component) => component.kind !== "wearer" && component.kind !== "measurement_set")
+      .map((component) => `${component.label} ${component.value}`);
+
+    if (secondary.length > 0) {
+      return `${primary.join(" • ")}\n${secondary.join(" • ")}`.trim();
+    }
+
+    return primary.join(" • ");
+  }
+
+  return components
+    .filter((component) => component.kind === "alteration_service")
+    .map((component) => component.value)
+    .join(", ");
+}
+
 function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): OpenOrder["lineItems"] {
   return getOrderLines(database, orderId).map((line, index) => {
     const scope = database.orderScopes.find((candidate) => candidate.id === line.scopeId);
+    const components = getScopeLineComponents(database, line.id);
 
     return {
       id: `${orderId}-${line.id}`,
       kind: scope?.workflow ?? "alteration",
-      title: `${index + 1}. ${line.label}`,
-      subtitle: scope?.workflow === "custom" ? "Custom garments" : "Alterations",
+      title: `${index + 1}. ${createOpenOrderLineTitle(line, scope)}`,
+      subtitle: createOpenOrderLineSubtitle(line, components, scope),
       amount: line.quantity * line.unitPrice,
+      sourceLabel: line.label,
+      garmentLabel: line.garmentLabel,
+      wearerCustomerId: line.wearerCustomerId,
+      wearerName: line.wearerName,
+      linkedMeasurementSetId: line.measurementSetId,
+      linkedMeasurementLabel: line.measurementSetLabel,
+      measurementSnapshot: line.measurementSnapshot ? { ...line.measurementSnapshot } : null,
+      components: components.map<OrderLineComponent>((component) => ({
+        id: component.id,
+        kind: component.kind,
+        label: component.label,
+        value: component.value,
+        sortOrder: component.sortOrder,
+      })),
     };
   });
 }

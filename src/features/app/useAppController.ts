@@ -1,4 +1,12 @@
 import { useMemo, useReducer } from "react";
+import {
+  adaptAppointments,
+  adaptClosedOrderHistory,
+  adaptCustomerOrders,
+  adaptCustomers,
+  adaptMeasurementSets,
+  adaptOpenOrders,
+} from "../../db/adapters";
 import { getPickupAppointments } from "../home/selectors";
 import { appReducer, createInitialAppState } from "../../state/appState";
 import type { Customer } from "../../types";
@@ -10,54 +18,53 @@ export function useAppController() {
   const appRuntime = useAppRuntimeData();
   const {
     referenceData,
-    customers: baseCustomers,
-    customerOrders,
-    appointments: baseAppointments,
-    measurementSets: baseMeasurementSets,
-    openOrders: initialOpenOrders,
-    closedOrderHistory,
+    database,
   } = appRuntime;
 
   const [state, dispatch] = useReducer(
     appReducer,
-    { customers: baseCustomers, openOrders: initialOpenOrders },
+    { database },
     createInitialAppState,
   );
 
+  const customers = useMemo(() => adaptCustomers(state.database), [state.database]);
+  const customerOrders = useMemo(() => adaptCustomerOrders(state.database), [state.database]);
+  const appointments = useMemo(() => adaptAppointments(state.database), [state.database]);
+  const derivedMeasurementSets = useMemo(() => adaptMeasurementSets(state.database), [state.database]);
+  const openOrders = useMemo(() => adaptOpenOrders(state.database), [state.database]);
+  const closedOrderHistory = useMemo(() => adaptClosedOrderHistory(state.database), [state.database]);
+
   const selectedCustomer = useMemo<Customer | null>(
-    () => state.customers.find((customer) => customer.id === state.selectedCustomerId) ?? null,
-    [state.customers, state.selectedCustomerId],
+    () => customers.find((customer) => customer.id === state.selectedCustomerId) ?? null,
+    [customers, state.selectedCustomerId],
   );
   const payerCustomer = useMemo<Customer | null>(
-    () => state.customers.find((customer) => customer.id === state.order.payerCustomerId) ?? null,
-    [state.customers, state.order.payerCustomerId],
+    () => customers.find((customer) => customer.id === state.order.payerCustomerId) ?? null,
+    [customers, state.order.payerCustomerId],
   );
   const checkoutOpenOrder = useMemo(
-    () => state.openOrders.find((openOrder) => openOrder.id === state.checkoutOpenOrderId) ?? null,
-    [state.checkoutOpenOrderId, state.openOrders],
+    () => openOrders.find((openOrder) => openOrder.id === state.checkoutOpenOrderId) ?? null,
+    [openOrders, state.checkoutOpenOrderId],
   );
-  const pickupAppointments = useMemo(() => getPickupAppointments(baseAppointments), [baseAppointments]);
+  const pickupAppointments = useMemo(() => getPickupAppointments(appointments), [appointments]);
 
   const { measurementSets, saveMeasurements, createDraftMeasurements, deleteMeasurementSet } = useMeasurementSetManager({
-    baseMeasurementSets,
+    measurementSets: derivedMeasurementSets,
     selectedCustomer,
     linkedMeasurementSetId: state.order.custom.draft.linkedMeasurementSetId,
     measurements: state.order.custom.draft.measurements,
     dispatch,
   });
-  const { startWorkflow, openWorkflowAppointment, saveDraftOrder, startOpenOrderPayment, captureOpenOrderPayment } = useAppWorkflowActions({
-    customers: state.customers,
-    dispatch,
-    order: state.order,
-  });
+  const { startWorkflow, openWorkflowAppointment, saveDraftOrder, startOpenOrderPayment, captureOpenOrderPayment } = useAppWorkflowActions({ dispatch, order: state.order });
 
   return {
     state,
     dispatch,
     referenceData,
-    customers: state.customers,
+    customers,
     customerOrders,
-    appointments: baseAppointments,
+    appointments,
+    openOrders,
     measurementSets,
     closedOrderHistory,
     selectedCustomer,

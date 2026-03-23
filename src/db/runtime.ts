@@ -8,6 +8,7 @@ import {
 import {
   createOrders,
   createOrderScopeLines,
+  createOrderScopeLineComponents,
   createOrderScopes,
   createPayments,
   createSquareLinks,
@@ -50,7 +51,8 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const measurementSets = createMeasurementSets();
   const orders = createOrders(seedDates);
   const orderScopes = createOrderScopes(seedDates);
-  const orderScopeLines = createOrderScopeLines();
+  const orderScopeLines = createOrderScopeLines(orders, orderScopes, measurementSets);
+  const orderScopeLineComponents = createOrderScopeLineComponents(orderScopeLines, orderScopes);
   const pickupNotifications = createPickupNotifications(seedDates);
   const pickupAppointments = createPickupAppointments(seedDates);
   const serviceAppointments = createServiceAppointments(seedDates);
@@ -70,6 +72,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     orders,
     orderScopes,
     orderScopeLines,
+    orderScopeLineComponents,
     pickupNotifications,
     pickupAppointments,
     serviceAppointments,

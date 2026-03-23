@@ -6,6 +6,7 @@ import type {
   CustomerOrder,
   OpenOrder,
   OpenOrderPaymentStatus,
+  OrderLineComponent,
   OrderBagLineItem,
   OrderType,
   OrderWorkflowState,
@@ -64,6 +65,129 @@ function getWearerName(customerId: string | null, customers: Customer[], fallbac
   }
 
   return customers.find((customer) => customer.id === customerId)?.name ?? "Wearer req";
+}
+
+function createLineTitle(kind: WorkflowMode, garmentLabel: string) {
+  return kind === "alteration" ? `Alteration - ${garmentLabel}` : `Custom garment - ${garmentLabel}`;
+}
+
+function createAlterationComponents(itemId: number, modifiers: OrderWorkflowState["alteration"]["items"][number]["modifiers"]): OrderLineComponent[] {
+  return modifiers.map((modifier, index) => ({
+    id: `alteration-${itemId}-service-${index + 1}`,
+    kind: "alteration_service",
+    label: "Service",
+    value: modifier.name,
+    sortOrder: index + 1,
+  }));
+}
+
+function createCustomComponents(item: OrderWorkflowState["custom"]["items"][number], customers: Customer[]): OrderLineComponent[] {
+  const components: OrderLineComponent[] = [];
+  const wearerName = getWearerName(item.wearerCustomerId, customers, item.wearerName);
+
+  components.push({
+    id: `custom-${item.id}-wearer`,
+    kind: "wearer",
+    label: "Wearer",
+    value: wearerName,
+    sortOrder: 1,
+  });
+
+  if (item.linkedMeasurementLabel) {
+    components.push({
+      id: `custom-${item.id}-measurements`,
+      kind: "measurement_set",
+      label: "Measurements",
+      value: item.linkedMeasurementLabel,
+      sortOrder: 2,
+    });
+  }
+
+  if (item.fabric) {
+    components.push({
+      id: `custom-${item.id}-fabric`,
+      kind: "fabric",
+      label: "Fabric",
+      value: item.fabric,
+      sortOrder: 3,
+    });
+  }
+
+  if (item.buttons) {
+    components.push({
+      id: `custom-${item.id}-buttons`,
+      kind: "buttons",
+      label: "Buttons",
+      value: item.buttons,
+      sortOrder: 4,
+    });
+  }
+
+  if (item.lining) {
+    components.push({
+      id: `custom-${item.id}-lining`,
+      kind: "lining",
+      label: "Lining",
+      value: item.lining,
+      sortOrder: 5,
+    });
+  }
+
+  if (item.threads) {
+    components.push({
+      id: `custom-${item.id}-threads`,
+      kind: "threads",
+      label: "Threads",
+      value: item.threads,
+      sortOrder: 6,
+    });
+  }
+
+  if (item.canvas) {
+    components.push({
+      id: `custom-${item.id}-canvas`,
+      kind: "canvas",
+      label: "Canvas",
+      value: item.canvas,
+      sortOrder: 7,
+    });
+  }
+
+  if (item.lapel) {
+    components.push({
+      id: `custom-${item.id}-lapel`,
+      kind: "lapel",
+      label: "Lapel",
+      value: item.lapel,
+      sortOrder: 8,
+    });
+  }
+
+  if (item.pocketType) {
+    components.push({
+      id: `custom-${item.id}-pocket`,
+      kind: "pocket_type",
+      label: "Pockets",
+      value: item.pocketType,
+      sortOrder: 9,
+    });
+  }
+
+  [
+    item.monogramLeft ? { value: item.monogramLeft, label: "Monogram left" } : null,
+    item.monogramCenter ? { value: item.monogramCenter, label: "Monogram center" } : null,
+    item.monogramRight ? { value: item.monogramRight, label: "Monogram right" } : null,
+  ].filter(Boolean).forEach((entry, index) => {
+    components.push({
+      id: `custom-${item.id}-monogram-${index + 1}`,
+      kind: "monogram",
+      label: entry!.label,
+      value: entry!.value,
+      sortOrder: 10 + index,
+    });
+  });
+
+  return components;
 }
 
 export function getHasAlterationContent(order: OrderWorkflowState) {
@@ -151,9 +275,17 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
   const items: OrderBagLineItem[] = order.alteration.items.map((item, index) => ({
     id: `alteration-${item.id}`,
     kind: "alteration",
-    title: `${index + 1}. Alteration - ${item.garment}`,
+    title: `${index + 1}. ${createLineTitle("alteration", item.garment)}`,
     subtitle: item.modifiers.map((modifier) => modifier.name).join(", "),
     amount: item.subtotal,
+    sourceLabel: `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim(),
+    garmentLabel: item.garment,
+    components: createAlterationComponents(item.id, item.modifiers),
+    wearerCustomerId: null,
+    wearerName: null,
+    linkedMeasurementSetId: null,
+    linkedMeasurementLabel: null,
+    measurementSnapshot: null,
     removable: true,
     editable: true,
     itemId: item.id,
@@ -178,9 +310,17 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
     items.push({
       id: `custom-item-${item.id}`,
       kind: "custom",
-      title: `${order.alteration.items.length + index + 1}. Custom garment - ${selectedGarment}`,
+      title: `${order.alteration.items.length + index + 1}. ${createLineTitle("custom", selectedGarment)}`,
       subtitle,
       amount: getCustomGarmentPrice(selectedGarment),
+      sourceLabel: selectedGarment,
+      garmentLabel: selectedGarment,
+      wearerCustomerId: item.wearerCustomerId,
+      wearerName: getWearerName(item.wearerCustomerId, customers, item.wearerName),
+      linkedMeasurementSetId: item.linkedMeasurementSetId,
+      linkedMeasurementLabel: item.linkedMeasurementLabel,
+      measurementSnapshot: { ...item.measurementSnapshot },
+      components: createCustomComponents(item, customers),
       removable: true,
       editable: true,
       itemId: item.id,

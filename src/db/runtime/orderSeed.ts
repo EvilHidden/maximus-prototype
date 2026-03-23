@@ -1,7 +1,9 @@
 import type {
+  DbMeasurementSet,
   DbOrder,
   DbOrderScope,
   DbOrderScopeLine,
+  DbOrderScopeLineComponent,
   DbPaymentRecord,
   DbSquareLink,
 } from "../schema";
@@ -672,7 +674,83 @@ export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates)
   ];
 }
 
-export function createOrderScopeLines(): DbOrderScopeLine[] {
+function inferAlterationGarment(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("trouser") || normalized.includes("pant")) return "Trousers";
+  if (normalized.includes("jacket") || normalized.includes("sleeve")) return "Jacket";
+  if (normalized.includes("vest")) return "Vest";
+  if (normalized.includes("dress")) return "Dress";
+  if (normalized.includes("skirt")) return "Skirt";
+  if (normalized.includes("blouse")) return "Blouse";
+  if (normalized.includes("gown")) return "Gown";
+  if (normalized.includes("sari")) return "Sari blouse";
+
+  return "Alteration";
+}
+
+function inferAlterationServices(label: string) {
+  const normalized = label.toLowerCase();
+
+  if (normalized.includes("hem + taper")) return ["Hem", "Taper"];
+  if (normalized.includes("hem")) return ["Hem"];
+  if (normalized.includes("taper")) return ["Taper"];
+  if (normalized.includes("suppression")) return ["Suppression"];
+  if (normalized.includes("shorten")) return ["Shorten"];
+  if (normalized.includes("bustle")) return ["Bustle"];
+  if (normalized.includes("take-in")) return ["Take-in"];
+  if (normalized.includes("adjustment")) return ["Adjustment"];
+  if (normalized.includes("fitting")) return ["Fitting"];
+  if (normalized.includes("lift")) return ["Lift"];
+
+  return [label];
+}
+
+function getLatestMeasurementSet(customerId: string | null, measurementSets: DbMeasurementSet[]) {
+  if (!customerId) {
+    return null;
+  }
+
+  return measurementSets.find((set) => set.customerId === customerId && !set.isDraft) ?? measurementSets.find((set) => set.customerId === customerId) ?? null;
+}
+
+type SeedScopeLineInput = {
+  id: string;
+  scopeId: string;
+  label: string;
+  quantity: number;
+  unitPrice: number;
+};
+
+function buildSeedOrderScopeLine(
+  input: SeedScopeLineInput,
+  ordersById: Map<string, DbOrder>,
+  scopesById: Map<string, DbOrderScope>,
+  measurementSets: DbMeasurementSet[],
+): DbOrderScopeLine {
+  const scope = scopesById.get(input.scopeId);
+  const order = scope ? ordersById.get(scope.orderId) : null;
+  const measurementSet = scope?.workflow === "custom" ? getLatestMeasurementSet(order?.payerCustomerId ?? null, measurementSets) : null;
+
+  return {
+    ...input,
+    garmentLabel: scope?.workflow === "custom" ? input.label : inferAlterationGarment(input.label),
+    wearerCustomerId: scope?.workflow === "custom" ? order?.payerCustomerId ?? null : null,
+    wearerName: scope?.workflow === "custom" ? order?.payerName ?? null : null,
+    measurementSetId: measurementSet?.id ?? null,
+    measurementSetLabel: measurementSet?.label ?? null,
+    measurementSnapshot: measurementSet ? { ...measurementSet.values } : null,
+  };
+}
+
+export function createOrderScopeLines(
+  orders: DbOrder[],
+  orderScopes: DbOrderScope[],
+  measurementSets: DbMeasurementSet[],
+): DbOrderScopeLine[] {
+  const ordersById = new Map(orders.map((order) => [order.id, order]));
+  const scopesById = new Map(orderScopes.map((scope) => [scope.id, scope]));
+
   return [
     { id: "line-9001-1", scopeId: "scope-9001-custom", label: "Two-piece suit", quantity: 1, unitPrice: 1495 },
     { id: "line-9002-1", scopeId: "scope-9002-alteration", label: "Dress hem", quantity: 1, unitPrice: 240 },
@@ -715,7 +793,54 @@ export function createOrderScopeLines(): DbOrderScopeLine[] {
     { id: "line-9021-1", scopeId: "scope-9021-custom", label: "Charcoal suit", quantity: 1, unitPrice: 1495 },
     { id: "line-9022-1", scopeId: "scope-9022-alteration", label: "Sari blouse adjustment", quantity: 1, unitPrice: 90 },
     { id: "line-9023-1", scopeId: "scope-9023-custom", label: "Dinner suit", quantity: 1, unitPrice: 1545 },
-  ];
+  ].map((line) => buildSeedOrderScopeLine(line, ordersById, scopesById, measurementSets));
+}
+
+export function createOrderScopeLineComponents(orderScopeLines: DbOrderScopeLine[], orderScopes: DbOrderScope[]): DbOrderScopeLineComponent[] {
+  const scopesById = new Map(orderScopes.map((scope) => [scope.id, scope]));
+
+  return orderScopeLines.flatMap((line) => {
+    const scope = scopesById.get(line.scopeId);
+    const components: DbOrderScopeLineComponent[] = [];
+
+    if (scope?.workflow === "alteration") {
+      inferAlterationServices(line.label).forEach((service, index) => {
+        components.push({
+          id: `${line.id}-service-${index + 1}`,
+          lineId: line.id,
+          kind: "alteration_service",
+          label: "Service",
+          value: service,
+          sortOrder: index + 1,
+        });
+      });
+      return components;
+    }
+
+    if (line.wearerName) {
+      components.push({
+        id: `${line.id}-wearer`,
+        lineId: line.id,
+        kind: "wearer",
+        label: "Wearer",
+        value: line.wearerName,
+        sortOrder: 1,
+      });
+    }
+
+    if (line.measurementSetLabel) {
+      components.push({
+        id: `${line.id}-measurements`,
+        lineId: line.id,
+        kind: "measurement_set",
+        label: "Measurements",
+        value: line.measurementSetLabel,
+        sortOrder: 2,
+      });
+    }
+
+    return components;
+  });
 }
 
 export function createPayments({ baseDate }: RuntimeSeedDates): DbPaymentRecord[] {

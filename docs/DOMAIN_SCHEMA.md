@@ -55,11 +55,25 @@ UI note:
   - one promised-ready line for a shared timing group
 
 ### `order_scope_line`
-- The line items that live under a scope
+- The saved sellable line items that live under a scope
 - Used for:
   - order summaries
+  - checkout / receipt review
   - queue display
   - future Square line-item mapping
+- Should store canonical relational truth for the saved item, not just a display label:
+  - garment identity
+  - wearer linkage when applicable
+  - measurement-set linkage when applicable
+  - frozen measurement snapshot when applicable
+
+### `order_scope_line_component`
+- Child records for `order_scope_line`
+- Used for:
+  - alteration services / modifiers
+  - custom build options
+  - wearer / measurement metadata tied to a saved custom line
+- This is the layer that prevents checkout and receipts from reverse-engineering item detail out of one flat label string
 
 ### `pickup_notification`
 - Explicit customer contact attempts after a scope is ready or nearing pickup
@@ -173,6 +187,7 @@ This means:
 - UI compatibility is preserved through adapters
 - app bootstrap should happen through one runtime entry point instead of hand-wiring multiple adapters at the app root
 - future PostgreSQL migration starts from the normalized model, not from scattered fixture arrays
+- if the UI shows item detail, payment state, or relationship context, it should come from modeled records or derived selectors over modeled records, not decorative placeholders
 
 ## Migration intent
 

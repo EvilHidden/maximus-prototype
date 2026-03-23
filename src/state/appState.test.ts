@@ -1,4 +1,6 @@
 import { describe, expect, it } from "vitest";
+import { adaptCustomers } from "../db/adapters";
+import { createPrototypeDatabase } from "../db/runtime";
 import type { Customer } from "../types";
 import { appReducer, createInitialAppState } from "./appState";
 
@@ -31,16 +33,48 @@ const sam: Customer = {
 
 describe("app state", () => {
   it("adds session customers and selects the new record", () => {
-    const state = createInitialAppState({ customers: [jordan] });
+    const database = createPrototypeDatabase();
+    database.customers = [
+      {
+        id: jordan.id,
+        name: jordan.name,
+        phone: jordan.phone,
+        email: jordan.email,
+        address: jordan.address,
+        preferredLocationId: "loc_fifth_avenue",
+        lastVisitLabel: jordan.lastVisit,
+        measurementsStatus: jordan.measurementsStatus,
+        marketingOptIn: jordan.marketingOptIn,
+        notes: jordan.notes,
+        isVip: jordan.isVip,
+      },
+    ];
+    const state = createInitialAppState({ database });
 
     const next = appReducer(state, { type: "addCustomer", customer: sam });
 
-    expect(next.customers.map((customer) => customer.id)).toEqual(["C-1002", "C-1001"]);
+    expect(adaptCustomers(next.database).map((customer) => customer.id)).toEqual(["C-1002", "C-1001"]);
     expect(next.selectedCustomerId).toBe("C-1002");
   });
 
   it("updates an existing session customer in place", () => {
-    const state = createInitialAppState({ customers: [jordan] });
+    const database = createPrototypeDatabase();
+    database.customers = [
+      {
+        id: jordan.id,
+        name: jordan.name,
+        phone: jordan.phone,
+        email: jordan.email,
+        address: jordan.address,
+        preferredLocationId: "loc_fifth_avenue",
+        lastVisitLabel: jordan.lastVisit,
+        measurementsStatus: jordan.measurementsStatus,
+        marketingOptIn: jordan.marketingOptIn,
+        notes: jordan.notes,
+        isVip: jordan.isVip,
+      },
+    ];
+    const state = createInitialAppState({ database });
 
     const next = appReducer(state, {
       type: "updateCustomer",
@@ -51,7 +85,7 @@ describe("app state", () => {
       },
     });
 
-    expect(next.customers[0]).toMatchObject({
+    expect(adaptCustomers(next.database)[0]).toMatchObject({
       id: "C-1001",
       phone: "555-9999",
       preferredLocation: "Long Island",
@@ -59,7 +93,35 @@ describe("app state", () => {
   });
 
   it("deletes a customer and clears active order references tied to that customer", () => {
-    const state = createInitialAppState({ customers: [jordan, sam] });
+    const database = createPrototypeDatabase();
+    database.customers = [
+      {
+        id: jordan.id,
+        name: jordan.name,
+        phone: jordan.phone,
+        email: jordan.email,
+        address: jordan.address,
+        preferredLocationId: "loc_fifth_avenue",
+        lastVisitLabel: jordan.lastVisit,
+        measurementsStatus: jordan.measurementsStatus,
+        marketingOptIn: jordan.marketingOptIn,
+        notes: jordan.notes,
+        isVip: jordan.isVip,
+      },
+      {
+        id: sam.id,
+        name: sam.name,
+        phone: sam.phone,
+        email: sam.email,
+        address: sam.address,
+        preferredLocationId: "loc_queens",
+        lastVisitLabel: sam.lastVisit,
+        measurementsStatus: sam.measurementsStatus,
+        marketingOptIn: sam.marketingOptIn,
+        notes: sam.notes,
+      },
+    ];
+    const state = createInitialAppState({ database });
     state.selectedCustomerId = "C-1002";
     state.order.payerCustomerId = "C-1002";
     state.order.custom.draft.wearerCustomerId = "C-1002";
@@ -78,7 +140,7 @@ describe("app state", () => {
 
     const next = appReducer(state, { type: "deleteCustomer", customerId: "C-1002" });
 
-    expect(next.customers.map((customer) => customer.id)).toEqual(["C-1001"]);
+    expect(adaptCustomers(next.database).map((customer) => customer.id)).toEqual(["C-1001"]);
     expect(next.selectedCustomerId).toBeNull();
     expect(next.order.payerCustomerId).toBeNull();
     expect(next.order.custom.draft.wearerCustomerId).toBeNull();

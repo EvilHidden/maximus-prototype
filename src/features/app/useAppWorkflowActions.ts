@@ -1,15 +1,13 @@
 import { useCallback } from "react";
-import { buildOpenOrder } from "../order/selectors";
-import type { Appointment, Customer, WorkflowMode } from "../../types";
+import type { Appointment, WorkflowMode } from "../../types";
 import type { AppAction, AppState } from "../../state/appState";
 
 type UseAppWorkflowActionsArgs = {
-  customers: Customer[];
   dispatch: React.Dispatch<AppAction>;
   order: AppState["order"];
 };
 
-export function useAppWorkflowActions({ customers, dispatch, order }: UseAppWorkflowActionsArgs) {
+export function useAppWorkflowActions({ dispatch, order }: UseAppWorkflowActionsArgs) {
   const startWorkflow = useCallback((workflow: WorkflowMode) => {
     dispatch({ type: "clearOrder" });
     dispatch({ type: "activateWorkflow", workflow });
@@ -31,13 +29,8 @@ export function useAppWorkflowActions({ customers, dispatch, order }: UseAppWork
   }, [dispatch]);
 
   const saveDraftOrder = useCallback((paymentStatus: "due_later" | "ready_to_collect", openCheckout = false) => {
-    const openOrder = buildOpenOrder(order, customers, paymentStatus);
-    if (!openOrder) {
-      return;
-    }
-
-    dispatch({ type: "saveOpenOrder", openOrder, openCheckout });
-  }, [customers, dispatch, order]);
+    dispatch({ type: "saveOpenOrder", paymentStatus, openCheckout });
+  }, [dispatch]);
 
   const startOpenOrderPayment = useCallback((openOrderId: number) => {
     dispatch({ type: "startOpenOrderPayment", openOrderId });

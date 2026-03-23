@@ -87,6 +87,7 @@ Before each follow-up pass, review these issue classes repo-wide:
 - `orders`
 - `order_scopes`
 - `order_scope_lines`
+- `order_scope_line_components`
 - `pickup_notifications`
 - `pickup_appointments`
 - `service_appointments`
@@ -107,7 +108,8 @@ Before each follow-up pass, review these issue classes repo-wide:
 - the canonical Maximus model stays normalized with:
   - `orders`
   - `order_scopes`
-  - `order_scope_lines`
+- `order_scope_lines`
+- `order_scope_line_components`
 - practical rule: do not replace the normalized model with the Square shape
 - instead, treat the canonical model as a Maximus fulfillment overlay on top of Square-compatible order and item records
 
@@ -154,6 +156,7 @@ When this moves to PostgreSQL:
 - `order_scopes.order_id -> orders.id`
 - `order_scopes.event_id -> customer_events.id`
 - `order_scope_lines.scope_id -> order_scopes.id`
+- `order_scope_line_components.line_id -> order_scope_lines.id`
 - `pickup_notifications.scope_id -> order_scopes.id`
 - `pickup_appointments.order_id -> orders.id`
 - `pickup_appointments.scope_id -> order_scopes.id`

@@ -1,4 +1,9 @@
-import type { Customer, OpenOrder } from "../types";
+import { createPrototypeDatabase } from "../db/runtime";
+import {
+  addCustomerRecord,
+  deleteCustomerRecord,
+  updateCustomerRecord,
+} from "../db/mutations";
 import { createEmptyMeasurements } from "./orderState";
 import { createInitialOrderState } from "./orderState";
 import { tryReduceOrderAction, type OrderReducerOptions } from "./orderReducer";
@@ -8,17 +13,15 @@ export type { AppAction, AppState } from "./types";
 export { createInitialOrderState } from "./orderState";
 
 type InitialAppStateData = {
-  customers?: Customer[];
-  openOrders?: OpenOrder[];
+  database?: import("../db/schema").PrototypeDatabase;
 };
 
-export function createInitialAppState({ customers = [], openOrders = [] }: InitialAppStateData = {}): AppState {
+export function createInitialAppState({ database = createPrototypeDatabase() }: InitialAppStateData = {}): AppState {
   return {
     screen: "home",
     selectedCustomerId: null,
     checkoutOpenOrderId: null,
-    customers,
-    openOrders,
+    database,
     order: createInitialOrderState(),
   };
 }
@@ -51,20 +54,18 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
     case "addCustomer":
       return {
         ...state,
-        customers: [action.customer, ...state.customers],
+        database: addCustomerRecord(state.database, action.customer),
         selectedCustomerId: action.customer.id,
       };
     case "updateCustomer":
       return {
         ...state,
-        customers: state.customers.map((customer) => (
-          customer.id === action.customer.id ? action.customer : customer
-        )),
+        database: updateCustomerRecord(state.database, action.customer),
       };
     case "deleteCustomer":
       return {
         ...state,
-        customers: state.customers.filter((customer) => customer.id !== action.customerId),
+        database: deleteCustomerRecord(state.database, action.customerId),
         selectedCustomerId: state.selectedCustomerId === action.customerId ? null : state.selectedCustomerId,
         order: {
           ...state.order,
