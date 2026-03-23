@@ -69,6 +69,18 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         screen: action.screen,
         checkoutOpenOrderId: null,
       });
+    case "startOrderForCustomer":
+      return syncDraftOrderRecord({
+        ...state,
+        screen: "order",
+        selectedCustomerId: action.customerId,
+        checkoutOpenOrderId: null,
+        editingOpenOrderId: null,
+        order: {
+          ...createInitialOrderState(),
+          payerCustomerId: action.customerId,
+        },
+      });
     case "openCheckoutForDraft":
       return syncDraftOrderRecord({
         ...state,

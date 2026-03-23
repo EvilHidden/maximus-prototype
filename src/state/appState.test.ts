@@ -155,6 +155,47 @@ describe("app state", () => {
     });
   });
 
+  it("starts a fresh order for a selected customer with the payer prefilled", () => {
+    const database = createPrototypeDatabase();
+    database.customers = [
+      {
+        id: jordan.id,
+        name: jordan.name,
+        phone: jordan.phone,
+        email: jordan.email,
+        address: jordan.address,
+        preferredLocationId: "loc_fifth_avenue",
+        lastVisitLabel: jordan.lastVisit,
+        measurementsStatus: jordan.measurementsStatus,
+        marketingOptIn: jordan.marketingOptIn,
+        notes: jordan.notes,
+        isVip: jordan.isVip,
+      },
+    ];
+    const state = createInitialAppState({ database });
+    state.screen = "customer";
+    state.order.activeWorkflow = "custom";
+    state.order.custom.items = [
+      {
+        ...state.order.custom.draft,
+        id: 1,
+        selectedGarment: "Dinner jacket",
+        wearerName: "Jordan Patel",
+        linkedMeasurementLabel: "Current set",
+        measurementSnapshot: { Chest: "41" },
+      },
+    ];
+
+    const next = appReducer(state, { type: "startOrderForCustomer", customerId: "C-1001" });
+
+    expect(next.screen).toBe("order");
+    expect(next.selectedCustomerId).toBe("C-1001");
+    expect(next.order.payerCustomerId).toBe("C-1001");
+    expect(next.order.activeWorkflow).toBeNull();
+    expect(next.order.custom.items).toEqual([]);
+    expect(next.database.draftOrders[0]?.payerCustomerId).toBe("C-1001");
+  });
+
   it("hydrates the current draft from canonical draft records when present", () => {
     const database = createPrototypeDatabase();
     database.draftOrders = [{

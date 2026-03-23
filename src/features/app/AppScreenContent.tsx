@@ -56,6 +56,7 @@ export function AppScreenContent({
         onAddCustomer={(customer) => dispatch({ type: "addCustomer", customer })}
         onUpdateCustomer={(customer) => dispatch({ type: "updateCustomer", customer })}
         onArchiveCustomer={(customerId) => dispatch({ type: "archiveCustomer", customerId })}
+        onStartOrderForCustomer={(customerId) => dispatch({ type: "startOrderForCustomer", customerId })}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       />
     );

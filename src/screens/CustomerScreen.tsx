@@ -22,6 +22,7 @@ type CustomerScreenProps = {
   onAddCustomer: (customer: Customer) => void;
   onUpdateCustomer: (customer: Customer) => void;
   onArchiveCustomer: (customerId: string) => void;
+  onStartOrderForCustomer: (customerId: string) => void;
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -104,6 +105,7 @@ export function CustomerScreen({
   onAddCustomer,
   onUpdateCustomer,
   onArchiveCustomer,
+  onStartOrderForCustomer,
   onScreenChange,
 }: CustomerScreenProps) {
   const { showToast } = useToast();
@@ -212,6 +214,7 @@ export function CustomerScreen({
             setDrawerOpen(false);
             setActiveCustomerId(null);
           }}
+          onStartOrderForCustomer={onStartOrderForCustomer}
           onScreenChange={onScreenChange}
         />
       ) : null}

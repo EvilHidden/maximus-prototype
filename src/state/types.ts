@@ -63,6 +63,7 @@ export type RescheduleAppointmentPayload = {
 
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
+  | { type: "startOrderForCustomer"; customerId: string }
   | { type: "openCheckoutForDraft" }
   | { type: "openCheckoutForOpenOrder"; openOrderId: number }
   | { type: "openOrderForEdit"; openOrderId: number }
