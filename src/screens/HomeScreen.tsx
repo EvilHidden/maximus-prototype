@@ -20,9 +20,17 @@ type HomeScreenProps = {
   onScreenChange: (screen: Screen) => void;
   onStartWorkflow: (workflow: WorkflowMode) => void;
   onOpenAppointment: (appointment: Appointment) => void;
+  onCancelAppointment: (appointmentId: string) => void;
 };
 
-export function HomeScreen({ appointments, pickupAppointments, onScreenChange, onStartWorkflow, onOpenAppointment }: HomeScreenProps) {
+export function HomeScreen({
+  appointments,
+  pickupAppointments,
+  onScreenChange,
+  onStartWorkflow,
+  onOpenAppointment,
+  onCancelAppointment,
+}: HomeScreenProps) {
   const { showToast } = useToast();
   const {
     activeLocations,
@@ -149,7 +157,10 @@ export function HomeScreen({ appointments, pickupAppointments, onScreenChange, o
           tomorrowPickups={tomorrowPickups}
           singleActiveLocationLabel={singleActiveLocationLabel}
           onCreateOrder={onOpenAppointment}
-          onCancelAppointment={(appointment) => showToast(`Cancellation queued for ${appointment.customer}.`)}
+          onCancelAppointment={(appointment) => {
+            onCancelAppointment(appointment.id);
+            showToast(`${appointment.customer} canceled.`);
+          }}
           onCheckoutPickup={() => onScreenChange("openOrders")}
           onEditPickup={() => onScreenChange("openOrders")}
         />

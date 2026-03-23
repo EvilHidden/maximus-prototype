@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import { Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
 import { ModalShell, SectionHeader, ActionButton, Surface } from "../components/ui/primitives";
-import { filterCustomers } from "../features/customer/selectors";
+import { filterCustomers, getActiveCustomers } from "../features/customer/selectors";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import {
   getLinkedMeasurementSet,
@@ -63,7 +63,7 @@ export function MeasurementsScreen({
   const [pendingDeleteSetId, setPendingDeleteSetId] = useState<string | null>(null);
 
   const customerHistory = selectedCustomer ? measurementSets.filter((set) => set.customerId === selectedCustomer.id) : [];
-  const filteredCustomers = useMemo(() => filterCustomers(customers, customerQuery), [customers, customerQuery]);
+  const filteredCustomers = useMemo(() => filterCustomers(getActiveCustomers(customers), customerQuery), [customers, customerQuery]);
   const activeFieldValue = order.custom.draft.measurements[activeField] ?? "";
   const parsedActiveValue = parseMeasurementValue(activeFieldValue);
   const hasEnteredMeasurements = Object.values(order.custom.draft.measurements).some((value) => value.trim().length > 0);

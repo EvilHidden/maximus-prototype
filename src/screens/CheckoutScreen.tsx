@@ -23,6 +23,9 @@ type CheckoutScreenProps = {
   onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
   onStartOpenOrderPayment: (openOrderId: number) => void;
   onCaptureOpenOrderPayment: (openOrderId: number) => void;
+  onEditOpenOrder: (openOrderId: number) => void;
+  onCancelOpenOrder: (openOrderId: number) => void;
+  onCompleteOpenOrderPickup: (openOrderId: number) => void;
 };
 
 function getDraftPickupSummary(order: OrderWorkflowState) {
@@ -173,6 +176,9 @@ export function CheckoutScreen({
   onSaveDraftOrder,
   onStartOpenOrderPayment,
   onCaptureOpenOrderPayment,
+  onEditOpenOrder,
+  onCancelOpenOrder,
+  onCompleteOpenOrderPickup,
 }: CheckoutScreenProps) {
   const orderType = getOrderType(order);
   const hasCustom = orderType === "custom" || orderType === "mixed";
@@ -190,6 +196,7 @@ export function CheckoutScreen({
     ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null
     : payerCustomer;
   const readyBySummary = getReadyBySummary(openOrder, pickupSummary);
+  const allPickupScopesReady = Boolean(openOrder?.pickupSchedules.length) && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
 
   const checkoutSubtitle = openOrder
     ? openOrder.paymentStatus === "pending"
@@ -398,9 +405,14 @@ export function CheckoutScreen({
                   </>
                 ) : (
                   <>
-                    <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
-                      Back to orders
-                    </ActionButton>
+                    <div className="grid gap-2">
+                      <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
+                        Back to orders
+                      </ActionButton>
+                      <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
+                        Revise order
+                      </ActionButton>
+                    </div>
                     {openOrder.paymentStatus === "pending" ? (
                       <ActionButton tone="primary" onClick={() => onCaptureOpenOrderPayment(openOrder.id)}>
                         Confirm payment
@@ -409,11 +421,18 @@ export function CheckoutScreen({
                       <ActionButton tone="primary" onClick={() => onStartOpenOrderPayment(openOrder.id)}>
                         {openOrder.totalCollected > 0 ? "Collect balance" : "Collect payment"}
                       </ActionButton>
+                    ) : allPickupScopesReady ? (
+                      <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder.id)}>
+                        Complete pickup
+                      </ActionButton>
                     ) : (
                       <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
                         Finish checkout
                       </ActionButton>
                     )}
+                    <ActionButton tone="secondary" onClick={() => onCancelOpenOrder(openOrder.id)}>
+                      Cancel order
+                    </ActionButton>
                   </>
                 )}
               </div>

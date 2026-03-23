@@ -92,7 +92,7 @@ describe("app state", () => {
     });
   });
 
-  it("deletes a customer and clears active order references tied to that customer", () => {
+  it("archives a customer and clears active draft-order references tied to that customer", () => {
     const database = createPrototypeDatabase();
     database.customers = [
       {
@@ -138,9 +138,10 @@ describe("app state", () => {
       },
     ];
 
-    const next = appReducer(state, { type: "deleteCustomer", customerId: "C-1002" });
+    const next = appReducer(state, { type: "archiveCustomer", customerId: "C-1002" });
 
-    expect(adaptCustomers(next.database).map((customer) => customer.id)).toEqual(["C-1001"]);
+    expect(adaptCustomers(next.database).map((customer) => customer.id)).toEqual(["C-1001", "C-1002"]);
+    expect(adaptCustomers(next.database).find((customer) => customer.id === "C-1002")?.archived).toBe(true);
     expect(next.selectedCustomerId).toBeNull();
     expect(next.order.payerCustomerId).toBeNull();
     expect(next.order.custom.draft.wearerCustomerId).toBeNull();
@@ -151,6 +152,120 @@ describe("app state", () => {
       linkedMeasurementSetId: null,
       wearerName: "Sam Rivera",
       linkedMeasurementLabel: "Version 1",
+    });
+  });
+
+  it("hydrates the current draft from canonical draft records when present", () => {
+    const database = createPrototypeDatabase();
+    database.draftOrders = [{
+      id: "draft-current",
+      payerCustomerId: "C-1001",
+      updatedAt: "2026-03-22T12:00:00.000Z",
+      snapshot: {
+        activeWorkflow: "alteration",
+        payerCustomerId: "C-1001",
+        checkoutIntent: null,
+        alteration: {
+          selectedGarment: "Trousers",
+          selectedModifiers: [{ name: "Hem", price: 20 }],
+          items: [{
+            id: 11,
+            garment: "Trousers",
+            modifiers: [{ name: "Hem", price: 20 }],
+            subtotal: 20,
+          }],
+        },
+        custom: {
+          draft: {
+            gender: null,
+            wearerCustomerId: null,
+            selectedGarment: null,
+            linkedMeasurementSetId: null,
+            measurements: { Chest: "" },
+            fabric: null,
+            buttons: null,
+            lining: null,
+            threads: null,
+            monogramLeft: "",
+            monogramCenter: "",
+            monogramRight: "",
+            pocketType: null,
+            lapel: null,
+            canvas: null,
+          },
+          items: [],
+        },
+        fulfillment: {
+          alteration: {
+            pickupDate: "2026-03-24",
+            pickupTime: "15:00",
+            pickupLocation: "Queens",
+            eventType: "none",
+            eventDate: "",
+          },
+          custom: {
+            pickupDate: "",
+            pickupTime: "",
+            pickupLocation: "",
+            eventType: "none",
+            eventDate: "",
+          },
+        },
+      },
+    }];
+
+    const state = createInitialAppState({ database });
+
+    expect(state.selectedCustomerId).toBe("C-1001");
+    expect(state.order.alteration.items[0]).toMatchObject({
+      garment: "Trousers",
+      subtotal: 20,
+    });
+  });
+
+  it("creates a manual service appointment for an active customer", () => {
+    const database = createPrototypeDatabase();
+    const state = createInitialAppState({ database });
+    const targetCustomer = database.customers[0];
+
+    const next = appReducer(state, {
+      type: "createAppointment",
+      payload: {
+        customerId: targetCustomer.id,
+        typeKey: "custom_consult",
+        location: "Queens",
+        scheduledFor: "2026-03-25T15:00",
+      },
+    });
+
+    const created = next.database.serviceAppointments.find((appointment) => appointment.source === "manual");
+    expect(created).toMatchObject({
+      customerId: targetCustomer.id,
+      typeKey: "custom_consult",
+      locationId: "loc_queens",
+      scheduledFor: "2026-03-25T15:00",
+      source: "manual",
+    });
+  });
+
+  it("reschedules an existing appointment in place", () => {
+    const database = createPrototypeDatabase();
+    const targetAppointment = database.serviceAppointments[0];
+    const state = createInitialAppState({ database });
+
+    const next = appReducer(state, {
+      type: "rescheduleAppointment",
+      payload: {
+        appointmentId: targetAppointment.id,
+        location: "Long Island",
+        scheduledFor: "2026-03-29T11:30",
+      },
+    });
+
+    expect(next.database.serviceAppointments.find((appointment) => appointment.id === targetAppointment.id)).toMatchObject({
+      locationId: "loc_long_island",
+      scheduledFor: "2026-03-29T11:30",
+      statusKey: "scheduled",
     });
   });
 });

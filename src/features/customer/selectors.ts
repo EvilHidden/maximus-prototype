@@ -36,6 +36,10 @@ export function filterCustomers(customers: Customer[], query: string) {
   });
 }
 
+export function getActiveCustomers(customers: Customer[]) {
+  return customers.filter((customer) => !customer.archived);
+}
+
 export function createNextCustomerId(customers: Customer[]) {
   const maxId = customers.reduce((highestId, customer) => {
     const numericId = Number.parseInt(customer.id.replace(/\D/g, ""), 10);

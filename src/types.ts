@@ -54,6 +54,7 @@ export type Customer = {
   marketingOptIn: boolean;
   notes: string;
   isVip?: boolean;
+  archived?: boolean;
 };
 
 export type CustomerOrder = {
@@ -240,6 +241,13 @@ export type ClosedOrderHistoryItem = {
   createdAt: string;
   status: string;
   total: number;
+};
+
+export type DraftOrderRecord = {
+  id: string;
+  payerCustomerId: string | null;
+  updatedAt: string;
+  snapshot: OrderWorkflowState;
 };
 
 export type NavItem = {

@@ -386,7 +386,8 @@ function WorkQueueOrderRow({
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
   const hasCollectibleBalance = openOrder.balanceDue > 0;
-  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending";
+  const allPickupScopesReady = openOrder.pickupSchedules.length > 0 && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
+  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending" || allPickupScopesReady;
   const pickupGroups = openOrder.pickupSchedules.reduce<Array<{
     key: string;
     summary: string;
@@ -631,7 +632,8 @@ function AllOrdersRow({
   const lane = getOpenOrderOperationalLane(openOrder);
   const locations = getOpenOrderLocationSummary(openOrder);
   const hasCollectibleBalance = openOrder.balanceDue > 0;
-  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending";
+  const allPickupScopesReady = openOrder.pickupSchedules.length > 0 && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
+  const rowIsActionable = hasCollectibleBalance || openOrder.paymentStatus === "pending" || allPickupScopesReady;
 
   return (
     <div

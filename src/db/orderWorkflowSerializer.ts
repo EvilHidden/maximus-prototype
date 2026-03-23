@@ -1,9 +1,11 @@
 import type {
   Customer,
+  CustomGarmentDraft,
   OpenOrderPaymentStatus,
+  OrderWorkflowState,
   OrderLineComponentKind,
   OrderType,
-  OrderWorkflowState,
+  PickupLocation,
   WorkflowMode,
 } from "../types";
 import type {
@@ -16,6 +18,7 @@ import type {
   DbPickupAppointment,
 } from "./schema";
 import { createLocationId, toDateTimeString } from "./runtime/support";
+import { createSeedReferenceData } from "./referenceData";
 
 type SerializedOrderWorkflow = {
   openOrderId: number;
@@ -34,7 +37,10 @@ type SerializeOrderWorkflowArgs = {
   paymentStatus: OpenOrderPaymentStatus;
   orderSequence: number;
   now: Date;
+  existingOrder?: DbOrder | null;
 };
+
+const seedReferenceData = createSeedReferenceData();
 
 function createDateTimeString(date: string, time: string | null, fallbackHour = 12, fallbackMinute = 0) {
   const [hourText = `${fallbackHour}`, minuteText = `${fallbackMinute}`] = (time ?? "").split(":");
@@ -181,14 +187,15 @@ export function serializeOrderWorkflowToRecords({
   paymentStatus,
   orderSequence,
   now,
+  existingOrder = null,
 }: SerializeOrderWorkflowArgs): SerializedOrderWorkflow | null {
   const orderType = getOrderType(order);
   if (!orderType) {
     return null;
   }
 
-  const orderId = `order-${orderSequence}`;
-  const displayId = `ORD-${orderSequence}`;
+  const orderId = existingOrder?.id ?? `order-${orderSequence}`;
+  const displayId = existingOrder?.displayId ?? `ORD-${orderSequence}`;
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
   const orderRecord: DbOrder = {
     id: orderId,
@@ -196,7 +203,7 @@ export function serializeOrderWorkflowToRecords({
     payerCustomerId: order.payerCustomerId,
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
-    createdAt: toDateTimeString(now),
+    createdAt: existingOrder?.createdAt ?? toDateTimeString(now),
     status: "open",
     holdUntilAllScopesReady: orderType === "mixed",
   };
@@ -332,7 +339,7 @@ export function serializeOrderWorkflowToRecords({
   const totalCollected = paymentStatus === "captured" ? getCheckoutCollectionAmount(order) : 0;
 
   return {
-    openOrderId: orderSequence,
+    openOrderId: Number.parseInt(displayId.replace(/\D/g, ""), 10) || orderSequence,
     orderRecord,
     customerEvents,
     scopes,
@@ -340,5 +347,188 @@ export function serializeOrderWorkflowToRecords({
     lineComponents,
     pickupAppointments,
     paymentRecords: createInitialPaymentRecords(orderId, paymentStatus, totalCollected, now),
+  };
+}
+
+function createEmptyMeasurements() {
+  return seedReferenceData.measurementFields.reduce<Record<string, string>>((accumulator, field) => {
+    accumulator[field] = "";
+    return accumulator;
+  }, {});
+}
+
+function createEmptyCustomDraft(): CustomGarmentDraft {
+  return {
+    gender: null,
+    wearerCustomerId: null,
+    selectedGarment: null,
+    linkedMeasurementSetId: null,
+    measurements: createEmptyMeasurements(),
+    fabric: null,
+    buttons: null,
+    lining: null,
+    threads: null,
+    monogramLeft: "",
+    monogramCenter: "",
+    monogramRight: "",
+    pocketType: null,
+    lapel: null,
+    canvas: null,
+  };
+}
+
+function getAlterationServicePrice(
+  database: {
+    alterationServiceDefinitions: Array<{ category: string; name: string; price: number }>;
+  },
+  garmentLabel: string,
+  serviceName: string,
+) {
+  return database.alterationServiceDefinitions.find((service) => (
+    service.category === garmentLabel && service.name === serviceName
+  ))?.price ?? 0;
+}
+
+function getCustomGenderForGarment(
+  database: {
+    customGarmentDefinitions: Array<{ label: string; gender: "male" | "female" }>;
+  },
+  garmentLabel: string,
+) {
+  return database.customGarmentDefinitions.find((garment) => garment.label === garmentLabel)?.gender ?? null;
+}
+
+function getComponentValue(
+  components: DbOrderScopeLineComponent[],
+  kind: OrderLineComponentKind,
+  fallback: string,
+) {
+  return components.find((component) => component.kind === kind)?.value ?? fallback;
+}
+
+export function deserializeOrderWorkflowFromRecords(
+  database: {
+    alterationServiceDefinitions: Array<{ category: string; name: string; price: number }>;
+    customGarmentDefinitions: Array<{ label: string; gender: "male" | "female" }>;
+    customerEvents: DbCustomerEvent[];
+    orders: DbOrder[];
+    orderScopes: DbOrderScope[];
+    orderScopeLines: DbOrderScopeLine[];
+    orderScopeLineComponents: DbOrderScopeLineComponent[];
+    pickupAppointments: DbPickupAppointment[];
+  },
+  openOrderId: number,
+): OrderWorkflowState | null {
+  const order = database.orders.find((candidate) => Number.parseInt(candidate.displayId.replace(/\D/g, ""), 10) === openOrderId);
+  if (!order) {
+    return null;
+  }
+
+  const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
+  const alterationScope = scopes.find((scope) => scope.workflow === "alteration");
+  const customScope = scopes.find((scope) => scope.workflow === "custom");
+
+  const alterationItems = alterationScope
+    ? database.orderScopeLines
+      .filter((line) => line.scopeId === alterationScope.id)
+      .map((line) => {
+        const components = database.orderScopeLineComponents
+          .filter((component) => component.lineId === line.id)
+          .sort((left, right) => left.sortOrder - right.sortOrder);
+        const modifiers = components
+          .filter((component) => component.kind === "alteration_service")
+          .map((component) => ({
+            name: component.value,
+            price: getAlterationServicePrice(database, line.garmentLabel, component.value),
+          }));
+
+        return {
+          id: Number.parseInt(line.id.replace(/\D/g, ""), 10) || Date.now(),
+          garment: line.garmentLabel,
+          modifiers,
+          subtotal: line.unitPrice * line.quantity,
+        };
+      })
+    : [];
+
+  const customItems = customScope
+    ? database.orderScopeLines
+      .filter((line) => line.scopeId === customScope.id)
+      .map((line) => {
+        const components = database.orderScopeLineComponents
+          .filter((component) => component.lineId === line.id)
+          .sort((left, right) => left.sortOrder - right.sortOrder);
+
+        return {
+          id: Number.parseInt(line.id.replace(/\D/g, ""), 10) || Date.now(),
+          gender: getCustomGenderForGarment(database, line.garmentLabel),
+          wearerCustomerId: line.wearerCustomerId,
+          selectedGarment: line.garmentLabel,
+          linkedMeasurementSetId: line.measurementSetId,
+          measurements: {
+            ...createEmptyMeasurements(),
+            ...(line.measurementSnapshot ?? {}),
+          },
+          fabric: getComponentValue(components, "fabric", "") || null,
+          buttons: getComponentValue(components, "buttons", "") || null,
+          lining: getComponentValue(components, "lining", "") || null,
+          threads: getComponentValue(components, "threads", "") || null,
+          monogramLeft: getComponentValue(components, "monogram", ""),
+          monogramCenter: components.filter((component) => component.kind === "monogram")[1]?.value ?? "",
+          monogramRight: components.filter((component) => component.kind === "monogram")[2]?.value ?? "",
+          pocketType: getComponentValue(components, "pocket_type", "") || null,
+          lapel: getComponentValue(components, "lapel", "") || null,
+          canvas: getComponentValue(components, "canvas", "") || null,
+          wearerName: line.wearerName,
+          linkedMeasurementLabel: line.measurementSetLabel,
+          measurementSnapshot: {
+            ...createEmptyMeasurements(),
+            ...(line.measurementSnapshot ?? {}),
+          },
+        };
+      })
+    : [];
+
+  const getFulfillmentForScope = (scope: DbOrderScope | undefined, workflow: WorkflowMode) => {
+    const pickupAppointment = scope
+      ? database.pickupAppointments.find((appointment) => appointment.orderId === order.id && appointment.scopeId === scope.id)
+      : null;
+    const event = scope?.eventId ? database.customerEvents.find((candidate) => candidate.id === scope.eventId) : null;
+    const pickupDate = pickupAppointment?.scheduledFor.slice(0, 10) ?? "";
+    const pickupTime = pickupAppointment
+      ? pickupAppointment.scheduledFor.slice(11, 16)
+      : "";
+    const pickupLocation = pickupAppointment
+      ? seedReferenceData.pickupLocations.find((location) => createLocationId(location) === pickupAppointment.locationId) ?? ""
+      : "";
+
+    return {
+      pickupDate,
+      pickupTime,
+      pickupLocation: pickupLocation as PickupLocation | "",
+      eventType: workflow === "custom" ? event?.type ?? "none" : "none",
+      eventDate: workflow === "custom" ? event?.eventDate ?? "" : "",
+    };
+  };
+
+  const customDraft = createEmptyCustomDraft();
+
+  return {
+    activeWorkflow: customItems.length > 0 ? "custom" : alterationItems.length > 0 ? "alteration" : null,
+    payerCustomerId: order.payerCustomerId,
+    checkoutIntent: null,
+    alteration: {
+      selectedGarment: "",
+      selectedModifiers: [],
+      items: alterationItems,
+    },
+    custom: {
+      draft: customDraft,
+      items: customItems,
+    },
+    fulfillment: {
+      alteration: getFulfillmentForScope(alterationScope, "alteration"),
+      custom: getFulfillmentForScope(customScope, "custom"),
+    },
   };
 }

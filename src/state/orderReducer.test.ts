@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { adaptOpenOrders } from "../db/adapters";
+import { adaptAppointments, adaptClosedOrderHistory, adaptOpenOrders } from "../db/adapters";
 import { createPrototypeDatabase } from "../db/runtime";
-import { createInitialAppState } from "./appState";
+import { appReducer, createInitialAppState } from "./appState";
 import { tryReduceOrderAction } from "./orderReducer";
 import type { AppState } from "./types";
 
@@ -187,5 +187,88 @@ describe("order reducer", () => {
       pickupDate: "2026-03-22",
       pickupTime: "10:45 AM",
     });
+  });
+
+  it("completes a ready prepaid pickup and closes the order", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const targetOrder = database.orders.find((order) => order.displayId === "ORD-9017");
+    expect(targetOrder).toBeTruthy();
+
+    const state = createInitialAppState({ database });
+    const next = tryReduceOrderAction(state, { type: "completeOpenOrderPickup", openOrderId: 9017 }, { now: new Date("2026-03-22T16:00:00.000Z") });
+
+    expect(adaptOpenOrders(next!.database).some((order) => order.id === 9017)).toBe(false);
+    expect(adaptClosedOrderHistory(next!.database).some((order) => order.id === "ORD-9017")).toBe(true);
+  });
+
+  it("cancels a pickup appointment and keeps it out of upcoming pickup work", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const pickupAppointment = database.pickupAppointments[0];
+    const state = createInitialAppState({ database });
+
+    const next = tryReduceOrderAction(
+      state,
+      { type: "cancelAppointment", appointmentId: pickupAppointment.id },
+      { now: new Date("2026-03-22T16:00:00.000Z") },
+    );
+
+    const appointment = adaptAppointments(next!.database).find((entry) => entry.id === pickupAppointment.id);
+    expect(appointment).toMatchObject({
+      id: pickupAppointment.id,
+      statusKey: "canceled",
+      status: "Canceled",
+    });
+  });
+
+  it("loads a saved order into the builder for editing and resaves it in place", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    let state = createInitialAppState({ database });
+
+    state = appReducer(state, { type: "openOrderForEdit", openOrderId: 9003 });
+    expect(state.editingOpenOrderId).toBe(9003);
+    expect(state.order.alteration.items.length).toBeGreaterThan(0);
+    expect(state.order.custom.items.length).toBeGreaterThan(0);
+
+    const customItemId = state.order.custom.items[0]?.id;
+    expect(customItemId).toBeTruthy();
+
+    state = tryReduceOrderAction(state, { type: "loadCustomItemForEdit", itemId: customItemId! })!;
+    state = tryReduceOrderAction(state, { type: "setCustomConfiguration", patch: { fabric: "Ivory Barathea" } })!;
+    state = tryReduceOrderAction(state, {
+      type: "saveCustomItem",
+      payload: {
+        itemId: customItemId!,
+        wearerName: state.order.custom.items[0]?.wearerName ?? null,
+        linkedMeasurementLabel: state.order.custom.items[0]?.linkedMeasurementLabel ?? null,
+      },
+    })!;
+    state = tryReduceOrderAction(
+      state,
+      { type: "saveOpenOrder", paymentStatus: "ready_to_collect", openCheckout: false },
+      { now: new Date("2026-03-22T16:00:00.000Z") },
+    )!;
+
+    expect(state.database.orders.filter((order) => order.displayId === "ORD-9003")).toHaveLength(1);
+    const updatedLine = state.database.orderScopeLines.find((line) => line.scopeId === "order-9003-custom" && line.garmentLabel === "Dinner jacket");
+    expect(updatedLine).toBeTruthy();
+    const updatedFabric = state.database.orderScopeLineComponents.find((component) => component.lineId === updatedLine!.id && component.kind === "fabric");
+    expect(updatedFabric?.value).toBe("Ivory Barathea");
+  });
+
+  it("cancels an open order and moves it into closed history", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const state = createInitialAppState({ database });
+
+    const next = tryReduceOrderAction(
+      state,
+      { type: "cancelOpenOrder", openOrderId: 9003 },
+      { now: new Date("2026-03-22T16:00:00.000Z") },
+    );
+
+    expect(adaptOpenOrders(next!.database).some((order) => order.id === 9003)).toBe(false);
+    expect(adaptClosedOrderHistory(next!.database).find((order) => order.id === "ORD-9003")).toMatchObject({
+      status: "Canceled",
+    });
+    expect(adaptAppointments(next!.database).filter((appointment) => appointment.orderId === "order-9003").every((appointment) => appointment.statusKey === "canceled")).toBe(true);
   });
 });
