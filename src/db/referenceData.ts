@@ -18,6 +18,49 @@ export type AppReferenceData = {
   pickupLocations: PickupLocation[];
 };
 
+const seedLocations: PrototypeDatabase["locations"] = [
+  { id: "loc_fifth_avenue", name: "Fifth Avenue" },
+  { id: "loc_queens", name: "Queens" },
+  { id: "loc_long_island", name: "Long Island" },
+];
+
+const seedAlterationServiceDefinitions = createAlterationServiceDefinitions();
+const seedCustomGarmentDefinitions = createCustomGarmentDefinitions();
+const seedStyleOptionDefinitions = createStyleOptionDefinitions();
+const seedMeasurementFieldDefinitions = createMeasurementFieldDefinitions();
+
+export function getMeasurementFieldLabels(database: Pick<PrototypeDatabase, "measurementFieldDefinitions">) {
+  return database.measurementFieldDefinitions
+    .slice()
+    .sort((left, right) => left.sortOrder - right.sortOrder)
+    .map((field) => field.label);
+}
+
+export function createMeasurementValueMap(measurementFields: string[]) {
+  return measurementFields.reduce<Record<string, string>>((accumulator, field) => {
+    accumulator[field] = "";
+    return accumulator;
+  }, {});
+}
+
+export function createSeedMeasurementValueMap() {
+  return createMeasurementValueMap(getMeasurementFieldLabels({ measurementFieldDefinitions: seedMeasurementFieldDefinitions }));
+}
+
+export function isJacketBasedCustomGarment(
+  garment: string | null,
+  jacketBasedCustomGarments: Iterable<string>,
+) {
+  return Boolean(garment && new Set(jacketBasedCustomGarments).has(garment));
+}
+
+export function getPickupLocationNameById(
+  locations: Pick<PrototypeDatabase["locations"][number], "id" | "name">[],
+  locationId: string,
+) {
+  return locations.find((location) => location.id === locationId)?.name ?? "";
+}
+
 function getStyleOptions(
   styleOptions: PrototypeDatabase["styleOptionDefinitions"],
   kind: "lapel" | "pocket_type" | "canvas",
@@ -59,38 +102,33 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
     lapelOptions: getStyleOptions(database.styleOptionDefinitions, "lapel"),
     pocketTypeOptions: getStyleOptions(database.styleOptionDefinitions, "pocket_type"),
     canvasOptions: getStyleOptions(database.styleOptionDefinitions, "canvas"),
-    measurementFields: database.measurementFieldDefinitions
-      .slice()
-      .sort((left, right) => left.sortOrder - right.sortOrder)
-      .map((field) => field.label),
+    measurementFields: getMeasurementFieldLabels(database),
     pickupLocations: database.locations.map((location) => location.name),
   };
 }
 
-export function createSeedReferenceData(): AppReferenceData {
-  return createReferenceData({
-    generatedAt: "",
-    locations: [
-      { id: "loc_fifth_avenue", name: "Fifth Avenue" },
-      { id: "loc_queens", name: "Queens" },
-      { id: "loc_long_island", name: "Long Island" },
-    ],
-    alterationServiceDefinitions: createAlterationServiceDefinitions(),
-    customGarmentDefinitions: createCustomGarmentDefinitions(),
-    styleOptionDefinitions: createStyleOptionDefinitions(),
-    measurementFieldDefinitions: createMeasurementFieldDefinitions(),
-    customers: [],
-    customerEvents: [],
-    measurementSets: [],
-    draftOrders: [],
-    orders: [],
-    orderScopes: [],
-    orderScopeLines: [],
-    orderScopeLineComponents: [],
-    pickupNotifications: [],
-    pickupAppointments: [],
-    serviceAppointments: [],
-    payments: [],
-    squareLinks: [],
-  });
+const seedReferenceData = createReferenceData({
+  generatedAt: "",
+  locations: seedLocations,
+  alterationServiceDefinitions: seedAlterationServiceDefinitions,
+  customGarmentDefinitions: seedCustomGarmentDefinitions,
+  styleOptionDefinitions: seedStyleOptionDefinitions,
+  measurementFieldDefinitions: seedMeasurementFieldDefinitions,
+  customers: [],
+  customerEvents: [],
+  measurementSets: [],
+  draftOrders: [],
+  orders: [],
+  orderScopes: [],
+  orderScopeLines: [],
+  orderScopeLineComponents: [],
+  pickupNotifications: [],
+  pickupAppointments: [],
+  serviceAppointments: [],
+  payments: [],
+  squareLinks: [],
+});
+
+export function getSeedReferenceData() {
+  return seedReferenceData;
 }
