@@ -12,11 +12,11 @@ import type {
   OrderWorkflowState,
   WorkflowMode,
 } from "../../types";
-import { createSeedReferenceData } from "../../db/referenceData";
+import { getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
 
-const seedReferenceData = createSeedReferenceData();
+const seedReferenceData = getSeedReferenceData();
 
 export type OrderTimeOptions = {
   now?: Date;
@@ -36,7 +36,7 @@ function getCustomDraftReady(order: OrderWorkflowState) {
     return false;
   }
 
-  if (seedReferenceData.jacketBasedCustomGarments.has(draft.selectedGarment)) {
+  if (isJacketBasedCustomGarment(draft.selectedGarment, seedReferenceData.jacketBasedCustomGarments)) {
     return Boolean(draft.pocketType && draft.lapel && draft.canvas);
   }
 
@@ -44,7 +44,7 @@ function getCustomDraftReady(order: OrderWorkflowState) {
 }
 
 function getStyleSummary(garment: string | null, lapel: string | null, pocketType: string | null, canvas: string | null) {
-  if (!garment || !seedReferenceData.jacketBasedCustomGarments.has(garment)) {
+  if (!isJacketBasedCustomGarment(garment, seedReferenceData.jacketBasedCustomGarments)) {
     return [];
   }
 

@@ -18,7 +18,11 @@ import type {
   DbPickupAppointment,
 } from "./schema";
 import { createLocationId, toDateTimeString } from "./runtime/support";
-import { createSeedReferenceData } from "./referenceData";
+import {
+  createSeedMeasurementValueMap,
+  getPickupLocationNameById,
+  getSeedReferenceData,
+} from "./referenceData";
 
 type SerializedOrderWorkflow = {
   openOrderId: number;
@@ -40,7 +44,7 @@ type SerializeOrderWorkflowArgs = {
   existingOrder?: DbOrder | null;
 };
 
-const seedReferenceData = createSeedReferenceData();
+const seedReferenceData = getSeedReferenceData();
 
 function createDateTimeString(date: string, time: string | null, fallbackHour = 12, fallbackMinute = 0) {
   const [hourText = `${fallbackHour}`, minuteText = `${fallbackMinute}`] = (time ?? "").split(":");
@@ -351,10 +355,7 @@ export function serializeOrderWorkflowToRecords({
 }
 
 function createEmptyMeasurements() {
-  return seedReferenceData.measurementFields.reduce<Record<string, string>>((accumulator, field) => {
-    accumulator[field] = "";
-    return accumulator;
-  }, {});
+  return createSeedMeasurementValueMap();
 }
 
 function createEmptyCustomDraft(): CustomGarmentDraft {
@@ -499,7 +500,10 @@ export function deserializeOrderWorkflowFromRecords(
       ? pickupAppointment.scheduledFor.slice(11, 16)
       : "";
     const pickupLocation = pickupAppointment
-      ? seedReferenceData.pickupLocations.find((location) => createLocationId(location) === pickupAppointment.locationId) ?? ""
+      ? getPickupLocationNameById(
+          seedReferenceData.pickupLocations.map((location) => ({ id: createLocationId(location), name: location })),
+          pickupAppointment.locationId,
+        )
       : "";
 
     return {

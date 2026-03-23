@@ -1,12 +1,7 @@
-import { createSeedReferenceData } from "../../db/referenceData";
-
-const seedReferenceData = createSeedReferenceData();
+import { createSeedMeasurementValueMap } from "../../db/referenceData";
 
 export function createEmptyMeasurementValues() {
-  return seedReferenceData.measurementFields.reduce<Record<string, string>>((accumulator, field) => {
-    accumulator[field] = "";
-    return accumulator;
-  }, {});
+  return createSeedMeasurementValueMap();
 }
 
 export function parseMeasurementValue(value: string) {

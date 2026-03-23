@@ -1,17 +1,12 @@
-import { createSeedReferenceData } from "../db/referenceData";
+import { createSeedMeasurementValueMap } from "../db/referenceData";
 import type {
   CustomBuilderState,
   CustomGarmentDraft,
   OrderWorkflowState,
 } from "../types";
 
-const seedReferenceData = createSeedReferenceData();
-
 export function createEmptyMeasurements() {
-  return seedReferenceData.measurementFields.reduce<Record<string, string>>((accumulator, field) => {
-    accumulator[field] = "";
-    return accumulator;
-  }, {});
+  return createSeedMeasurementValueMap();
 }
 
 export function createInitialCustomDraft(): CustomGarmentDraft {

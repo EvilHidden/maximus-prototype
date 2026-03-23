@@ -15,6 +15,7 @@ import type {
   DbOrderScope,
   PrototypeDatabase,
 } from "./schema";
+import { createMeasurementValueMap, getMeasurementFieldLabels } from "./referenceData";
 import { createLocationId, toDateTimeString } from "./runtime/support";
 
 type OrderMutationOptions = {
@@ -122,13 +123,7 @@ function getAppointmentWorkflow(typeKey: CreateAppointmentPayload["typeKey"]) {
 }
 
 function createEmptyMeasurementValuesFromDatabase(database: PrototypeDatabase) {
-  return database.measurementFieldDefinitions
-    .slice()
-    .sort((left, right) => left.sortOrder - right.sortOrder)
-    .reduce<Record<string, string>>((accumulator, field) => {
-      accumulator[field.label] = "";
-      return accumulator;
-    }, {});
+  return createMeasurementValueMap(getMeasurementFieldLabels(database));
 }
 
 function formatMeasurementDateLabel(now: Date) {
