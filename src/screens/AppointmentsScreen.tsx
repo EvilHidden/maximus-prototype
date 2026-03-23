@@ -9,6 +9,7 @@ import {
   type AppointmentComposerState,
 } from "../features/appointments/components/AppointmentComposerModal";
 import { AppointmentsCalendar } from "../features/appointments/components/AppointmentsCalendar";
+import { ConfirmAppointmentCancelModal } from "../features/appointments/components/ConfirmAppointmentCancelModal";
 import { AppointmentsScheduleRail } from "../features/appointments/components/AppointmentsScheduleRail";
 import { compareAppointments, getAppointmentDateKey } from "../features/appointments/selectors";
 
@@ -52,6 +53,7 @@ export function AppointmentsScreen({
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(toDateKey(today));
   const [composerOpen, setComposerOpen] = useState(false);
   const [editingAppointmentId, setEditingAppointmentId] = useState<string | null>(null);
+  const [cancelingAppointment, setCancelingAppointment] = useState<Appointment | null>(null);
   const [composerQuery, setComposerQuery] = useState("");
   const [composerState, setComposerState] = useState<AppointmentComposerState>(() => createEmptyAppointmentComposerState(pickupLocations));
 
@@ -153,7 +155,7 @@ export function AppointmentsScreen({
             setComposerOpen(true);
           }}
           onCompleteAppointment={onCompleteAppointment}
-          onCancelAppointment={onCancelAppointment}
+          onCancelAppointment={setCancelingAppointment}
         />
       </div>
 
@@ -185,6 +187,17 @@ export function AppointmentsScreen({
           setComposerOpen(false);
         }}
       />
+
+      {cancelingAppointment ? (
+        <ConfirmAppointmentCancelModal
+          appointment={cancelingAppointment}
+          onClose={() => setCancelingAppointment(null)}
+          onConfirm={() => {
+            onCancelAppointment(cancelingAppointment.id);
+            setCancelingAppointment(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }

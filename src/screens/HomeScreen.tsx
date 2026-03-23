@@ -7,9 +7,11 @@ import {
   Square,
   UserPlus,
 } from "lucide-react";
+import { useState } from "react";
 import type { Appointment, Screen, WorkflowMode } from "../types";
 import { SectionHeader, SelectionChip } from "../components/ui/primitives";
 import { useToast } from "../components/ui/toast";
+import { ConfirmAppointmentCancelModal } from "../features/appointments/components/ConfirmAppointmentCancelModal";
 import { HomeEmptyState, HomeWorkboards } from "../features/home/components/HomeScheduleBoards";
 import { HomeQuickActionsDeck } from "../features/home/components/HomeQuickActionsDeck";
 import { useHomeDashboard } from "../features/home/hooks/useHomeDashboard";
@@ -34,6 +36,7 @@ export function HomeScreen({
   onCancelAppointment,
 }: HomeScreenProps) {
   const { showToast } = useToast();
+  const [cancelingAppointment, setCancelingAppointment] = useState<Appointment | null>(null);
   const {
     activeLocations,
     setActiveLocations,
@@ -159,10 +162,7 @@ export function HomeScreen({
           tomorrowPickups={tomorrowPickups}
           singleActiveLocationLabel={singleActiveLocationLabel}
           onCreateOrder={onOpenAppointment}
-          onCancelAppointment={(appointment) => {
-            onCancelAppointment(appointment.id);
-            showToast(`${appointment.customer} canceled.`);
-          }}
+          onCancelAppointment={setCancelingAppointment}
           onCheckoutPickup={() => onScreenChange("openOrders")}
           onEditPickup={() => onScreenChange("openOrders")}
         />
@@ -187,6 +187,18 @@ export function HomeScreen({
           secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
         />
       )}
+
+      {cancelingAppointment ? (
+        <ConfirmAppointmentCancelModal
+          appointment={cancelingAppointment}
+          onClose={() => setCancelingAppointment(null)}
+          onConfirm={() => {
+            onCancelAppointment(cancelingAppointment.id);
+            showToast(`${cancelingAppointment.customer} canceled.`);
+            setCancelingAppointment(null);
+          }}
+        />
+      ) : null}
     </div>
   );
 }
