@@ -189,5 +189,6 @@ npm run ship -- "Short PR title"
 - Do not use the screen file as the default place for new behavior.
 - Do not hand-roll recurring pill or badge markup in screens when `src/components/ui/pills.tsx` already covers the semantic case.
 - Do not merge without a successful build.
+- Do not treat accepted feedback as approval to ship. Keep iterating locally until the user explicitly says `ship`.
 - Do not leave finished branches hanging around after merge.
 - Do not keep committing on a `codex/` branch after its PR is merged or closed. Start a fresh branch for the next pass.

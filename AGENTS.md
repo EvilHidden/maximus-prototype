@@ -38,6 +38,7 @@ Secondary goal:
 ## Collaboration Cadence
 - Before starting, name the problem and the subsystem out loud.
 - Create a fresh branch for that problem. Do not keep reopening old branches for unrelated work.
+- Keep iterating locally by default. Only run the shipping flow when the user explicitly says `ship`.
 - During the work, check in periodically:
   - what problem are we solving?
   - are logic holes closed?
