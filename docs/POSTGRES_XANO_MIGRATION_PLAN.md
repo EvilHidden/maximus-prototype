@@ -35,6 +35,7 @@ That includes:
 - locations
 - external links
 - operational reference data such as alteration services, custom garment options, style options, and measurement field definitions
+- db-owned serializers that translate draft workflow state into canonical saved records
 
 Intentional exception:
 - `src/data/navigation.ts` remains UI config, not business data

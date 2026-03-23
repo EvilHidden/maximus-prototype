@@ -3,25 +3,13 @@ import type {
   MeasurementSet,
   OpenOrderPaymentStatus,
   OrderWorkflowState,
-  WorkflowMode,
 } from "../types";
-import {
-  getCheckoutCollectionAmount,
-  getOrderBagLineItems,
-  getOrderType,
-  getPickupScheduleForScope,
-  getRequiredPickupScopes,
-} from "../features/order/orderWorkflow";
+import { serializeOrderWorkflowToRecords } from "./orderWorkflowSerializer";
 import type {
   DbCustomer,
-  DbCustomerEvent,
   DbMeasurementSet,
   DbOrder,
   DbOrderScope,
-  DbOrderScopeLine,
-  DbOrderScopeLineComponent,
-  DbPaymentRecord,
-  DbPickupAppointment,
   PrototypeDatabase,
 } from "./schema";
 import { createLocationId, toDateTimeString } from "./runtime/support";
@@ -93,15 +81,6 @@ function getTotalCollected(database: PrototypeDatabase, orderId: string) {
   ), 0);
 }
 
-function createDateTimeString(date: string, time: string | null, fallbackHour = 12, fallbackMinute = 0) {
-  const [hourText = `${fallbackHour}`, minuteText = `${fallbackMinute}`] = (time ?? "").split(":");
-  const hour = Number.parseInt(hourText, 10);
-  const minute = Number.parseInt(minuteText, 10);
-  const safeHour = Number.isNaN(hour) ? fallbackHour : hour;
-  const safeMinute = Number.isNaN(minute) ? fallbackMinute : minute;
-  return `${date}T${`${safeHour}`.padStart(2, "0")}:${`${safeMinute}`.padStart(2, "0")}:00`;
-}
-
 function deriveOrderStatus(scopes: DbOrderScope[]): DbOrder["status"] {
   if (scopes.every((scope) => scope.phase === "picked_up")) {
     return "complete";
@@ -112,39 +91,6 @@ function deriveOrderStatus(scopes: DbOrderScope[]): DbOrder["status"] {
   }
 
   return "open";
-}
-
-function createInitialPaymentRecords(
-  orderId: string,
-  paymentStatus: OpenOrderPaymentStatus,
-  amount: number,
-  now: Date,
-): DbPaymentRecord[] {
-  if (paymentStatus === "captured" && amount > 0) {
-    return [{
-      id: `pay-${orderId}-1`,
-      orderId,
-      source: "prototype",
-      status: "captured",
-      amount,
-      collectedAt: toDateTimeString(now),
-      squarePaymentId: null,
-    }];
-  }
-
-  if (paymentStatus === "pending" && amount > 0) {
-    return [{
-      id: `pay-${orderId}-1`,
-      orderId,
-      source: "prototype",
-      status: "pending",
-      amount,
-      collectedAt: null,
-      squarePaymentId: null,
-    }];
-  }
-
-  return [];
 }
 
 export function addCustomerRecord(database: PrototypeDatabase, customer: Customer): PrototypeDatabase {
@@ -220,134 +166,30 @@ export function saveOrderWorkflowToDatabase(
   paymentStatus: OpenOrderPaymentStatus,
   options: OrderMutationOptions = {},
 ): { database: PrototypeDatabase; openOrderId: number } | null {
-  const orderType = getOrderType(order);
-  if (!orderType) {
+  const now = options.now ?? new Date();
+  const nextSequence = options.idFactory?.() ?? getNextOrderSequence(database);
+  const serialized = serializeOrderWorkflowToRecords({
+    order,
+    customers,
+    paymentStatus,
+    orderSequence: nextSequence,
+    now,
+  });
+  if (!serialized) {
     return null;
   }
 
-  const now = options.now ?? new Date();
-  const nextSequence = options.idFactory?.() ?? getNextOrderSequence(database);
-  const orderId = `order-${nextSequence}`;
-  const displayId = `ORD-${nextSequence}`;
-  const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
-  const lineItems = getOrderBagLineItems(order, customers);
-  const requiredScopes = getRequiredPickupScopes(order);
-
-  const orderRecord: DbOrder = {
-    id: orderId,
-    displayId,
-    payerCustomerId: order.payerCustomerId,
-    payerName: payer?.name ?? "Walk-in customer",
-    orderType,
-    createdAt: toDateTimeString(now),
-    status: "open",
-    holdUntilAllScopesReady: orderType === "mixed",
-  };
-
-  const customerEvents: DbCustomerEvent[] = [];
-  const scopes: DbOrderScope[] = [];
-  const scopeLines: DbOrderScopeLine[] = [];
-  const lineComponents: DbOrderScopeLineComponent[] = [];
-  const pickupAppointments: DbPickupAppointment[] = [];
-
-  requiredScopes.forEach((scope, scopeIndex) => {
-    const schedule = getPickupScheduleForScope(order, scope);
-    const scopeId = `${orderId}-${scope}`;
-    const eventId = scope === "custom" && schedule.eventType !== "none" && schedule.eventDate
-      ? `event-${orderId}-${scope}`
-      : null;
-    const promisedReadyAt = scope === "alteration"
-      ? (schedule.pickupDate ? createDateTimeString(schedule.pickupDate, schedule.pickupTime || "12:00") : null)
-      : (schedule.eventDate ? createDateTimeString(schedule.eventDate, "12:00") : null);
-
-    if (eventId && order.payerCustomerId) {
-      customerEvents.push({
-        id: eventId,
-        customerId: order.payerCustomerId,
-        type: schedule.eventType,
-        title: `${schedule.eventType} deadline for ${displayId}`,
-        eventDate: schedule.eventDate,
-      });
-    }
-
-    scopes.push({
-      id: scopeId,
-      orderId,
-      workflow: scope,
-      phase: "in_progress",
-      promisedReadyAt,
-      readyAt: null,
-      eventId,
-      appointmentOptional: scope === "custom",
-    });
-
-    const matchingItems = lineItems.filter((item) => item.kind === scope);
-    matchingItems.forEach((item, itemIndex) => {
-      const lineId = `${scopeId}-line-${itemIndex + 1}`;
-      scopeLines.push({
-        id: lineId,
-        scopeId,
-        label: item.sourceLabel,
-        garmentLabel: item.garmentLabel,
-        quantity: 1,
-        unitPrice: item.amount,
-        wearerCustomerId: item.wearerCustomerId ?? null,
-        wearerName: item.wearerName ?? null,
-        measurementSetId: item.linkedMeasurementSetId ?? null,
-        measurementSetLabel: item.linkedMeasurementLabel ?? null,
-        measurementSnapshot: item.measurementSnapshot ? { ...item.measurementSnapshot } : null,
-      });
-
-      item.components.forEach((component) => {
-        lineComponents.push({
-          id: `${lineId}-${component.kind}-${component.sortOrder}`,
-          lineId,
-          kind: component.kind,
-          label: component.label,
-          value: component.value,
-          sortOrder: component.sortOrder,
-        });
-      });
-    });
-
-    if (schedule.pickupLocation) {
-      const pickupDate = scope === "alteration"
-        ? schedule.pickupDate
-        : (schedule.eventDate || orderRecord.createdAt.slice(0, 10));
-
-      pickupAppointments.push({
-        id: `pickup-${orderId}-${scopeIndex + 1}`,
-        orderId,
-        scopeId,
-        scopeLineId: null,
-        customerId: order.payerCustomerId,
-        scheduledFor: createDateTimeString(pickupDate, scope === "alteration" ? schedule.pickupTime || "12:00" : "12:00"),
-        locationId: getLocationId(schedule.pickupLocation),
-        source: "prototype",
-        durationMinutes: 15,
-        typeKey: "pickup",
-        statusKey: "scheduled",
-        summary: matchingItems.map((item) => item.sourceLabel).join(", "),
-        confirmationStatus: null,
-        rush: false,
-      });
-    }
-  });
-
-  const totalCollected = paymentStatus === "captured" ? getCheckoutCollectionAmount(order) : 0;
-  const paymentRecords = createInitialPaymentRecords(orderId, paymentStatus, totalCollected, now);
-
   return {
-    openOrderId: nextSequence,
+    openOrderId: serialized.openOrderId,
     database: {
       ...database,
-      customerEvents: [...database.customerEvents, ...customerEvents],
-      orders: [orderRecord, ...database.orders],
-      orderScopes: [...database.orderScopes, ...scopes],
-      orderScopeLines: [...database.orderScopeLines, ...scopeLines],
-      orderScopeLineComponents: [...database.orderScopeLineComponents, ...lineComponents],
-      pickupAppointments: [...database.pickupAppointments, ...pickupAppointments],
-      payments: [...database.payments, ...paymentRecords],
+      customerEvents: [...database.customerEvents, ...serialized.customerEvents],
+      orders: [serialized.orderRecord, ...database.orders],
+      orderScopes: [...database.orderScopes, ...serialized.scopes],
+      orderScopeLines: [...database.orderScopeLines, ...serialized.scopeLines],
+      orderScopeLineComponents: [...database.orderScopeLineComponents, ...serialized.lineComponents],
+      pickupAppointments: [...database.pickupAppointments, ...serialized.pickupAppointments],
+      payments: [...database.payments, ...serialized.paymentRecords],
       generatedAt: toDateTimeString(now),
     },
   };
