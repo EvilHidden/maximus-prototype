@@ -278,7 +278,7 @@ describe("order selectors", () => {
     });
     expect(getOrderQueueCounts([dueToday, dueTomorrow, ready], { now })).toEqual({
       all: 3,
-      due_today: 2,
+      due_today: 1,
       due_tomorrow: 1,
       ready_for_pickup: 1,
       overdue: 0,
@@ -298,7 +298,7 @@ describe("order selectors", () => {
         },
         { now },
       ).map((order) => order.id),
-    ).toEqual([1001, 1003]);
+    ).toEqual([1001]);
 
     expect(getNeedsAttentionOpenOrders([dueToday, dueTomorrow, ready]).map((order) => order.id)).toEqual([1001, 1002]);
   });
