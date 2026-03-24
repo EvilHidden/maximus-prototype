@@ -1,5 +1,6 @@
-import type { Appointment } from "../../types";
+import type { Appointment, OpenOrder, OpenOrderPickup } from "../../types";
 import { getAppointmentDateKey } from "../appointments/selectors";
+import { getPickupDateTime } from "../order/orderDateUtils";
 
 function toDateKey(date: Date) {
   const year = date.getFullYear();
@@ -17,6 +18,30 @@ function sortAppointmentsByScheduledFor(appointments: Appointment[]) {
   return [...appointments].sort((left, right) => getAppointmentSortValue(left) - getAppointmentSortValue(right));
 }
 
+export type ReadyPickupQueueItem = {
+  key: string;
+  openOrderId: number;
+  openOrder: OpenOrder;
+  payerName: string;
+  orderType: OpenOrder["orderType"];
+  itemSummary: OpenOrder["itemSummary"];
+  pickupBalanceDue: number;
+  paymentStatus: OpenOrder["paymentStatus"];
+  pickupSchedule: OpenOrderPickup;
+};
+
+function getReadyPickupSortValue(pickupSchedule: OpenOrderPickup) {
+  if (pickupSchedule.readyAt) {
+    const readyAt = new Date(pickupSchedule.readyAt);
+    if (!Number.isNaN(readyAt.getTime())) {
+      return readyAt.getTime();
+    }
+  }
+
+  const preferredPickupDateTime = getPickupDateTime(pickupSchedule.pickupDate, pickupSchedule.pickupTime);
+  return preferredPickupDateTime ? preferredPickupDateTime.getTime() : Number.MAX_SAFE_INTEGER;
+}
+
 export function getTodayAppointments(appointments: Appointment[], now = new Date()) {
   const today = toDateKey(now);
   return sortAppointmentsByScheduledFor(
@@ -32,6 +57,20 @@ export function getTomorrowAppointments(appointments: Appointment[], now = new D
   );
 }
 
-export function getPickupAppointments(appointments: Appointment[]) {
-  return sortAppointmentsByScheduledFor(appointments.filter((appointment) => appointment.kind === "pickup"));
+export function getReadyPickupQueue(openOrders: OpenOrder[]) {
+  return openOrders
+    .flatMap<ReadyPickupQueueItem>((openOrder) => openOrder.pickupSchedules
+      .filter((pickupSchedule) => pickupSchedule.readyForPickup && !pickupSchedule.pickedUp)
+      .map((pickupSchedule) => ({
+        key: `${openOrder.id}-${pickupSchedule.id}`,
+        openOrderId: openOrder.id,
+        openOrder,
+        payerName: openOrder.payerName,
+        orderType: openOrder.orderType,
+        itemSummary: openOrder.itemSummary,
+        pickupBalanceDue: openOrder.pickupBalanceDue ?? 0,
+        paymentStatus: openOrder.paymentStatus,
+        pickupSchedule,
+      })))
+    .sort((left, right) => getReadyPickupSortValue(left.pickupSchedule) - getReadyPickupSortValue(right.pickupSchedule));
 }

@@ -279,8 +279,16 @@ export function completeOpenOrderPickup(
     return database;
   }
 
+  const readyScopeIds = database.orderScopes
+    .filter((scope) => scope.orderId === orderId && scope.phase === "ready")
+    .map((scope) => scope.id);
+
+  if (!readyScopeIds.length) {
+    return database;
+  }
+
   const nextScopes = database.orderScopes.map((scope) => (
-    scope.orderId === orderId
+    readyScopeIds.includes(scope.id)
       ? {
           ...scope,
           phase: "picked_up" as const,
@@ -301,7 +309,7 @@ export function completeOpenOrderPickup(
         : order
     )),
     pickupAppointments: database.pickupAppointments.map((appointment) => (
-      appointment.orderId === orderId
+      readyScopeIds.includes(appointment.scopeId ?? "")
         ? {
             ...appointment,
             statusKey: "completed",

@@ -8,8 +8,7 @@ import {
   adaptOpenOrders,
   adaptStaffMembers,
 } from "../../db/adapters";
-import { filterActiveAppointments } from "../appointments/selectors";
-import { getPickupAppointments } from "../home/selectors";
+import { filterActiveAppointments, filterServiceAppointments } from "../appointments/selectors";
 import { appReducer, createInitialAppState } from "../../state/appState";
 import type { Customer } from "../../types";
 import { useAppRuntimeData } from "./useAppRuntimeData";
@@ -31,7 +30,8 @@ export function useAppController() {
 
   const customers = useMemo(() => adaptCustomers(state.database), [state.database]);
   const customerOrders = useMemo(() => adaptCustomerOrders(state.database), [state.database]);
-  const appointments = useMemo(() => filterActiveAppointments(adaptAppointments(state.database)), [state.database]);
+  const activeAppointments = useMemo(() => filterActiveAppointments(adaptAppointments(state.database)), [state.database]);
+  const appointments = useMemo(() => filterServiceAppointments(activeAppointments), [activeAppointments]);
   const derivedMeasurementSets = useMemo(() => adaptMeasurementSets(state.database), [state.database]);
   const openOrders = useMemo(() => adaptOpenOrders(state.database), [state.database]);
   const inHouseTailors = useMemo(() => adaptStaffMembers(state.database), [state.database]);
@@ -49,7 +49,6 @@ export function useAppController() {
     () => openOrders.find((openOrder) => openOrder.id === state.checkoutOpenOrderId) ?? null,
     [openOrders, state.checkoutOpenOrderId],
   );
-  const pickupAppointments = useMemo(() => getPickupAppointments(appointments), [appointments]);
 
   const { measurementSets, saveMeasurements, createDraftMeasurements, deleteMeasurementSet } = useMeasurementSetManager({
     measurementSets: derivedMeasurementSets,
@@ -79,7 +78,6 @@ export function useAppController() {
     selectedCustomer,
     payerCustomer,
     checkoutOpenOrder,
-    pickupAppointments,
     startWorkflow,
     openWorkflowAppointment,
     saveMeasurements,

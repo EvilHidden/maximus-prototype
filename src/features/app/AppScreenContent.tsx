@@ -23,7 +23,6 @@ export function AppScreenContent({
   selectedCustomer,
   payerCustomer,
   checkoutOpenOrder,
-  pickupAppointments,
   startWorkflow,
   openWorkflowAppointment,
   saveMeasurements,
@@ -39,12 +38,14 @@ export function AppScreenContent({
     return (
       <HomeScreen
         appointments={appointments}
-        pickupAppointments={pickupAppointments}
+        openOrders={openOrders}
         pickupLocations={referenceData.pickupLocations}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
         onStartWorkflow={startWorkflow}
         onOpenAppointment={openWorkflowAppointment}
         onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
+        onOpenReadyPickupOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
+        onCheckoutReadyPickup={(openOrderId) => dispatch({ type: "openCheckoutForOpenOrder", openOrderId })}
       />
     );
   }

@@ -20,7 +20,6 @@ import {
 } from "../features/appointments/selectors";
 
 type AppointmentsViewMode = "calendar" | "list";
-type AppointmentKindFilter = "all" | "appointment" | "pickup";
 type AppointmentStatusFilter = "all" | "active" | "completed" | "canceled";
 
 type AppointmentsScreenProps = {
@@ -66,7 +65,6 @@ export function AppointmentsScreen({
   const [selectedDateKey, setSelectedDateKey] = useState<string | null>(toDateKey(today));
   const [viewMode, setViewMode] = useState<AppointmentsViewMode>("calendar");
   const [query, setQuery] = useState("");
-  const [kindFilter, setKindFilter] = useState<AppointmentKindFilter>("all");
   const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>("active");
   const [locationFilter, setLocationFilter] = useState<PickupLocation | "all">("all");
   const [composerOpen, setComposerOpen] = useState(false);
@@ -83,7 +81,6 @@ export function AppointmentsScreen({
   const sortedAppointments = [...appointments].sort(compareAppointments);
   const listAppointments = sortedAppointments.filter((appointment) => {
     const matchesQuery = query.trim().length === 0 || getAppointmentSearchText(appointment).includes(query.trim().toLowerCase());
-    const matchesKind = kindFilter === "all" || appointment.kind === kindFilter;
     const matchesLocation = locationFilter === "all" || appointment.location === locationFilter;
     const matchesStatus =
       statusFilter === "all"
@@ -92,7 +89,7 @@ export function AppointmentsScreen({
           ? isActiveAppointment(appointment)
           : appointment.statusKey === statusFilter;
 
-    return matchesQuery && matchesKind && matchesLocation && matchesStatus;
+    return matchesQuery && matchesLocation && matchesStatus;
   });
   const railAppointments = selectedDateKey
     ? sortedAppointments.filter((appointment) => getAppointmentDateKey(appointment) === selectedDateKey)
@@ -106,14 +103,14 @@ export function AppointmentsScreen({
         month: "short",
         day: "numeric",
       }).format(new Date(`${selectedDateKey}T12:00:00`))
-    : "Appointments and pickups";
+    : "Appointments";
 
   return (
     <div className="space-y-4">
       <SectionHeader
         icon={CalendarDays}
         title="Appointments"
-        subtitle={viewMode === "calendar" ? monthLabel : "Search appointments and pickups"}
+        subtitle={viewMode === "calendar" ? monthLabel : "Search appointments"}
         action={
           <div className="flex items-center gap-2">
             <ActionButton
@@ -202,17 +199,6 @@ export function AppointmentsScreen({
                   icon={Search}
                   className="min-w-[280px] flex-1"
                 />
-
-                <SelectField
-                  label="Type"
-                  value={kindFilter}
-                  onChange={(value) => setKindFilter(value as AppointmentKindFilter)}
-                  className="min-w-[180px]"
-                >
-                  <option value="all">All visits</option>
-                  <option value="appointment">Appointments</option>
-                  <option value="pickup">Pickups</option>
-                </SelectField>
 
                 <SelectField
                   label="Status"

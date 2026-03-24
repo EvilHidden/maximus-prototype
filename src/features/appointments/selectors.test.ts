@@ -3,6 +3,7 @@ import type { Appointment } from "../../types";
 import {
   compareAppointments,
   filterActiveAppointments,
+  filterServiceAppointments,
   getAppointmentDateKey,
   getAppointmentDateLabel,
   getAppointmentTimeLabel,
@@ -57,5 +58,18 @@ describe("appointment selectors", () => {
     const completed = { ...baseAppointment, id: "apt_3", statusKey: "completed" as const, status: "Completed" };
 
     expect(filterActiveAppointments([scheduled, canceled, completed]).map((appointment) => appointment.id)).toEqual(["apt_1"]);
+  });
+
+  it("keeps only service appointments in the appointments page feed", () => {
+    const pickup: Appointment = {
+      ...baseAppointment,
+      id: "pickup_1",
+      kind: "pickup",
+      typeKey: "pickup",
+      type: "Pickup appointment",
+      route: "pickup",
+    };
+
+    expect(filterServiceAppointments([baseAppointment, pickup]).map((appointment) => appointment.id)).toEqual(["apt_1"]);
   });
 });

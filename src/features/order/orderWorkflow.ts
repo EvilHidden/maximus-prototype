@@ -15,7 +15,7 @@ import type {
 import { getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
-import { getDraftPaymentSummary } from "./paymentSummary";
+import { getDraftPaymentSummary, getOpenOrderPickupBalanceDue } from "./paymentSummary";
 
 const seedReferenceData = getSeedReferenceData();
 
@@ -435,11 +435,12 @@ export function buildOpenOrder(
       pickupLocation: schedule.pickupLocation,
       eventType: schedule.eventType,
       eventDate: schedule.eventDate,
+      pickedUp: false,
       readyForPickup: false,
     };
   });
 
-  return {
+  const openOrder: OpenOrder = {
     id: orderId,
     payerCustomerId: order.payerCustomerId,
     payerName: payer?.name ?? "Walk-in customer",
@@ -457,6 +458,11 @@ export function buildOpenOrder(
     balanceDue: paymentSummary.balanceDue,
     total: paymentSummary.total,
     createdAt: now.toISOString(),
+  };
+
+  return {
+    ...openOrder,
+    pickupBalanceDue: getOpenOrderPickupBalanceDue(openOrder),
   };
 }
 

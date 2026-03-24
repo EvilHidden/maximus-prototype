@@ -23,7 +23,7 @@ import type {
   DbOrderScopeLineComponent,
   PrototypeDatabase,
 } from "./schema";
-import { getRecordedPaymentSummary } from "../features/order/paymentSummary";
+import { getOpenOrderPickupBalanceDue, getRecordedPaymentSummary } from "../features/order/paymentSummary";
 
 function findLocationName(locations: DbLocation[], locationId: string) {
   return locations.find((location) => location.id === locationId)?.name ?? "Fifth Avenue";
@@ -269,7 +269,9 @@ function getOpenOrderPickup(
     pickupLocation: findLocationName(database.locations, pickupAppointment?.locationId ?? database.customers.find((customer) => customer.id === order.payerCustomerId)?.preferredLocationId ?? "loc_fifth_avenue"),
     eventType: database.customerEvents.find((event) => event.id === scope.eventId)?.type ?? "none",
     eventDate: database.customerEvents.find((event) => event.id === scope.eventId)?.eventDate ?? "",
-    readyForPickup: scope.phase === "ready" || scope.phase === "picked_up",
+    readyAt: scope.readyAt,
+    pickedUp: scope.phase === "picked_up",
+    readyForPickup: scope.phase === "ready",
   };
 }
 
@@ -445,7 +447,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         total,
       });
 
-      return {
+      const openOrder: OpenOrder = {
         id: Number.parseInt(order.displayId.replace(/\D/g, ""), 10),
         payerCustomerId: order.payerCustomerId,
         payerName: order.payerName,
@@ -471,6 +473,11 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         balanceDue: payment.balanceDue,
         total: payment.total,
         createdAt: order.createdAt,
+      };
+
+      return {
+        ...openOrder,
+        pickupBalanceDue: getOpenOrderPickupBalanceDue(openOrder),
       };
     });
 }

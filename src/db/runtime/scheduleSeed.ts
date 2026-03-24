@@ -209,6 +209,22 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       confirmationStatus: "confirmed",
       rush: false,
     },
+    {
+      id: "pickup-1015",
+      orderId: "order-9024",
+      scopeId: "scope-9024-custom",
+      scopeLineId: null,
+      customerId: "C-1325",
+      scheduledFor: toDateTimeString(withOffset(baseDate, 1, 15, 45)),
+      locationId: createLocationId("Fifth Avenue"),
+      source: "manual",
+      durationMinutes: 15,
+      typeKey: "pickup",
+      statusKey: "scheduled",
+      summary: "Custom: wedding suit",
+      confirmationStatus: "confirmed",
+      rush: false,
+    },
   ];
 }
 

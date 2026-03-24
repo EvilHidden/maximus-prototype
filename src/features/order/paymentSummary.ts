@@ -1,4 +1,5 @@
 import type {
+  OpenOrder,
   OpenOrderPaymentStatus,
   OrderType,
   OrderWorkflowState,
@@ -15,6 +16,10 @@ export type PaymentSummary = {
   balanceDue: number;
   total: number;
 };
+
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
+}
 
 function getDraftOrderType(order: OrderWorkflowState): OrderType | null {
   const hasAlterations = order.alteration.items.length > 0;
@@ -123,4 +128,51 @@ export function getRecordedPaymentSummary({
     balanceDue,
     total,
   };
+}
+
+export function getOpenOrderPickupBalanceDue(openOrder: Pick<OpenOrder, "orderType" | "lineItems" | "pickupSchedules" | "totalCollected" | "total">) {
+  const alterationSubtotal = openOrder.lineItems
+    .filter((item) => item.kind === "alteration")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const customSubtotal = openOrder.lineItems
+    .filter((item) => item.kind === "custom")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const taxAmount = Math.max(openOrder.total - alterationSubtotal - customSubtotal, 0);
+  const readyScopes = new Set(
+    openOrder.pickupSchedules
+      .filter((pickup) => pickup.readyForPickup && !pickup.pickedUp)
+      .map((pickup) => pickup.scope),
+  );
+
+  if (!readyScopes.size) {
+    return 0;
+  }
+
+  const alterationCollectible = alterationSubtotal > 0 ? alterationSubtotal + taxAmount : 0;
+  const alterationCaptured = Math.min(openOrder.totalCollected, alterationCollectible);
+  const alterationRemaining = Math.max(alterationCollectible - alterationCaptured, 0);
+
+  const customCollectible = openOrder.orderType === "mixed"
+    ? customSubtotal
+    : customSubtotal > 0
+      ? customSubtotal + taxAmount
+      : 0;
+  const customCaptured = openOrder.orderType === "mixed"
+    ? Math.max(openOrder.totalCollected - alterationCollectible, 0)
+    : openOrder.totalCollected;
+  const customRemaining = Math.max(customCollectible - customCaptured, 0);
+
+  let due = 0;
+  if (readyScopes.has("alteration")) {
+    due += alterationRemaining;
+  }
+  if (readyScopes.has("custom")) {
+    due += customRemaining;
+  }
+
+  return roundCurrency(Math.max(due, 0));
+}
+
+export function hasReadyScopesForPickup(openOrder: Pick<OpenOrder, "pickupSchedules">) {
+  return openOrder.pickupSchedules.some((pickup) => pickup.readyForPickup && !pickup.pickedUp);
 }

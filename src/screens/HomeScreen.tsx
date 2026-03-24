@@ -8,7 +8,7 @@ import {
   UserPlus,
 } from "lucide-react";
 import { useState } from "react";
-import type { Appointment, Screen, WorkflowMode } from "../types";
+import type { Appointment, OpenOrder, Screen, WorkflowMode } from "../types";
 import { SectionHeader, SelectionChip } from "../components/ui/primitives";
 import { useToast } from "../components/ui/toast";
 import { ConfirmAppointmentCancelModal } from "../features/appointments/components/ConfirmAppointmentCancelModal";
@@ -18,22 +18,26 @@ import { useHomeDashboard } from "../features/home/hooks/useHomeDashboard";
 
 type HomeScreenProps = {
   appointments: Appointment[];
-  pickupAppointments: Appointment[];
+  openOrders: OpenOrder[];
   pickupLocations: import("../types").PickupLocation[];
   onScreenChange: (screen: Screen) => void;
   onStartWorkflow: (workflow: WorkflowMode) => void;
   onOpenAppointment: (appointment: Appointment) => void;
   onCancelAppointment: (appointmentId: string) => void;
+  onOpenReadyPickupOrder: (openOrderId: number) => void;
+  onCheckoutReadyPickup: (openOrderId: number) => void;
 };
 
 export function HomeScreen({
   appointments,
-  pickupAppointments,
+  openOrders,
   pickupLocations,
   onScreenChange,
   onStartWorkflow,
   onOpenAppointment,
   onCancelAppointment,
+  onOpenReadyPickupOrder,
+  onCheckoutReadyPickup,
 }: HomeScreenProps) {
   const { showToast } = useToast();
   const [cancelingAppointment, setCancelingAppointment] = useState<Appointment | null>(null);
@@ -43,8 +47,7 @@ export function HomeScreen({
     allLocationsActive,
     todayAppointments,
     tomorrowAppointments,
-    todayPickups,
-    tomorrowPickups,
+    readyPickups,
     todayLabel,
     tomorrowLabel,
     visibleAppointmentCount,
@@ -53,7 +56,7 @@ export function HomeScreen({
     hasAnyLocationSelected,
     hasFilteredLaterWork,
     singleActiveLocationLabel,
-  } = useHomeDashboard(appointments, pickupAppointments, pickupLocations);
+  } = useHomeDashboard(appointments, openOrders, pickupLocations);
 
   const actions = [
     {
@@ -158,31 +161,30 @@ export function HomeScreen({
           tomorrowLabel={tomorrowLabel}
           todayAppointments={todayAppointments}
           tomorrowAppointments={tomorrowAppointments}
-          todayPickups={todayPickups}
-          tomorrowPickups={tomorrowPickups}
+          readyPickups={readyPickups}
           singleActiveLocationLabel={singleActiveLocationLabel}
           onCreateOrder={onOpenAppointment}
           onCancelAppointment={setCancelingAppointment}
-          onCheckoutPickup={() => onScreenChange("openOrders")}
-          onEditPickup={() => onScreenChange("openOrders")}
+          onCheckoutPickup={onCheckoutReadyPickup}
+          onOpenPickupOrder={onOpenReadyPickupOrder}
         />
       ) : !hasAnyLocationSelected ? (
         <HomeEmptyState
           title="No locations selected"
-          detail="Choose at least one location to bring appointments and pickups back into view."
+          detail="Choose at least one location to bring appointments and ready pickups back into view."
           primaryAction={{ label: "Show all locations", onClick: () => setActiveLocations(pickupLocations) }}
         />
       ) : hasFilteredLaterWork ? (
         <HomeEmptyState
           title="Nothing scheduled for today or tomorrow"
-          detail="Later appointments and pickups are still scheduled. Open the full calendar or active orders to work ahead."
+          detail="Later appointments are still scheduled. Open the full calendar or active orders to work ahead."
           primaryAction={{ label: "Open appointments", onClick: () => onScreenChange("appointments") }}
           secondaryAction={{ label: "Open all active orders", onClick: () => onScreenChange("openOrders") }}
         />
       ) : (
         <HomeEmptyState
           title="Nothing needs attention right now"
-          detail="New fittings, consultations, and pickups will show up here once they are scheduled."
+          detail="New fittings and ready pickups will show up here once they need attention."
           primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
           secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
         />

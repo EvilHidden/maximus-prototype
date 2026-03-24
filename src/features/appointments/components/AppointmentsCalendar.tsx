@@ -36,10 +36,6 @@ function toDateKey(date: Date) {
 }
 
 function getCalendarLine(appointment: Appointment) {
-  if (appointment.kind === "pickup") {
-    return "Pickup";
-  }
-
   if (/consult/i.test(appointment.type)) {
     return "Consult";
   }
@@ -95,11 +91,7 @@ export function AppointmentsCalendar({
                   {dayAppointments.slice(0, 1).map((appointment) => (
                     <div
                       key={appointment.id}
-                      className={`rounded-[var(--app-radius-sm)] border px-2 py-1.5 ${
-                        appointment.kind === "pickup"
-                          ? "border-[var(--app-warn-border)]/45 bg-[var(--app-warn-bg)]/45"
-                          : "border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22"
-                      }`}
+                      className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22 px-2 py-1.5"
                     >
                       <div className="text-[12px] font-semibold text-[var(--app-text)]">{getAppointmentTimeLabel(appointment)}</div>
                       <div className="mt-1 truncate text-[12px] font-medium text-[var(--app-text-muted)]">{appointment.customer}</div>

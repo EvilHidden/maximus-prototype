@@ -3,6 +3,8 @@ import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, EmptyState, SectionHeader, Surface, cx } from "../components/ui/primitives";
 import {
   getCheckoutCollectionAmount,
+  getOpenOrderPickupBalanceDue,
+  hasReadyScopesForPickup,
   getOrderBagLineItems,
   getOrderType,
   getPickupRequired,
@@ -69,8 +71,9 @@ export function CheckoutScreen({
     ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null
     : payerCustomer;
   const readyBySummary = getReadyBySummary(openOrder, pickupSummary);
-  const allPickupScopesReady = Boolean(openOrder?.pickupSchedules.length) && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
   const acceptedOrderNeedsPayment = Boolean(openOrder && isAcceptedOpenOrder && openOrder.balanceDue > 0);
+  const readyPickupBalanceDue = openOrder ? getOpenOrderPickupBalanceDue(openOrder) : 0;
+  const hasReadyScopesToPickup = openOrder ? hasReadyScopesForPickup(openOrder) : false;
 
   if (isEmptyDraftCheckout) {
     return <CheckoutEmptyState onAction={() => onScreenChange("order")} actionIcon={CreditCard} />;
@@ -380,13 +383,17 @@ export function CheckoutScreen({
                       <ActionButton tone="primary" onClick={() => onCaptureOpenOrderPayment(openOrder.id)}>
                         Confirm payment
                       </ActionButton>
-                    ) : isAcceptedOpenOrder ? null : openOrder.balanceDue > 0 ? (
+                    ) : isAcceptedOpenOrder ? null : hasReadyScopesToPickup && readyPickupBalanceDue > 0 ? (
                       <ActionButton tone="primary" onClick={() => onStartOpenOrderPayment(openOrder.id)}>
-                        {openOrder.totalCollected > 0 ? "Collect balance" : "Collect payment"}
+                        {openOrder.totalCollected > 0 ? "Collect pickup balance" : "Collect payment"}
                       </ActionButton>
-                    ) : allPickupScopesReady ? (
+                    ) : hasReadyScopesToPickup ? (
                       <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder.id)}>
                         Complete pickup
+                      </ActionButton>
+                    ) : openOrder.balanceDue > 0 ? (
+                      <ActionButton tone="primary" onClick={() => onStartOpenOrderPayment(openOrder.id)}>
+                        {openOrder.totalCollected > 0 ? "Collect balance" : "Collect payment"}
                       </ActionButton>
                     ) : (
                       <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
