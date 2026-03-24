@@ -34,6 +34,7 @@ type CustomGarmentBuilderProps = {
   isEditing: boolean;
   editingLabel?: string | null;
   wearerName?: string | null;
+  measurementVersionLabel?: string | null;
   onSelectGender: (gender: CustomGarmentGender) => void;
   onSelectGarment: (garment: string | null) => void;
   onAddToOrder: () => void;
@@ -205,6 +206,7 @@ export function CustomGarmentBuilder({
   isEditing,
   editingLabel,
   wearerName,
+  measurementVersionLabel,
   onSelectGender,
   onSelectGarment,
   onAddToOrder,
@@ -215,7 +217,11 @@ export function CustomGarmentBuilder({
   const showConfiguration = Boolean(selectedGarment);
   const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
   const currentSubtotal = getCustomGarmentPrice(selectedGarment);
-  const summaryParts = [selectedGarment, wearerName, lapel].filter(Boolean) as string[];
+  const summaryParts = [
+    wearerName,
+    measurementVersionLabel,
+    selectedGarment,
+  ].filter(Boolean) as string[];
   const showValidationBanner =
     showValidation &&
     (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
@@ -412,7 +418,6 @@ export function CustomGarmentBuilder({
                           selectedValue={lapel}
                           onSelect={(value) => onSetConfiguration({ lapel: value })}
                           columnsClassName="grid-cols-1 sm:grid-cols-3"
-                          showSelectedLabel
                         />
                       </div>
                     </div>
@@ -447,7 +452,7 @@ export function CustomGarmentBuilder({
         <div className="min-w-0 flex-1">
           <div className="app-text-overline">{isEditing ? "Current garment" : "Ready to add"}</div>
           <div className="app-text-caption mt-1">
-            {summaryParts.length > 0 ? summaryParts.join(" • ") : "Select the garment details to build the order summary."}
+            {summaryParts.length > 0 ? summaryParts.join(" • ") : "Choose the wearer, measurements, and construction details."}
           </div>
         </div>
         <div className="flex items-center gap-2">

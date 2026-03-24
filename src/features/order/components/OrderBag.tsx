@@ -127,8 +127,42 @@ export function OrderBag({
                 >
                   <div className="flex items-start justify-between gap-3 px-3">
                     <div className="min-w-0 flex-1">
-                      <div className="app-text-body font-medium">{item.title}</div>
-                      {item.subtitle ? <div className="app-text-caption mt-2 whitespace-pre-line leading-[1.7]">{item.subtitle}</div> : null}
+                      <div className="app-text-overline">
+                        {index + 1}. {item.kind === "custom" ? "Custom garment" : "Alteration"}
+                      </div>
+                      <div className="mt-1 app-text-strong leading-tight">{item.garmentLabel}</div>
+                      {item.subtitle ? (
+                        item.kind === "custom" ? (
+                          <div className="mt-2 space-y-1.5">
+                            {item.subtitle.split("\n").map((line, lineIndex) => {
+                              if (lineIndex === 0) {
+                                return (
+                                  <div
+                                    key={`${item.id}-detail-${lineIndex}`}
+                                    className="app-text-body-muted leading-[1.55]"
+                                  >
+                                    {line}
+                                  </div>
+                                );
+                              }
+
+                              const detailLabel = lineIndex === 1 ? "Style" : lineIndex === 2 ? "Build" : "Mono";
+
+                              return (
+                                <div
+                                  key={`${item.id}-detail-${lineIndex}`}
+                                  className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-2"
+                                >
+                                  <div className="app-text-overline pt-[0.08rem]">{detailLabel}</div>
+                                  <div className="app-text-caption leading-[1.6]">{line}</div>
+                                </div>
+                              );
+                            })}
+                          </div>
+                        ) : (
+                          <div className="app-text-caption mt-2 whitespace-pre-line leading-[1.7]">{item.subtitle}</div>
+                        )
+                      ) : null}
                     </div>
                     <div className="flex min-w-[104px] shrink-0 flex-col items-end gap-2.5 pl-3 pt-0.5 text-right">
                       <div className="app-text-strong">${item.amount.toFixed(2)}</div>

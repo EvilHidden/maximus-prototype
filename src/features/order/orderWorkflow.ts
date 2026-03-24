@@ -50,10 +50,33 @@ function getStyleSummary(garment: string | null, lapel: string | null, pocketTyp
   }
 
   return [
-    lapel ? `Lapel ${lapel}` : "Lapel req",
-    pocketType ? `Pocket ${pocketType}` : "Pocket req",
-    canvas ? `Canvas ${canvas}` : "Canvas req",
+    lapel ? lapel : "Lapel req",
+    pocketType ? `${pocketType} pocket` : "Pocket req",
+    canvas ? `${canvas} canvas` : "Canvas req",
   ];
+}
+
+function getCustomBuildSummary(item: OrderWorkflowState["custom"]["items"][number]) {
+  return [
+    item.fabric ? `Fab ${item.fabric}` : null,
+    item.buttons ? `Btn ${item.buttons}` : null,
+    item.lining ? `Lin ${item.lining}` : null,
+    item.threads ? `Thr ${item.threads}` : null,
+  ].filter(Boolean) as string[];
+}
+
+function getCustomMonogramSummary(item: OrderWorkflowState["custom"]["items"][number]) {
+  const monogramParts = [
+    item.monogramLeft ? `L ${item.monogramLeft}` : null,
+    item.monogramCenter ? `C ${item.monogramCenter}` : null,
+    item.monogramRight ? `R ${item.monogramRight}` : null,
+  ].filter(Boolean) as string[];
+
+  if (!monogramParts.length) {
+    return null;
+  }
+
+  return monogramParts.join(" • ");
 }
 
 function getWearerName(customerId: string | null, customers: Customer[], fallback?: string | null) {
@@ -304,9 +327,14 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
     ];
 
     const styleSummary = getStyleSummary(selectedGarment, item.lapel, item.pocketType, item.canvas);
-    const subtitle = styleSummary.length > 0
-      ? `${summaryDetails.join(" • ")}\n${styleSummary.join(" • ")}`
-      : summaryDetails.join(" • ");
+    const buildSummary = getCustomBuildSummary(item);
+    const monogramSummary = getCustomMonogramSummary(item);
+    const subtitle = [
+      summaryDetails.join(" • "),
+      styleSummary.length > 0 ? styleSummary.join(" • ") : null,
+      buildSummary.length > 0 ? buildSummary.join(" • ") : null,
+      monogramSummary,
+    ].filter(Boolean).join("\n");
 
     items.push({
       id: `custom-item-${item.id}`,
