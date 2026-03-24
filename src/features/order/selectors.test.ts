@@ -9,6 +9,9 @@ import {
   getOperatorQueueStageCounts,
   getOrderQueueCounts,
   getPickupAlertState,
+  getPickupAppointmentConfirmationState,
+  getPickupAppointmentSummary,
+  getPickupTimingLabel,
   getPricingSummary,
   getSummaryGuardrail,
 } from "./selectors";
@@ -232,6 +235,20 @@ describe("order selectors", () => {
     });
   });
 
+  it("formats pickup appointments for operator-facing rows", () => {
+    const appointment = createPickupAppointment({
+      pickupSummary: "Alterations: jeans, pants • Custom: shirt",
+      contextFlags: ["unconfirmed"],
+    });
+
+    expect(getPickupAppointmentSummary(appointment)).toBe("jeans, pants, shirt");
+    expect(getPickupAppointmentConfirmationState(appointment)).toEqual({
+      tone: "warn",
+      label: "Unconfirmed",
+    });
+    expect(getPickupTimingLabel("2026-03-22", new Date(2026, 2, 22, 9, 0, 0, 0))).toBe("Today");
+  });
+
   it("counts and filters queues against a fixed clock", () => {
     const now = new Date(2026, 2, 22, 9, 0, 0, 0);
     const dueToday = createOpenOrder({});
@@ -255,17 +272,14 @@ describe("order selectors", () => {
         },
       ],
     });
-    const pickupAppointments = [createPickupAppointment({ id: "apt_2" })];
-
-    expect(getOrderQueueCounts([dueToday, dueTomorrow, ready], pickupAppointments, { now })).toEqual({
-      all: 4,
+    expect(getOrderQueueCounts([dueToday, dueTomorrow, ready], { now })).toEqual({
+      all: 3,
       due_today: 2,
       due_tomorrow: 1,
       ready_for_pickup: 1,
       overdue: 0,
       in_house: 3,
       factory: 0,
-      scheduled_pickups: 1,
     });
 
     expect(

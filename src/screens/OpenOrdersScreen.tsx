@@ -1,11 +1,10 @@
-import type { Appointment, ClosedOrderHistoryItem, OpenOrder, PickupLocation, StaffMember } from "../types";
+import type { ClosedOrderHistoryItem, OpenOrder, PickupLocation, StaffMember } from "../types";
 import { OpenOrdersBody, OpenOrdersControls, OpenOrdersHeader } from "../features/order/components/OpenOrdersPanels";
 import { useOpenOrdersView } from "../features/order/hooks/useOpenOrdersView";
 
 type OpenOrdersScreenProps = {
   openOrders: OpenOrder[];
   closedOrderHistory: ClosedOrderHistoryItem[];
-  pickupAppointments: Appointment[];
   pickupLocations: PickupLocation[];
   inHouseTailors: StaffMember[];
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
@@ -18,7 +17,6 @@ type OpenOrdersScreenProps = {
 export function OpenOrdersScreen({
   openOrders,
   closedOrderHistory,
-  pickupAppointments,
   pickupLocations,
   inHouseTailors,
   onAssignOpenOrderTailor,
@@ -43,12 +41,11 @@ export function OpenOrdersScreen({
     baseOpenOrders,
     queueCounts,
     filteredQueueOrders,
-    filteredQueuePickups,
     filteredOperatorOrders,
     operatorQueueCounts,
     filteredHistoryItems,
     activeSubtitle,
-  } = useOpenOrdersView(openOrders, closedOrderHistory, pickupAppointments);
+  } = useOpenOrdersView(openOrders, closedOrderHistory);
 
   return (
     <div className="space-y-4">
@@ -85,7 +82,6 @@ export function OpenOrdersScreen({
         activeQueue={activeQueue}
         baseOpenOrders={baseOpenOrders}
         filteredQueueOrders={filteredQueueOrders}
-        filteredQueuePickups={filteredQueuePickups}
         filteredOperatorOrders={filteredOperatorOrders}
         operatorQueueCounts={operatorQueueCounts}
         filteredHistoryItems={filteredHistoryItems}

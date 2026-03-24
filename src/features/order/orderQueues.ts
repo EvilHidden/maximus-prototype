@@ -6,11 +6,6 @@ import type {
   WorkflowMode,
 } from "../../types";
 import {
-  getAppointmentContextFlagLabel,
-  getAppointmentPrepFlagLabel,
-  getAppointmentProfileFlagLabel,
-} from "../appointments/selectors";
-import {
   formatDateLabel,
   getPickupDateTime,
   isToday,
@@ -55,25 +50,6 @@ function getOpenOrderSearchText(openOrder: OpenOrder) {
   );
 }
 
-function getPickupAppointmentSearchText(appointment: Appointment) {
-  return normalizeSearchValue(
-    [
-      appointment.id,
-      appointment.customer,
-      appointment.type,
-      appointment.pickupSummary,
-      appointment.scheduledFor,
-      appointment.location,
-      appointment.status,
-      ...appointment.prepFlags.map(getAppointmentPrepFlagLabel),
-      ...appointment.profileFlags.map(getAppointmentProfileFlagLabel),
-      ...appointment.contextFlags.map(getAppointmentContextFlagLabel),
-    ]
-      .filter(Boolean)
-      .join(" "),
-  );
-}
-
 function getClosedOrderSearchText(order: ClosedOrderHistoryItem) {
   return normalizeSearchValue([order.id, order.customerName, order.label, order.status, formatCompactCurrency(order.total)].join(" "));
 }
@@ -98,18 +74,6 @@ function openOrderMatchesAssignee(openOrder: OpenOrder, assigneeFilter: Assignee
   }
 
   return openOrder.inHouseAssignee?.id === assigneeFilter;
-}
-
-function pickupAppointmentMatchesQueue(appointment: Appointment, queue: OrdersQueueKey) {
-  if (queue === "all") {
-    return true;
-  }
-
-  if (queue === "scheduled_pickups") {
-    return true;
-  }
-
-  return false;
 }
 
 function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey, now = new Date()) {
@@ -184,8 +148,7 @@ export type OrdersQueueKey =
   | "ready_for_pickup"
   | "overdue"
   | "in_house"
-  | "factory"
-  | "scheduled_pickups";
+  | "factory";
 
 type OpenOrderFilterOptions = {
   query: string;
@@ -193,12 +156,6 @@ type OpenOrderFilterOptions = {
   typeFilter: OpenOrder["orderType"] | "all";
   locationFilter: PickupLocation | "all";
   assigneeFilter: AssigneeFilterValue;
-};
-
-type PickupAppointmentFilterOptions = {
-  query: string;
-  queue: OrdersQueueKey;
-  locationFilter: PickupLocation | "all";
 };
 
 export function getPickupTimingLabel(dateValue: string, now = new Date()) {
@@ -209,11 +166,11 @@ export function getPickupTimingLabel(dateValue: string, now = new Date()) {
   tomorrow.setDate(today.getDate() + 1);
 
   if (target.toDateString() === today.toDateString()) {
-    return "Pickup due today";
+    return "Today";
   }
 
   if (target.toDateString() === tomorrow.toDateString()) {
-    return "Pickup due tomorrow";
+    return "Tomorrow";
   }
 
   return new Intl.DateTimeFormat("en-US", {
@@ -284,7 +241,38 @@ export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][numb
 }
 
 export function getPickupAppointmentSummary(appointment: Appointment) {
-  return appointment.pickupSummary ?? appointment.type;
+  if (!appointment.pickupSummary) {
+    return "Pickup details pending";
+  }
+
+  const summary = appointment.pickupSummary
+    .split("•")
+    .map((segment) => segment.replace(/^\s*(Alterations|Custom):\s*/i, "").trim())
+    .filter(Boolean)
+    .join(", ");
+
+  return summary || "Pickup details pending";
+}
+
+export function getPickupAppointmentConfirmationState(appointment: Appointment) {
+  if (appointment.contextFlags.includes("confirmed")) {
+    return {
+      tone: "success" as const,
+      label: "Confirmed",
+    };
+  }
+
+  if (appointment.contextFlags.includes("unconfirmed")) {
+    return {
+      tone: "warn" as const,
+      label: "Unconfirmed",
+    };
+  }
+
+  return {
+    tone: "default" as const,
+    label: "Confirmation pending",
+  };
 }
 
 export function getOpenOrderOperationalLane(openOrder: OpenOrder) {
@@ -320,7 +308,7 @@ export function getOpenOrderLocationSummary(openOrder: OpenOrder) {
   return uniqueLocations.join(" • ");
 }
 
-export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments: Appointment[], options: { now?: Date } = {}) {
+export function getOrderQueueCounts(openOrders: OpenOrder[], options: { now?: Date } = {}) {
   const now = options.now ?? new Date();
   const queueKeys: OrdersQueueKey[] = [
     "all",
@@ -330,15 +318,11 @@ export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments:
     "overdue",
     "in_house",
     "factory",
-    "scheduled_pickups",
   ];
 
   return queueKeys.reduce<Record<OrdersQueueKey, number>>((accumulator, queueKey) => {
     const openOrderCount = openOrders.filter((openOrder) => openOrderMatchesQueue(openOrder, queueKey, now)).length;
-    const pickupCount = pickupAppointments.filter((appointment) => pickupAppointmentMatchesQueue(appointment, queueKey)).length;
-    accumulator[queueKey] = queueKey === "in_house" || queueKey === "factory"
-      ? openOrderCount
-      : openOrderCount + pickupCount;
+    accumulator[queueKey] = openOrderCount;
     return accumulator;
   }, {
     all: 0,
@@ -348,7 +332,6 @@ export function getOrderQueueCounts(openOrders: OpenOrder[], pickupAppointments:
     overdue: 0,
     in_house: 0,
     factory: 0,
-    scheduled_pickups: 0,
   });
 }
 
@@ -382,29 +365,6 @@ export function filterOpenOrders(
     }
 
     return getOpenOrderSearchText(openOrder).includes(normalizedQuery);
-  });
-}
-
-export function filterPickupAppointments(
-  pickupAppointments: Appointment[],
-  { query, queue, locationFilter }: PickupAppointmentFilterOptions,
-) {
-  const normalizedQuery = normalizeSearchValue(query);
-
-  return pickupAppointments.filter((appointment) => {
-    if (locationFilter !== "all" && appointment.location !== locationFilter) {
-      return false;
-    }
-
-    if (!pickupAppointmentMatchesQueue(appointment, queue)) {
-      return false;
-    }
-
-    if (!normalizedQuery) {
-      return true;
-    }
-
-    return getPickupAppointmentSearchText(appointment).includes(normalizedQuery);
   });
 }
 

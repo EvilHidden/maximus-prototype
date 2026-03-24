@@ -80,10 +80,10 @@ export function OpenOrdersControls({
         <div className="border-t border-[var(--app-border)]/35 pt-4">
           <div className="flex flex-wrap items-end gap-3">
             <SearchField
-              label="Search work and orders"
+              label="Search orders"
               value={query}
               onChange={onQueryChange}
-              placeholder="Search by customer, garment, order ID, or pickup details"
+              placeholder="Search by customer, garment, or order ID"
               icon={Search}
               className="min-w-[280px] flex-1"
             />

@@ -112,7 +112,6 @@ export function AppScreenContent({
       <OpenOrdersScreen
         openOrders={openOrders}
         closedOrderHistory={closedOrderHistory}
-        pickupAppointments={pickupAppointments}
         pickupLocations={referenceData.pickupLocations}
         inHouseTailors={inHouseTailors}
         onAssignOpenOrderTailor={assignOpenOrderTailor}

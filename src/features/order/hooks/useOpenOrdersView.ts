@@ -1,11 +1,10 @@
 import { useMemo, useState } from "react";
-import type { Appointment, ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../../../types";
+import type { ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../../../types";
 import {
   getOperatorQueueStageCounts,
   type AssigneeFilterValue,
   filterClosedOrderHistory,
   filterOpenOrders,
-  filterPickupAppointments,
   getOrderQueueCounts,
   type OrdersQueueKey,
 } from "../selectors";
@@ -15,7 +14,6 @@ export type OrdersView = "queues" | "operator" | "all" | "history";
 export function useOpenOrdersView(
   openOrders: OpenOrder[],
   closedOrderHistory: ClosedOrderHistoryItem[],
-  pickupAppointments: Appointment[],
 ) {
   const [activeView, setActiveView] = useState<OrdersView>("queues");
   const [query, setQuery] = useState("");
@@ -29,24 +27,14 @@ export function useOpenOrdersView(
     [assigneeFilter, locationFilter, openOrders, query, typeFilter],
   );
 
-  const basePickupAppointments = useMemo(
-    () => filterPickupAppointments(pickupAppointments, { query, queue: "all", locationFilter }),
-    [locationFilter, pickupAppointments, query],
-  );
-
   const queueCounts = useMemo(
-    () => getOrderQueueCounts(baseOpenOrders, basePickupAppointments),
-    [baseOpenOrders, basePickupAppointments],
+    () => getOrderQueueCounts(baseOpenOrders),
+    [baseOpenOrders],
   );
 
   const filteredQueueOrders = useMemo(
     () => filterOpenOrders(openOrders, { query, queue: activeQueue, typeFilter, locationFilter, assigneeFilter }),
     [activeQueue, assigneeFilter, locationFilter, openOrders, query, typeFilter],
-  );
-
-  const filteredQueuePickups = useMemo(
-    () => filterPickupAppointments(pickupAppointments, { query, queue: activeQueue, locationFilter }),
-    [activeQueue, locationFilter, pickupAppointments, query],
   );
 
   const filteredOperatorOrders = useMemo(
@@ -66,8 +54,8 @@ export function useOpenOrdersView(
 
   const queuesSubtitle =
     queueCounts.all === 1
-      ? "1 worklist item: active order or scheduled pickup"
-      : `${queueCounts.all} worklist items: ${baseOpenOrders.length} active orders and ${basePickupAppointments.length} scheduled pickups`;
+      ? "1 active order in the worklist"
+      : `${queueCounts.all} active orders in the worklist`;
   const registrySubtitle =
     baseOpenOrders.length === 1 ? "1 active order only" : `${baseOpenOrders.length} active orders only`;
   const historySubtitle =
@@ -100,10 +88,8 @@ export function useOpenOrdersView(
     assigneeFilter,
     setAssigneeFilter,
     baseOpenOrders,
-    basePickupAppointments,
     queueCounts,
     filteredQueueOrders,
-    filteredQueuePickups,
     filteredOperatorOrders,
     operatorQueueCounts,
     filteredHistoryItems,
