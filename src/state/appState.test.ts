@@ -290,7 +290,7 @@ describe("app state", () => {
       label: "Draft",
       isDraft: true,
     });
-    expect(adaptCustomers(next.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("needs_update");
+    expect(adaptCustomers(next.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("missing");
   });
 
   it("saves and deletes measurement sets through canonical db mutations", () => {
@@ -338,7 +338,7 @@ describe("app state", () => {
       isDraft: true,
       values: { Chest: "41" },
     });
-    expect(adaptCustomers(deleted.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("needs_update");
+    expect(adaptCustomers(deleted.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("missing");
   });
 
   it("creates a manual service appointment for an active customer", () => {

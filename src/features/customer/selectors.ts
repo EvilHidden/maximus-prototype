@@ -58,20 +58,12 @@ export function getMeasurementStatusLabel(status: MeasurementStatus) {
     return "On file";
   }
 
-  if (status === "needs_update") {
-    return "Needs update";
-  }
-
   return "Missing";
 }
 
 export function getMeasurementStatusTone(status: MeasurementStatus) {
   if (status === "on_file") {
     return "success" as const;
-  }
-
-  if (status === "needs_update") {
-    return "warn" as const;
   }
 
   return "danger" as const;
