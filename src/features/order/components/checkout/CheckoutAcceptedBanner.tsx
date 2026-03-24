@@ -28,8 +28,8 @@ export function CheckoutAcceptedBanner({
             </div>
             <div className="mt-1 text-sm leading-relaxed text-emerald-800/90">
               {acceptedOrderNeedsPayment
-                ? `${payerName}'s order is saved, the due date is set, and the team can start work. No payment was collected, so ${formatCheckoutCurrency(balanceDue)} will be due later or at pickup.`
-                : `${payerName}'s order is saved, the due date is set, and the payment is already in. The team can start work.`}
+                ? `${payerName}'s order is saved and ready for work. No payment was collected, so ${formatCheckoutCurrency(balanceDue)} will be due later or at pickup.`
+                : `${payerName}'s order is saved, payment is in, and the team can start work.`}
             </div>
           </div>
         </div>

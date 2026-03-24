@@ -78,25 +78,25 @@ export function CheckoutScreen({
 
   const checkoutSubtitle = openOrder
     ? openOrder.paymentStatus === "pending"
-      ? "Finish collecting payment for this order."
+      ? "Finish taking payment for this order."
       : isAcceptedOpenOrder
         ? showAcceptedConfirmation
           ? acceptedOrderNeedsPayment
-            ? "The order is in and payment can wait until later."
-            : "The order is in and payment has already been collected."
+            ? "The order is saved. Payment can be collected later."
+            : "The order is saved and payment is already in."
           : acceptedOrderNeedsPayment
-            ? "This order has been accepted and is waiting for work to begin."
-            : "This order has been accepted and is ready for work to begin."
+            ? "This order is saved and ready for work."
+            : "This order is saved and ready for work."
         : openOrder.balanceDue > 0
           ? openOrder.totalCollected > 0
-            ? "Deposit recorded. Collect the remaining balance when the customer checks out."
-            : "Review the order and collect payment."
-          : "This order is prepaid and ready to close out."
+            ? "Deposit recorded. Collect the rest when the customer picks up."
+            : "Review the order and take payment."
+          : "This order is prepaid."
     : isDraftAlterationOnly
-      ? "Review the order and send it through."
+      ? "Review the order and accept it."
       : draftShouldCollectNow
-        ? "Review the order, send it through, and collect payment."
-        : "Review the order and send it through.";
+        ? "Review the order, accept it, and take payment."
+        : "Review the order and accept it.";
 
   const pageMeta = openOrder ? (
     <div className="text-right">
@@ -130,7 +130,7 @@ export function CheckoutScreen({
         {draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "None due"}
       </div>
       <div className="app-text-caption mt-1">
-        {checkoutBlocked ? "Order still needs setup before save." : "Order is ready to send through."}
+        {checkoutBlocked ? "Finish setup before you save the order." : "Ready to accept."}
       </div>
     </div>
   );
@@ -175,25 +175,25 @@ export function CheckoutScreen({
                 <div className="app-text-overline">
                   {openOrder
                     ? isAcceptedOpenOrder
-                      ? showAcceptedConfirmation ? "Order accepted" : "Open order"
-                      : "Order review"
-                    : "Checkout review"}
+                      ? showAcceptedConfirmation ? "Order saved" : "Order summary"
+                      : "Order summary"
+                    : "New order"}
                 </div>
                 <div className="mt-1 app-text-value">
-                  {openOrder ? `Order #${openOrder.id}` : "Checkout review"}
+                  {openOrder ? `Order #${openOrder.id}` : "Order summary"}
                 </div>
                 <div className="app-text-caption mt-1 max-w-[36rem]">
                   {openOrder
                     ? isAcceptedOpenOrder
                       ? showAcceptedConfirmation
                         ? acceptedOrderNeedsPayment
-                          ? "You accepted this order, saved it to Square, and set the promised-ready details. Payment is still due later."
-                          : "You accepted this order, saved it to Square, and the payment is already in."
+                          ? "This order has been saved and is ready for work. Payment is still due later."
+                          : "This order has been saved, and payment has already been collected."
                         : acceptedOrderNeedsPayment
-                          ? "This order is saved, the promised-ready details are set, and the team can start work whenever they are ready."
-                          : "This order is saved, the promised-ready details are set, and the team can start work now."
-                      : "Review customer details, check the order, and collect any remaining payment."
-                    : "Review the order, confirm fulfillment, and send it through."}
+                          ? "This order is saved and ready for work. Payment is still due."
+                          : "This order is saved and ready for work."
+                      : "Review the customer details, check the order, and collect any remaining payment."
+                    : "Review the order, check the pickup timing, and accept it."}
                 </div>
               </div>
               {pageMeta}
@@ -224,7 +224,7 @@ export function CheckoutScreen({
                       <div className="app-text-body mt-2">
                         {openOrder
                           ? "This order is missing its checkout details. Return to Orders and reopen it there."
-                          : "Start a new order to add the customer, the work, and the promised-ready details."}
+                          : "Start a new order to add the customer, the work, and the pickup timing."}
                       </div>
                       <div className="mt-3">
                         <ActionButton
@@ -273,7 +273,7 @@ export function CheckoutScreen({
 
               <div className="border-t border-[var(--app-border)]/45">
                 <div className="flex items-center justify-between gap-3 px-4 py-3">
-                  <div className="app-text-overline">{isAcceptedOpenOrder && showAcceptedConfirmation ? "Accepted order" : "Order review"}</div>
+                  <div className="app-text-overline">{isAcceptedOpenOrder && showAcceptedConfirmation ? "Accepted order" : "Order details"}</div>
                   <div className="app-text-overline text-right">Amount</div>
                 </div>
                 {activeLineItems.map((item, index) => (
@@ -308,7 +308,7 @@ export function CheckoutScreen({
         <div className="space-y-4">
           <CheckoutSummaryRail
             title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
-            subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, due, and total.") : "What will save with the order."}
+            subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, still due, and total.") : "What will be saved with this order."}
             totalsItems={totalsItems}
           >
                 {!openOrder ? (
@@ -320,7 +320,7 @@ export function CheckoutScreen({
                     ) : isDraftAlterationOnly ? (
                       <>
                         <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
-                          Revise order
+                          Edit order
                         </ActionButton>
                         <ActionButton
                           tone="primary"
@@ -334,20 +334,20 @@ export function CheckoutScreen({
                           disabled={checkoutBlocked}
                           onClick={() => onSaveDraftOrder("ready_to_collect", true)}
                         >
-                          Accept + prepay
+                          Accept and prepay
                         </ActionButton>
                       </>
                     ) : (
                       <>
                         <ActionButton tone="secondary" onClick={() => onScreenChange("order")}>
-                          Revise order
+                          Edit order
                         </ActionButton>
                         <ActionButton
                           tone="primary"
                           disabled={checkoutBlocked}
                           onClick={() => onSaveDraftOrder(draftShouldCollectNow ? "ready_to_collect" : "due_later", true)}
                         >
-                          {draftShouldCollectNow ? "Send order and continue to payment" : "Send order"}
+                          {draftShouldCollectNow ? "Accept order and take payment" : "Accept order"}
                         </ActionButton>
                       </>
                     )}
@@ -360,10 +360,10 @@ export function CheckoutScreen({
                           Start work
                         </ActionButton>
                         <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
-                          Return to orders
+                          Back to orders
                         </ActionButton>
                         <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
-                          Revise order
+                          Edit order
                         </ActionButton>
                       </>
                     ) : (
@@ -372,7 +372,7 @@ export function CheckoutScreen({
                           Back to orders
                         </ActionButton>
                         <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
-                          Revise order
+                          Edit order
                         </ActionButton>
                       </div>
                     )}

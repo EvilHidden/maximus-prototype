@@ -67,7 +67,7 @@ export function MeasurementsCard({
         <div>
           <div className="app-text-overline">Measurement set</div>
           <div className="app-text-body mt-1 font-medium">
-            {model.hasHistory ? "No measurement set linked" : "No measurements on file"}
+            {model.hasHistory ? "No measurement set chosen" : "No measurements saved yet"}
           </div>
           <div className="app-text-caption mt-1">
             {model.hasHistory ? "Choose an existing set or create a new one for this wearer." : "Create a measurement set to continue this custom garment."}
@@ -94,7 +94,7 @@ export function MeasurementsCard({
         <Callout
           tone="danger"
           icon={TriangleAlert}
-          title={<StatusPill tone="danger">Measurement setup incomplete</StatusPill>}
+          title={<StatusPill tone="danger">Measurements needed</StatusPill>}
           className="mb-4"
         >
           <div className="app-text-caption">

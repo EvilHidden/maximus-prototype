@@ -133,7 +133,7 @@ function WorkQueueOrderRow({
                 className="min-w-0"
               >
                 <div className="min-w-0">
-                  <div className="app-text-overline">Promised ready by</div>
+                  <div className="app-text-overline">Ready by</div>
                   <div className="mt-1 flex flex-wrap items-center gap-2">
                     <div className="app-text-body font-medium">
                       {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
@@ -220,8 +220,8 @@ export function QueueSection({
             title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
             subtitle={
               activeQueue === "all"
-                ? "Active orders that still need operational attention."
-                : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
+                ? "Active orders that need attention."
+                : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Orders in this view."
             }
           />
         </div>
@@ -242,8 +242,8 @@ export function QueueSection({
           title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
           subtitle={
             activeQueue === "all"
-              ? "Active orders that still need operational attention."
-              : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
+              ? "Active orders that need attention."
+              : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Orders in this view."
           }
         />
       </div>

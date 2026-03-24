@@ -77,9 +77,9 @@ export function MeasurementsScreen({
     orderType === null
       ? "Add at least one item to the order before going to checkout."
       : summaryGuardrail.missingCustomer
-        ? "Link a paying customer before going to checkout."
+        ? "Choose the customer paying for this order before checkout."
         : summaryGuardrail.missingPickup
-          ? "Finish the pickup handoff before going to checkout."
+          ? "Set the pickup details before going to checkout."
           : summaryGuardrail.customIncomplete
             ? "Finish the custom garment setup before going to checkout."
             : undefined;
@@ -101,7 +101,7 @@ export function MeasurementsScreen({
     <>
       <div className="grid gap-4 xl:grid-cols-[1.2fr_0.8fr]">
         <Surface tone="work" className="p-4">
-          <SectionHeader icon={Ruler} title="Measurements" subtitle="Capture, review, and attach the active set." />
+          <SectionHeader icon={Ruler} title="Measurements" subtitle="Take measurements and save them to this order." />
           <MeasurementStatusCard title={status.title} detail={status.detail} />
 
           <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
@@ -143,7 +143,7 @@ export function MeasurementsScreen({
         </Surface>
 
         <Surface tone="support" className="p-4">
-          <SectionHeader icon={Ruler} title="Measurement rail" subtitle="Saved sets and active order linkage." />
+          <SectionHeader icon={Ruler} title="Measurement sets" subtitle="Saved sets for this customer and this order." />
 
           <div className="space-y-5">
             <div className="border-b border-[var(--app-border)]/45 pb-5">
@@ -191,7 +191,7 @@ export function MeasurementsScreen({
 
       {saveMode ? (
         <ModalShell
-          title={saveMode === "draft" ? "Save draft set" : activeSet?.isDraft ? "Promote to saved set" : "Save measurement set"}
+          title={saveMode === "draft" ? "Save draft set" : activeSet?.isDraft ? "Save as a set" : "Save measurement set"}
           subtitle={selectedCustomer?.name ?? "Customer required"}
           onClose={() => {
             setSaveMode(null);
@@ -234,10 +234,10 @@ export function MeasurementsScreen({
           </label>
           <div className="app-text-body-muted mt-3">
             {saveMode === "draft"
-              ? "Drafts stay editable and can be promoted to a saved version later."
+              ? "Drafts stay editable and can be saved as a set later."
               : activeSet?.isDraft
-                ? "This draft will be promoted into a saved version for the current customer."
-                : "This saves the current measurements to the selected customer and makes it available in Saved measurements."}
+                ? "This draft will be saved as a reusable set for this customer."
+                : "This saves the current measurements to the selected customer and makes them available with the customer's saved sets."}
           </div>
         </ModalShell>
       ) : null}
@@ -266,7 +266,7 @@ export function MeasurementsScreen({
           }
         >
           <div className="app-text-body-muted">
-            Remove this set from the customer history. If it is the current linked set, the order will keep the measurements as a draft.
+            Remove this set from the customer's saved sets. If this order is using it, the measurements will stay here as a draft.
           </div>
         </ModalShell>
       ) : null}

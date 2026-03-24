@@ -277,14 +277,14 @@ export function getPickupAppointmentConfirmationState(appointment: Appointment) 
 
 export function getOpenOrderOperationalLane(openOrder: OpenOrder) {
   if (openOrder.orderType === "mixed") {
-    return "Alterations + custom";
+    return "Alterations and custom";
   }
 
   if (openOrder.orderType === "custom") {
-    return "Factory / custom";
+    return "Custom";
   }
 
-  return "In-house tailoring";
+  return "Alterations";
 }
 
 export function getOpenOrderOperationalPhase(openOrder: OpenOrder, now = new Date()) {

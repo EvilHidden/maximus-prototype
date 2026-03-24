@@ -286,7 +286,7 @@ function AppointmentLane({
         <SurfaceHeader
           title={title}
           subtitle={dateLabel}
-          meta={<CountPill count={appointments.length} label="scheduled" icon={CalendarDays} />}
+          meta={<CountPill count={appointments.length} label="booked" icon={CalendarDays} />}
           titleClassName="app-text-value"
           subtitleClassName="app-text-caption"
         />
@@ -378,7 +378,7 @@ function ScrollableLaneBody({
           {hasOverflowRows && showScrollHint ? (
             <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 items-end justify-center bg-gradient-to-t from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pb-3">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--app-border)]/75 bg-[var(--app-surface)]/96 px-3 py-1.5 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm">
-                <span className="app-text-overline text-[var(--app-text-soft)]">Scroll for more</span>
+                <span className="app-text-overline text-[var(--app-text-soft)]">More below</span>
                 <ChevronDown className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
               </div>
             </div>
@@ -447,7 +447,7 @@ function PickupLane({
         <SurfaceHeader
           title={title}
           subtitle={dateLabel}
-          meta={<CountPill count={appointments.length} label="scheduled" icon={Package} />}
+          meta={<CountPill count={appointments.length} label="booked" icon={Package} />}
           titleClassName="app-text-value"
           subtitleClassName="app-text-caption"
         />

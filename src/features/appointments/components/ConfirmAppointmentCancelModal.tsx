@@ -22,14 +22,14 @@ export function ConfirmAppointmentCancelModal({
   return (
     <ModalShell
       title={confirmLabel}
-      subtitle={`Remove ${appointment.customer} from the active schedule?`}
+      subtitle={`Take ${appointment.customer} off the schedule?`}
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[460px]"
       footer={
         <div className="flex items-center justify-end gap-2">
           <ActionButton tone="secondary" onClick={onClose}>
-            Keep scheduled
+            Keep it scheduled
           </ActionButton>
           <button
             onClick={onConfirm}
@@ -55,7 +55,7 @@ export function ConfirmAppointmentCancelModal({
           <div className="app-text-caption mt-1">{appointment.location}</div>
         </div>
         <div className="app-text-body">
-          This keeps the appointment in history, but removes it from active workflow views.
+          This removes it from the live schedule, but keeps a record of it.
         </div>
       </div>
     </ModalShell>

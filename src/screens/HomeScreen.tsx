@@ -58,7 +58,7 @@ export function HomeScreen({
   const actions = [
     {
       label: "Customers",
-      subtitle: "Search profiles and start front-desk work",
+      subtitle: "Find people",
       icon: UserPlus,
       iconStyle: {
         borderColor: "#d8b4fe",
@@ -69,7 +69,7 @@ export function HomeScreen({
     },
     {
       label: "Alteration order",
-      subtitle: "Start intake and capture services",
+      subtitle: "Start an alterations order",
       icon: Receipt,
       iconStyle: {
         borderColor: "#fdba74",
@@ -80,7 +80,7 @@ export function HomeScreen({
     },
     {
       label: "Custom garment",
-      subtitle: "Open measurements and build flow",
+      subtitle: "Start a custom order",
       icon: Ruler,
       iconStyle: {
         borderColor: "#93c5fd",
@@ -90,8 +90,8 @@ export function HomeScreen({
       onClick: () => onStartWorkflow("custom"),
     },
     {
-      label: "Order pickup",
-      subtitle: "Prepare checkout and release orders",
+      label: "Orders",
+      subtitle: "See active orders",
       icon: Package,
       iconStyle: {
         borderColor: "#86efac",
@@ -104,7 +104,7 @@ export function HomeScreen({
 
   return (
     <div className="space-y-4">
-      <SectionHeader icon={House} title="Home" subtitle="Front-of-house operations" />
+      <SectionHeader icon={House} title="Home" subtitle="What needs attention today" />
 
       <HomeQuickActionsDeck actions={actions} />
 
@@ -112,7 +112,7 @@ export function HomeScreen({
         <div className="flex flex-wrap items-center gap-4">
           <div className="shrink-0 pt-0.5">
             <div className="app-text-overline">View locations</div>
-            <div className="app-text-caption mt-1">Filter appointments and pickups.</div>
+            <div className="app-text-caption mt-1">Choose which locations to show.</div>
           </div>
           <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
             <SelectionChip
@@ -175,14 +175,14 @@ export function HomeScreen({
       ) : hasFilteredLaterWork ? (
         <HomeEmptyState
           title="Nothing scheduled for today or tomorrow"
-          detail="Later appointments and pickups are still in the system. Open the full schedule or order registry to work ahead."
+          detail="Later appointments and pickups are still scheduled. Open the full calendar or active orders to work ahead."
           primaryAction={{ label: "Open appointments", onClick: () => onScreenChange("appointments") }}
-          secondaryAction={{ label: "Open order registry", onClick: () => onScreenChange("openOrders") }}
+          secondaryAction={{ label: "Open all active orders", onClick: () => onScreenChange("openOrders") }}
         />
       ) : (
         <HomeEmptyState
-          title="No front-desk work is queued"
-          detail="New fittings, consults, and pickups will appear here once they are scheduled."
+          title="Nothing needs attention right now"
+          detail="New fittings, consultations, and pickups will show up here once they are scheduled."
           primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
           secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
         />

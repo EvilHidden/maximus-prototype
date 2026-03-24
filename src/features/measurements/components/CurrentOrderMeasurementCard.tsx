@@ -28,7 +28,7 @@ export function CurrentOrderMeasurementCard({
     <div>
       <div className="mb-4">
         <div className="app-text-value">Current order</div>
-        <div className="app-text-caption mt-1">Active link and save actions</div>
+        <div className="app-text-caption mt-1">Customer, current set, and save actions</div>
       </div>
       <div className="mb-4 flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/18 px-4 py-3">
         <div className="app-icon-chip">
@@ -37,7 +37,7 @@ export function CurrentOrderMeasurementCard({
         <div className="min-w-0">
           <div className="app-text-value">{customer?.name ?? "Customer required"}</div>
           <div className="app-text-body-muted mt-1">
-            {customer ? "Measurements will stay attached to this active order." : "Link the customer here before checkout."}
+            {customer ? "These measurements stay with this order." : "Choose the customer here before checkout."}
           </div>
           {activeSetDisplay ? (
             <div className="app-text-overline mt-2">
@@ -45,7 +45,7 @@ export function CurrentOrderMeasurementCard({
               {activeSetDisplay.subline ? ` • ${activeSetDisplay.subline}` : ""}
             </div>
           ) : hasEnteredMeasurements ? (
-            <div className="app-text-overline mt-2">New unsaved set in progress</div>
+            <div className="app-text-overline mt-2">New set not saved yet</div>
           ) : null}
         </div>
       </div>
@@ -85,7 +85,7 @@ export function CurrentOrderMeasurementCard({
           title={checkoutDisabledReason}
         >
           <ArrowRight className="h-4 w-4" />
-          <span>Continue to checkout</span>
+          <span>Go to checkout</span>
         </ActionButton>
       </div>
       {checkoutDisabledReason ? (

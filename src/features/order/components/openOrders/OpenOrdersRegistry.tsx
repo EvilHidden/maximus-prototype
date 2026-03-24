@@ -26,7 +26,7 @@ function AllOrdersRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
-  const lane = getOpenOrderOperationalLane(openOrder);
+  const workType = getOpenOrderOperationalLane(openOrder);
   const locations = getOpenOrderLocationSummary(openOrder);
 
   return (
@@ -47,14 +47,14 @@ function AllOrdersRow({
         <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {openOrder.itemSummary.join(", ")}</div>
       </div>
       <div className="min-w-0">
-        <div className="app-text-overline">Lane</div>
-        <div className="app-text-body mt-1 font-medium">{lane}</div>
+        <div className="app-text-overline">Work type</div>
+        <div className="app-text-body mt-1 font-medium">{workType}</div>
         {openOrder.inHouseAssignee ? (
           <div className="app-text-caption mt-1">Assigned to {openOrder.inHouseAssignee.name}</div>
         ) : null}
       </div>
       <div className="min-w-0">
-        <div className="app-text-overline">Pickup</div>
+        <div className="app-text-overline">Pickup location</div>
         <div className="app-text-body mt-1 font-medium">{locations || "Pending"}</div>
       </div>
       <div className="min-w-0">

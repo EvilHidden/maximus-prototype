@@ -83,7 +83,7 @@ export function OrderBag({
 
       <SummaryStack className="space-y-4 text-sm">
         <PanelSection
-          title="Payer"
+          title="Paying customer"
           className="border-0 bg-transparent p-0"
           action={
             <button
@@ -95,8 +95,8 @@ export function OrderBag({
           }
         >
           <div className="px-1 py-0.5">
-            <div className="app-text-strong">{customer?.name ?? "Payer required"}</div>
-            <div className="app-text-caption mt-1">{customer?.phone ?? "Link the paying customer"}</div>
+            <div className="app-text-strong">{customer?.name ?? "Customer required"}</div>
+            <div className="app-text-caption mt-1">{customer?.phone ?? "Choose the customer paying for this order"}</div>
           </div>
         </PanelSection>
 
@@ -181,7 +181,7 @@ export function OrderBag({
                       <CalendarClock className="h-4 w-4 text-[var(--app-text-soft)]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="app-text-overline">Pickup schedule</div>
+                      <div className="app-text-overline">Pickup time</div>
                       <div className="app-text-body mt-1 font-medium leading-[1.45]">{formattedPickupSchedule}</div>
                     </div>
                   </div>
@@ -199,14 +199,14 @@ export function OrderBag({
               ) : (
                 <InlineEmptyState className="border-[var(--app-border-strong)] px-3.5 py-3.5">
                   <div className="app-text-body font-medium">
-                    {scope === "custom" ? "Custom order timing" : "Pickup details needed"}
+                    {scope === "custom" ? "Custom pickup details needed" : "Pickup details needed"}
                   </div>
                   <div className="app-text-caption mt-1">
                     {scope === "custom"
                       ? (
                         getCustomFulfillmentSummary(schedule.eventType, schedule.eventDate, schedule.pickupLocation)
                       )
-                      : "Set the pickup date, time, and location before moving this order forward."}
+                      : "Set the pickup date, time, and location before you continue."}
                   </div>
                 </InlineEmptyState>
               )}

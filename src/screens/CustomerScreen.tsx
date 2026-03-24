@@ -126,7 +126,7 @@ export function CustomerScreen({
         <SectionHeader
           icon={Users}
           title="Customers"
-          subtitle="Service directory"
+          subtitle="Find people and open their profiles"
         />
 
         <Surface tone="control" className="p-4">
@@ -153,8 +153,8 @@ export function CustomerScreen({
         <div className="border-t border-[var(--app-border)]/55 pt-4">
           <div className="flex items-center justify-between gap-3">
             <div>
-              <div className="app-text-value">Customer directory</div>
-              <div className="app-text-caption mt-1">Scan the essentials here. Open a row for profile history, measurements, and actions.</div>
+              <div className="app-text-value">All customers</div>
+              <div className="app-text-caption mt-1">Search here, then open a row for details, measurements, and actions.</div>
             </div>
             <div className="app-text-overline">{filteredCustomers.length} customers</div>
           </div>

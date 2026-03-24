@@ -230,12 +230,12 @@ export function CustomGarmentBuilder({
         />
 
         {showValidationBanner ? (
-          <Callout
-            tone="danger"
-            icon={TriangleAlert}
-            title={<StatusPill tone="danger">{isEditing ? "Save changes is blocked" : "Add to cart is blocked"}</StatusPill>}
-            className="mb-4"
-          >
+        <Callout
+          tone="danger"
+          icon={TriangleAlert}
+          title={<StatusPill tone="danger">{isEditing ? "Can't save this yet" : "Can't add this yet"}</StatusPill>}
+          className="mb-4"
+        >
             <div className="mt-0.5 flex flex-wrap gap-2">
               {missingGender ? <span className="app-text-caption">Gender</span> : null}
               {missingGarment ? <span className="app-text-caption">Garment</span> : null}
