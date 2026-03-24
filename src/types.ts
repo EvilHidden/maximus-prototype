@@ -45,6 +45,8 @@ export type OpenOrderPickup = PickupSchedule & {
   label: string;
   itemSummary: string[];
   itemCount: number;
+  readyAt?: string | null;
+  pickedUp?: boolean;
   readyForPickup: boolean;
 };
 
@@ -237,6 +239,7 @@ export type OpenOrder = {
   totalCollected: number;
   collectedToday: number;
   balanceDue: number;
+  pickupBalanceDue?: number;
   total: number;
   createdAt: string;
 };

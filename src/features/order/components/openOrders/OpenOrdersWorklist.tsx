@@ -55,12 +55,12 @@ function WorkQueueOrderRow({
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
   const statusPills = getOpenOrderStatusPills(openOrder);
-  const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration");
+  const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.pickedUp);
   const pendingInHousePickupIds = inHousePickups.filter((pickup) => !pickup.readyForPickup).map((pickup) => pickup.id);
   const canManageInHouseWork = inHousePickups.length > 0;
   const canStartWork = canManageInHouseWork && openOrder.operationalStatus === "accepted";
   const canMarkReady = canManageInHouseWork && !canStartWork && pendingInHousePickupIds.length > 0;
-  const pickupGroups = openOrder.pickupSchedules.reduce<Array<{
+  const pickupGroups = openOrder.pickupSchedules.filter((pickup) => !pickup.pickedUp).reduce<Array<{
     key: string;
     summary: string;
     alertLabel: string;
@@ -118,6 +118,9 @@ function WorkQueueOrderRow({
           {pickupGroups.map((group) => {
             const uniqueItems = [...new Set(group.items)];
             const representativePickup = openOrder.pickupSchedules.find((pickup) => {
+              if (pickup.pickedUp) {
+                return false;
+              }
               const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
               const pickupSummary = getPickupStatusSummary(pickup);
               return `${pickupSummary}__${pickupAlert.label}` === group.key;

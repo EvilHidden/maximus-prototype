@@ -6,7 +6,7 @@ export type OperatorQueueStageKey = "needs_assignment" | "ready_to_start" | "in_
 export type OperatorQueueStageCounts = Record<OperatorQueueStageKey, number>;
 
 export function getInHouseOpenOrderPickups(openOrder: OpenOrder) {
-  return openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration");
+  return openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.pickedUp);
 }
 
 export function hasInHouseOpenOrderWork(openOrder: OpenOrder) {

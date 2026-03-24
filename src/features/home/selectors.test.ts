@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import type { Appointment } from "../../types";
-import { getPickupAppointments, getTodayAppointments, getTomorrowAppointments } from "./selectors";
+import type { Appointment, OpenOrder } from "../../types";
+import { getReadyPickupQueue, getTodayAppointments, getTomorrowAppointments } from "./selectors";
 
 function createAppointment(overrides: Partial<Appointment>): Appointment {
   return {
@@ -50,13 +50,92 @@ describe("home selectors", () => {
     expect(getTomorrowAppointments(appointments, now).map((appointment) => appointment.id)).toEqual(["early", "middle", "late"]);
   });
 
-  it("sorts pickups from earliest to latest", () => {
-    const pickups = [
-      createAppointment({ id: "late", kind: "pickup", scheduledFor: "2026-03-24T17:00:00.000Z" }),
-      createAppointment({ id: "early", kind: "pickup", scheduledFor: "2026-03-24T11:00:00.000Z" }),
-      createAppointment({ id: "middle", kind: "pickup", scheduledFor: "2026-03-25T09:00:00.000Z" }),
+  it("sorts ready pickups oldest ready first and excludes not-ready work", () => {
+    const openOrders: OpenOrder[] = [
+      {
+        id: 9001,
+        payerCustomerId: "C-1",
+        payerName: "Later Ready",
+        orderType: "alteration",
+        operationalStatus: "ready_for_pickup",
+        inHouseAssignee: null,
+        itemCount: 1,
+        lineItems: [],
+        itemSummary: ["Alteration - Dress hem"],
+        paymentStatus: "captured",
+        paymentDueNow: 0,
+        totalCollected: 120,
+        collectedToday: 0,
+        balanceDue: 0,
+        total: 120,
+        createdAt: "2026-03-20T10:00:00.000Z",
+        pickupSchedules: [
+          {
+            id: "scope-late",
+            scope: "alteration",
+            label: "Alteration pickup",
+            itemSummary: ["Dress hem"],
+            itemCount: 1,
+            pickupDate: "2026-03-25",
+            pickupTime: "5:00 PM",
+            pickupLocation: "Fifth Avenue",
+            eventType: "none",
+            eventDate: "",
+            readyAt: "2026-03-24T14:00:00.000Z",
+            readyForPickup: true,
+          },
+        ],
+      },
+      {
+        id: 9002,
+        payerCustomerId: "C-2",
+        payerName: "Earlier Ready",
+        orderType: "custom",
+        operationalStatus: "ready_for_pickup",
+        inHouseAssignee: null,
+        itemCount: 1,
+        lineItems: [],
+        itemSummary: ["Custom garment - Dinner jacket"],
+        paymentStatus: "ready_to_collect",
+        paymentDueNow: 0,
+        totalCollected: 0,
+        collectedToday: 0,
+        balanceDue: 240,
+        total: 240,
+        createdAt: "2026-03-18T10:00:00.000Z",
+        pickupSchedules: [
+          {
+            id: "scope-early",
+            scope: "custom",
+            label: "Custom pickup",
+            itemSummary: ["Dinner jacket"],
+            itemCount: 1,
+            pickupDate: "2026-03-24",
+            pickupTime: "11:00 AM",
+            pickupLocation: "Queens",
+            eventType: "none",
+            eventDate: "",
+            readyAt: "2026-03-23T10:00:00.000Z",
+            readyForPickup: true,
+          },
+          {
+            id: "scope-not-ready",
+            scope: "alteration",
+            label: "Alteration pickup",
+            itemSummary: ["Trouser hem"],
+            itemCount: 1,
+            pickupDate: "2026-03-26",
+            pickupTime: "2:00 PM",
+            pickupLocation: "Queens",
+            eventType: "none",
+            eventDate: "",
+            readyAt: null,
+            readyForPickup: false,
+          },
+        ],
+      },
     ];
 
-    expect(getPickupAppointments(pickups).map((appointment) => appointment.id)).toEqual(["early", "late", "middle"]);
+    expect(getReadyPickupQueue(openOrders).map((pickup) => pickup.key)).toEqual(["9002-scope-early", "9001-scope-late"]);
   });
 });

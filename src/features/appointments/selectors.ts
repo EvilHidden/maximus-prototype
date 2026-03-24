@@ -48,27 +48,7 @@ export function getAppointmentDateLabel(appointment: Appointment) {
 }
 
 export function getAppointmentVisitLabel(appointment: Appointment) {
-  if (appointment.kind !== "pickup") {
-    return appointment.type;
-  }
-
-  const summary = appointment.pickupSummary ?? "";
-  const hasAlteration = /Alterations:/i.test(summary);
-  const hasCustom = /Custom:/i.test(summary);
-
-  if (hasAlteration && hasCustom) {
-    return "Alterations + custom pickup";
-  }
-
-  if (hasAlteration) {
-    return "Alterations pickup";
-  }
-
-  if (hasCustom) {
-    return "Custom pickup";
-  }
-
-  return "Pickup";
+  return appointment.type;
 }
 
 export function getRelativeAppointmentDayLabel(appointment: Appointment, now = new Date()) {
@@ -105,6 +85,10 @@ export function isActiveAppointment(appointment: Appointment) {
 
 export function filterActiveAppointments(appointments: Appointment[]) {
   return appointments.filter(isActiveAppointment);
+}
+
+export function filterServiceAppointments(appointments: Appointment[]) {
+  return appointments.filter((appointment) => appointment.kind === "appointment");
 }
 
 export function getAppointmentPrepFlagLabel(flag: AppointmentPrepFlag) {

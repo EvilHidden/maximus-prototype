@@ -129,6 +129,8 @@ export function createOrderScopeLines(
     { id: "line-9021-1", scopeId: "scope-9021-custom", label: "Charcoal suit", quantity: 1, unitPrice: 1495 },
     { id: "line-9022-1", scopeId: "scope-9022-alteration", label: "Sari blouse adjustment", quantity: 1, unitPrice: 90 },
     { id: "line-9023-1", scopeId: "scope-9023-custom", label: "Dinner suit", quantity: 1, unitPrice: 1545 },
+    { id: "line-9024-1", scopeId: "scope-9024-alteration", label: "Trouser hem", quantity: 1, unitPrice: 85 },
+    { id: "line-9024-2", scopeId: "scope-9024-custom", label: "Wedding suit", quantity: 1, unitPrice: 1595 },
   ].map((line) => buildSeedOrderScopeLine(line, ordersById, scopesById, measurementSets));
 }
 

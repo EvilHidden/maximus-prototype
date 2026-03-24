@@ -180,6 +180,10 @@ export function deriveOrderStatus(scopes: DbOrderScope[]): DbOrder["status"] {
     return "complete";
   }
 
+  if (scopes.some((scope) => scope.phase === "picked_up")) {
+    return "partially_picked_up";
+  }
+
   if (scopes.some((scope) => scope.phase === "ready")) {
     return "partially_ready";
   }

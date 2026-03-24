@@ -273,6 +273,15 @@ export function createPayments({ baseDate }: RuntimeSeedDates): DbPaymentRecord[
       collectedAt: toDateTimeString(withOffset(baseDate, -5, 14, 30)),
       squarePaymentId: "sq_pay_9023",
     },
+    {
+      id: "pay-9024",
+      orderId: "order-9024",
+      source: "square",
+      status: "captured",
+      amount: 910,
+      collectedAt: toDateTimeString(withOffset(baseDate, -4, 12, 40)),
+      squarePaymentId: "sq_pay_9024",
+    },
   ];
 }
 

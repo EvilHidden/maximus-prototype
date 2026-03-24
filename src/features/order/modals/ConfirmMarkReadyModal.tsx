@@ -15,7 +15,9 @@ export function ConfirmMarkReadyModal({
   onConfirm,
   onClose,
 }: ConfirmMarkReadyModalProps) {
-  const pendingPickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.readyForPickup);
+  const pendingPickups = openOrder.pickupSchedules.filter((pickup) => (
+    pickup.scope === "alteration" && !pickup.readyForPickup && !pickup.pickedUp
+  ));
   const confirmLabel = getMarkReadyActionLabel(openOrder, pendingPickupCount);
   const confirmSubtitle = `Set ${openOrder.payerName}'s alterations to ready for pickup?`;
 

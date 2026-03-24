@@ -51,7 +51,6 @@ export function AppointmentsScheduleRail({
       ) : (
         <div className="overflow-y-auto pr-1 [scrollbar-gutter:stable]">
           {railAppointments.map((appointment) => {
-            const isPickup = appointment.kind === "pickup";
             const confirmation = getAppointmentConfirmationLabel(appointment);
             const isUnconfirmed = confirmation === "Unconfirmed";
             const isActive = appointment.statusKey === "scheduled" || appointment.statusKey === "ready_to_check_in" || appointment.statusKey === "prep_required";
@@ -69,10 +68,7 @@ export function AppointmentsScheduleRail({
 
                   <div className="min-w-0">
                     <div className="app-text-strong">{appointment.customer}</div>
-                    <div className="app-text-caption mt-1">
-                      {appointment.location}
-                      {isPickup ? <span className="ml-1.5">· Pickup</span> : null}
-                    </div>
+                    <div className="app-text-caption mt-1">{appointment.location}</div>
                     <div className="app-text-body mt-2 font-medium">{getAppointmentVisitLabel(appointment)}</div>
                     {isUnconfirmed ? (
                       <div

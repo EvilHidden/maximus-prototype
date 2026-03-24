@@ -102,11 +102,11 @@ function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey, now 
   }
 
   if (queue === "ready_for_pickup") {
-    return openOrder.pickupSchedules.some((pickup) => pickup.readyForPickup);
+    return openOrder.pickupSchedules.some(isPickupAwaitingPickup);
   }
 
   if (queue === "overdue") {
-    return openOrder.pickupSchedules.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime, now));
+    return openOrder.pickupSchedules.some((pickup) => isPickupPending(pickup) && isPastDue(pickup.pickupDate, pickup.pickupTime, now));
   }
 
   if (queue === "due_today") {
@@ -126,12 +126,20 @@ function getOpenOrderPickupsByWorkflow(openOrder: OpenOrder, workflow: WorkflowM
   return openOrder.pickupSchedules.filter((pickup) => pickup.scope === workflow);
 }
 
+function isPickupAwaitingPickup(pickup: OpenOrder["pickupSchedules"][number]) {
+  return pickup.readyForPickup && !pickup.pickedUp;
+}
+
+function isPickupPending(pickup: OpenOrder["pickupSchedules"][number]) {
+  return !pickup.readyForPickup && !pickup.pickedUp;
+}
+
 export function isOpenOrderReadyForPickup(openOrder: OpenOrder) {
-  return openOrder.pickupSchedules.some((pickup) => pickup.readyForPickup);
+  return openOrder.pickupSchedules.some(isPickupAwaitingPickup);
 }
 
 export function isOpenOrderFullyReadyForPickup(openOrder: OpenOrder) {
-  return Boolean(openOrder.pickupSchedules.length) && openOrder.pickupSchedules.every((pickup) => pickup.readyForPickup);
+  return Boolean(openOrder.pickupSchedules.length) && openOrder.pickupSchedules.every(isPickupAwaitingPickup);
 }
 
 export function getOpenOrderReadinessBreakdown(openOrder: OpenOrder) {
@@ -141,8 +149,10 @@ export function getOpenOrderReadinessBreakdown(openOrder: OpenOrder) {
   return {
     hasAlteration: alterationPickups.length > 0,
     hasCustom: customPickups.length > 0,
-    alterationReady: alterationPickups.length > 0 && alterationPickups.every((pickup) => pickup.readyForPickup),
-    customReady: customPickups.length > 0 && customPickups.every((pickup) => pickup.readyForPickup),
+    alterationReady: alterationPickups.length > 0 && alterationPickups.every(isPickupAwaitingPickup),
+    alterationPickedUp: alterationPickups.length > 0 && alterationPickups.every((pickup) => pickup.pickedUp),
+    customReady: customPickups.length > 0 && customPickups.every(isPickupAwaitingPickup),
+    customPickedUp: customPickups.length > 0 && customPickups.every((pickup) => pickup.pickedUp),
   };
 }
 
@@ -151,11 +161,23 @@ export function getOpenOrderReadinessDetails(openOrder: OpenOrder) {
   const details: string[] = [];
 
   if (breakdown.hasAlteration) {
-    details.push(breakdown.alterationReady ? "Alterations ready" : "Alterations in progress");
+    details.push(
+      breakdown.alterationPickedUp
+        ? "Alterations picked up"
+        : breakdown.alterationReady
+          ? "Alterations ready"
+          : "Alterations in progress",
+    );
   }
 
   if (breakdown.hasCustom) {
-    details.push(breakdown.customReady ? "Custom pending pickup" : "Custom in progress");
+    details.push(
+      breakdown.customPickedUp
+        ? "Custom picked up"
+        : breakdown.customReady
+          ? "Custom pending pickup"
+          : "Custom in progress",
+    );
   }
 
   return details;
@@ -179,8 +201,8 @@ export function getOpenOrderStatusPills(openOrder: OpenOrder, now = new Date()) 
       tone: getAlterationStatusTone(openOrder, now),
     },
     {
-      label: breakdown.customReady ? "Custom ready" : "Custom in progress",
-      tone: breakdown.customReady ? "success" as const : "default" as const,
+      label: breakdown.customPickedUp ? "Custom picked up" : breakdown.customReady ? "Custom ready" : "Custom in progress",
+      tone: breakdown.customPickedUp || breakdown.customReady ? "success" as const : "default" as const,
     },
   ];
 }
@@ -192,11 +214,15 @@ function getAlterationStatusLabel(openOrder: OpenOrder, now = new Date()) {
     return "Alterations in progress";
   }
 
-  if (alterationPickups.every((pickup) => pickup.readyForPickup)) {
+  if (alterationPickups.every((pickup) => pickup.pickedUp)) {
+    return "Alterations picked up";
+  }
+
+  if (alterationPickups.every(isPickupAwaitingPickup)) {
     return "Alterations ready";
   }
 
-  if (alterationPickups.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime, now))) {
+  if (alterationPickups.some((pickup) => isPickupPending(pickup) && isPastDue(pickup.pickupDate, pickup.pickupTime, now))) {
     return "Alterations overdue";
   }
 
@@ -205,7 +231,7 @@ function getAlterationStatusLabel(openOrder: OpenOrder, now = new Date()) {
 
 function getAlterationStatusTone(openOrder: OpenOrder, now = new Date()) {
   const label = getAlterationStatusLabel(openOrder, now);
-  return label === "Alterations ready"
+  return label === "Alterations ready" || label === "Alterations picked up"
     ? "success" as const
     : label === "Alterations overdue"
       ? "danger" as const
@@ -424,7 +450,7 @@ export function getOpenOrderOperationalPhase(openOrder: OpenOrder, now = new Dat
     return "Ready for pickup";
   }
 
-  if (openOrder.pickupSchedules.some((pickup) => !pickup.readyForPickup && isPastDue(pickup.pickupDate, pickup.pickupTime, now))) {
+  if (openOrder.pickupSchedules.some((pickup) => isPickupPending(pickup) && isPastDue(pickup.pickupDate, pickup.pickupTime, now))) {
     return "Overdue";
   }
 

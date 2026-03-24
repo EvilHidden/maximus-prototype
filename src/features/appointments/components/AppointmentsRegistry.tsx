@@ -66,7 +66,6 @@ export function AppointmentsRegistry({
       {appointments.map((appointment, index) => {
         const customer = appointment.customerId ? customerById.get(appointment.customerId) : undefined;
         const confirmation = getAppointmentConfirmationLabel(appointment);
-        const isWarn = confirmation === "Unconfirmed";
         const isActive = appointment.statusKey !== "completed" && appointment.statusKey !== "canceled";
         const showConfirm = confirmation === "Unconfirmed" && isActive;
         const showCancel = confirmation === "Confirmed" && isActive;
@@ -104,17 +103,8 @@ export function AppointmentsRegistry({
               </div>
             </div>
 
-            <div className="flex items-center">
-              <StatusPill
-                tone={appointment.kind === "pickup" ? "dark" : "default"}
-                className={
-                  appointment.kind === "pickup"
-                    ? "border-[color:rgb(191_219_254_/_0.2)] bg-[color:rgb(191_219_254_/_0.1)] text-[color:rgb(219_234_254)]"
-                    : "border-[color:rgb(148_163_184_/_0.26)] bg-[color:rgb(148_163_184_/_0.08)] text-[color:rgb(226_232_240)]"
-                }
-              >
-                {appointment.kind === "pickup" ? "Pickup" : "Appointment"}
-              </StatusPill>
+            <div className="min-w-0">
+              <div className="app-text-body font-medium">{appointment.type}</div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -182,7 +172,7 @@ export function AppointmentsRegistry({
                             onCancelAppointment(appointment);
                           }}
                         >
-                          Cancel {appointment.kind === "pickup" ? "pickup" : "appointment"}
+                          Cancel appointment
                         </button>
                       ) : null}
                     </div>

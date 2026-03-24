@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import type { Appointment } from "../../../types";
 import {
   ActionButton,
+  cx,
   EmptyState,
   Surface,
   SurfaceHeader,
@@ -14,8 +15,10 @@ import {
   getAppointmentPrepFlagLabel,
   getAppointmentProfileFlagLabel,
   getAppointmentTimeLabel,
-  getRelativeAppointmentDayLabel,
 } from "../../appointments/selectors";
+import type { ReadyPickupQueueItem } from "../selectors";
+import { getOpenOrderTypeLabel } from "../../order/selectors";
+import { formatDateLabel } from "../../order/orderDateUtils";
 import { HomeLaneEmptyState } from "./HomeLaneEmptyState";
 
 function getAppointmentConfirmationPills(appointment: Appointment) {
@@ -391,89 +394,163 @@ function ScrollableLaneBody({
   );
 }
 
-function PickupRow({
-  appointment,
+function formatCurrency(value: number) {
+  return new Intl.NumberFormat("en-US", {
+    style: "currency",
+    currency: "USD",
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value);
+}
+
+function getReadySinceLabel(readyAt: string | null, now = new Date()) {
+  if (!readyAt) {
+    return "Ready now";
+  }
+
+  const readyDate = new Date(readyAt);
+  if (Number.isNaN(readyDate.getTime())) {
+    return "Ready now";
+  }
+
+  const today = new Date(now);
+  today.setHours(12, 0, 0, 0);
+  const target = new Date(readyDate);
+  target.setHours(12, 0, 0, 0);
+  const daysSinceReady = Math.round((today.getTime() - target.getTime()) / 86400000);
+
+  if (daysSinceReady <= 0) {
+    return "Ready today";
+  }
+
+  if (daysSinceReady === 1) {
+    return "Ready since yesterday";
+  }
+
+  return `Ready for ${daysSinceReady} days`;
+}
+
+function getPreferredPickupLabel(pickup: ReadyPickupQueueItem["pickupSchedule"]) {
+  if (!pickup.pickupDate && !pickup.pickupTime) {
+    return "Pickup details not set";
+  }
+
+  if (!pickup.pickupDate) {
+    return `Expected pickup ${pickup.pickupTime}`;
+  }
+
+  const dateLabel = formatDateLabel(pickup.pickupDate);
+  return pickup.pickupTime ? `Expected pickup ${dateLabel} at ${pickup.pickupTime}` : `Expected pickup ${dateLabel}`;
+}
+
+function getHomeReadyStatusLines(pickup: ReadyPickupQueueItem) {
+  const readySinceLabel = getReadySinceLabel(pickup.pickupSchedule.readyAt);
+  const alterationPickup = pickup.openOrder.pickupSchedules.find((entry) => entry.scope === "alteration");
+  const customPickup = pickup.openOrder.pickupSchedules.find((entry) => entry.scope === "custom");
+
+  const getScopeStatus = (scopePickup: typeof alterationPickup | typeof customPickup) => {
+    if (!scopePickup) {
+      return {
+        value: "In progress",
+        color: "var(--app-text-soft)",
+      };
+    }
+
+    if (scopePickup.pickedUp) {
+      return {
+        value: "Picked up",
+        color: "var(--app-text-soft)",
+      };
+    }
+
+    if (scopePickup.readyForPickup) {
+      return {
+        value: scopePickup.scope === pickup.pickupSchedule.scope ? readySinceLabel : "Ready",
+        color: "var(--app-success-text)",
+      };
+    }
+
+    return {
+      value: "In progress",
+      color: "var(--app-text-soft)",
+    };
+  };
+
+  if (pickup.orderType !== "mixed") {
+    return [
+      {
+        label: getOpenOrderTypeLabel(pickup.orderType),
+        value: readySinceLabel,
+        color: "var(--app-success-text)",
+      },
+    ];
+  }
+
+  return [
+    {
+      label: "Alterations",
+      ...getScopeStatus(alterationPickup),
+    },
+    {
+      label: "Custom",
+      ...getScopeStatus(customPickup),
+    },
+  ];
+}
+
+function ReadyPickupRow({
+  pickup,
   onCheckout,
-  onEditPickup,
+  onOpenOrder,
 }: {
-  appointment: Appointment;
+  pickup: ReadyPickupQueueItem;
   onCheckout: () => void;
-  onEditPickup: () => void;
+  onOpenOrder: () => void;
 }) {
+  const { pickupSchedule } = pickup;
+  const itemSummary = pickup.itemSummary.join(", ");
+  const readyStatusLines = getHomeReadyStatusLines(pickup);
+
   return (
-    <div className="grid gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/34 px-4 py-4 lg:grid-cols-[96px_minmax(0,1fr)_auto] lg:items-center">
-      <div>
-        <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
-        <div className="app-text-caption mt-1">{getRelativeAppointmentDayLabel(appointment)}</div>
+    <div className="grid gap-4 lg:grid-cols-[156px_minmax(0,1fr)_auto] lg:items-center lg:gap-x-6">
+      <div className="min-w-0 pr-2">
+        <div className="space-y-2">
+          {readyStatusLines.map((line) => (
+            <div key={`${pickup.key}-${line.label}`} className="min-w-0">
+              <div className="app-text-overline whitespace-nowrap text-[var(--app-text-soft)]">{line.label}</div>
+              <div
+                className="app-text-value mt-1 whitespace-nowrap text-[0.95rem]"
+                style={{ color: line.color }}
+              >
+                {line.value}
+              </div>
+            </div>
+          ))}
+        </div>
       </div>
-      <div className="min-w-0">
-        <div className="app-text-value">{appointment.customer}</div>
-        <div className="app-text-caption mt-1">
-          {appointment.pickupSummary ?? appointment.type}
-          {" • "}
-          {appointment.location}
+      <div className="min-w-0 space-y-1.5 pl-1">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+          <div className="app-text-value">{pickup.payerName}</div>
+          <div className="app-text-caption">Order {pickup.openOrderId}</div>
+        </div>
+        <div className="app-text-body font-medium leading-tight">{itemSummary || pickupSchedule.label}</div>
+        <div className="app-text-caption flex flex-wrap items-center gap-x-3 gap-y-1">
+          <span>{getPreferredPickupLabel(pickupSchedule)}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>{pickupSchedule.pickupLocation}</span>
+          </span>
+          <span>{pickup.pickupBalanceDue > 0 ? `${formatCurrency(pickup.pickupBalanceDue)} due at pickup` : "Prepaid"}</span>
         </div>
       </div>
       <div className="flex items-center gap-2">
-        <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onEditPickup}>
-          Edit pickup
+        <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onOpenOrder}>
+          Edit order
         </ActionButton>
         <ActionButton tone="primary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onCheckout}>
           Checkout
         </ActionButton>
       </div>
-    </div>
-  );
-}
-
-function PickupLane({
-  title,
-  dateLabel,
-  appointments,
-  activeLocationLabel,
-  onCheckout,
-  onEditPickup,
-}: {
-  title: string;
-  dateLabel: string;
-  appointments: Appointment[];
-  activeLocationLabel?: string;
-  onCheckout: (appointment: Appointment) => void;
-  onEditPickup: (appointment: Appointment) => void;
-}) {
-  return (
-    <div className="app-table-shell">
-      <div className="app-table-head px-4 py-3.5">
-        <SurfaceHeader
-          title={title}
-          subtitle={dateLabel}
-          meta={<CountPill count={appointments.length} label="booked" icon={Package} />}
-          titleClassName="app-text-value"
-          subtitleClassName="app-text-caption"
-        />
-      </div>
-      <ScrollableLaneBody
-        itemCount={appointments.length}
-        emptyState={
-          <HomeLaneEmptyState
-            kind="pickup"
-            dayLabel={title}
-            dateLabel={dateLabel}
-            activeLocationLabel={activeLocationLabel}
-          />
-        }
-        renderRows={(hasOverflowRows) =>
-          appointments.map((appointment) => (
-            <div key={appointment.id} className="app-table-row border-t border-[var(--app-border)]/55 px-4 py-4">
-              <PickupRow
-                appointment={appointment}
-                onCheckout={() => onCheckout(appointment)}
-                onEditPickup={() => onEditPickup(appointment)}
-              />
-            </div>
-          ))
-        }
-      />
     </div>
   );
 }
@@ -485,13 +562,12 @@ type HomeWorkboardsProps = {
   tomorrowLabel: string;
   todayAppointments: Appointment[];
   tomorrowAppointments: Appointment[];
-  todayPickups: Appointment[];
-  tomorrowPickups: Appointment[];
+  readyPickups: ReadyPickupQueueItem[];
   singleActiveLocationLabel?: string;
   onCreateOrder: (appointment: Appointment) => void;
   onCancelAppointment: (appointment: Appointment) => void;
-  onCheckoutPickup: (appointment: Appointment) => void;
-  onEditPickup: (appointment: Appointment) => void;
+  onCheckoutPickup: (openOrderId: number) => void;
+  onOpenPickupOrder: (openOrderId: number) => void;
 };
 
 function WorkSurfaceHeader({
@@ -540,13 +616,12 @@ export function HomeWorkboards({
   tomorrowLabel,
   todayAppointments,
   tomorrowAppointments,
-  todayPickups,
-  tomorrowPickups,
+  readyPickups,
   singleActiveLocationLabel,
   onCreateOrder,
   onCancelAppointment,
   onCheckoutPickup,
-  onEditPickup,
+  onOpenPickupOrder,
 }: HomeWorkboardsProps) {
   return (
     <>
@@ -583,29 +658,40 @@ export function HomeWorkboards({
       <Surface tone="work" className="p-4">
         <WorkSurfaceHeader
           icon={Package}
-          title="Pickups"
-          subtitle="Today and tomorrow"
+          title="Ready for pickup"
+          subtitle="Anything ready and still waiting to be collected"
           count={visiblePickupCount}
           countLabel="pickups"
           tone="success"
         />
 
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
-          <PickupLane
-            title="Today"
-            dateLabel={todayLabel}
-            appointments={todayPickups}
-            activeLocationLabel={singleActiveLocationLabel}
-            onCheckout={onCheckoutPickup}
-            onEditPickup={onEditPickup}
-          />
-          <PickupLane
-            title="Tomorrow"
-            dateLabel={tomorrowLabel}
-            appointments={tomorrowPickups}
-            activeLocationLabel={singleActiveLocationLabel}
-            onCheckout={onCheckoutPickup}
-            onEditPickup={onEditPickup}
+        <div className="mt-4">
+          <ScrollableLaneBody
+            itemCount={readyPickups.length}
+            emptyState={
+              <HomeLaneEmptyState
+                kind="pickup"
+                dayLabel="Ready now"
+                activeLocationLabel={singleActiveLocationLabel}
+              />
+            }
+            renderRows={(hasOverflowRows) =>
+              readyPickups.map((pickup) => (
+                <div
+                  key={pickup.key}
+                  className={[
+                    "app-table-row border-t border-[var(--app-border)]/55 px-4 py-4 first:border-t-0",
+                    hasOverflowRows ? "min-h-[8.5rem]" : "",
+                  ].join(" ")}
+                >
+                  <ReadyPickupRow
+                    pickup={pickup}
+                    onCheckout={() => onCheckoutPickup(pickup.openOrderId)}
+                    onOpenOrder={() => onOpenPickupOrder(pickup.openOrderId)}
+                  />
+                </div>
+              ))
+            }
           />
         </div>
       </Surface>

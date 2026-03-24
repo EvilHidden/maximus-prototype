@@ -327,6 +327,16 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       status: "open",
       holdUntilAllScopesReady: false,
     },
+    {
+      id: "order-9024",
+      displayId: "ORD-9024",
+      payerCustomerId: "C-1325",
+      payerName: "Chloe Martin",
+      orderType: "mixed",
+      createdAt: toDateTimeString(withOffset(baseDate, -4, 12, 15)),
+      status: "partially_picked_up",
+      holdUntilAllScopesReady: true,
+    },
   ];
 }
 
@@ -680,6 +690,26 @@ export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates)
       promisedReadyAt: toDateTimeString(withOffset(baseDate, 3, 16, 45)),
       readyAt: null,
       eventId: "event-benjamin-gala",
+      appointmentOptional: true,
+    },
+    {
+      id: "scope-9024-alteration",
+      orderId: "order-9024",
+      workflow: "alteration",
+      phase: "picked_up",
+      promisedReadyAt: toDateTimeString(withOffset(baseDate, -2, 17, 0)),
+      readyAt: toDateTimeString(withOffset(baseDate, -3, 14, 10)),
+      eventId: null,
+      appointmentOptional: true,
+    },
+    {
+      id: "scope-9024-custom",
+      orderId: "order-9024",
+      workflow: "custom",
+      phase: "ready",
+      promisedReadyAt: toDateTimeString(withOffset(baseDate, 0, 17, 30)),
+      readyAt: toDateTimeString(withOffset(baseDate, -1, 12, 20)),
+      eventId: null,
       appointmentOptional: true,
     },
   ];
