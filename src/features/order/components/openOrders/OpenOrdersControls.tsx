@@ -57,8 +57,8 @@ export function OpenOrdersControls({
           {([
             { key: "queues", label: "Needs attention", count: viewCounts.queues },
             { key: "ready", label: "Ready", count: viewCounts.ready },
-            { key: "operator", label: "In-house production", count: viewCounts.operator },
-            { key: "factory", label: "Factory", count: viewCounts.factory },
+            { key: "operator", label: "Alterations", count: viewCounts.operator },
+            { key: "factory", label: "Custom Garments", count: viewCounts.factory },
             { key: "all", label: "All orders", count: viewCounts.all },
           ] as const).map((view) => (
             <SelectionChip

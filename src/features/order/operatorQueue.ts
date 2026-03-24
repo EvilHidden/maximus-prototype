@@ -24,7 +24,7 @@ export function getOperatorQueueStage(openOrder: OpenOrder): OperatorQueueStageK
     return "ready";
   }
 
-  if (openOrder.operationalStatus === "accepted" && !openOrder.inHouseAssignee) {
+  if (!openOrder.inHouseAssignee) {
     return "needs_assignment";
   }
 
@@ -69,4 +69,3 @@ export function sortOperatorQueueOrders(openOrders: OpenOrder[]) {
     return left.id - right.id;
   });
 }
-
