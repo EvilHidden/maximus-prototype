@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../../../types";
 import {
   getOperatorQueueStageCounts,
+  getOperatorQueueStage,
   type AssigneeFilterValue,
   filterClosedOrderHistory,
   filterOpenOrders,
@@ -56,7 +57,8 @@ export function useOpenOrdersView(
   );
 
   const filteredOperatorOrders = useMemo(
-    () => filterOpenOrders(openOrders, { query, queue: "in_house", typeFilter, locationFilter, assigneeFilter }),
+    () => filterOpenOrders(openOrders, { query, queue: "in_house", typeFilter, locationFilter, assigneeFilter })
+      .filter((openOrder) => getOperatorQueueStage(openOrder) !== "ready"),
     [assigneeFilter, locationFilter, openOrders, query, typeFilter],
   );
 
@@ -83,10 +85,10 @@ export function useOpenOrdersView(
     filteredReadyOrders.length === 1 ? "1 order is ready for pickup" : `${filteredReadyOrders.length} orders are ready for pickup`;
   const operatorSubtitle =
     filteredOperatorOrders.length === 1
-      ? "1 in-house order in production"
-      : `${filteredOperatorOrders.length} in-house orders in production`;
+      ? "1 alteration order in progress"
+      : `${filteredOperatorOrders.length} alteration orders in progress`;
   const factorySubtitle =
-    filteredFactoryOrders.length === 1 ? "1 factory order in progress" : `${filteredFactoryOrders.length} factory orders in progress`;
+    filteredFactoryOrders.length === 1 ? "1 custom garment order in progress" : `${filteredFactoryOrders.length} custom garment orders in progress`;
   const allOrdersCount = baseOpenOrders.length + filteredHistoryItems.length;
   const allOrdersSubtitle = activeView === "all"
     ? allOrdersTab === "active"

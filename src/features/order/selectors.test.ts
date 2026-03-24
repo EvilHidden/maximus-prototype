@@ -382,6 +382,11 @@ describe("order selectors", () => {
       inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
       operationalStatus: "in_progress",
     });
+    const unassignedInProgress = createOpenOrder({
+      id: 1010,
+      inHouseAssignee: null,
+      operationalStatus: "in_progress",
+    });
     const ready = createOpenOrder({
       id: 1009,
       inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
@@ -397,10 +402,11 @@ describe("order selectors", () => {
     expect(getOperatorQueueStage(needsAssignment)).toBe("needs_assignment");
     expect(getOperatorQueueStage(readyToStart)).toBe("ready_to_start");
     expect(getOperatorQueueStage(inProgress)).toBe("in_progress");
+    expect(getOperatorQueueStage(unassignedInProgress)).toBe("needs_assignment");
     expect(getOperatorQueueStage(ready)).toBe("ready");
 
-    expect(getOperatorQueueStageCounts([needsAssignment, readyToStart, inProgress, ready])).toEqual({
-      needs_assignment: 1,
+    expect(getOperatorQueueStageCounts([needsAssignment, readyToStart, inProgress, unassignedInProgress, ready])).toEqual({
+      needs_assignment: 2,
       ready_to_start: 1,
       in_progress: 1,
       ready: 1,
