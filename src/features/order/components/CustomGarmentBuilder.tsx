@@ -1,5 +1,5 @@
-import { CheckSquare, Layers3, Shirt, TriangleAlert, Type } from "lucide-react";
-import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, Surface, cx } from "../../../components/ui/primitives";
+import { Shirt, TriangleAlert } from "lucide-react";
+import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
 
@@ -59,7 +59,7 @@ const genderLabels: Record<CustomGarmentGender, string> = {
 };
 
 function StageLabel({ children }: { children: string }) {
-  return <div className="mb-3 app-text-overline">{children}</div>;
+  return <div className="app-kicker text-[var(--app-text-muted)]">{children}</div>;
 }
 
 function GroupLabel({
@@ -225,10 +225,12 @@ export function CustomGarmentBuilder({
   const showValidationBanner =
     showValidation &&
     (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
+  const stageShellClassName =
+    "rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)]/70 bg-[var(--app-surface-muted)]/28 px-5 py-5";
 
   return (
     <>
-      <Surface tone="work" className="p-4">
+      <section>
         <SectionHeader
           icon={Shirt}
           title={isEditing ? "Edit custom garment" : "Custom garment"}
@@ -262,33 +264,38 @@ export function CustomGarmentBuilder({
         ) : null}
 
         <div className="space-y-6">
-          <div>
-            <StageLabel>1. Choose garment</StageLabel>
-
+          <div
+            className={cx(
+              stageShellClassName,
+              showValidation && (missingGender || missingGarment) && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/14",
+            )}
+          >
             <div className="space-y-5">
+              <StageLabel>1. Choose garment</StageLabel>
+
               <div
                 className={cx(
                   "pb-5",
                   showValidation && missingGender && "rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/18 px-4 py-4",
                 )}
               >
-              <div className="app-text-overline">Cut</div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                {(["male", "female"] as const).map((gender) => (
-                  <button
-                    key={gender}
-                    onClick={() => onSelectGender(gender)}
-                    className={cx(
-                      "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-all",
-                      selectedGender === gender
-                        ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                        : "border border-[var(--app-border)]/55 bg-[var(--app-surface)]/45 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
-                    )}
-                  >
-                    <div className="app-text-value">{genderLabels[gender]}</div>
-                  </button>
-                ))}
-              </div>
+                <div className="app-kicker text-[var(--app-text-muted)]">Cut</div>
+                <div className="mt-3 grid grid-cols-2 gap-2">
+                  {(["male", "female"] as const).map((gender) => (
+                    <button
+                      key={gender}
+                      onClick={() => onSelectGender(gender)}
+                      className={cx(
+                        "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-all",
+                        selectedGender === gender
+                          ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                          : "border border-[var(--app-border)]/55 bg-[var(--app-surface)]/45 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
+                      )}
+                    >
+                      <div className="app-text-value">{genderLabels[gender]}</div>
+                    </button>
+                  ))}
+                </div>
               </div>
 
               <div className="border-t border-[var(--app-border)]/60 pt-5">
@@ -316,19 +323,19 @@ export function CustomGarmentBuilder({
             </div>
           </div>
 
-          <div className="border-t border-[var(--app-border)]/70 pt-6">
-            <StageLabel>2. Build details</StageLabel>
+          <div
+            className={cx(
+              stageShellClassName,
+              showValidation && missingBuildDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/14",
+            )}
+          >
+            <div className="space-y-5">
+              <StageLabel>2. Build details</StageLabel>
 
-            {showConfiguration ? (
-              <div
-                className={cx(
-                  "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 px-4 py-4",
-                  showValidation && missingBuildDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/18",
-                )}
-              >
+              {showConfiguration ? (
                 <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
                   <div>
-                    <div className="app-text-overline">Information</div>
+                    <div className="app-kicker text-[var(--app-text-muted)]">Information</div>
                     <div className="mt-4 space-y-3.5">
                       <TextSkuField
                         label="Fabric"
@@ -357,8 +364,8 @@ export function CustomGarmentBuilder({
                     </div>
                   </div>
 
-                  <div className="border-t border-[var(--app-border)]/45 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
-                    <div className="app-text-overline">Monograms</div>
+                  <div className="border-t border-[var(--app-border-strong)]/55 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                    <div className="app-kicker text-[var(--app-text-muted)]">Monograms</div>
                     <div className="app-text-caption mt-1">Optional placements</div>
                     <div className="mt-4 grid gap-3">
                       {[
@@ -379,27 +386,27 @@ export function CustomGarmentBuilder({
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : (
-              <InlineEmptyState className={cx(showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
-                Select a garment first.
-              </InlineEmptyState>
-            )}
+              ) : (
+                <InlineEmptyState className={cx(showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
+                  Select a garment first.
+                </InlineEmptyState>
+              )}
+            </div>
           </div>
 
-          <div className="border-t border-[var(--app-border)]/70 pt-6">
-            <StageLabel>3. Style details</StageLabel>
+          <div
+            className={cx(
+              stageShellClassName,
+              showValidation && missingStyleDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/14",
+            )}
+          >
+            <div className="space-y-5">
+              <StageLabel>3. Style details</StageLabel>
 
-            {showConfiguration && showJacketStyleOptions ? (
-              <div
-                className={cx(
-                  "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 px-4 py-4",
-                  showValidation && missingStyleDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/18",
-                )}
-              >
+              {showConfiguration && showJacketStyleOptions ? (
                 <div className="grid gap-6 xl:grid-cols-[0.76fr_1fr]">
                   <div className="space-y-6">
-                    <div className="border-b border-[var(--app-border)]/45 pb-5">
+                    <div className="border-b border-[var(--app-border-strong)]/55 pb-5">
                       <GroupLabel title="Construction" subtitle="Pick the internal structure first." />
                       <div className="mt-3">
                         <VerticalOptionList
@@ -423,7 +430,7 @@ export function CustomGarmentBuilder({
                     </div>
                   </div>
 
-                  <div className="border-t border-[var(--app-border)]/45 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                  <div className="border-t border-[var(--app-border-strong)]/55 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
                     <GroupLabel title="Pockets" subtitle="Choose the exterior pocket treatment." />
                     <div className="mt-3">
                       <VerticalOptionList
@@ -434,21 +441,20 @@ export function CustomGarmentBuilder({
                     </div>
                   </div>
                 </div>
-              </div>
-            ) : showConfiguration ? (
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 px-4 py-4">
-                <div className="app-text-overline">Style details</div>
-                <div className="app-text-body mt-1 font-medium">Not needed for this garment</div>
-                <div className="app-text-caption mt-1">Canvas, lapel, and pocket selections only appear for jacket-based garments.</div>
-              </div>
-            ) : (
-              <InlineEmptyState>Select a garment first.</InlineEmptyState>
-            )}
+              ) : showConfiguration ? (
+                <div>
+                  <div className="app-text-body mt-1 font-medium">Not needed for this garment</div>
+                  <div className="app-text-caption mt-1">Canvas, lapel, and pocket selections only appear for jacket-based garments.</div>
+                </div>
+              ) : (
+                <InlineEmptyState>Select a garment first.</InlineEmptyState>
+              )}
+            </div>
           </div>
         </div>
-      </Surface>
+      </section>
 
-      <Surface tone="support" className="flex items-center justify-between gap-4 px-4 py-3.5">
+      <div className="flex items-center justify-between gap-4 border-t border-[var(--app-border)]/70 pt-4">
         <div className="min-w-0 flex-1">
           <div className="app-text-overline">{isEditing ? "Current garment" : "Ready to add"}</div>
           <div className="app-text-caption mt-1">
@@ -476,7 +482,7 @@ export function CustomGarmentBuilder({
             {isEditing ? "Save changes" : "Add to Cart"}
           </ActionButton>
         </div>
-      </Surface>
+      </div>
     </>
   );
 }

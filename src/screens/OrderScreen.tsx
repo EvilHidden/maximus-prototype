@@ -8,7 +8,7 @@ import { AlterationBuilder } from "../features/order/components/AlterationBuilde
 import { MeasurementsCard } from "../features/order/components/MeasurementsCard";
 import { CustomGarmentBuilder } from "../features/order/components/CustomGarmentBuilder";
 import { OrderBag } from "../features/order/components/OrderBag";
-import { ActionButton, Callout, SectionHeader, cx } from "../components/ui/primitives";
+import { ActionButton, Callout, SectionHeader, Surface, cx } from "../components/ui/primitives";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import { PickupScheduleModal } from "../features/order/modals/PickupScheduleModal";
 import { MeasurementSetModal } from "../features/order/modals/MeasurementSetModal";
@@ -109,94 +109,100 @@ export function OrderScreen({
           ) : null}
 
           {order.activeWorkflow === "custom" ? (
-            <div className="space-y-3.5">
-              {controller.editingCustomItem ? (
-                <Callout
-                  tone="warn"
-                  className="mb-0"
-                  action={
-                    <ActionButton
-                      tone="secondary"
-                      className="shrink-0 border-[var(--app-warn-border)] bg-[var(--app-surface)]"
-                      onClick={controller.handleCancelCustomEdit}
-                    >
-                      Cancel edit
-                    </ActionButton>
-                  }
-                >
-                  <div className="app-text-overline text-[var(--app-warn-text)]">Editing this item</div>
-                  <div className="app-text-value mt-1 truncate text-[var(--app-text)]">
-                    {controller.editingCustomItem.selectedGarment ?? "Custom garment"}
-                  </div>
-                  <div className="app-text-caption mt-1 text-[var(--app-text-muted)]">
-                    {controller.editingCustomItem.wearerName ?? "Wearer required"}
-                    {controller.editingCustomItem.linkedMeasurementLabel ? ` • ${controller.editingCustomItem.linkedMeasurementLabel}` : ""}
-                  </div>
-                  <div className="app-text-caption mt-2 text-[var(--app-warn-text)]">
-                    Saving will update this item instead of adding a new one.
-                  </div>
-                </Callout>
-              ) : null}
+            <Surface tone="work" className="p-4">
+              <div className={cx("space-y-6", controller.editingCustomItem && "space-y-4")}>
+                {controller.editingCustomItem ? (
+                  <Callout
+                    tone="warn"
+                    className="mb-0 rounded-b-[var(--app-radius-sm)]"
+                    action={
+                      <ActionButton
+                        tone="secondary"
+                        className="shrink-0 border-[var(--app-warn-border)] bg-[var(--app-surface)]"
+                        onClick={controller.handleCancelCustomEdit}
+                      >
+                        Cancel edit
+                      </ActionButton>
+                    }
+                  >
+                    <div className="app-text-overline text-[var(--app-warn-text)]">Editing this item</div>
+                    <div className="app-text-value mt-1 truncate text-[var(--app-text)]">
+                      {controller.editingCustomItem.selectedGarment ?? "Custom garment"}
+                    </div>
+                    <div className="app-text-caption mt-1 text-[var(--app-text-muted)]">
+                      {controller.editingCustomItem.wearerName ?? "Wearer required"}
+                      {controller.editingCustomItem.linkedMeasurementLabel ? ` • ${controller.editingCustomItem.linkedMeasurementLabel}` : ""}
+                    </div>
+                    <div className="app-text-caption mt-2 text-[var(--app-warn-text)]">
+                      Saving will update this item instead of adding a new one.
+                    </div>
+                  </Callout>
+                ) : null}
 
-              <MeasurementsCard
-                model={controller.measurementsCardModel}
-                showValidation={controller.customValidationVisible}
-                missingWearer={controller.missingCustomWearer}
-                missingMeasurementSet={controller.missingCustomMeasurements}
-                onChooseWearer={() => controller.setWearerModalOpen(true)}
-                onChooseAnother={() => controller.setMeasurementPickerOpen(true)}
-                onCreateNew={() => {
-                  if (controller.wearerCustomer) {
-                    dispatch({ type: "setCustomer", customerId: controller.wearerCustomer.id });
-                  }
-                  onScreenChange("measurements");
-                }}
-              />
-              <CustomGarmentBuilder
-                garmentOptionsByGender={referenceData.customGarmentOptionsByGender}
-                jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
-                pocketTypeOptions={referenceData.pocketTypeOptions}
-                lapelOptions={referenceData.lapelOptions}
-                canvasOptions={referenceData.canvasOptions}
-                selectedGender={order.custom.draft.gender}
-                selectedGarment={order.custom.draft.selectedGarment}
-                fabric={order.custom.draft.fabric}
-                buttons={order.custom.draft.buttons}
-                lining={order.custom.draft.lining}
-                threads={order.custom.draft.threads}
-                monogramLeft={order.custom.draft.monogramLeft}
-                monogramCenter={order.custom.draft.monogramCenter}
-                monogramRight={order.custom.draft.monogramRight}
-                pocketType={order.custom.draft.pocketType}
-                lapel={order.custom.draft.lapel}
-                canvas={order.custom.draft.canvas}
-                canAddToOrder={controller.canAddCustomDraftToOrder}
-                addDisabledReason={controller.customAddDisabledReason}
-                onShowDisabledReason={controller.handleShowCustomDisabledReason}
-                showValidation={controller.customValidationVisible}
-                missingGender={controller.missingCustomGender}
-                missingGarment={controller.missingCustomGarment}
-                missingWearer={controller.missingCustomWearer}
-                missingMeasurements={controller.missingCustomMeasurements}
-                missingBuildDetails={controller.missingCustomBuildDetails}
-                missingStyleDetails={controller.missingCustomStyleDetails}
-                isEditing={controller.editingCustomItemId !== null}
-                editingLabel={controller.editingCustomItem?.selectedGarment ?? null}
-                wearerName={controller.wearerCustomer?.name ?? null}
-                measurementVersionLabel={
-                  controller.measurementsCardModel.kind === "linked"
-                    ? controller.measurementsCardModel.set.version
-                    : controller.wearerCustomer
-                      ? "Draft"
-                      : null
-                }
-                onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
-                onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
-                onAddToOrder={controller.handleAddOrSaveCustomItem}
-                onCancelEdit={controller.handleCancelCustomEdit}
-                onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
-              />
-            </div>
+                <div className={cx(controller.editingCustomItem && "border-t border-[var(--app-border-strong)]/45 pt-4")}>
+                  <MeasurementsCard
+                    model={controller.measurementsCardModel}
+                    showValidation={controller.customValidationVisible}
+                    missingWearer={controller.missingCustomWearer}
+                    missingMeasurementSet={controller.missingCustomMeasurements}
+                    onChooseWearer={() => controller.setWearerModalOpen(true)}
+                    onChooseAnother={() => controller.setMeasurementPickerOpen(true)}
+                    onCreateNew={() => {
+                      if (controller.wearerCustomer) {
+                        dispatch({ type: "setCustomer", customerId: controller.wearerCustomer.id });
+                      }
+                      onScreenChange("measurements");
+                    }}
+                  />
+                </div>
+                <div className="border-t border-[var(--app-border)]/70 pt-6">
+                  <CustomGarmentBuilder
+                    garmentOptionsByGender={referenceData.customGarmentOptionsByGender}
+                    jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
+                    pocketTypeOptions={referenceData.pocketTypeOptions}
+                    lapelOptions={referenceData.lapelOptions}
+                    canvasOptions={referenceData.canvasOptions}
+                    selectedGender={order.custom.draft.gender}
+                    selectedGarment={order.custom.draft.selectedGarment}
+                    fabric={order.custom.draft.fabric}
+                    buttons={order.custom.draft.buttons}
+                    lining={order.custom.draft.lining}
+                    threads={order.custom.draft.threads}
+                    monogramLeft={order.custom.draft.monogramLeft}
+                    monogramCenter={order.custom.draft.monogramCenter}
+                    monogramRight={order.custom.draft.monogramRight}
+                    pocketType={order.custom.draft.pocketType}
+                    lapel={order.custom.draft.lapel}
+                    canvas={order.custom.draft.canvas}
+                    canAddToOrder={controller.canAddCustomDraftToOrder}
+                    addDisabledReason={controller.customAddDisabledReason}
+                    onShowDisabledReason={controller.handleShowCustomDisabledReason}
+                    showValidation={controller.customValidationVisible}
+                    missingGender={controller.missingCustomGender}
+                    missingGarment={controller.missingCustomGarment}
+                    missingWearer={controller.missingCustomWearer}
+                    missingMeasurements={controller.missingCustomMeasurements}
+                    missingBuildDetails={controller.missingCustomBuildDetails}
+                    missingStyleDetails={controller.missingCustomStyleDetails}
+                    isEditing={controller.editingCustomItemId !== null}
+                    editingLabel={controller.editingCustomItem?.selectedGarment ?? null}
+                    wearerName={controller.wearerCustomer?.name ?? null}
+                    measurementVersionLabel={
+                      controller.measurementsCardModel.kind === "linked"
+                        ? controller.measurementsCardModel.set.version
+                        : controller.wearerCustomer
+                          ? "Draft"
+                          : null
+                    }
+                    onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
+                    onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
+                    onAddToOrder={controller.handleAddOrSaveCustomItem}
+                    onCancelEdit={controller.handleCancelCustomEdit}
+                    onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
+                  />
+                </div>
+              </div>
+            </Surface>
           ) : null}
         </div>
 
