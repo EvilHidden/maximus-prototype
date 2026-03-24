@@ -18,6 +18,7 @@ import {
   getPickupTimingLabel,
   getPricingSummary,
   getSummaryGuardrail,
+  sortOpenOrdersChronologically,
 } from "./selectors";
 
 const customers: Customer[] = [
@@ -303,6 +304,40 @@ describe("order selectors", () => {
     expect(getNeedsAttentionOpenOrders([dueToday, dueTomorrow, ready]).map((order) => order.id)).toEqual([1001, 1002]);
   });
 
+  it("sorts open orders from earliest to latest ready time", () => {
+    const laterOrder = createOpenOrder({
+      id: 1011,
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-later",
+          pickupDate: "2026-03-24",
+          pickupTime: "16:00",
+        },
+      ],
+    });
+    const earlierOrder = createOpenOrder({
+      id: 1012,
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-earlier",
+          pickupDate: "2026-03-21",
+          pickupTime: "09:00",
+        },
+      ],
+    });
+
+    expect(sortOpenOrdersChronologically([laterOrder, earlierOrder]).map((order) => order.id)).toEqual([1012, 1011]);
+    expect(filterOpenOrders([laterOrder, earlierOrder], {
+      query: "",
+      queue: "all",
+      typeFilter: "all",
+      locationFilter: "all",
+      assigneeFilter: "all",
+    }).map((order) => order.id)).toEqual([1012, 1011]);
+  });
+
   it("treats mixed orders with one ready pickup as partially ready", () => {
     const mixedOrder = createOpenOrder({
       id: 1010,
@@ -337,6 +372,55 @@ describe("order selectors", () => {
       { label: "Custom in progress", tone: "default" },
     ]);
     expect(getNeedsAttentionOpenOrders([mixedOrder]).map((order) => order.id)).toEqual([1010]);
+  });
+
+  it("sorts mixed orders by the earliest pickup across alteration and custom schedules", () => {
+    const mixedLaterEarliest = createOpenOrder({
+      id: 1013,
+      orderType: "mixed",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1013-alteration",
+          scope: "alteration",
+          pickupDate: "2026-03-26",
+          pickupTime: "15:00",
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1013-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          pickupDate: "2026-03-28",
+          pickupTime: "11:00",
+        },
+      ],
+    });
+    const mixedEarlierEarliest = createOpenOrder({
+      id: 1014,
+      orderType: "mixed",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1014-alteration",
+          scope: "alteration",
+          pickupDate: "2026-03-27",
+          pickupTime: "12:00",
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1014-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          pickupDate: "2026-03-25",
+          pickupTime: "10:00",
+        },
+      ],
+    });
+
+    expect(getNeedsAttentionOpenOrders([mixedLaterEarliest, mixedEarlierEarliest]).map((order) => order.id)).toEqual([1014, 1013]);
   });
 
   it("filters open orders by in-house tailor assignment", () => {
