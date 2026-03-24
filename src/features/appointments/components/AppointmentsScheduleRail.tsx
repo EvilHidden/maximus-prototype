@@ -13,7 +13,6 @@ type AppointmentsScheduleRailProps = {
   railSubtitle: string;
   onShowAll: () => void;
   onOpenReschedule: (appointment: Appointment) => void;
-  onConfirmAppointment: (appointmentId: string) => void;
 };
 
 export function AppointmentsScheduleRail({
@@ -22,7 +21,6 @@ export function AppointmentsScheduleRail({
   railSubtitle,
   onShowAll,
   onOpenReschedule,
-  onConfirmAppointment,
 }: AppointmentsScheduleRailProps) {
   const showDateInRow = !selectedDateKey;
 
@@ -84,23 +82,13 @@ export function AppointmentsScheduleRail({
 
                   <div className="flex min-w-[54px] flex-col items-end gap-2 pt-0.5">
                     {isActive ? (
-                      <>
-                        <ActionButton
-                          tone="quiet"
-                          className="min-h-8 px-2.5 py-1.5 text-xs"
-                          onClick={() => onOpenReschedule(appointment)}
-                        >
-                          Edit
-                        </ActionButton>
-                        {isUnconfirmed ? (
-                          <button
-                            onClick={() => onConfirmAppointment(appointment.id)}
-                            className="app-text-caption font-medium text-[var(--app-text-muted)] transition hover:text-[var(--app-text)]"
-                          >
-                            Confirm
-                          </button>
-                        ) : null}
-                      </>
+                      <ActionButton
+                        tone="quiet"
+                        className="min-h-8 px-2.5 py-1.5 text-xs"
+                        onClick={() => onOpenReschedule(appointment)}
+                      >
+                        Edit
+                      </ActionButton>
                     ) : null}
                   </div>
                 </div>

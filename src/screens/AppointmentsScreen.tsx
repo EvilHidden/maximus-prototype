@@ -254,7 +254,6 @@ export function AppointmentsScreen({
               setComposerState(getComposerStateForAppointment(appointment));
               setComposerOpen(true);
             }}
-            onConfirmAppointment={onConfirmAppointment}
           />
         </div>
       ) : (

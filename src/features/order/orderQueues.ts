@@ -88,6 +88,37 @@ function openOrderMatchesAssignee(openOrder: OpenOrder, assigneeFilter: Assignee
   return openOrder.inHouseAssignee?.id === assigneeFilter;
 }
 
+function getOpenOrderEarliestPickupTimestamp(openOrder: OpenOrder) {
+  return openOrder.pickupSchedules
+    .map((pickup) => getPickupDateTime(pickup.pickupDate, pickup.pickupTime)?.getTime() ?? Number.POSITIVE_INFINITY)
+    .sort((left, right) => left - right)[0] ?? Number.POSITIVE_INFINITY;
+}
+
+function getOpenOrderCreatedAtTimestamp(openOrder: OpenOrder) {
+  const createdAt = new Date(openOrder.createdAt).getTime();
+  return Number.isNaN(createdAt) ? Number.POSITIVE_INFINITY : createdAt;
+}
+
+export function sortOpenOrdersChronologically(openOrders: OpenOrder[]) {
+  return [...openOrders].sort((left, right) => {
+    const leftEarliestPickup = getOpenOrderEarliestPickupTimestamp(left);
+    const rightEarliestPickup = getOpenOrderEarliestPickupTimestamp(right);
+
+    if (leftEarliestPickup !== rightEarliestPickup) {
+      return leftEarliestPickup - rightEarliestPickup;
+    }
+
+    const leftCreatedAt = getOpenOrderCreatedAtTimestamp(left);
+    const rightCreatedAt = getOpenOrderCreatedAtTimestamp(right);
+
+    if (leftCreatedAt !== rightCreatedAt) {
+      return leftCreatedAt - rightCreatedAt;
+    }
+
+    return left.id - right.id;
+  });
+}
+
 function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey, now = new Date()) {
   if (queue === "all") {
     return true;
@@ -255,7 +286,9 @@ function getPhaseToneForLabel(phase: string) {
 }
 
 export function getNeedsAttentionOpenOrders(openOrders: OpenOrder[]) {
-  return openOrders.filter((openOrder) => !isOpenOrderFullyReadyForPickup(openOrder));
+  return sortOpenOrdersChronologically(
+    openOrders.filter((openOrder) => !isOpenOrderFullyReadyForPickup(openOrder)),
+  );
 }
 
 export function getMarkReadyActionLabel(openOrder: OpenOrder, pendingPickupCount: number) {
@@ -505,7 +538,7 @@ export function filterOpenOrders(
   const now = options.now ?? new Date();
   const normalizedQuery = normalizeSearchValue(query);
 
-  return openOrders.filter((openOrder) => {
+  return sortOpenOrdersChronologically(openOrders.filter((openOrder) => {
     if (typeFilter !== "all" && openOrder.orderType !== typeFilter) {
       return false;
     }
@@ -527,7 +560,7 @@ export function filterOpenOrders(
     }
 
     return getOpenOrderSearchText(openOrder).includes(normalizedQuery);
-  });
+  }));
 }
 
 export function filterClosedOrderHistory(historyItems: ClosedOrderHistoryItem[], query: string) {
