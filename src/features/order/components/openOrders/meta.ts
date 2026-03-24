@@ -80,7 +80,7 @@ export function getWorklistPhaseLabel(phase: string) {
 }
 
 export function getWorklistPaymentLabel(balanceDue: number) {
-  return balanceDue > 0 ? "PAYMENT DUE" : "PREPAID";
+  return balanceDue > 0 ? "PAYMENT DUE" : "PAID";
 }
 
 export function getWorklistPaymentTextClassName(balanceDue: number) {
@@ -88,7 +88,7 @@ export function getWorklistPaymentTextClassName(balanceDue: number) {
     return "text-[0.76rem] font-semibold uppercase leading-none tracking-[0.18em] text-[var(--app-warn-text)]";
   }
 
-  return "text-[0.66rem] font-medium uppercase leading-none tracking-[0.12em] text-[color:color-mix(in_srgb,var(--app-text-soft)_92%,var(--app-success-text))]";
+  return "text-[0.76rem] font-semibold uppercase leading-none tracking-[0.18em] text-[var(--app-success-text)]";
 }
 
 export function getLocationOptions(pickupLocations: PickupLocation[]): Array<PickupLocation | "all"> {

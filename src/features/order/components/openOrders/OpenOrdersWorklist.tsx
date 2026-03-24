@@ -3,23 +3,78 @@ import type { OpenOrder } from "../../../../types";
 import {
   ActionButton,
   EmptyState,
-  StatusPill,
   SurfaceHeader,
   cx,
 } from "../../../../components/ui/primitives";
 import {
   getOpenOrderOperationalPhase,
-  getOpenOrderStatusPills,
+  getOpenOrderPickupGroups,
   getOpenOrderTypeLabel,
   formatOpenOrderCreatedAt,
-  getMarkReadyActionLabel,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
-  getPickupAlertState,
-  getPickupStatusSummary,
   type OrdersQueueKey,
 } from "../../selectors";
 import { formatWorklistTotal, getPhaseTone, getWorklistPaymentLabel, getWorklistPaymentTextClassName, getWorklistPhaseLabel, queueMeta, queueOverviewMeta } from "./meta";
+
+function getWorklistStatusTextClassName(tone: "default" | "dark" | "success" | "warn" | "danger") {
+  if (tone === "success") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]";
+  }
+
+  if (tone === "danger") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-danger-text)]";
+  }
+
+  if (tone === "dark") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-text)]";
+  }
+
+  if (tone === "warn") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-warn-text)]";
+  }
+
+  return "text-[0.82rem] font-semibold leading-tight text-[var(--app-text-muted)]";
+}
+
+function getPickupGroupStatusDisplay(
+  scope: OpenOrder["pickupSchedules"][number]["scope"],
+  isReadyForPickup: boolean,
+  alertLabel: string,
+) {
+  if (scope === "alteration") {
+    if (alertLabel === "Past promised ready time") {
+      return {
+        label: "Overdue",
+        className: getWorklistStatusTextClassName("danger"),
+      };
+    }
+
+    if (isReadyForPickup) {
+      return {
+        label: "Ready",
+        className: getWorklistStatusTextClassName("success"),
+      };
+    }
+
+    return {
+      label: "In progress",
+      className: getWorklistStatusTextClassName("default"),
+    };
+  }
+
+  if (isReadyForPickup) {
+    return {
+      label: "Ready",
+      className: getWorklistStatusTextClassName("success"),
+    };
+  }
+
+  return {
+    label: "In progress",
+    className: getWorklistStatusTextClassName("default"),
+  };
+}
 
 function OpenSectionHeader({
   icon: Icon,
@@ -54,37 +109,10 @@ function WorkQueueOrderRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
-  const statusPills = getOpenOrderStatusPills(openOrder);
   const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.pickedUp);
-  const pendingInHousePickupIds = inHousePickups.filter((pickup) => !pickup.readyForPickup).map((pickup) => pickup.id);
   const canManageInHouseWork = inHousePickups.length > 0;
   const canStartWork = canManageInHouseWork && openOrder.operationalStatus === "accepted";
-  const canMarkReady = canManageInHouseWork && !canStartWork && pendingInHousePickupIds.length > 0;
-  const pickupGroups = openOrder.pickupSchedules.filter((pickup) => !pickup.pickedUp).reduce<Array<{
-    key: string;
-    summary: string;
-    alertLabel: string;
-    items: string[];
-  }>>((groups, pickup) => {
-    const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
-    const pickupSummary = getPickupStatusSummary(pickup);
-    const key = `${pickupSummary}__${pickupAlert.label}`;
-    const existingGroup = groups.find((group) => group.key === key);
-
-    if (existingGroup) {
-      existingGroup.items.push(...pickup.itemSummary);
-      return groups;
-    }
-
-    groups.push({
-      key,
-      summary: pickupSummary,
-      alertLabel: pickupAlert.label,
-      items: [...pickup.itemSummary],
-    });
-
-    return groups;
-  }, []);
+  const pickupGroups = getOpenOrderPickupGroups(openOrder);
 
   const getGroupedItemSummary = (items: string[]) => {
     const uniqueItems = [...new Set(items)];
@@ -108,89 +136,102 @@ function WorkQueueOrderRow({
         }
       }}
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_14rem_minmax(18rem,auto)] lg:items-start lg:gap-x-6">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.75rem] lg:items-start lg:gap-x-5">
         <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
         </div>
 
-        <div className="min-w-0 space-y-3">
-          {pickupGroups.map((group) => {
-            const uniqueItems = [...new Set(group.items)];
-            const representativePickup = openOrder.pickupSchedules.find((pickup) => {
-              if (pickup.pickedUp) {
-                return false;
-              }
-              const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup);
-              const pickupSummary = getPickupStatusSummary(pickup);
-              return `${pickupSummary}__${pickupAlert.label}` === group.key;
-            });
-            const dateLabel = representativePickup
-              ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-              : null;
-            const timeLabel = representativePickup
-              ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-              : null;
-            const location = representativePickup?.pickupLocation ?? "";
+        <div className="min-w-0">
+          <div className="app-text-overline lg:hidden">Ready by</div>
+          <div className="mt-1 lg:mt-0">
+            {pickupGroups.map((group, index) => {
+              const uniqueItems = [...new Set(group.itemSummary)];
+              const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
+              const dateLabel = representativePickup
+                ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+                : null;
+              const timeLabel = representativePickup
+                ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+                : null;
+              const location = representativePickup?.pickupLocation ?? "";
+              const groupStatus = representativePickup
+                ? getPickupGroupStatusDisplay(group.scope, representativePickup.readyForPickup, group.alertLabel)
+                : null;
 
-            return (
-              <div
-                key={group.key}
-                className="min-w-0"
-              >
-                <div className="min-w-0">
-                  <div className="app-text-overline">Ready by</div>
-                  <div className="mt-1 flex flex-wrap items-center gap-2">
-                    <div className="app-text-body font-medium">
-                      {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
+              return (
+                <div
+                  key={group.key}
+                  className={cx(
+                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.75rem_5rem] lg:items-center",
+                    index === 0 ? "pt-0" : "",
+                  )}
+                >
+                  <div className={cx("min-w-0", index > 0 && "border-t border-[var(--app-border)]/35 pt-2.5")}>
+                    <div className="mt-0 flex flex-wrap items-center gap-2">
+                      <div className="app-text-body font-medium">
+                        {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
+                      </div>
+                      {location ? (
+                        <div className="app-text-caption inline-flex items-center gap-1.5">
+                          <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                          <span>{location}</span>
+                        </div>
+                      ) : null}
                     </div>
-                    {location ? (
-                      <div className="app-text-caption inline-flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                        <span>{location}</span>
+                    <div className="app-text-caption mt-1">
+                      {getGroupedItemSummary(uniqueItems)}
+                    </div>
+                  </div>
+                  <div className={cx("min-w-0", index > 0 && "pt-2.5")}>
+                    {groupStatus ? (
+                      <div className="flex min-h-14 items-center justify-start">
+                        <div className={groupStatus.className}>{groupStatus.label}</div>
                       </div>
                     ) : null}
                   </div>
-                  <div className="app-text-caption mt-1">
-                    {getGroupedItemSummary(uniqueItems)}
+                  <div
+                    className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")}
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {canStartWork ? (
+                      index === 0 ? (
+                        <ActionButton
+                          tone="primary"
+                          className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                          disabled={!openOrder.inHouseAssignee}
+                          onClick={() => onStartOpenOrderWork(openOrder.id)}
+                        >
+                          Start work
+                        </ActionButton>
+                      ) : (
+                        <span className="app-text-caption opacity-0">No action</span>
+                      )
+                    ) : group.actionPickupIds.length ? (
+                      <ActionButton
+                        tone="primary"
+                        className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                        onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
+                      >
+                        Ready
+                      </ActionButton>
+                    ) : (
+                      <span className="app-text-caption opacity-0">No action</span>
+                    )}
                   </div>
                 </div>
-              </div>
-            );
-          })}
-        </div>
-
-        <div className="flex items-center self-center lg:w-[14rem] lg:justify-center lg:pr-2" onClick={(event) => event.stopPropagation()}>
-          {canStartWork ? (
-            <ActionButton
-              tone="primary"
-              className="w-full justify-center whitespace-nowrap px-3 py-2 text-xs"
-              disabled={!openOrder.inHouseAssignee}
-              onClick={() => onStartOpenOrderWork(openOrder.id)}
-            >
-              Start work
-            </ActionButton>
-          ) : null}
-          {canMarkReady ? (
-            <ActionButton
-              tone="primary"
-              className="w-full justify-center whitespace-nowrap px-4 py-2 text-xs"
-              onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, pendingInHousePickupIds)}
-            >
-              {getMarkReadyActionLabel(openOrder, pendingInHousePickupIds.length)}
-            </ActionButton>
-          ) : null}
-        </div>
-
-        <div className="flex flex-wrap items-start justify-between gap-3 lg:min-w-[18rem] lg:flex-col lg:items-end lg:text-right">
-          <div className={cx("items-center gap-2 lg:justify-end", openOrder.orderType === "mixed" ? "flex flex-nowrap" : "flex flex-wrap")}>
-            {openOrder.orderType === "mixed"
-              ? statusPills.map((pill) => (
-                <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
-              ))
-              : <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>}
+              );
+            })}
           </div>
-          <div>
+        </div>
+
+        <div className="min-w-0 text-left sm:text-right lg:min-w-[7.5rem]">
+          {openOrder.orderType !== "mixed" ? (
+            <div className={getWorklistStatusTextClassName(getPhaseTone(phase))}>
+              {getWorklistPhaseLabel(phase)}
+            </div>
+          ) : null}
+          <div className={cx(openOrder.orderType !== "mixed" && "mt-3")}>
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(openOrder.total)}
             </div>

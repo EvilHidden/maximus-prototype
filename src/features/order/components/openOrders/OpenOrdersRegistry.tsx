@@ -1,3 +1,4 @@
+import { MapPin } from "lucide-react";
 import { useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
 import { EmptyState, StatusPill, cx } from "../../../../components/ui/primitives";
@@ -9,6 +10,9 @@ import {
   formatClosedOrderTotal,
   formatOpenOrderCreatedAt,
   formatPickupSchedule,
+  getOpenOrderReadinessBreakdown,
+  getOperationalPickupDateLabel,
+  getOperationalPickupTimeLabel,
   formatSummaryCurrency,
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
@@ -17,10 +21,13 @@ import {
 } from "../../selectors";
 import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { OperatorQueuePanel } from "./OperatorQueuePanel";
+import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
 import { QueueSection } from "./OpenOrdersWorklist";
 
 const OPEN_ORDER_ROW_GRID_CLASS =
   "grid cursor-pointer gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1fr)_9rem_9rem_6rem_minmax(23rem,23rem)] lg:items-center";
+const READY_ORDER_ROW_GRID_CLASS =
+  "grid cursor-pointer gap-4 px-4 py-3.5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] lg:items-center";
 
 function getPickupScheduleSummary(pickups: OpenOrder["pickupSchedules"] | ClosedOrderHistoryItem["pickupSchedules"]) {
   const labels = (pickups ?? [])
@@ -45,6 +52,59 @@ function OrderIdentityDetail({
   );
 }
 
+function summarizeOrderItems(items: string[]) {
+  const uniqueItems = [...new Set(items)].filter(Boolean);
+  if (uniqueItems.length <= 2) {
+    return uniqueItems.join(", ");
+  }
+
+  return `${uniqueItems[0]}, ${uniqueItems[1]} +${uniqueItems.length - 2} more`;
+}
+
+function formatReadyItemLabel(item: string) {
+  return item
+    .replace(/^Alteration\s*-\s*/i, "")
+    .replace(/^Custom garment\s*-\s*/i, "")
+    .trim();
+}
+
+function summarizeReadyOrderItems(items: string[]) {
+  const uniqueItems = [...new Set(items.map(formatReadyItemLabel).filter(Boolean))];
+  if (uniqueItems.length <= 2) {
+    return uniqueItems.join(", ");
+  }
+
+  return `${uniqueItems[0]}, ${uniqueItems[1]} +${uniqueItems.length - 2} more`;
+}
+
+function getReadyCustomerDetail(openOrder: OpenOrder) {
+  const itemSummary = summarizeReadyOrderItems(openOrder.itemSummary);
+  const workType = getOpenOrderOperationalLane(openOrder);
+
+  if (!itemSummary) {
+    return workType;
+  }
+
+  return `${workType} • ${itemSummary}`;
+}
+
+function getCompactPickupScheduleSummary(pickups: OpenOrder["pickupSchedules"]) {
+  const labels = pickups
+    .map((pickup) => {
+      const dateLabel = getOperationalPickupDateLabel(pickup.pickupDate, pickup.pickupTime);
+      const timeLabel = getOperationalPickupTimeLabel(pickup.pickupDate, pickup.pickupTime);
+      return [dateLabel, timeLabel].filter(Boolean).join(" • ");
+    })
+    .filter((value): value is string => Boolean(value));
+
+  const uniqueLabels = [...new Set(labels)];
+  if (uniqueLabels.length <= 1) {
+    return uniqueLabels[0] ?? "";
+  }
+
+  return `${uniqueLabels[0]} +${uniqueLabels.length - 1} more`;
+}
+
 function OpenOrdersColumnHeader() {
   return (
     <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 lg:block">
@@ -59,21 +119,95 @@ function OpenOrdersColumnHeader() {
   );
 }
 
+function ReadyOrdersColumnHeader() {
+  return (
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 lg:block">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] lg:items-center">
+        <div className="app-text-overline">Customer</div>
+        <div className="app-text-overline">Pickup</div>
+        <div className="app-text-overline">Ready</div>
+        <div className="app-text-overline text-right">Total</div>
+      </div>
+    </div>
+  );
+}
+
+function getReadyPickupSummary(openOrder: OpenOrder) {
+  const readyPickups = openOrder.pickupSchedules.filter((pickup) => pickup.readyForPickup && !pickup.pickedUp);
+  const displayPickups = readyPickups.length ? readyPickups : openOrder.pickupSchedules;
+  const locations = [...new Set(displayPickups.map((pickup) => pickup.pickupLocation).filter(Boolean))].join(" • ");
+  const scheduleSummary = getCompactPickupScheduleSummary(displayPickups);
+
+  return {
+    locations: locations || getOpenOrderLocationSummary(openOrder) || "Pending",
+    scheduleSummary,
+  };
+}
+
+function getReadyMixedStatusSummary(openOrder: OpenOrder) {
+  if (openOrder.orderType !== "mixed") {
+    return null;
+  }
+
+  const breakdown = getOpenOrderReadinessBreakdown(openOrder);
+  const primary = breakdown.alterationReady
+    ? { label: "Alterations ready", tone: "success" as const }
+    : breakdown.customReady
+      ? { label: "Custom ready", tone: "success" as const }
+      : null;
+
+  if (!primary) {
+    return null;
+  }
+
+  const secondary = breakdown.alterationReady
+    ? breakdown.customPickedUp
+      ? "Custom: Picked up"
+      : breakdown.customReady
+        ? "Custom: Ready"
+        : "Custom: In progress"
+    : breakdown.alterationPickedUp
+      ? "Alterations: Picked up"
+      : breakdown.alterationReady
+        ? "Alterations: Ready"
+        : "Alterations: In progress";
+
+  return { primary, secondary };
+}
+
+function getReadyStatusSummary(openOrder: OpenOrder) {
+  const mixedStatusSummary = getReadyMixedStatusSummary(openOrder);
+  if (mixedStatusSummary) {
+    return mixedStatusSummary;
+  }
+
+  return {
+    primary: { label: "Ready", tone: "success" as const },
+    secondary: null,
+  };
+}
+
 function AllOrdersRow({
   openOrder,
   onOpenOrderCheckout,
+  variant = "default",
 }: {
   openOrder: OpenOrder;
   onOpenOrderCheckout: (openOrderId: number) => void;
+  variant?: "default" | "ready";
 }) {
   const workType = getOpenOrderOperationalLane(openOrder);
   const locations = getOpenOrderLocationSummary(openOrder);
   const statusPills = getOpenOrderStatusPills(openOrder);
   const pickupScheduleSummary = getPickupScheduleSummary(openOrder.pickupSchedules);
+  const readyPickupSummary = getReadyPickupSummary(openOrder);
+  const readyStatusSummary = getReadyStatusSummary(openOrder);
+  const isReadyVariant = variant === "ready";
+  const rowGridClassName = isReadyVariant ? READY_ORDER_ROW_GRID_CLASS : OPEN_ORDER_ROW_GRID_CLASS;
 
   return (
     <div
-      className={OPEN_ORDER_ROW_GRID_CLASS}
+      className={rowGridClassName}
       role="button"
       tabIndex={0}
       onClick={() => onOpenOrderCheckout(openOrder.id)}
@@ -87,38 +221,83 @@ function AllOrdersRow({
       <div className="min-w-0">
         <div className="app-text-strong">{openOrder.payerName}</div>
         <OrderIdentityDetail
-          detail={openOrder.itemSummary.join(", ")}
+          detail={isReadyVariant ? getReadyCustomerDetail(openOrder) : openOrder.itemSummary.join(", ")}
           meta={[
-            `Order #${openOrder.id}`,
-            formatOpenOrderCreatedAt(openOrder.createdAt),
-            pickupScheduleSummary ? `Pickup ${pickupScheduleSummary}` : "",
+            !isReadyVariant ? `Order #${openOrder.id}` : "",
+            !isReadyVariant ? formatOpenOrderCreatedAt(openOrder.createdAt) : "",
+            !isReadyVariant && pickupScheduleSummary ? `Pickup ${pickupScheduleSummary}` : "",
           ].filter(Boolean).join(" • ")}
         />
       </div>
+      {isReadyVariant ? null : (
+        <div className="min-w-0">
+          <div className="app-text-overline lg:hidden">Work type</div>
+          <div className="app-text-body mt-1 font-medium">{workType}</div>
+          {openOrder.inHouseAssignee ? (
+            <div className="app-text-caption mt-1">Assigned to {openOrder.inHouseAssignee.name}</div>
+          ) : null}
+        </div>
+      )}
       <div className="min-w-0">
-        <div className="app-text-overline lg:hidden">Work type</div>
-        <div className="app-text-body mt-1 font-medium">{workType}</div>
-        {openOrder.inHouseAssignee ? (
-          <div className="app-text-caption mt-1">Assigned to {openOrder.inHouseAssignee.name}</div>
+        <div className="app-text-overline lg:hidden">{isReadyVariant ? "Pickup" : "Pickup location"}</div>
+        <div className="app-text-body mt-1 font-medium">
+          {isReadyVariant ? (
+            <span className="inline-flex items-center gap-1.5">
+              <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+              <span>{readyPickupSummary.locations}</span>
+            </span>
+          ) : (
+            locations || "Pending"
+          )}
+        </div>
+        {isReadyVariant && readyPickupSummary.scheduleSummary ? (
+          <div className="app-text-caption mt-1">{readyPickupSummary.scheduleSummary}</div>
         ) : null}
       </div>
-      <div className="min-w-0">
-        <div className="app-text-overline lg:hidden">Pickup location</div>
-        <div className="app-text-body mt-1 font-medium">{locations || "Pending"}</div>
-      </div>
-      <div className="min-w-0">
-        <div className="app-text-overline lg:hidden">Total</div>
-        <div className="app-text-strong mt-1">{formatSummaryCurrency(openOrder.total)}</div>
-      </div>
-      <div className="flex flex-wrap items-center gap-2 lg:min-w-[23rem] lg:flex-nowrap lg:justify-end lg:pl-4">
-        <div className="app-text-overline w-full lg:hidden">Status</div>
-        {statusPills.map((pill) => (
-          <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
-        ))}
-        <div className="shrink-0">
-          <PaymentStatusPill status={openOrder.paymentStatus} />
-        </div>
-      </div>
+      {isReadyVariant ? (
+        <>
+          <div className="min-w-0">
+            <div className="app-text-overline lg:hidden">Ready</div>
+            <div className="mt-1 flex min-w-0 flex-col items-start gap-1.5">
+              <div className="text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]">
+                {readyStatusSummary.primary.label}
+              </div>
+              {readyStatusSummary.secondary ? (
+                <div className="app-text-caption text-left">{readyStatusSummary.secondary}</div>
+              ) : null}
+            </div>
+          </div>
+          <div className="min-w-0 text-left lg:text-right">
+            <div className="app-text-overline lg:hidden">Total</div>
+            <div className="pt-1 lg:pt-0">
+              <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                {formatWorklistTotal(openOrder.total)}
+              </div>
+            </div>
+            <div className="mt-1.5">
+              <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>
+                {getWorklistPaymentLabel(openOrder.balanceDue)}
+              </span>
+            </div>
+          </div>
+        </>
+      ) : (
+        <>
+          <div className="min-w-0">
+            <div className="app-text-overline lg:hidden">Total</div>
+            <div className="app-text-strong mt-1">{formatSummaryCurrency(openOrder.total)}</div>
+          </div>
+          <div className="flex flex-wrap items-center gap-2 lg:min-w-[23rem] lg:flex-nowrap lg:justify-end lg:pl-4">
+          <div className="app-text-overline w-full lg:hidden">Status</div>
+          {statusPills.map((pill) => (
+            <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
+          ))}
+          <div className="shrink-0">
+            <PaymentStatusPill status={openOrder.paymentStatus} />
+          </div>
+          </div>
+        </>
+      )}
     </div>
   );
 }
@@ -287,13 +466,13 @@ export function OpenOrdersBody({
           <EmptyState>No ready orders match this search and filter set.</EmptyState>
         ) : (
           <div className="app-work-surface">
-            <OpenOrdersColumnHeader />
+            <ReadyOrdersColumnHeader />
             {filteredReadyOrders.map((openOrder, index) => (
               <div
                 key={openOrder.id}
                 className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
               >
-                <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} />
+                <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} variant="ready" />
               </div>
             ))}
           </div>
@@ -343,7 +522,7 @@ export function OpenOrdersBody({
       {markReadyConfirmation ? (
         <ConfirmMarkReadyModal
           openOrder={markReadyConfirmation.openOrder}
-          pendingPickupCount={markReadyConfirmation.pickupIds.length}
+          pickupIds={markReadyConfirmation.pickupIds}
           onConfirm={handleConfirmMarkReady}
           onClose={() => setMarkReadyConfirmation(null)}
         />

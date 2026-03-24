@@ -1,11 +1,11 @@
 import { ChevronDown, ClipboardList, MapPin, PlayCircle, UserRoundCheck } from "lucide-react";
 import type { OpenOrder, OpenOrderPickup, StaffMember } from "../../../../types";
-import { ActionButton, EmptyState, StatusPill, SurfaceHeader, cx } from "../../../../components/ui/primitives";
+import { ActionButton, EmptyState, SurfaceHeader, cx } from "../../../../components/ui/primitives";
 import {
   formatOpenOrderCreatedAt,
   getInHouseOpenOrderPickups,
-  getMarkReadyActionLabel,
-  getOpenOrderStatusPills,
+  getOpenOrderMixedStatusSummary,
+  getOpenOrderPickupGroups,
   getOpenOrderTypeLabel,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
@@ -15,7 +15,7 @@ import {
   type OperatorQueueStageCounts,
   type OperatorQueueStageKey,
 } from "../../selectors";
-import { formatWorklistTotal, getPhaseTone, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
+import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
 
 const stageMeta: Array<{
   key: OperatorQueueStageKey;
@@ -39,22 +39,6 @@ const stageMeta: Array<{
   },
 ];
 
-function getOperatorStagePill(stage: OperatorQueueStageKey) {
-  if (stage === "needs_assignment") {
-    return { label: "Needs assignment", tone: "warn" as const };
-  }
-
-  if (stage === "ready_to_start") {
-    return { label: "Assigned", tone: "dark" as const };
-  }
-
-  if (stage === "ready") {
-    return { label: "Ready", tone: "success" as const };
-  }
-
-  return { label: "In progress", tone: getPhaseTone("In progress") };
-}
-
 function OperatorQueueSummary({
   stageCounts,
 }: {
@@ -75,20 +59,78 @@ function OperatorQueueSummary({
   );
 }
 
-function getNextPendingPickup(openOrder: OpenOrder) {
-  return getInHouseOpenOrderPickups(openOrder)
-    .filter((pickup) => !pickup.readyForPickup)
-    .sort((left, right) => `${left.pickupDate}T${left.pickupTime}`.localeCompare(`${right.pickupDate}T${right.pickupTime}`))[0]
-    ?? getInHouseOpenOrderPickups(openOrder)[0]
-    ?? null;
-}
-
 function getAlterationItemSummary(pickup: OpenOrderPickup | null, openOrder: OpenOrder) {
   if (pickup?.itemSummary.length) {
     return pickup.itemSummary.join(", ");
   }
 
   return openOrder.itemSummary.join(", ");
+}
+
+function getOperatorStatusTextClassName(tone: "default" | "dark" | "success" | "warn" | "danger") {
+  if (tone === "success") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]";
+  }
+
+  if (tone === "danger") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-danger-text)]";
+  }
+
+  if (tone === "dark") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-text)]";
+  }
+
+  if (tone === "warn") {
+    return "text-[0.82rem] font-semibold leading-tight text-[var(--app-warn-text)]";
+  }
+
+  return "text-[0.82rem] font-semibold leading-tight text-[var(--app-text-muted)]";
+}
+
+function getOperatorStageStatusDisplay(stage: OperatorQueueStageKey) {
+  if (stage === "ready_to_start") {
+    return {
+      label: "Assigned",
+      className: getOperatorStatusTextClassName("dark"),
+    };
+  }
+
+  if (stage === "needs_assignment") {
+    return {
+      label: "Needs tailor",
+      className: getOperatorStatusTextClassName("warn"),
+    };
+  }
+
+  return null;
+}
+
+function getAlterationPickupStatusDisplay(
+  pickup: OpenOrderPickup | null,
+  alertLabel: string,
+) {
+  if (!pickup) {
+    return null;
+  }
+
+  if (alertLabel === "Past promised ready time") {
+    return {
+      label: "Overdue",
+      className: getOperatorStatusTextClassName("danger"),
+    };
+  }
+
+  if (pickup.readyForPickup) {
+    return {
+      label: "Ready",
+      className: getOperatorStatusTextClassName("success"),
+    };
+  }
+
+  return {
+    label: "In progress",
+    className: getOperatorStatusTextClassName("default"),
+  };
 }
 
 function TailorAssignmentControl({
@@ -109,12 +151,12 @@ function TailorAssignmentControl({
 
   return (
     <div className="min-w-0" onClick={(event) => event.stopPropagation()}>
-      <div className="app-field-control relative min-h-[2.75rem] px-3 py-2">
+      <div className="app-field-control relative min-h-[2.5rem] px-2.5 py-1.5">
         <select
           aria-label={`Assign tailor for order ${openOrder.id}`}
           value={openOrder.inHouseAssignee?.id ?? "unassigned"}
           onChange={(event) => onAssignOpenOrderTailor(openOrder.id, event.target.value === "unassigned" ? null : event.target.value)}
-          className="app-text-body min-w-0 flex-1 appearance-none pr-9"
+          className="app-text-body-muted min-w-0 flex-1 appearance-none pr-8"
         >
           <option value="unassigned">Choose tailor</option>
           {inHouseTailors.map((staffMember) => (
@@ -133,12 +175,11 @@ function TailorAssignmentControl({
 function OperatorQueueColumnHeader() {
   return (
     <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 lg:block">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)_minmax(14rem,16rem)_10rem_minmax(12rem,0.58fr)] lg:items-center">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] lg:items-center">
         <div className="app-text-overline">Customer</div>
         <div className="app-text-overline">Ready by</div>
         <div className="app-text-overline">Assigned tailor</div>
-        <div className="app-text-overline">Next step</div>
-        <div className="app-text-overline text-right">Status</div>
+        <div className="app-text-overline text-right">Total</div>
       </div>
     </div>
   );
@@ -160,15 +201,11 @@ function OperatorQueueRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const stage = getOperatorQueueStage(openOrder);
-  const nextPickup = getNextPendingPickup(openOrder);
-  const statusPills = getOpenOrderStatusPills(openOrder);
-  const pendingPickupIds = getInHouseOpenOrderPickups(openOrder).filter((pickup) => !pickup.readyForPickup).map((pickup) => pickup.id);
-  const stagePill = stage ? getOperatorStagePill(stage) : null;
-  const dateLabel = nextPickup ? getOperationalPickupDateLabel(nextPickup.pickupDate, nextPickup.pickupTime) : null;
-  const timeLabel = nextPickup ? getOperationalPickupTimeLabel(nextPickup.pickupDate, nextPickup.pickupTime) : null;
-  const itemSummary = getAlterationItemSummary(nextPickup, openOrder);
+  const mixedStatusSummary = getOpenOrderMixedStatusSummary(openOrder);
+  const pickupGroups = getOpenOrderPickupGroups(openOrder, { scopes: ["alteration"] });
+  const stageStatusDisplay = getOperatorStageStatusDisplay(stage);
 
-  if (!stage || !stagePill) {
+  if (!stage) {
     return null;
   }
 
@@ -185,29 +222,92 @@ function OperatorQueueRow({
         }
       }}
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)_minmax(14rem,16rem)_10rem_minmax(12rem,0.58fr)] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] lg:items-start">
         <div className="min-w-0">
           <div className="app-text-overline lg:hidden">Customer</div>
           <div className="app-text-value mt-1 lg:mt-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">
-            {getOpenOrderTypeLabel(openOrder.orderType)} • Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}
+            {getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}
           </div>
-          <div className="app-text-caption mt-2 line-clamp-2">{itemSummary}</div>
+          <div className="app-text-caption mt-2 line-clamp-2">{openOrder.itemSummary.join(", ")}</div>
+          {mixedStatusSummary ? (
+            <div className="app-text-caption mt-2">{mixedStatusSummary.secondary.replace(": ", " • ")}</div>
+          ) : null}
         </div>
 
         <div className="min-w-0">
           <div className="app-text-overline lg:hidden">Ready by</div>
-          <div className="mt-1 flex flex-wrap items-center gap-2 lg:mt-0">
-            <div className="app-text-body font-medium">
-              {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
-            </div>
+          <div className="mt-1 lg:mt-0">
+            {pickupGroups.map((group, index) => {
+              const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
+              const dateLabel = representativePickup
+                ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+                : null;
+              const timeLabel = representativePickup
+                ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+                : null;
+              const itemSummary = getAlterationItemSummary(representativePickup, openOrder);
+              const statusDisplay = representativePickup
+                ? getAlterationPickupStatusDisplay(representativePickup, group.alertLabel)
+                : null;
+              const showPerPickupAction = stage === "in_progress" && group.actionPickupIds.length > 0;
+              const showStageAction = index === 0 && stage === "ready_to_start";
+              const showStageStatus = index === 0 && stageStatusDisplay;
+
+              return (
+                <div
+                  key={group.key}
+                  className={cx(
+                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.5rem_4.75rem] lg:items-center",
+                    index === 0 ? "pt-0" : "",
+                  )}
+                >
+                  <div className={cx("min-w-0", index > 0 && "border-t border-[var(--app-border)]/35 pt-2.5")}>
+                    <div className="app-text-body font-medium">
+                      {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
+                    </div>
+                    {representativePickup?.pickupLocation ? (
+                      <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                        <span>{representativePickup.pickupLocation}</span>
+                      </div>
+                    ) : null}
+                    <div className="app-text-caption mt-1 line-clamp-2">{itemSummary}</div>
+                  </div>
+                  <div className={cx("min-w-0", index > 0 && "pt-2.5")}>
+                    <div className="flex min-h-14 items-center">
+                      {showPerPickupAction && statusDisplay ? (
+                        <div className={statusDisplay.className}>{statusDisplay.label}</div>
+                      ) : showStageStatus ? (
+                        <div className={stageStatusDisplay.className}>{stageStatusDisplay.label}</div>
+                      ) : null}
+                    </div>
+                  </div>
+                  <div className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")} onClick={(event) => event.stopPropagation()}>
+                    {showPerPickupAction ? (
+                      <ActionButton
+                        tone="primary"
+                        className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                        onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
+                      >
+                        Ready
+                      </ActionButton>
+                    ) : showStageAction ? (
+                      <ActionButton
+                        tone="primary"
+                        className="min-w-[4.75rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                        onClick={() => onStartOpenOrderWork(openOrder.id)}
+                      >
+                        Start
+                      </ActionButton>
+                    ) : (
+                      <span className="app-text-caption opacity-0">No action</span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
           </div>
-          {nextPickup?.pickupLocation ? (
-            <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-              <span>{nextPickup.pickupLocation}</span>
-            </div>
-          ) : null}
         </div>
 
         <div className="min-w-0">
@@ -221,55 +321,9 @@ function OperatorQueueRow({
           </div>
         </div>
 
-        <div className="min-w-0" onClick={(event) => event.stopPropagation()}>
-          <div className="app-text-overline lg:hidden">Next step</div>
-          <div className="mt-1 flex items-start lg:mt-0">
-            {stage === "ready_to_start" ? (
-              <ActionButton
-                tone="primary"
-                className="w-full justify-center whitespace-nowrap px-3 py-2 text-xs"
-                onClick={() => onStartOpenOrderWork(openOrder.id)}
-              >
-                Start work
-              </ActionButton>
-            ) : null}
-            {stage === "in_progress" && pendingPickupIds.length > 0 ? (
-              <ActionButton
-                tone="primary"
-                className="w-full justify-center whitespace-nowrap px-6 py-2 text-xs"
-                onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, pendingPickupIds)}
-              >
-                {getMarkReadyActionLabel(openOrder, pendingPickupIds.length)}
-              </ActionButton>
-            ) : null}
-            {stage === "needs_assignment" ? (
-              <div className="app-text-caption pt-2">Choose a tailor to unlock work.</div>
-            ) : null}
-          </div>
-          <div className="mt-2">
-            <ActionButton
-              tone="quiet"
-              onClick={() => onOpenOrderCheckout(openOrder.id)}
-            >
-              View order
-            </ActionButton>
-          </div>
-        </div>
-
-        <div className="min-w-0 lg:text-right">
-          <div className="app-text-overline lg:hidden">Status</div>
-          <div className={cx("mt-1 flex flex-wrap items-center gap-2 lg:mt-0 lg:justify-end", openOrder.orderType === "mixed" ? "lg:flex-nowrap" : "")}>
-            {openOrder.orderType === "mixed"
-              ? statusPills.map((pill) => (
-                <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
-              ))
-              : (
-                <StatusPill tone={stagePill.tone}>
-                  {stagePill.label}
-                </StatusPill>
-              )}
-          </div>
-          <div className="mt-3">
+        <div className="min-w-0 text-left lg:text-right">
+          <div className="app-text-overline lg:hidden">Total</div>
+          <div className="mt-1 lg:mt-0">
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(openOrder.total)}
             </div>
