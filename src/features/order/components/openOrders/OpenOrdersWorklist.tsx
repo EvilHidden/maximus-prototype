@@ -1,5 +1,5 @@
-import { Clock3, MapPin, PackageSearch, type LucideIcon } from "lucide-react";
-import type { Appointment, OpenOrder } from "../../../../types";
+import { MapPin, PackageSearch, type LucideIcon } from "lucide-react";
+import type { OpenOrder } from "../../../../types";
 import {
   ActionButton,
   EmptyState,
@@ -7,13 +7,6 @@ import {
   SurfaceHeader,
   cx,
 } from "../../../../components/ui/primitives";
-import { LocationPill } from "../../../../components/ui/pills";
-import {
-  getAppointmentContextFlagLabel,
-  getAppointmentPrepFlagLabel,
-  getAppointmentProfileFlagLabel,
-  getAppointmentTimeLabel,
-} from "../../../appointments/selectors";
 import {
   getOpenOrderOperationalPhase,
   getOpenOrderTypeLabel,
@@ -21,9 +14,7 @@ import {
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
   getPickupAlertState,
-  getPickupAppointmentSummary,
   getPickupStatusSummary,
-  getPickupTimingLabel,
   type OrdersQueueKey,
 } from "../../selectors";
 import { formatWorklistTotal, getPhaseTone, getWorklistPaymentLabel, getWorklistPaymentTextClassName, getWorklistPhaseLabel, queueMeta, queueOverviewMeta } from "./meta";
@@ -46,30 +37,6 @@ function OpenSectionHeader({
       titleClassName="app-text-value"
       subtitleClassName="app-text-caption"
     />
-  );
-}
-
-function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
-  const operationalDetail =
-    appointment.prepFlags.map(getAppointmentPrepFlagLabel)[0]
-    ?? appointment.profileFlags.map(getAppointmentProfileFlagLabel)[0]
-    ?? appointment.contextFlags.map(getAppointmentContextFlagLabel)[0]
-    ?? "Customer handoff scheduled";
-
-  return (
-    <div className="grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1.1fr)_220px_180px] md:items-center">
-      <div className="min-w-0">
-        <div className="app-text-strong">{appointment.customer}</div>
-        <div className="app-text-caption mt-1">Scheduled pickup appointment • {getPickupAppointmentSummary(appointment)}</div>
-      </div>
-      <div className="min-w-0">
-        <div className="app-text-body font-medium">{`${getPickupTimingLabel(appointment.scheduledFor.slice(0, 10))} • ${getAppointmentTimeLabel(appointment)}`}</div>
-        <div className="app-text-caption mt-1">{operationalDetail}</div>
-      </div>
-      <div className="flex flex-wrap items-center justify-start gap-2 md:justify-end">
-        <LocationPill location={appointment.location} />
-      </div>
-    </div>
   );
 }
 
@@ -232,30 +199,28 @@ function WorkQueueOrderRow({
 export function QueueSection({
   activeQueue,
   openOrders,
-  pickupAppointments,
   onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
 }: {
   activeQueue: OrdersQueueKey;
   openOrders: OpenOrder[];
-  pickupAppointments: Appointment[];
   onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
-  const count = openOrders.length + pickupAppointments.length;
+  const count = openOrders.length;
 
   if (!count) {
     return (
       <div className="app-work-surface">
         <div className="px-4 py-4">
           <OpenSectionHeader
-            icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
+            icon={PackageSearch}
             title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
             subtitle={
               activeQueue === "all"
-                ? "Active orders and booked pickup visits that still need operational attention."
+                ? "Active orders that still need operational attention."
                 : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
             }
           />
@@ -273,51 +238,34 @@ export function QueueSection({
     <div className="app-work-surface">
       <div className="px-4 py-4">
         <OpenSectionHeader
-          icon={activeQueue === "scheduled_pickups" ? Clock3 : PackageSearch}
+          icon={PackageSearch}
           title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
           subtitle={
             activeQueue === "all"
-              ? "Active orders and booked pickup visits that still need operational attention."
+              ? "Active orders that still need operational attention."
               : queueOverviewMeta.find((queue) => queue.key === activeQueue)?.subtitle ?? "Focused operational queue view."
           }
         />
       </div>
       <div className="border-t border-[var(--app-border)]/45">
-        {pickupAppointments.length > 0 ? (
-          <div>
-            <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
-              <div className="app-text-overline">Scheduled pickup appointments</div>
-            </div>
-            {pickupAppointments.map((appointment, index) => (
-              <div
-                key={appointment.id}
-                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
-              >
-                <WorkQueuePickupRow appointment={appointment} />
-              </div>
-            ))}
+        <div>
+          <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
+            <div className="app-text-overline">Active orders</div>
           </div>
-        ) : null}
-        {openOrders.length > 0 ? (
-          <div className={cx(pickupAppointments.length > 0 && "border-t border-[var(--app-border)]/45")}>
-            <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
-              <div className="app-text-overline">Active orders</div>
+          {openOrders.map((openOrder, index) => (
+            <div
+              key={openOrder.id}
+              className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+            >
+              <WorkQueueOrderRow
+                openOrder={openOrder}
+                onStartOpenOrderWork={onStartOpenOrderWork}
+                onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+                onOpenOrderCheckout={onOpenOrderCheckout}
+              />
             </div>
-            {openOrders.map((openOrder, index) => (
-              <div
-                key={openOrder.id}
-                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
-              >
-                <WorkQueueOrderRow
-                  openOrder={openOrder}
-                  onStartOpenOrderWork={onStartOpenOrderWork}
-                  onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-                  onOpenOrderCheckout={onOpenOrderCheckout}
-                />
-              </div>
-            ))}
-          </div>
-        ) : null}
+          ))}
+        </div>
       </div>
     </div>
   );

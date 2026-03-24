@@ -1,4 +1,4 @@
-import type { Appointment, ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
+import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
 import { EmptyState, StatusPill, cx } from "../../../../components/ui/primitives";
 import { OrderStatusPill, PaymentStatusPill } from "../../../../components/ui/pills";
 import {
@@ -74,7 +74,6 @@ export function OpenOrdersBody({
   activeQueue,
   baseOpenOrders,
   filteredQueueOrders,
-  filteredQueuePickups,
   filteredOperatorOrders,
   operatorQueueCounts,
   filteredHistoryItems,
@@ -88,7 +87,6 @@ export function OpenOrdersBody({
   activeQueue: OrdersQueueKey;
   baseOpenOrders: OpenOrder[];
   filteredQueueOrders: OpenOrder[];
-  filteredQueuePickups: Appointment[];
   filteredOperatorOrders: OpenOrder[];
   operatorQueueCounts: OperatorQueueStageCounts;
   filteredHistoryItems: ClosedOrderHistoryItem[];
@@ -121,7 +119,6 @@ export function OpenOrdersBody({
         <QueueSection
           activeQueue={activeQueue}
           openOrders={filteredQueueOrders}
-          pickupAppointments={filteredQueuePickups}
           onStartOpenOrderWork={onStartOpenOrderWork}
           onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
           onOpenOrderCheckout={onOpenOrderCheckout}

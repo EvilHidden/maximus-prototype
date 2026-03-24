@@ -13,7 +13,6 @@ export const queueMeta: Array<{
   { key: "overdue", label: "Overdue" },
   { key: "in_house", label: "In-house" },
   { key: "factory", label: "Factory" },
-  { key: "scheduled_pickups", label: "Scheduled pickups" },
 ];
 
 export const queueOverviewMeta: Array<{
@@ -56,12 +55,6 @@ export const queueOverviewMeta: Array<{
     key: "factory",
     title: "Factory / custom work",
     subtitle: "Custom work that needs external production tracking.",
-    icon: Clock3,
-  },
-  {
-    key: "scheduled_pickups",
-    title: "Scheduled pickups",
-    subtitle: "Customer pickup appointments that are already booked on the calendar.",
     icon: Clock3,
   },
 ];
