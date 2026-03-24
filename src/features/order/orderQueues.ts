@@ -51,7 +51,19 @@ function getOpenOrderSearchText(openOrder: OpenOrder) {
 }
 
 function getClosedOrderSearchText(order: ClosedOrderHistoryItem) {
-  return normalizeSearchValue([order.id, order.customerName, order.label, order.status, formatCompactCurrency(order.total)].join(" "));
+  return normalizeSearchValue(
+    [
+      order.displayId ?? order.id,
+      order.payerName ?? order.customerName,
+      order.label,
+      ...(order.itemSummary ?? []),
+      ...(order.pickupSchedules?.flatMap((pickup) => [pickup.pickupLocation, pickup.itemSummary.join(" ")]) ?? []),
+      order.status,
+      formatCompactCurrency(order.total),
+    ]
+      .filter(Boolean)
+      .join(" "),
+  );
 }
 
 function openOrderMatchesLocation(openOrder: OpenOrder, locationFilter: PickupLocation | "all") {
@@ -502,7 +514,16 @@ export function filterClosedOrderHistory(historyItems: ClosedOrderHistoryItem[],
 }
 
 export function formatClosedOrderDate(value: string) {
-  return formatDateLabel(value);
+  const parsed = new Date(value);
+  if (Number.isNaN(parsed.getTime())) {
+    return formatDateLabel(value);
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(parsed);
 }
 
 export function formatClosedOrderTotal(value: number) {

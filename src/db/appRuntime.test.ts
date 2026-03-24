@@ -29,5 +29,13 @@ describe("app runtime", () => {
       label: expect.stringMatching(/pickup/i),
       pickupLocation: expect.any(String),
     });
+
+    const closedOrder = closedOrderHistory[0];
+    expect(closedOrder).toMatchObject({
+      payerName: expect.any(String),
+      orderType: expect.stringMatching(/alteration|custom|mixed/),
+      pickupSchedules: expect.any(Array),
+      displayId: expect.any(String),
+    });
   });
 });
