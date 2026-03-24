@@ -11,6 +11,7 @@ import {
 } from "../selectors";
 
 export type OrdersView = "queues" | "ready" | "operator" | "factory" | "all";
+export type AllOrdersTab = "active" | "closed";
 
 export function useOpenOrdersView(
   openOrders: OpenOrder[],
@@ -19,6 +20,7 @@ export function useOpenOrdersView(
   const [activeView, setActiveView] = useState<OrdersView>("queues");
   const [query, setQuery] = useState("");
   const [activeQueue, setActiveQueue] = useState<OrdersQueueKey>("all");
+  const [allOrdersTab, setAllOrdersTab] = useState<AllOrdersTab>("active");
   const [typeFilter, setTypeFilter] = useState<OrderType | "all">("all");
   const [locationFilter, setLocationFilter] = useState<PickupLocation | "all">("all");
   const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilterValue>("all");
@@ -86,7 +88,13 @@ export function useOpenOrdersView(
   const factorySubtitle =
     filteredFactoryOrders.length === 1 ? "1 factory order in progress" : `${filteredFactoryOrders.length} factory orders in progress`;
   const allOrdersCount = baseOpenOrders.length + filteredHistoryItems.length;
-  const allOrdersSubtitle = allOrdersCount === 1 ? "1 order" : `${allOrdersCount} orders`;
+  const allOrdersSubtitle = activeView === "all"
+    ? allOrdersTab === "active"
+      ? (baseOpenOrders.length === 1 ? "1 active order" : `${baseOpenOrders.length} active orders`)
+      : (filteredHistoryItems.length === 1 ? "1 closed order" : `${filteredHistoryItems.length} closed orders`)
+    : allOrdersCount === 1
+      ? "1 order"
+      : `${allOrdersCount} orders`;
 
   const activeSubtitle =
     activeView === "queues"
@@ -106,6 +114,8 @@ export function useOpenOrdersView(
     setQuery,
     activeQueue,
     setActiveQueue,
+    allOrdersTab,
+    setAllOrdersTab,
     typeFilter,
     setTypeFilter,
     locationFilter,

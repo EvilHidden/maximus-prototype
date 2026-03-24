@@ -248,6 +248,20 @@ export type ClosedOrderHistoryItem = {
   createdAt: string;
   status: string;
   total: number;
+  displayId?: string;
+  payerCustomerId?: string | null;
+  payerName?: string;
+  orderType?: OrderType;
+  inHouseAssignee?: StaffMember | null;
+  itemCount?: number;
+  lineItems?: OrderBagLineItem[];
+  itemSummary?: string[];
+  pickupSchedules?: OpenOrderPickup[];
+  paymentStatus?: OpenOrderPaymentStatus;
+  paymentDueNow?: number;
+  totalCollected?: number;
+  collectedToday?: number;
+  balanceDue?: number;
 };
 
 export type DraftOrderRecord = {

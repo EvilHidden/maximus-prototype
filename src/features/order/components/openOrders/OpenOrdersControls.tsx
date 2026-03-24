@@ -3,7 +3,7 @@ import { CountPill } from "../../../../components/ui/pills";
 import { SearchField, SelectField, SelectionChip, cx } from "../../../../components/ui/primitives";
 import { Search } from "lucide-react";
 import type { AssigneeFilterValue, OrdersQueueKey } from "../../selectors";
-import type { OrdersView } from "../../hooks/useOpenOrdersView";
+import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { getLocationOptions, queueMeta } from "./meta";
 
 export function OpenOrdersControls({
@@ -23,6 +23,9 @@ export function OpenOrdersControls({
   activeQueue,
   onQueueChange,
   queueCounts,
+  allOrdersTab,
+  onAllOrdersTabChange,
+  allOrdersTabCounts,
 }: {
   activeView: OrdersView;
   onViewChange: (view: OrdersView) => void;
@@ -40,6 +43,9 @@ export function OpenOrdersControls({
   activeQueue: OrdersQueueKey;
   onQueueChange: (queue: OrdersQueueKey) => void;
   queueCounts: Record<OrdersQueueKey, number>;
+  allOrdersTab: AllOrdersTab;
+  onAllOrdersTabChange: (tab: AllOrdersTab) => void;
+  allOrdersTabCounts: { active: number; closed: number };
 }) {
   const locationOptions = getLocationOptions(pickupLocations);
   const showOperatorControls = activeView === "operator";
@@ -157,6 +163,40 @@ export function OpenOrdersControls({
                     }
                   >
                     {queue.label}
+                  </SelectionChip>
+                ))}
+              </div>
+            </div>
+          </div>
+        ) : null}
+
+        {activeView === "all" ? (
+          <div className="border-t border-[var(--app-border)]/35 pt-4">
+            <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
+              <div className="flex min-w-max gap-2 px-1">
+                {([
+                  { key: "active", label: "Active orders", count: allOrdersTabCounts.active },
+                  { key: "closed", label: "Closed orders", count: allOrdersTabCounts.closed },
+                ] as const).map((tab) => (
+                  <SelectionChip
+                    key={tab.key}
+                    selected={allOrdersTab === tab.key}
+                    onClick={() => onAllOrdersTabChange(tab.key)}
+                    className={allOrdersTab === tab.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
+                    trailing={
+                      <CountPill
+                        count={tab.count}
+                        icon={undefined}
+                        className={cx(
+                          "px-2 py-0.5 text-[11px]",
+                          allOrdersTab === tab.key
+                            ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                            : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
+                        )}
+                      />
+                    }
+                  >
+                    {tab.label}
                   </SelectionChip>
                 ))}
               </div>

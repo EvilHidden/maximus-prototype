@@ -330,14 +330,44 @@ export function adaptCustomerOrders(database: PrototypeDatabase): Record<string,
 export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrderHistoryItem[] {
   return database.orders
     .filter((order) => order.status === "complete" || order.status === "canceled")
-    .map((order) => ({
-      id: order.displayId,
-      customerName: order.payerName,
-      label: getOrderLabel(database, order.id),
-      createdAt: order.createdAt,
-      status: order.status === "canceled" ? "Canceled" : "Picked up",
-      total: getOrderTotal(database, order.id),
-    }));
+    .map((order) => {
+      const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
+      const lineItems = getOpenOrderLineItems(database, order.id);
+      const total = getOrderTotal(database, order.id);
+      const payment = getRecordedPaymentSummary({
+        payments: database.payments.filter((candidate) => candidate.orderId === order.id),
+        generatedAt: database.generatedAt,
+        orderType: order.orderType,
+        total,
+      });
+      const alterationScope = scopes.find((scope) => scope.workflow === "alteration");
+      const staffMember = alterationScope?.assigneeStaffId
+        ? database.staffMembers.find((candidate) => candidate.id === alterationScope.assigneeStaffId)
+        : null;
+
+      return {
+        id: order.displayId,
+        displayId: order.displayId,
+        customerName: order.payerName,
+        payerCustomerId: order.payerCustomerId,
+        payerName: order.payerName,
+        label: getOrderLabel(database, order.id),
+        orderType: order.orderType,
+        inHouseAssignee: staffMember ? adaptStaffMember(database, staffMember) : null,
+        itemCount: lineItems.length,
+        lineItems,
+        itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),
+        pickupSchedules: scopes.map((scope) => getOpenOrderPickup(database, order, scope)),
+        paymentStatus: payment.paymentStatus,
+        paymentDueNow: payment.paymentDueNow,
+        totalCollected: payment.totalCollected,
+        collectedToday: payment.collectedToday,
+        balanceDue: payment.balanceDue,
+        createdAt: order.createdAt,
+        status: order.status === "canceled" ? "Canceled" : "Picked up",
+        total: payment.total,
+      };
+    });
 }
 
 export function adaptAppointments(database: PrototypeDatabase): Appointment[] {

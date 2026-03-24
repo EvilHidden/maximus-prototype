@@ -32,6 +32,8 @@ export function OpenOrdersScreen({
     setQuery,
     activeQueue,
     setActiveQueue,
+    allOrdersTab,
+    setAllOrdersTab,
     typeFilter,
     setTypeFilter,
     locationFilter,
@@ -77,12 +79,19 @@ export function OpenOrdersScreen({
           activeQueue={activeQueue}
           onQueueChange={setActiveQueue}
           queueCounts={queueCounts}
+          allOrdersTab={allOrdersTab}
+          onAllOrdersTabChange={setAllOrdersTab}
+          allOrdersTabCounts={{
+            active: baseOpenOrders.length,
+            closed: filteredHistoryItems.length,
+          }}
         />
       </div>
 
       <OpenOrdersBody
         activeView={activeView}
         activeQueue={activeQueue}
+        allOrdersTab={allOrdersTab}
         baseOpenOrders={baseOpenOrders}
         filteredQueueOrders={filteredQueueOrders}
         filteredReadyOrders={filteredReadyOrders}
