@@ -1,13 +1,18 @@
-import { CalendarDayCard, Surface } from "../../../components/ui/primitives";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { ActionButton, CalendarDayCard, Surface } from "../../../components/ui/primitives";
 import type { Appointment } from "../../../types";
 import { getAppointmentDateKey, getAppointmentTimeLabel } from "../selectors";
 
 type AppointmentsCalendarProps = {
   anchorDate: Date;
+  monthLabel: string;
   selectedDateKey: string | null;
   todayKey: string;
   appointments: Appointment[];
   onSelectDate: (dateKey: string) => void;
+  onPreviousMonth: () => void;
+  onToday: () => void;
+  onNextMonth: () => void;
 };
 
 function getMonthDays(anchorDate: Date) {
@@ -49,15 +54,51 @@ function getCalendarLine(appointment: Appointment) {
 
 export function AppointmentsCalendar({
   anchorDate,
+  monthLabel,
   selectedDateKey,
   todayKey,
   appointments,
   onSelectDate,
+  onPreviousMonth,
+  onToday,
+  onNextMonth,
 }: AppointmentsCalendarProps) {
   const dayCells = getMonthDays(anchorDate);
 
   return (
     <Surface tone="work" className="p-4">
+      <div className="mb-3 flex flex-wrap items-start justify-between gap-3 px-1">
+        <div>
+          <div className="app-text-value">{monthLabel}</div>
+        </div>
+        <div className="flex items-center gap-2">
+          <ActionButton
+            tone="secondary"
+            className="h-9 gap-1.5 px-3 py-0 text-xs"
+            onClick={onPreviousMonth}
+            aria-label="Previous month"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Prev
+          </ActionButton>
+          <ActionButton
+            tone="secondary"
+            className="h-9 px-3 py-0 text-xs"
+            onClick={onToday}
+          >
+            Today
+          </ActionButton>
+          <ActionButton
+            tone="secondary"
+            className="h-9 gap-1.5 px-3 py-0 text-xs"
+            onClick={onNextMonth}
+            aria-label="Next month"
+          >
+            Next
+            <ChevronRight className="h-4 w-4" />
+          </ActionButton>
+        </div>
+      </div>
       <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)]">
         <div className="grid grid-cols-7 gap-2.5">
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (

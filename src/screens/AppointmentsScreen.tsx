@@ -1,4 +1,4 @@
-import { CalendarDays, CheckSquare2, ChevronLeft, ChevronRight, List, Search, Square } from "lucide-react";
+import { CalendarDays, CheckSquare2, List, Search, Square } from "lucide-react";
 import { useState } from "react";
 import type { Appointment, Customer, PickupLocation, ServiceAppointmentType } from "../types";
 import { ActionButton, SearchField, SectionHeader, SelectField, SelectionChip } from "../components/ui/primitives";
@@ -113,108 +113,25 @@ export function AppointmentsScreen({
       <SectionHeader
         icon={CalendarDays}
         title="Appointments"
-        subtitle={viewMode === "calendar" ? monthLabel : "Search appointments"}
         action={
-          <div className="flex items-center gap-2">
-            <ActionButton
-              tone="primary"
-              className="h-9 px-3 py-0 text-xs"
-              onClick={() => {
-                setEditingAppointmentId(null);
-                setComposerQuery("");
-                setComposerState(createEmptyAppointmentComposerState(pickupLocations));
-                setComposerOpen(true);
-              }}
-            >
-              New appointment
-            </ActionButton>
-            {viewMode === "calendar" ? (
-              <>
-                <ActionButton
-                  tone="secondary"
-                  className="h-9 gap-1.5 px-3 py-0 text-xs"
-                  onClick={() => {
-                    const nextDate = new Date(anchorDate);
-                    nextDate.setMonth(nextDate.getMonth() - 1);
-                    setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
-                  }}
-                  aria-label="Previous month"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                  Prev
-                </ActionButton>
-                <ActionButton
-                  tone="secondary"
-                  className="h-9 px-3 py-0 text-xs"
-                  onClick={() => {
-                    setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
-                    setSelectedDateKey(todayKey);
-                  }}
-                >
-                  Today
-                </ActionButton>
-                <ActionButton
-                  tone="secondary"
-                  className="h-9 gap-1.5 px-3 py-0 text-xs"
-                  onClick={() => {
-                    const nextDate = new Date(anchorDate);
-                    nextDate.setMonth(nextDate.getMonth() + 1);
-                    setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
-                  }}
-                  aria-label="Next month"
-                >
-                  Next
-                  <ChevronRight className="h-4 w-4" />
-                </ActionButton>
-              </>
-            ) : null}
-          </div>
+          <ActionButton
+            tone="primary"
+            className="h-10 px-4 py-0 text-sm"
+            onClick={() => {
+              setEditingAppointmentId(null);
+              setComposerQuery("");
+              setComposerState(createEmptyAppointmentComposerState(pickupLocations));
+              setComposerOpen(true);
+            }}
+          >
+            New appointment
+          </ActionButton>
         }
       />
 
-      <div className="app-control-deck px-4 py-4">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-center gap-4 border-b border-[var(--app-border)]/35 pb-4">
-            <div className="shrink-0 pt-0.5">
-              <div className="app-text-overline">View locations</div>
-              <div className="app-text-caption mt-1">Choose which location to show.</div>
-            </div>
-            <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
-              <SelectionChip
-                selected={allLocationsActive}
-                onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
-                leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                size="sm"
-              >
-                All locations
-              </SelectionChip>
-              {pickupLocations.map((location) => {
-                const isActive = activeLocations.includes(location);
-
-                return (
-                  <SelectionChip
-                    key={location}
-                    selected={isActive}
-                    onClick={() => {
-                      setActiveLocations((current) => {
-                        if (current.includes(location)) {
-                          return current.filter((value) => value !== location);
-                        }
-
-                        return [...current, location];
-                      });
-                    }}
-                    leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                    size="sm"
-                  >
-                    {location}
-                  </SelectionChip>
-                );
-              })}
-            </div>
-          </div>
-
-          <div className="flex flex-wrap gap-2">
+      <div className="px-1 py-1">
+        <div className="flex flex-wrap items-center gap-3">
+          <div className="flex flex-wrap items-center gap-2">
             <SelectionChip
               selected={viewMode === "calendar"}
               onClick={() => setViewMode("calendar")}
@@ -231,46 +148,102 @@ export function AppointmentsScreen({
             </SelectionChip>
           </div>
 
-          {viewMode === "list" ? (
-            <div className="border-t border-[var(--app-border)]/35 pt-4">
-              <div className="flex flex-wrap items-end gap-3">
-                <SearchField
-                  label="Search appointments"
-                  value={query}
-                  onChange={setQuery}
-                  placeholder="Search by customer, visit, or location"
-                  icon={Search}
-                  className="min-w-[280px] flex-1"
-                />
+          <div className="hidden h-6 w-px bg-[var(--app-border)]/35 sm:block" />
 
-                <SelectField
-                  label="Status"
-                  value={statusFilter}
-                  onChange={(value) => setStatusFilter(value as AppointmentStatusFilter)}
-                  className="min-w-[180px]"
+          <div className="shrink-0">
+            <div className="app-text-overline">View locations</div>
+          </div>
+          <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
+            <SelectionChip
+              selected={allLocationsActive}
+              onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
+              leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+              size="sm"
+            >
+              All locations
+            </SelectionChip>
+            {pickupLocations.map((location) => {
+              const isActive = activeLocations.includes(location);
+
+              return (
+                <SelectionChip
+                  key={location}
+                  selected={isActive}
+                  onClick={() => {
+                    setActiveLocations((current) => {
+                      if (current.includes(location)) {
+                        return current.filter((value) => value !== location);
+                      }
+
+                      return [...current, location];
+                    });
+                  }}
+                  leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                  size="sm"
                 >
-                  <option value="active">Active</option>
-                  <option value="all">All statuses</option>
-                  <option value="completed">Completed</option>
-                  <option value="canceled">Canceled</option>
-                </SelectField>
-
-              </div>
-
-              <div className="app-text-caption mt-3">{listAppointments.length} {listAppointments.length === 1 ? "result" : "results"}</div>
-            </div>
-          ) : null}
+                  {location}
+                </SelectionChip>
+              );
+            })}
+          </div>
         </div>
       </div>
+
+      {viewMode === "list" ? (
+        <div className="app-control-deck px-4 py-3">
+          <div className="pt-1">
+            <div className="flex flex-wrap items-end gap-3">
+              <SearchField
+                label="Search appointments"
+                value={query}
+                onChange={setQuery}
+                placeholder="Search by customer, visit, or location"
+                icon={Search}
+                className="min-w-[280px] flex-1"
+              />
+
+              <SelectField
+                label="Status"
+                value={statusFilter}
+                onChange={(value) => setStatusFilter(value as AppointmentStatusFilter)}
+                className="min-w-[180px]"
+              >
+                <option value="active">Active</option>
+                <option value="all">All statuses</option>
+                <option value="completed">Completed</option>
+                <option value="canceled">Canceled</option>
+              </SelectField>
+
+            </div>
+
+            <div className="app-text-caption mt-3">{listAppointments.length} {listAppointments.length === 1 ? "result" : "results"}</div>
+          </div>
+        </div>
+      ) : null}
 
       {viewMode === "calendar" ? (
         <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
           <AppointmentsCalendar
             anchorDate={anchorDate}
+            monthLabel={monthLabel}
             selectedDateKey={selectedDateKey}
             todayKey={todayKey}
             appointments={filteredAppointments}
             onSelectDate={setSelectedDateKey}
+            onPreviousMonth={() => {
+              const nextDate = new Date(anchorDate);
+              nextDate.setMonth(nextDate.getMonth() - 1);
+              setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+            }}
+            onToday={() => {
+              setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
+              setSelectedDateKey(todayKey);
+            }}
+            onNextMonth={() => {
+              const nextDate = new Date(anchorDate);
+              nextDate.setMonth(nextDate.getMonth() + 1);
+              setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+            }}
           />
 
           <AppointmentsScheduleRail
