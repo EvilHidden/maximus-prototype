@@ -1,11 +1,10 @@
-import { ActionButton, EmptyState, StatusPill, Surface, SurfaceHeader } from "../../../components/ui/primitives";
-import type { Appointment, ServiceAppointmentType } from "../../../types";
+import { ActionButton, EmptyState, Surface, SurfaceHeader, cx } from "../../../components/ui/primitives";
+import type { Appointment } from "../../../types";
 import {
-  getAppointmentContextFlagLabel,
+  getAppointmentConfirmationLabel,
   getAppointmentDateLabel,
-  getAppointmentPrepFlagLabel,
-  getAppointmentProfileFlagLabel,
   getAppointmentTimeLabel,
+  getAppointmentVisitLabel,
 } from "../selectors";
 
 type AppointmentsScheduleRailProps = {
@@ -14,33 +13,8 @@ type AppointmentsScheduleRailProps = {
   railSubtitle: string;
   onShowAll: () => void;
   onOpenReschedule: (appointment: Appointment) => void;
-  onCompleteAppointment: (appointmentId: string) => void;
-  onCancelAppointment: (appointment: Appointment) => void;
+  onConfirmAppointment: (appointmentId: string) => void;
 };
-
-function getScheduleLine(appointment: Appointment) {
-  if (appointment.kind !== "pickup") {
-    return appointment.type;
-  }
-
-  const summary = appointment.pickupSummary ?? "";
-  const hasAlteration = /Alterations:/i.test(summary);
-  const hasCustom = /Custom:/i.test(summary);
-
-  if (hasAlteration && hasCustom) {
-    return "Pickup for alterations and custom work";
-  }
-
-  if (hasAlteration) {
-    return "Pickup for alterations";
-  }
-
-  if (hasCustom) {
-    return "Pickup for custom work";
-  }
-
-  return appointment.type;
-}
 
 export function AppointmentsScheduleRail({
   railAppointments,
@@ -48,9 +22,10 @@ export function AppointmentsScheduleRail({
   railSubtitle,
   onShowAll,
   onOpenReschedule,
-  onCompleteAppointment,
-  onCancelAppointment,
+  onConfirmAppointment,
 }: AppointmentsScheduleRailProps) {
+  const showDateInRow = !selectedDateKey;
+
   return (
     <Surface tone="support" as="aside" className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
       <SurfaceHeader
@@ -76,62 +51,60 @@ export function AppointmentsScheduleRail({
       ) : (
         <div className="overflow-y-auto pr-1 [scrollbar-gutter:stable]">
           {railAppointments.map((appointment) => {
-            const operationalDetail =
-              appointment.prepFlags.map(getAppointmentPrepFlagLabel)[0]
-              ?? appointment.profileFlags.map(getAppointmentProfileFlagLabel)[0]
-              ?? appointment.contextFlags.map(getAppointmentContextFlagLabel)[0]
-              ?? (appointment.kind === "pickup" ? "Pickup scheduled" : "Appointment scheduled");
+            const isPickup = appointment.kind === "pickup";
+            const confirmation = getAppointmentConfirmationLabel(appointment);
+            const isUnconfirmed = confirmation === "Unconfirmed";
+            const isActive = appointment.statusKey === "scheduled" || appointment.statusKey === "ready_to_check_in" || appointment.statusKey === "prep_required";
 
             return (
               <div
                 key={appointment.id}
                 className="border-b border-[var(--app-border)]/55 py-3.5 last:border-b-0"
               >
-                <div className="flex items-start gap-3">
-                  <div className="w-[78px] shrink-0 pt-0.5">
-                    <div className="app-text-caption">{getAppointmentDateLabel(appointment)}</div>
-                    <div className="app-text-body mt-1 font-medium">{getAppointmentTimeLabel(appointment)}</div>
+                <div className="grid grid-cols-[84px_minmax(0,1fr)_auto] gap-3">
+                  <div className="pt-0.5">
+                    {showDateInRow ? <div className="app-text-caption">{getAppointmentDateLabel(appointment)}</div> : null}
+                    <div className="app-text-strong mt-1">{getAppointmentTimeLabel(appointment)}</div>
                   </div>
 
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0">
-                        <div className="app-text-strong">{appointment.customer}</div>
-                        <div className="app-text-caption mt-1">{appointment.location}</div>
-                      </div>
-                      <StatusPill tone={appointment.kind === "pickup" ? "warn" : "default"}>
-                        {appointment.kind === "pickup" ? "Pickup" : "Appointment"}
-                      </StatusPill>
+                  <div className="min-w-0">
+                    <div className="app-text-strong">{appointment.customer}</div>
+                    <div className="app-text-caption mt-1">
+                      {appointment.location}
+                      {isPickup ? <span className="ml-1.5">· Pickup</span> : null}
                     </div>
+                    <div className="app-text-body mt-2 font-medium">{getAppointmentVisitLabel(appointment)}</div>
+                    {isUnconfirmed ? (
+                      <div
+                        className={cx(
+                          "app-text-caption mt-1 font-medium",
+                          "text-[var(--app-warn-text)]",
+                        )}
+                      >
+                        {confirmation}
+                      </div>
+                    ) : null}
+                  </div>
 
-                    <div className="app-text-body mt-2">{getScheduleLine(appointment)}</div>
-                    <div className="app-text-caption mt-1">{operationalDetail}</div>
-                    {appointment.statusKey === "scheduled" || appointment.statusKey === "ready_to_check_in" || appointment.statusKey === "prep_required" ? (
-                      <div className="mt-3 flex flex-wrap gap-2">
+                  <div className="flex min-w-[54px] flex-col items-end gap-2 pt-0.5">
+                    {isActive ? (
+                      <>
                         <ActionButton
-                          tone="secondary"
-                          className="px-2.5 py-1.5 text-xs"
+                          tone="quiet"
+                          className="min-h-8 px-2.5 py-1.5 text-xs"
                           onClick={() => onOpenReschedule(appointment)}
                         >
-                          Reschedule
+                          Edit
                         </ActionButton>
-                        {appointment.kind !== "pickup" ? (
-                        <ActionButton
-                          tone="primary"
-                          className="px-2.5 py-1.5 text-xs"
-                          onClick={() => onCompleteAppointment(appointment.id)}
-                        >
-                            Mark done
-                        </ActionButton>
-                      ) : null}
-                      <ActionButton
-                        tone="secondary"
-                        className="px-2.5 py-1.5 text-xs"
-                        onClick={() => onCancelAppointment(appointment)}
-                      >
-                          {appointment.kind === "pickup" ? "Cancel pickup" : "Cancel appointment"}
-                      </ActionButton>
-                      </div>
+                        {isUnconfirmed ? (
+                          <button
+                            onClick={() => onConfirmAppointment(appointment.id)}
+                            className="app-text-caption font-medium text-[var(--app-text-muted)] transition hover:text-[var(--app-text)]"
+                          >
+                            Confirm
+                          </button>
+                        ) : null}
+                      </>
                     ) : null}
                   </div>
                 </div>

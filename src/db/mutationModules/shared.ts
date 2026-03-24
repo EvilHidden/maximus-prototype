@@ -1,4 +1,6 @@
 import type {
+  AppointmentConfirmationStatus,
+  AppointmentTypeKey,
   Customer,
   DraftOrderRecord,
   PickupLocation,
@@ -31,6 +33,15 @@ export type RescheduleAppointmentPayload = {
   appointmentId: string;
   location: PickupLocation;
   scheduledFor: string;
+};
+
+export type UpdateAppointmentPayload = {
+  appointmentId: string;
+  customerId: string;
+  typeKey: AppointmentTypeKey;
+  location: PickupLocation;
+  scheduledFor: string;
+  confirmationStatus: AppointmentConfirmationStatus;
 };
 
 export type SaveMeasurementSetPayload = {

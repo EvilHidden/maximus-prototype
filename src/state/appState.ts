@@ -9,6 +9,7 @@ import {
   replaceDraftOrderRecords,
   rescheduleAppointmentRecord,
   saveMeasurementSetRecord,
+  updateAppointmentRecord,
   updateCustomerRecord,
 } from "../db/mutations";
 import { createEmptyMeasurements } from "./orderState";
@@ -143,6 +144,11 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
       return syncDraftOrderRecord({
         ...state,
         database: rescheduleAppointmentRecord(state.database, action.payload),
+      });
+    case "updateAppointment":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateAppointmentRecord(state.database, action.payload),
       });
     case "createDraftMeasurementSet": {
       const result = createDraftMeasurementSetRecord(

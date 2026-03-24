@@ -1,5 +1,5 @@
 import type { PrototypeDatabase } from "../schema";
-import type { CreateAppointmentPayload, RescheduleAppointmentPayload } from "./shared";
+import type { CreateAppointmentPayload, RescheduleAppointmentPayload, UpdateAppointmentPayload } from "./shared";
 import {
   deriveOrderStatus,
   getAppointmentWorkflow,
@@ -83,6 +83,101 @@ export function rescheduleAppointmentRecord(
             locationId: getLocationId(payload.location),
             scheduledFor: payload.scheduledFor,
             statusKey: "scheduled",
+          }
+        : appointment
+    )),
+    generatedAt: toDateTimeString(now),
+  };
+}
+
+export function updateAppointmentRecord(
+  database: PrototypeDatabase,
+  payload: UpdateAppointmentPayload,
+  now = new Date(),
+): PrototypeDatabase {
+  const serviceAppointment = database.serviceAppointments.find((appointment) => appointment.id === payload.appointmentId);
+  if (serviceAppointment) {
+    const customer = database.customers.find((candidate) => candidate.id === payload.customerId);
+    if (!customer || payload.typeKey === "pickup") {
+      return database;
+    }
+    const serviceTypeKey = payload.typeKey;
+
+    return {
+      ...database,
+      serviceAppointments: database.serviceAppointments.map((appointment) => (
+        appointment.id === payload.appointmentId
+          ? {
+              ...appointment,
+              customerId: customer.id,
+              customerName: customer.name,
+              workflow: getAppointmentWorkflow(serviceTypeKey),
+              typeKey: serviceTypeKey,
+              locationId: getLocationId(payload.location),
+              scheduledFor: payload.scheduledFor,
+              confirmationStatus: payload.confirmationStatus,
+            }
+          : appointment
+      )),
+      generatedAt: toDateTimeString(now),
+    };
+  }
+
+  const pickupAppointment = database.pickupAppointments.find((appointment) => appointment.id === payload.appointmentId);
+  if (!pickupAppointment) {
+    return database;
+  }
+
+  return {
+    ...database,
+    pickupAppointments: database.pickupAppointments.map((appointment) => (
+      appointment.id === payload.appointmentId
+        ? {
+            ...appointment,
+            customerId: payload.customerId,
+            locationId: getLocationId(payload.location),
+            scheduledFor: payload.scheduledFor,
+            confirmationStatus: payload.confirmationStatus,
+          }
+        : appointment
+    )),
+    generatedAt: toDateTimeString(now),
+  };
+}
+
+export function confirmAppointmentRecord(
+  database: PrototypeDatabase,
+  appointmentId: string,
+  now = new Date(),
+): PrototypeDatabase {
+  const serviceAppointment = database.serviceAppointments.find((appointment) => appointment.id === appointmentId);
+  if (serviceAppointment) {
+    return {
+      ...database,
+      serviceAppointments: database.serviceAppointments.map((appointment) => (
+        appointment.id === appointmentId
+          ? {
+              ...appointment,
+              confirmationStatus: "confirmed",
+            }
+          : appointment
+      )),
+      generatedAt: toDateTimeString(now),
+    };
+  }
+
+  const pickupAppointment = database.pickupAppointments.find((appointment) => appointment.id === appointmentId);
+  if (!pickupAppointment) {
+    return database;
+  }
+
+  return {
+    ...database,
+    pickupAppointments: database.pickupAppointments.map((appointment) => (
+      appointment.id === appointmentId
+        ? {
+            ...appointment,
+            confirmationStatus: "confirmed",
           }
         : appointment
     )),
