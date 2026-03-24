@@ -5,6 +5,7 @@ import {
   cancelOpenOrder,
   cancelAppointmentRecord,
   completeAppointmentRecord,
+  confirmAppointmentRecord,
   completeOpenOrderPickup,
   captureOrderPayment,
   markOrderScopePickupReady,
@@ -133,6 +134,11 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
       return {
         ...state,
         database: completeAppointmentRecord(state.database, action.appointmentId, getNow(options)),
+      };
+    case "confirmAppointment":
+      return {
+        ...state,
+        database: confirmAppointmentRecord(state.database, action.appointmentId, getNow(options)),
       };
     case "cancelAppointment":
       return {

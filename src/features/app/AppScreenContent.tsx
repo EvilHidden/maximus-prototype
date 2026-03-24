@@ -130,8 +130,8 @@ export function AppScreenContent({
         customers={customers}
         pickupLocations={referenceData.pickupLocations}
         onCreateAppointment={(payload) => dispatch({ type: "createAppointment", payload })}
-        onRescheduleAppointment={(payload) => dispatch({ type: "rescheduleAppointment", payload })}
-        onCompleteAppointment={(appointmentId) => dispatch({ type: "completeAppointment", appointmentId })}
+        onUpdateAppointment={(payload) => dispatch({ type: "updateAppointment", payload })}
+        onConfirmAppointment={(appointmentId) => dispatch({ type: "confirmAppointment", appointmentId })}
         onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
       />
     );

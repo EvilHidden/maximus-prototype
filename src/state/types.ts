@@ -1,6 +1,7 @@
 import type {
-  AlterationService,
+  AppointmentConfirmationStatus,
   AppointmentTypeKey,
+  AlterationService,
   Customer,
   CustomOrderEventType,
   CustomGarmentGender,
@@ -60,6 +61,15 @@ export type RescheduleAppointmentPayload = {
   scheduledFor: string;
 };
 
+export type UpdateAppointmentPayload = {
+  appointmentId: string;
+  customerId: string;
+  typeKey: AppointmentTypeKey;
+  location: PickupLocation;
+  scheduledFor: string;
+  confirmationStatus: AppointmentConfirmationStatus;
+};
+
 export type SaveMeasurementSetPayload = {
   mode: "draft" | "saved";
   title: string;
@@ -87,6 +97,8 @@ export type AppAction =
   | { type: "cancelOpenOrder"; openOrderId: number }
   | { type: "createAppointment"; payload: CreateAppointmentPayload }
   | { type: "rescheduleAppointment"; payload: RescheduleAppointmentPayload }
+  | { type: "updateAppointment"; payload: UpdateAppointmentPayload }
+  | { type: "confirmAppointment"; appointmentId: string }
   | { type: "completeAppointment"; appointmentId: string }
   | { type: "cancelAppointment"; appointmentId: string }
   | { type: "createDraftMeasurementSet" }

@@ -47,6 +47,30 @@ export function getAppointmentDateLabel(appointment: Appointment) {
   }).format(parsed);
 }
 
+export function getAppointmentVisitLabel(appointment: Appointment) {
+  if (appointment.kind !== "pickup") {
+    return appointment.type;
+  }
+
+  const summary = appointment.pickupSummary ?? "";
+  const hasAlteration = /Alterations:/i.test(summary);
+  const hasCustom = /Custom:/i.test(summary);
+
+  if (hasAlteration && hasCustom) {
+    return "Alterations + custom pickup";
+  }
+
+  if (hasAlteration) {
+    return "Alterations pickup";
+  }
+
+  if (hasCustom) {
+    return "Custom pickup";
+  }
+
+  return "Pickup";
+}
+
 export function getRelativeAppointmentDayLabel(appointment: Appointment, now = new Date()) {
   const parsed = parseScheduledFor(appointment.scheduledFor);
   if (!parsed) {
@@ -112,4 +136,62 @@ export function getAppointmentContextFlagLabel(flag: AppointmentContextFlag) {
     case "rush":
       return "Rush";
   }
+}
+
+export function getAppointmentAttentionLabel(appointment: Appointment) {
+  if (appointment.statusKey === "completed") {
+    return "Completed";
+  }
+
+  if (appointment.statusKey === "canceled") {
+    return "Canceled";
+  }
+
+  if (appointment.contextFlags.includes("unconfirmed")) {
+    return "Unconfirmed";
+  }
+
+  if (appointment.contextFlags.includes("rush")) {
+    return "Rush";
+  }
+
+  if (appointment.contextFlags.includes("confirmed")) {
+    return "Confirmed";
+  }
+
+  return appointment.status;
+}
+
+export function getAppointmentConfirmationLabel(appointment: Appointment) {
+  if (appointment.statusKey === "completed") {
+    return "Completed";
+  }
+
+  if (appointment.statusKey === "canceled") {
+    return "Canceled";
+  }
+
+  if (appointment.contextFlags.includes("unconfirmed")) {
+    return "Unconfirmed";
+  }
+
+  return "Confirmed";
+}
+
+export function getAppointmentSearchText(appointment: Appointment) {
+  return [
+    appointment.customer,
+    appointment.location,
+    appointment.kind,
+    appointment.type,
+    getAppointmentVisitLabel(appointment),
+    appointment.pickupSummary ?? "",
+    appointment.status,
+    ...appointment.prepFlags.map(getAppointmentPrepFlagLabel),
+    ...appointment.profileFlags.map(getAppointmentProfileFlagLabel),
+    ...appointment.contextFlags.map(getAppointmentContextFlagLabel),
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
 }
