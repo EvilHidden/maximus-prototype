@@ -88,7 +88,7 @@ export function OrderBag({
           action={
             <button
               onClick={onOpenCustomerModal}
-              className="inline-flex items-center app-text-overline text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
+              className="inline-flex items-center app-kicker text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
             >
               Change
             </button>
@@ -121,13 +121,13 @@ export function OrderBag({
                   }
                   className={cx(
                     "group rounded-[var(--app-radius-sm)] px-1 py-3.5",
-                    index > 0 && "border-t border-[var(--app-border)]/45",
+                    index > 0 && "border-t border-[var(--app-border-strong)]/55",
                     item.itemId && "cursor-pointer transition-colors hover:bg-[var(--app-surface-muted)]/45",
                   )}
                 >
                   <div className="flex items-start justify-between gap-3 px-3">
                     <div className="min-w-0 flex-1">
-                      <div className="app-text-overline">
+                      <div className="app-kicker text-[var(--app-text-muted)]">
                         {index + 1}. {item.kind === "custom" ? "Custom garment" : "Alteration"}
                       </div>
                       <div className="mt-1 app-text-strong leading-tight">{item.garmentLabel}</div>
@@ -153,7 +153,7 @@ export function OrderBag({
                                   key={`${item.id}-detail-${lineIndex}`}
                                   className="grid grid-cols-[3.25rem_minmax(0,1fr)] items-start gap-2"
                                 >
-                                  <div className="app-text-overline pt-[0.08rem]">{detailLabel}</div>
+                                  <div className="app-kicker pt-[0.08rem] text-[var(--app-text-muted)]">{detailLabel}</div>
                                   <div className="app-text-caption leading-[1.6]">{line}</div>
                                 </div>
                               );
@@ -209,29 +209,29 @@ export function OrderBag({
               }
             >
               {hasPickup ? (
-                <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/20 px-3.5 py-3.5">
+                <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/26 px-3.5 py-3.5">
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] p-2">
-                      <CalendarClock className="h-4 w-4 text-[var(--app-text-soft)]" />
+                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/85 p-2">
+                      <CalendarClock className="h-4 w-4 text-[var(--app-text-muted)]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="app-text-overline">Pickup time</div>
+                      <div className="app-kicker text-[var(--app-text-muted)]">Pickup time</div>
                       <div className="app-text-body mt-1 font-medium leading-[1.45]">{formattedPickupSchedule}</div>
                     </div>
                   </div>
-                  <div className="my-3 border-t border-[var(--app-border)]/70" />
+                  <div className="my-3 border-t border-[var(--app-border-strong)]/45" />
                   <div className="flex items-start gap-3">
-                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)] p-2">
-                      <MapPin className="h-4 w-4 text-[var(--app-text-soft)]" />
+                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/85 p-2">
+                      <MapPin className="h-4 w-4 text-[var(--app-text-muted)]" />
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="app-text-overline">Pickup location</div>
+                      <div className="app-kicker text-[var(--app-text-muted)]">Pickup location</div>
                       <div className="app-text-body mt-1 font-medium leading-[1.45]">{schedule.pickupLocation}</div>
                     </div>
                   </div>
                 </div>
               ) : (
-                <InlineEmptyState className="border-[var(--app-border-strong)] px-3.5 py-3.5">
+                <InlineEmptyState className="border-[var(--app-border-strong)]/70 bg-[var(--app-surface)]/26 px-3.5 py-3.5">
                   <div className="app-text-body font-medium">
                     {scope === "custom" ? "Custom pickup details needed" : "Pickup details needed"}
                   </div>
@@ -254,7 +254,7 @@ export function OrderBag({
           <EmptyState>No summary yet.</EmptyState>
         )}
 
-        <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border)] pt-3">
+        <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border-strong)]/50 pt-3">
           <ActionButton
             tone="primary"
             disabled={continueDisabled}
