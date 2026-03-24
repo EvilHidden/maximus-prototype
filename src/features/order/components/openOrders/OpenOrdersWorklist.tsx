@@ -43,12 +43,12 @@ function OpenSectionHeader({
 function WorkQueueOrderRow({
   openOrder,
   onStartOpenOrderWork,
-  onMarkOpenOrderPickupReady,
+  onRequestMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
 }: {
   openOrder: OpenOrder;
   onStartOpenOrderWork: (openOrderId: number) => void;
-  onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
+  onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
@@ -169,9 +169,7 @@ function WorkQueueOrderRow({
             <ActionButton
               tone="primary"
               className="w-full px-3 py-2 text-xs lg:w-auto"
-              onClick={() => {
-                pendingInHousePickupIds.forEach((pickupId) => onMarkOpenOrderPickupReady(openOrder.id, pickupId));
-              }}
+              onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, pendingInHousePickupIds)}
             >
               {pendingInHousePickupIds.length > 1 ? `Mark ${pendingInHousePickupIds.length} ready` : "Mark ready"}
             </ActionButton>
@@ -200,13 +198,13 @@ export function QueueSection({
   activeQueue,
   openOrders,
   onStartOpenOrderWork,
-  onMarkOpenOrderPickupReady,
+  onRequestMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
 }: {
   activeQueue: OrdersQueueKey;
   openOrders: OpenOrder[];
   onStartOpenOrderWork: (openOrderId: number) => void;
-  onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
+  onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const count = openOrders.length;
@@ -260,7 +258,7 @@ export function QueueSection({
               <WorkQueueOrderRow
                 openOrder={openOrder}
                 onStartOpenOrderWork={onStartOpenOrderWork}
-                onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+                onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
                 onOpenOrderCheckout={onOpenOrderCheckout}
               />
             </div>

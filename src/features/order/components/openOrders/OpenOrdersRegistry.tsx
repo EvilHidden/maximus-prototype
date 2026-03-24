@@ -1,6 +1,8 @@
+import { useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
 import { EmptyState, StatusPill, cx } from "../../../../components/ui/primitives";
 import { OrderStatusPill, PaymentStatusPill } from "../../../../components/ui/pills";
+import { ConfirmMarkReadyModal } from "../../modals/ConfirmMarkReadyModal";
 import {
   type OperatorQueueStageCounts,
   formatClosedOrderDate,
@@ -96,6 +98,22 @@ export function OpenOrdersBody({
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
+  const [markReadyConfirmation, setMarkReadyConfirmation] = useState<{
+    openOrder: OpenOrder;
+    pickupIds: string[];
+  } | null>(null);
+
+  const handleConfirmMarkReady = () => {
+    if (!markReadyConfirmation) {
+      return;
+    }
+
+    markReadyConfirmation.pickupIds.forEach((pickupId) => {
+      onMarkOpenOrderPickupReady(markReadyConfirmation.openOrder.id, pickupId);
+    });
+    setMarkReadyConfirmation(null);
+  };
+
   return (
     <div className="pt-1">
       {activeView === "all" ? (
@@ -120,7 +138,7 @@ export function OpenOrdersBody({
           activeQueue={activeQueue}
           openOrders={filteredQueueOrders}
           onStartOpenOrderWork={onStartOpenOrderWork}
-          onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+          onRequestMarkOpenOrderPickupReady={(openOrder, pickupIds) => setMarkReadyConfirmation({ openOrder, pickupIds })}
           onOpenOrderCheckout={onOpenOrderCheckout}
         />
       ) : null}
@@ -132,7 +150,7 @@ export function OpenOrdersBody({
           inHouseTailors={inHouseTailors}
           onAssignOpenOrderTailor={onAssignOpenOrderTailor}
           onStartOpenOrderWork={onStartOpenOrderWork}
-          onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
+          onRequestMarkOpenOrderPickupReady={(openOrder, pickupIds) => setMarkReadyConfirmation({ openOrder, pickupIds })}
           onOpenOrderCheckout={onOpenOrderCheckout}
         />
       ) : null}
@@ -163,6 +181,15 @@ export function OpenOrdersBody({
             ))}
           </div>
         )
+      ) : null}
+
+      {markReadyConfirmation ? (
+        <ConfirmMarkReadyModal
+          openOrder={markReadyConfirmation.openOrder}
+          pendingPickupCount={markReadyConfirmation.pickupIds.length}
+          onConfirm={handleConfirmMarkReady}
+          onClose={() => setMarkReadyConfirmation(null)}
+        />
       ) : null}
     </div>
   );
