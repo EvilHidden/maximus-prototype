@@ -9,8 +9,10 @@ import {
 } from "../../../../components/ui/primitives";
 import {
   getOpenOrderOperationalPhase,
+  getOpenOrderStatusPills,
   getOpenOrderTypeLabel,
   formatOpenOrderCreatedAt,
+  getMarkReadyActionLabel,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
   getPickupAlertState,
@@ -52,6 +54,7 @@ function WorkQueueOrderRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
+  const statusPills = getOpenOrderStatusPills(openOrder);
   const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration");
   const pendingInHousePickupIds = inHousePickups.filter((pickup) => !pickup.readyForPickup).map((pickup) => pickup.id);
   const canManageInHouseWork = inHousePickups.length > 0;
@@ -105,7 +108,7 @@ function WorkQueueOrderRow({
         }
       }}
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)_160px_180px] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_14rem_minmax(18rem,auto)] lg:items-start lg:gap-x-6">
         <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
@@ -154,11 +157,11 @@ function WorkQueueOrderRow({
           })}
         </div>
 
-        <div className="flex items-start lg:justify-center" onClick={(event) => event.stopPropagation()}>
+        <div className="flex items-center self-center lg:w-[14rem] lg:justify-center lg:pr-2" onClick={(event) => event.stopPropagation()}>
           {canStartWork ? (
             <ActionButton
               tone="primary"
-              className="w-full px-3 py-2 text-xs lg:w-auto"
+              className="w-full justify-center whitespace-nowrap px-3 py-2 text-xs"
               disabled={!openOrder.inHouseAssignee}
               onClick={() => onStartOpenOrderWork(openOrder.id)}
             >
@@ -168,17 +171,21 @@ function WorkQueueOrderRow({
           {canMarkReady ? (
             <ActionButton
               tone="primary"
-              className="w-full px-3 py-2 text-xs lg:w-auto"
+              className="w-full justify-center whitespace-nowrap px-4 py-2 text-xs"
               onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, pendingInHousePickupIds)}
             >
-              {pendingInHousePickupIds.length > 1 ? `Mark ${pendingInHousePickupIds.length} ready` : "Mark ready"}
+              {getMarkReadyActionLabel(openOrder, pendingInHousePickupIds.length)}
             </ActionButton>
           ) : null}
         </div>
 
-        <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>
+        <div className="flex flex-wrap items-start justify-between gap-3 lg:min-w-[18rem] lg:flex-col lg:items-end lg:text-right">
+          <div className={cx("items-center gap-2 lg:justify-end", openOrder.orderType === "mixed" ? "flex flex-nowrap" : "flex flex-wrap")}>
+            {openOrder.orderType === "mixed"
+              ? statusPills.map((pill) => (
+                <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
+              ))
+              : <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>}
           </div>
           <div>
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">

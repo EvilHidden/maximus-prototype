@@ -5,6 +5,10 @@ import {
   buildOpenOrder,
   filterOpenOrders,
   getCheckoutCollectionAmount,
+  getNeedsAttentionOpenOrders,
+  getOpenOrderOperationalPhase,
+  getOpenOrderReadinessDetails,
+  getOpenOrderStatusPills,
   getOperatorQueueStage,
   getOperatorQueueStageCounts,
   getOrderQueueCounts,
@@ -274,7 +278,7 @@ describe("order selectors", () => {
     });
     expect(getOrderQueueCounts([dueToday, dueTomorrow, ready], { now })).toEqual({
       all: 3,
-      due_today: 2,
+      due_today: 1,
       due_tomorrow: 1,
       ready_for_pickup: 1,
       overdue: 0,
@@ -294,7 +298,45 @@ describe("order selectors", () => {
         },
         { now },
       ).map((order) => order.id),
-    ).toEqual([1001, 1003]);
+    ).toEqual([1001]);
+
+    expect(getNeedsAttentionOpenOrders([dueToday, dueTomorrow, ready]).map((order) => order.id)).toEqual([1001, 1002]);
+  });
+
+  it("treats mixed orders with one ready pickup as partially ready", () => {
+    const mixedOrder = createOpenOrder({
+      id: 1010,
+      orderType: "mixed",
+      operationalStatus: "partially_ready",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-alteration",
+          scope: "alteration",
+          label: "Alteration pickup",
+          itemSummary: ["Trouser hem"],
+          readyForPickup: true,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          pickupDate: "2026-05-22",
+          pickupTime: "12:00",
+          readyForPickup: false,
+        },
+      ],
+    });
+
+    expect(getOpenOrderOperationalPhase(mixedOrder)).toBe("Partially ready");
+    expect(getOpenOrderReadinessDetails(mixedOrder)).toEqual(["Alterations ready", "Custom in progress"]);
+    expect(getOpenOrderStatusPills(mixedOrder)).toEqual([
+      { label: "Alterations ready", tone: "success" },
+      { label: "Custom in progress", tone: "default" },
+    ]);
+    expect(getNeedsAttentionOpenOrders([mixedOrder]).map((order) => order.id)).toEqual([1010]);
   });
 
   it("filters open orders by in-house tailor assignment", () => {
