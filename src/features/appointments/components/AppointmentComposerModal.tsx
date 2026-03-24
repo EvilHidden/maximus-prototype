@@ -24,7 +24,7 @@ type AppointmentComposerModalProps = {
 
 export const serviceAppointmentTypeOptions: Array<{ value: ServiceAppointmentType; label: string }> = [
   { value: "alteration_fitting", label: "Alteration fitting" },
-  { value: "custom_consult", label: "Custom consult" },
+  { value: "custom_consult", label: "Custom consultation" },
   { value: "first_fitting", label: "First fitting" },
   { value: "custom_fitting", label: "Custom fitting" },
   { value: "wedding_party_fitting", label: "Wedding party fitting" },
@@ -69,7 +69,7 @@ export function AppointmentComposerModal({
   return (
     <ModalShell
       title={editingAppointmentId ? "Reschedule appointment" : "New appointment"}
-      subtitle={editingAppointmentId ? "Update timing and location." : "Create a manual service appointment."}
+      subtitle={editingAppointmentId ? "Update the time and location." : "Add an appointment by hand."}
       onClose={onClose}
       widthClassName="max-w-[560px]"
       footer={
@@ -93,7 +93,7 @@ export function AppointmentComposerModal({
           <input
             value={composerQuery}
             onChange={(event) => onComposerQueryChange(event.target.value)}
-            placeholder="Search customer"
+            placeholder="Search for a customer"
             className="app-input app-text-body py-3"
           />
           <div className="mt-2 max-h-[180px] overflow-auto rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45">

@@ -14,6 +14,65 @@ For system architecture, portability, and layer ownership, use [`docs/UI_SYSTEM_
 - dense when useful
 - never decorative for its own sake
 
+## UX language
+
+Use plain, grounded shop language in all user-facing copy.
+
+- Prefer ordinary words over system words.
+- Say what is happening, not what the software framework thinks is happening.
+- Keep labels short, familiar, and easy to scan.
+- If a phrase sounds like internal tooling jargon, rewrite it.
+- If the same meaning appears across screens, use the same word everywhere.
+
+Prefer language like:
+
+- `Everything`
+- `Needs attention`
+- `All active orders`
+- `Closed orders`
+- `Ready by`
+- `Paying customer`
+- `Booked`
+- `Choose customer`
+- `Save as a set`
+- `Go to checkout`
+
+Avoid language like:
+
+- `workflow`
+- `operational`
+- `intake`
+- `registry`
+- `rail`
+- `handoff`
+- `promote`
+- `link a paying customer`
+- `move this order forward`
+- `send it through`
+- `close out`
+
+When the copy needs a decision, use these rules:
+
+- prefer `customer` over role labels like `payer` unless the distinction is critical
+- prefer `booked` or `scheduled` based on which sounds more natural in context, but stay consistent within a surface
+- prefer `choose`, `set`, `save`, `edit`, `cancel`, `open`, and `back` over abstract process verbs
+- prefer concise truth over explanatory narration
+- prefer what the operator needs to do next over what the system is validating internally
+
+Good:
+
+- `Nothing needs attention right now`
+- `Choose the customer paying for this order`
+- `Set the pickup date, time, and location before you continue`
+- `This order is saved and ready for work`
+
+Bad:
+
+- `No front-desk work is queued`
+- `Link a paying customer before moving this order forward`
+- `The due date is set`
+- `Focused operational queue view`
+
 ## Visual hierarchy
 
 Use the hierarchy already defined in `src/index.css`:
@@ -69,16 +128,21 @@ Do not invent local text stacks unless there is a strong reason.
 ## Orders language
 
 - Use the current operator-facing Orders vocabulary:
+  - `Needs attention`
+  - `In-house production`
+  - `All active orders`
+  - `Closed orders`
+  - `Everything`
+  - `Ready by`
+  - `Paying customer`
+- Do not reintroduce older or vaguer terms like:
   - `Worklist`
   - `Order Registry`
-  - `Closed Orders`
-  - `Promised ready by`
-  - `Payment Due`
-- Do not reintroduce older or vaguer terms like:
   - `Open orders`
   - `Mixed`
   - `Pickup target`
   - `Pay later`
+  - `Promised ready by`
 - `Overdue` is the strong operational warning state.
 - `Pending` is a calmer work-in-progress state, not a danger state.
 - `Ready` and `Ready for pickup` should not compete in the same row. If the row already communicates pickup-readiness, do not add a second near-duplicate ready badge.
@@ -128,7 +192,7 @@ Do not invent local text stacks unless there is a strong reason.
 
 - Saved measurements:
   - customer name leads
-  - `Saved measurements` is secondary
+  - `Saved sets` is secondary
   - version pill sits top-right
   - delete action sits bottom-right
 - Body map:
@@ -158,8 +222,8 @@ Do not invent local text stacks unless there is a strong reason.
   - body says what scope is empty
   - optional caption can explain the filter or date context
 - Prefer phrasing like:
-  - `No appointments scheduled`
-  - `No pickups scheduled`
+  - `No appointments booked`
+  - `No pickups booked`
   - `No customers match this search`
 - Avoid decorative or celebratory phrasing for routine operational gaps.
 - Inside table lanes or work-surface slots, empty states should feel attached to the lane:

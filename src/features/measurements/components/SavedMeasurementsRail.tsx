@@ -28,7 +28,7 @@ export function SavedMeasurementsRail({
       <div className="mb-4 flex items-start justify-between gap-3">
         <div>
           <div className="app-text-value">{customer?.name ?? "No customer selected"}</div>
-          <div className="app-text-caption mt-1">Saved measurements</div>
+          <div className="app-text-caption mt-1">Saved sets</div>
         </div>
         <ActionButton tone="secondary" className="inline-flex min-h-11 items-center gap-1.5 px-3 py-2 text-sm" onClick={onCreateDraftSet}>
           <Plus className="h-3.5 w-3.5" />
@@ -75,10 +75,10 @@ export function SavedMeasurementsRail({
         </div>
       ) : (
         <EmptyState className="space-y-3">
-          <div>{customer ? "No saved measurement history." : "Link a customer to load saved measurement sets."}</div>
+          <div>{customer ? "No saved sets yet." : "Choose a customer to see saved sets."}</div>
           {!customer ? (
             <ActionButton tone="secondary" className="min-h-11 px-4" onClick={onOpenCustomerModal}>
-              Link customer
+              Choose customer
             </ActionButton>
           ) : null}
         </EmptyState>

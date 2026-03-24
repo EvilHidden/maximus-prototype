@@ -40,13 +40,13 @@ export function AlterationBuilder({
 
   return (
     <Surface tone="work" className="flex h-full min-h-0 flex-col p-4">
-      <SectionHeader icon={Scissors} title="Alteration intake" subtitle="Build line item" />
+      <SectionHeader icon={Scissors} title="Alterations" subtitle="Choose the garment and services" />
 
       {showValidationBanner ? (
         <Callout
           tone="danger"
           icon={TriangleAlert}
-          title={<StatusPill tone="danger">Add to cart is blocked</StatusPill>}
+          title={<StatusPill tone="danger">Can't add this yet</StatusPill>}
           className="mb-4"
         >
           <div className="app-text-caption">
@@ -137,7 +137,7 @@ export function AlterationBuilder({
         <div className="shrink-0">
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption mt-1">
-            {selectedGarment && selectedModifiers.length > 0 ? "Ready to add" : "Build the line item"}
+            {selectedGarment && selectedModifiers.length > 0 ? "Ready to add" : "Choose the garment and services"}
           </div>
         </div>
         <div className="app-text-body-muted min-w-[16rem] flex-1 self-center whitespace-normal break-words pt-0.5 text-right">

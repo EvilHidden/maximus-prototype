@@ -6,7 +6,7 @@ export const queueMeta: Array<{
   key: OrdersQueueKey;
   label: string;
 }> = [
-  { key: "all", label: "All work" },
+  { key: "all", label: "Everything" },
   { key: "due_today", label: "Due today" },
   { key: "due_tomorrow", label: "Due tomorrow" },
   { key: "ready_for_pickup", label: "Ready" },
@@ -24,37 +24,37 @@ export const queueOverviewMeta: Array<{
   {
     key: "due_today",
     title: "Due today",
-    subtitle: "Orders promised for today that still need operational movement.",
+    subtitle: "Orders due today that still need work.",
     icon: Clock3,
   },
   {
     key: "due_tomorrow",
     title: "Due tomorrow",
-    subtitle: "Orders promised for tomorrow that should be staged now.",
+    subtitle: "Orders due tomorrow that should be lined up now.",
     icon: Clock3,
   },
   {
     key: "ready_for_pickup",
     title: "Ready for pickup",
-    subtitle: "Items that can move into customer handoff.",
+    subtitle: "Orders that are ready for the customer to pick up.",
     icon: Clock3,
   },
   {
     key: "overdue",
     title: "Overdue",
-    subtitle: "Promised pickup timing has already slipped.",
+    subtitle: "Orders that missed their ready date.",
     icon: PackageSearch,
   },
   {
     key: "in_house",
-    title: "In-house work",
-    subtitle: "Alterations and mixed work moving through internal production.",
+    title: "In-house production",
+    subtitle: "Alterations and mixed orders being worked on in-house.",
     icon: PackageSearch,
   },
   {
     key: "factory",
-    title: "Factory / custom work",
-    subtitle: "Custom work that needs external production tracking.",
+    title: "Custom work",
+    subtitle: "Custom orders being handled outside the shop.",
     icon: Clock3,
   },
 ];

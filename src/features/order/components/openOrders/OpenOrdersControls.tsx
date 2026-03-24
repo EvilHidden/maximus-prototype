@@ -49,9 +49,9 @@ export function OpenOrdersControls({
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {([
-            { key: "queues", label: "Worklist", count: viewCounts.queues },
-            { key: "operator", label: "Operator queue", count: viewCounts.operator },
-            { key: "all", label: "Order registry", count: viewCounts.all },
+            { key: "queues", label: "Needs attention", count: viewCounts.queues },
+            { key: "operator", label: "In-house production", count: viewCounts.operator },
+            { key: "all", label: "All active orders", count: viewCounts.all },
             { key: "history", label: "Closed orders", count: viewCounts.history },
           ] as const).map((view) => (
             <SelectionChip

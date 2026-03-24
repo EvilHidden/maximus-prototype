@@ -106,30 +106,56 @@ Mutation rule:
 - if the user can create, edit, archive, complete, cancel, or reschedule something in the UI, the state change should flow through `src/db/mutations.ts` and reducer actions
 - do not add new “replace the whole array” patterns for customers, measurements, appointments, or orders
 
-## Orders language and UI compliance
+## UX language and Orders compliance
 
-If you touch the Orders subsystem, keep the current working language and hierarchy intact unless the branch is explicitly about changing it:
+If you touch user-facing copy, keep the current product voice intact unless the branch is explicitly about changing it:
 
-- top-level modes:
-  - `Worklist`
-  - `Order Registry`
-  - `Closed Orders`
-- queue/payment terms:
-  - `Promised ready by`
-  - `Payment Due`
-  - `Pending`
-  - `Ready`
-  - `Overdue`
+- plain
+- grounded
+- non-technical
+- consistent across screens
 
-Before merging Orders changes, quickly check:
+Prefer:
 
-- Did we accidentally bring back older terms like `Open orders`, `Mixed`, `Pickup target`, or `Pay later`?
-- Did we make the worklist row noisier by repeating the same state in multiple places?
+- `Everything`
+- `Needs attention`
+- `In-house production`
+- `All active orders`
+- `Closed orders`
+- `Ready by`
+- `Paying customer`
+- `booked`
+- `choose`
+- `set`
+- `save`
+- `edit`
+
+Avoid:
+
+- `Worklist`
+- `Order Registry`
+- `workflow`
+- `operational`
+- `intake`
+- `rail`
+- `handoff`
+- `promote`
+- `send it through`
+- `close out`
+- `link a paying customer`
+- `move this order forward`
+
+Before merging copy or Orders changes, quickly check:
+
+- Did we accidentally bring back old Orders terms like `Worklist`, `Order Registry`, `Open orders`, `Mixed`, `Pickup target`, or `Pay later`?
+- Did we choose the simplest natural phrase instead of an internal/process-heavy one?
 - Did we keep the row scan path clear:
   - left = customer
-  - middle = promise/work detail
+  - middle = timing/work detail
   - right = status/money
 - Did we keep operator-facing cues stronger than decorative or explanatory text?
+
+For the full rule set and examples, use [docs/STYLE_GUIDE.md](/Users/daniel/Dev%20Work/maximus/docs/STYLE_GUIDE.md).
 
 ## Pull request / merge checklist
 

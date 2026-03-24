@@ -71,24 +71,41 @@ Those reference catalogs still live in `src/db/` and are treated as canonical se
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching
 
-## Orders terminology
+## UX language
 
-The Orders surface now uses a specific operator-facing vocabulary. Keep that language consistent across UI, selectors, docs, and seed scenarios:
+The product voice should stay plain, grounded, and non-technical across screens, docs, and seed scenarios.
+
+Use language like:
+
+- `Everything`
+- `Needs attention`
+- `In-house production`
+- `All active orders`
+- `Closed orders`
+- `Ready by`
+- `Paying customer`
+- `booked`
+- `choose`
+- `set`
+- `save`
+- `edit`
+
+Avoid language like:
 
 - `Worklist`
-  - operational items needing action now
-  - can include both active orders and scheduled pickup appointments
 - `Order Registry`
-  - active orders only
-- `Closed Orders`
-  - completed and picked-up work
-- `Promised ready by`
-  - the shop's promised-ready time
-  - not the same thing as a pickup appointment
-- `Payment Due`
-  - unpaid operator-facing payment state
+- `workflow`
+- `operational`
+- `intake`
+- `rail`
+- `handoff`
+- `promote`
+- `send it through`
+- `close out`
+- `link a paying customer`
+- `move this order forward`
 
-Avoid older or ambiguous phrasing like `Open orders`, `Mixed`, `Pickup target`, or `Pay later` unless you are explicitly migrating legacy code and immediately replacing it.
+If the wording starts sounding like internal tooling, rewrite it in shop language.
 
 ## Runtime entry point
 
@@ -113,14 +130,14 @@ Rule of thumb:
 - screens should consume adapted/selected views over `state.database`
 - do not recreate private seed catalogs in feature or state modules just to answer helper questions
 
-## Orders worklist hierarchy
+## Orders work surface hierarchy
 
-When refining the Orders worklist, preserve the current scan path:
+When refining the Orders surface, preserve the current scan path:
 
 - left
   - customer and order identity
 - middle
-  - promised-ready detail, location context, and item summary
+  - timing detail, location context, and item summary
 - right
   - operator status, money, and supporting payment notice
 

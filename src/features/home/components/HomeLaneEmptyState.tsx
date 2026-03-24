@@ -14,10 +14,10 @@ export function HomeLaneEmptyState({
   activeLocationLabel,
   dateLabel,
 }: HomeLaneEmptyStateProps) {
-  const title = kind === "appointment" ? "No appointments scheduled" : "No pickups scheduled";
+  const title = kind === "appointment" ? "No appointments booked" : "No pickups booked";
   const detail = activeLocationLabel
-    ? `Nothing is scheduled at ${activeLocationLabel} for ${dayLabel.toLowerCase()}.`
-    : `Nothing is scheduled for ${dayLabel.toLowerCase()}.`;
+    ? `Nothing is booked at ${activeLocationLabel} for ${dayLabel.toLowerCase()}.`
+    : `Nothing is booked for ${dayLabel.toLowerCase()}.`;
   const caption = activeLocationLabel
     ? `Filtered to ${activeLocationLabel}`
     : dateLabel;

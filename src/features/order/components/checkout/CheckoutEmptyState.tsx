@@ -11,7 +11,7 @@ type CheckoutEmptyStateProps = {
 
 export function CheckoutEmptyState({
   title = "Checkout",
-  subtitle = "Start an order first, then come back here to finish checkout.",
+  subtitle = "Start an order first, then come back here to take payment.",
   actionLabel = "New order",
   actionIcon: ActionIcon = ClipboardList,
   onAction,
@@ -26,7 +26,7 @@ export function CheckoutEmptyState({
             <div className="app-text-overline">Checkout</div>
             <div className="mt-1 app-text-value">No order in progress</div>
             <div className="app-text-caption mt-1 max-w-[36rem]">
-              Checkout becomes available after you start an order, add the work, and set the promised-ready details.
+              Checkout is available after you start an order, add the work, and set the pickup timing.
             </div>
           </div>
 
@@ -37,7 +37,7 @@ export function CheckoutEmptyState({
                   <ClipboardList className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="app-text-overline">Nothing to check out yet</div>
+                  <div className="app-text-overline">No order yet</div>
                   <div className="app-text-body mt-2">
                     Start a new order to add the customer, the work, and the pickup timing.
                   </div>

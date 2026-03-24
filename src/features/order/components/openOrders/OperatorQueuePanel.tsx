@@ -22,12 +22,12 @@ const stageMeta: Array<{
   {
     key: "needs_assignment",
     title: "Needs assignment",
-    subtitle: "Accepted work that still needs an owner before it can move.",
+    subtitle: "Accepted orders that still need someone assigned.",
   },
   {
     key: "ready_to_start",
     title: "Ready to start",
-    subtitle: "Accepted work with an owner that can move onto the table now.",
+    subtitle: "Assigned orders that can be started now.",
   },
   {
     key: "in_progress",
@@ -37,7 +37,7 @@ const stageMeta: Array<{
   {
     key: "ready",
     title: "Ready",
-    subtitle: "In-house work finished and ready for customer handoff.",
+    subtitle: "Finished in-house work that is ready for pickup.",
   },
 ];
 
@@ -117,7 +117,7 @@ function OperatorQueueRow({
         {nextPickup ? (
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <div className="app-text-caption">
-              Promised ready by {nextPickup.pickupDate || "date pending"}{nextPickup.pickupTime ? ` at ${nextPickup.pickupTime}` : ""}
+              Ready by {nextPickup.pickupDate || "date pending"}{nextPickup.pickupTime ? ` at ${nextPickup.pickupTime}` : ""}
               {nextPickup.pickupLocation ? ` • ${nextPickup.pickupLocation}` : ""}
             </div>
             {pickupAlert ? (
@@ -281,8 +281,8 @@ export function OperatorQueuePanel({
         <div className="px-4 py-4">
           <SurfaceHeader
             icon={UserRoundCheck}
-            title="Operator queue"
-            subtitle="In-house alteration work will show up here once orders are accepted."
+            title="In-house production"
+            subtitle="In-house orders will show up here once they are accepted."
             className="border-b border-[var(--app-border)]/45 pb-3"
             titleClassName="app-text-value"
             subtitleClassName="app-text-caption"
@@ -302,8 +302,8 @@ export function OperatorQueuePanel({
       <div className="app-control-deck px-4 py-4">
         <SurfaceHeader
           icon={PlayCircle}
-          title="Operator queue"
-          subtitle="Assign accepted work, start it on the table, and move finished pieces to ready."
+          title="In-house production"
+          subtitle="Assign accepted orders, start the work, and move finished pieces to ready."
           titleClassName="app-text-value"
           subtitleClassName="app-text-caption"
         />

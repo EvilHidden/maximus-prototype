@@ -54,16 +54,16 @@ export function useOpenOrdersView(
 
   const queuesSubtitle =
     queueCounts.all === 1
-      ? "1 active order in the worklist"
-      : `${queueCounts.all} active orders in the worklist`;
+      ? "1 active order needs attention"
+      : `${queueCounts.all} active orders need attention`;
   const registrySubtitle =
-    baseOpenOrders.length === 1 ? "1 active order only" : `${baseOpenOrders.length} active orders only`;
+    baseOpenOrders.length === 1 ? "1 active order" : `${baseOpenOrders.length} active orders`;
   const historySubtitle =
-    filteredHistoryItems.length === 1 ? "1 closed order only" : `${filteredHistoryItems.length} closed orders only`;
+    filteredHistoryItems.length === 1 ? "1 closed order" : `${filteredHistoryItems.length} closed orders`;
   const operatorSubtitle =
     filteredOperatorOrders.length === 1
-      ? "1 in-house order in the operator queue"
-      : `${filteredOperatorOrders.length} in-house orders in the operator queue`;
+      ? "1 in-house order in production"
+      : `${filteredOperatorOrders.length} in-house orders in production`;
 
   const activeSubtitle =
     activeView === "queues"

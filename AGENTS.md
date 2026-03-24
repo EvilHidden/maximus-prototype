@@ -132,28 +132,36 @@ If a change spans multiple boundaries, keep the behavior logic in the feature or
 
 ## Orders terminology rules
 - Use the current operator-facing Orders language:
+  - `Needs attention`
+  - `In-house production`
+  - `All active orders`
+  - `Closed orders`
+  - `Everything`
+  - `Ready by`
+  - `Paying customer`
+- Avoid reintroducing older or fuzzier labels like:
   - `Worklist`
   - `Order Registry`
-  - `Closed Orders`
-  - `Promised ready by`
-  - `Payment Due`
-- Avoid reintroducing older or fuzzier labels like:
   - `Open orders`
   - `Mixed`
   - `Pickup target`
   - `Pay later`
+  - `Promised ready by`
 - `Overdue` should stay the strong attention state.
 - `Pending` should read as work-in-progress, not as an alarm state.
-- If a worklist row already communicates readiness in one place, do not repeat a second near-duplicate ready message elsewhere in the same row.
+- Prefer plain, grounded shop language over system or process language:
+  - use `booked`, `choose`, `set`, `save`, `edit`, `back`
+  - avoid `workflow`, `operational`, `intake`, `rail`, `handoff`, `promote`, `send it through`, `close out`
+- If an Orders row already communicates readiness in one place, do not repeat a second near-duplicate ready message elsewhere in the same row.
 
 ## Orders row hierarchy
-- For Orders worklist rows, preserve this scan path:
+- For Orders rows, preserve this scan path:
   - left: customer and order identity
-  - middle: promised-ready detail, location, and item summary
+  - middle: timing detail, location, and item summary
   - right: operator status, money, and supporting payment cue
 - Remove metadata that does not help the operator act.
 - Avoid footer chatter and duplicate status explanations.
-- Keep the worklist focused on actionable state, not schema language or internal implementation concepts.
+- Keep the Orders surface focused on actionable state, not schema language or internal implementation concepts.
 
 ## Repo Hygiene
 - Remove dead files and stale styles when replacing old architecture.

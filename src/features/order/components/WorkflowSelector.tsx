@@ -23,7 +23,7 @@ export function WorkflowSelector({
         <WorkflowToggle
           icon={Scissors}
           title="Alterations"
-          subtitle="Intake and services"
+          subtitle="Garment and services"
           isActive={activeWorkflow === "alteration"}
           isEnabled={hasAlterationContent}
           onClick={() => onActivate("alteration")}
@@ -31,14 +31,14 @@ export function WorkflowSelector({
         <WorkflowToggle
           icon={Shirt}
           title="Custom garment"
-          subtitle="Measurements and build"
+          subtitle="Measurements and style"
           isActive={activeWorkflow === "custom"}
           isEnabled={hasCustomContent}
           onClick={() => onActivate("custom")}
         />
       </div>
 
-      {activeWorkflow === null ? <EmptyState className="mt-3">Select a service type to begin.</EmptyState> : null}
+      {activeWorkflow === null ? <EmptyState className="mt-3">Choose a service type to start.</EmptyState> : null}
     </Surface>
   );
 }

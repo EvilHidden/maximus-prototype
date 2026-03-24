@@ -62,8 +62,8 @@ export function OrderScreen({
     <div className="space-y-4">
       <SectionHeader
         icon={Receipt}
-        title={editingOpenOrderId ? `Edit Order #${editingOpenOrderId}` : "Create Order"}
-        subtitle={editingOpenOrderId ? "Update the order and save the changes back into the registry." : "Set up tailoring work and prepare checkout."}
+        title={editingOpenOrderId ? `Edit Order #${editingOpenOrderId}` : "New order"}
+        subtitle={editingOpenOrderId ? "Update the order and save it." : "Build the order and set the pickup details."}
       />
 
       <div
@@ -124,7 +124,7 @@ export function OrderScreen({
                     </ActionButton>
                   }
                 >
-                  <div className="app-text-overline text-[var(--app-warn-text)]">Editing existing line item</div>
+                  <div className="app-text-overline text-[var(--app-warn-text)]">Editing this item</div>
                   <div className="app-text-value mt-1 truncate text-[var(--app-text)]">
                     {controller.editingCustomItem.selectedGarment ?? "Custom garment"}
                   </div>
@@ -133,7 +133,7 @@ export function OrderScreen({
                     {controller.editingCustomItem.linkedMeasurementLabel ? ` • ${controller.editingCustomItem.linkedMeasurementLabel}` : ""}
                   </div>
                   <div className="app-text-caption mt-2 text-[var(--app-warn-text)]">
-                    Saving will overwrite this cart item instead of creating a new one.
+                    Saving will update this item instead of adding a new one.
                   </div>
                 </Callout>
               ) : null}

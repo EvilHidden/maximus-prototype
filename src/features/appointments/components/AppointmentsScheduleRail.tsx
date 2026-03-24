@@ -28,15 +28,15 @@ function getScheduleLine(appointment: Appointment) {
   const hasCustom = /Custom:/i.test(summary);
 
   if (hasAlteration && hasCustom) {
-    return "Alterations + custom pickup";
+    return "Pickup for alterations and custom work";
   }
 
   if (hasAlteration) {
-    return "Alteration pickup";
+    return "Pickup for alterations";
   }
 
   if (hasCustom) {
-    return "Custom pickup";
+    return "Pickup for custom work";
   }
 
   return appointment.type;
@@ -54,7 +54,7 @@ export function AppointmentsScheduleRail({
   return (
     <Surface tone="support" as="aside" className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
       <SurfaceHeader
-        title="Upcoming schedule"
+        title="Coming up"
         subtitle={railSubtitle}
         className="mb-3"
         meta={
@@ -72,7 +72,7 @@ export function AppointmentsScheduleRail({
         }
       />
       {railAppointments.length === 0 ? (
-        <EmptyState className="mt-1">No appointments scheduled.</EmptyState>
+        <EmptyState className="mt-1">Nothing scheduled here.</EmptyState>
       ) : (
         <div className="overflow-y-auto pr-1 [scrollbar-gutter:stable]">
           {railAppointments.map((appointment) => {
@@ -80,7 +80,7 @@ export function AppointmentsScheduleRail({
               appointment.prepFlags.map(getAppointmentPrepFlagLabel)[0]
               ?? appointment.profileFlags.map(getAppointmentProfileFlagLabel)[0]
               ?? appointment.contextFlags.map(getAppointmentContextFlagLabel)[0]
-              ?? "Customer handoff scheduled";
+              ?? (appointment.kind === "pickup" ? "Pickup scheduled" : "Appointment scheduled");
 
             return (
               <div
@@ -116,21 +116,21 @@ export function AppointmentsScheduleRail({
                           Reschedule
                         </ActionButton>
                         {appointment.kind !== "pickup" ? (
-                          <ActionButton
-                            tone="primary"
-                            className="px-2.5 py-1.5 text-xs"
-                            onClick={() => onCompleteAppointment(appointment.id)}
-                          >
-                            Complete
-                          </ActionButton>
-                        ) : null}
                         <ActionButton
-                          tone="secondary"
+                          tone="primary"
                           className="px-2.5 py-1.5 text-xs"
-                          onClick={() => onCancelAppointment(appointment)}
+                          onClick={() => onCompleteAppointment(appointment.id)}
                         >
-                          {appointment.kind === "pickup" ? "Cancel pickup" : "Cancel"}
+                            Mark done
                         </ActionButton>
+                      ) : null}
+                      <ActionButton
+                        tone="secondary"
+                        className="px-2.5 py-1.5 text-xs"
+                        onClick={() => onCancelAppointment(appointment)}
+                      >
+                          {appointment.kind === "pickup" ? "Cancel pickup" : "Cancel appointment"}
+                      </ActionButton>
                       </div>
                     ) : null}
                   </div>

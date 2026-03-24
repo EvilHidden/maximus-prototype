@@ -98,11 +98,11 @@ export function useOrderBuilderController({
     orderType === null
       ? "Add at least one item to the cart before moving forward."
       : summaryGuardrail.missingCustomer
-        ? "Link a paying customer before moving this order forward."
+        ? "Choose the customer paying for this order before you continue."
         : summaryGuardrail.missingPickup
           ? orderType === "mixed"
-            ? "Set both the alteration pickup and custom pickup before moving this order forward."
-            : "Set the pickup date, time, and location before moving this order forward."
+            ? "Set both pickup times before you continue."
+            : "Set the pickup date, time, and location before you continue."
           : summaryGuardrail.customIncomplete
             ? "Finish the custom garment configuration before continuing to checkout."
             : undefined;
