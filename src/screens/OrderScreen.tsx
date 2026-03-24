@@ -183,6 +183,13 @@ export function OrderScreen({
                 isEditing={controller.editingCustomItemId !== null}
                 editingLabel={controller.editingCustomItem?.selectedGarment ?? null}
                 wearerName={controller.wearerCustomer?.name ?? null}
+                measurementVersionLabel={
+                  controller.measurementsCardModel.kind === "linked"
+                    ? controller.measurementsCardModel.set.version
+                    : controller.wearerCustomer
+                      ? "Draft"
+                      : null
+                }
                 onSelectGender={(gender) => dispatch({ type: "selectCustomGender", gender })}
                 onSelectGarment={(garment) => dispatch({ type: "selectCustomGarment", garment })}
                 onAddToOrder={controller.handleAddOrSaveCustomItem}
