@@ -4,22 +4,25 @@ import { getMarkReadyActionLabel, getOpenOrderTypeLabel } from "../selectors";
 
 type ConfirmMarkReadyModalProps = {
   openOrder: OpenOrder;
-  pendingPickupCount: number;
+  pickupIds: string[];
   onConfirm: () => void;
   onClose: () => void;
 };
 
 export function ConfirmMarkReadyModal({
   openOrder,
-  pendingPickupCount,
+  pickupIds,
   onConfirm,
   onClose,
 }: ConfirmMarkReadyModalProps) {
   const pendingPickups = openOrder.pickupSchedules.filter((pickup) => (
-    pickup.scope === "alteration" && !pickup.readyForPickup && !pickup.pickedUp
+    pickup.scope === "alteration" && pickupIds.includes(pickup.id)
   ));
+  const pendingPickupCount = pendingPickups.length;
   const confirmLabel = getMarkReadyActionLabel(openOrder, pendingPickupCount);
-  const confirmSubtitle = `Set ${openOrder.payerName}'s alterations to ready for pickup?`;
+  const confirmSubtitle = pendingPickupCount > 1
+    ? `Set ${openOrder.payerName}'s selected alteration pickups to ready for pickup?`
+    : `Set ${openOrder.payerName}'s selected alteration pickup to ready for pickup?`;
 
   return (
     <ModalShell

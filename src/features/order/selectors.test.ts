@@ -6,7 +6,9 @@ import {
   filterOpenOrders,
   getCheckoutCollectionAmount,
   getNeedsAttentionOpenOrders,
+  getOpenOrderMixedStatusSummary,
   getOpenOrderOperationalPhase,
+  getOpenOrderPickupGroups,
   getOpenOrderReadinessDetails,
   getOpenOrderStatusPills,
   getOperatorQueueStage,
@@ -371,7 +373,100 @@ describe("order selectors", () => {
       { label: "Alterations ready", tone: "success" },
       { label: "Custom in progress", tone: "default" },
     ]);
+    expect(getOpenOrderMixedStatusSummary(mixedOrder)).toEqual({
+      primary: { label: "Custom in progress", tone: "default" },
+      secondary: "Alterations: Ready",
+    });
     expect(getNeedsAttentionOpenOrders([mixedOrder]).map((order) => order.id)).toEqual([1010]);
+  });
+
+  it("prioritizes the most actionable mixed-order status in queue summaries", () => {
+    const mixedOrder = createOpenOrder({
+      id: 1015,
+      orderType: "mixed",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1015-alteration",
+          scope: "alteration",
+          readyForPickup: false,
+          pickupDate: "2026-03-20",
+          pickupTime: "10:00",
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1015-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          readyForPickup: true,
+          pickupDate: "2026-03-25",
+          pickupTime: "12:00",
+        },
+      ],
+    });
+
+    expect(getOpenOrderMixedStatusSummary(mixedOrder, new Date("2026-03-24T12:00:00.000Z"))).toEqual({
+      primary: { label: "Alterations overdue", tone: "danger" },
+      secondary: "Custom: Ready",
+    });
+  });
+
+  it("keeps mark-ready actions isolated per pickup instance", () => {
+    const mixedOrder = createOpenOrder({
+      id: 1016,
+      orderType: "mixed",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1016-alteration-a",
+          scope: "alteration",
+          label: "Alteration pickup A",
+          itemSummary: ["Trouser hem"],
+          pickupDate: "2026-03-24",
+          pickupTime: "10:00",
+          readyForPickup: false,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1016-alteration-b",
+          scope: "alteration",
+          label: "Alteration pickup B",
+          itemSummary: ["Jacket taper"],
+          pickupDate: "2026-03-25",
+          pickupTime: "11:00",
+          readyForPickup: false,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1016-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          pickupDate: "2026-03-25",
+          pickupTime: "11:00",
+          readyForPickup: false,
+        },
+      ],
+    });
+
+    expect(getOpenOrderPickupGroups(mixedOrder, { now: new Date("2026-03-24T12:00:00") }).map((group) => ({
+      key: group.key,
+      actionPickupIds: group.actionPickupIds,
+    }))).toEqual([
+      {
+        key: "alteration__Today · 10:00 AM • Fifth Avenue__Past promised ready time",
+        actionPickupIds: ["pickup-1016-alteration-a"],
+      },
+      {
+        key: "alteration__Tomorrow · 11:00 AM • Fifth Avenue__Due tomorrow",
+        actionPickupIds: ["pickup-1016-alteration-b"],
+      },
+      {
+        key: "custom__Tomorrow · 11:00 AM • Fifth Avenue__Due tomorrow",
+        actionPickupIds: [],
+      },
+    ]);
   });
 
   it("sorts mixed orders by the earliest pickup across alteration and custom schedules", () => {

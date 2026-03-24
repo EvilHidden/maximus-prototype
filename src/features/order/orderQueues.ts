@@ -3,6 +3,7 @@ import type {
   ClosedOrderHistoryItem,
   OpenOrder,
   PickupLocation,
+  StatusTone,
   WorkflowMode,
 } from "../../types";
 import {
@@ -214,6 +215,61 @@ export function getOpenOrderReadinessDetails(openOrder: OpenOrder) {
   return details;
 }
 
+export type OpenOrderPickupGroup = {
+  key: string;
+  scope: WorkflowMode;
+  summary: string;
+  alertLabel: string;
+  itemSummary: string[];
+  pickupIds: string[];
+  actionPickupIds: string[];
+};
+
+export function getOpenOrderPickupGroups(
+  openOrder: OpenOrder,
+  options: {
+    includePickedUp?: boolean;
+    scopes?: WorkflowMode[];
+    now?: Date;
+  } = {},
+) {
+  const {
+    includePickedUp = false,
+    scopes,
+    now = new Date(),
+  } = options;
+
+  return openOrder.pickupSchedules
+    .filter((pickup) => (includePickedUp || !pickup.pickedUp) && (!scopes || scopes.includes(pickup.scope)))
+    .reduce<OpenOrderPickupGroup[]>((groups, pickup) => {
+      const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup, now);
+      const pickupSummary = getPickupStatusSummary(pickup);
+      const key = `${pickup.scope}__${pickupSummary}__${pickupAlert.label}`;
+      const existingGroup = groups.find((group) => group.key === key);
+
+      if (existingGroup) {
+        existingGroup.itemSummary.push(...pickup.itemSummary);
+        existingGroup.pickupIds.push(pickup.id);
+        if (pickup.scope === "alteration" && !pickup.readyForPickup) {
+          existingGroup.actionPickupIds.push(pickup.id);
+        }
+        return groups;
+      }
+
+      groups.push({
+        key,
+        scope: pickup.scope,
+        summary: pickupSummary,
+        alertLabel: pickupAlert.label,
+        itemSummary: [...pickup.itemSummary],
+        pickupIds: [pickup.id],
+        actionPickupIds: pickup.scope === "alteration" && !pickup.readyForPickup ? [pickup.id] : [],
+      });
+
+      return groups;
+    }, []);
+}
+
 export function getOpenOrderStatusPills(openOrder: OpenOrder, now = new Date()) {
   const breakdown = getOpenOrderReadinessBreakdown(openOrder);
 
@@ -236,6 +292,69 @@ export function getOpenOrderStatusPills(openOrder: OpenOrder, now = new Date()) 
       tone: breakdown.customPickedUp || breakdown.customReady ? "success" as const : "default" as const,
     },
   ];
+}
+
+type MixedWorkflowStatus = {
+  label: string;
+  shortLabel: string;
+  tone: StatusTone;
+  priority: number;
+  workflowLabel: "Alterations" | "Custom";
+};
+
+function getMixedWorkflowStatuses(openOrder: OpenOrder, now = new Date()): [MixedWorkflowStatus, MixedWorkflowStatus] {
+  const breakdown = getOpenOrderReadinessBreakdown(openOrder);
+  const alterationLabel = getAlterationStatusLabel(openOrder, now);
+
+  const alterationStatus: MixedWorkflowStatus = {
+    workflowLabel: "Alterations",
+    label: alterationLabel,
+    shortLabel:
+      alterationLabel === "Alterations picked up"
+        ? "Picked up"
+        : alterationLabel === "Alterations ready"
+          ? "Ready"
+          : alterationLabel === "Alterations overdue"
+            ? "Overdue"
+            : "In progress",
+    tone: getAlterationStatusTone(openOrder, now),
+    priority:
+      alterationLabel === "Alterations overdue"
+        ? 400
+        : alterationLabel === "Alterations in progress"
+          ? 300
+          : alterationLabel === "Alterations ready"
+            ? 200
+            : 100,
+  };
+
+  const customStatus: MixedWorkflowStatus = {
+    workflowLabel: "Custom",
+    label: breakdown.customPickedUp ? "Custom picked up" : breakdown.customReady ? "Custom ready" : "Custom in progress",
+    shortLabel: breakdown.customPickedUp ? "Picked up" : breakdown.customReady ? "Ready" : "In progress",
+    tone: breakdown.customPickedUp || breakdown.customReady ? "success" : "default",
+    priority: breakdown.customPickedUp ? 100 : breakdown.customReady ? 200 : 300,
+  };
+
+  return [alterationStatus, customStatus];
+}
+
+export function getOpenOrderMixedStatusSummary(openOrder: OpenOrder, now = new Date()) {
+  if (openOrder.orderType !== "mixed") {
+    return null;
+  }
+
+  const [primaryStatus, secondaryStatus] = [...getMixedWorkflowStatuses(openOrder, now)].sort(
+    (left, right) => right.priority - left.priority,
+  );
+
+  return {
+    primary: {
+      label: primaryStatus.label,
+      tone: primaryStatus.tone,
+    },
+    secondary: `${secondaryStatus.workflowLabel}: ${secondaryStatus.shortLabel}`,
+  };
 }
 
 function getAlterationStatusLabel(openOrder: OpenOrder, now = new Date()) {
@@ -291,11 +410,7 @@ export function getNeedsAttentionOpenOrders(openOrders: OpenOrder[]) {
   );
 }
 
-export function getMarkReadyActionLabel(openOrder: OpenOrder, pendingPickupCount: number) {
-  if (openOrder.orderType === "mixed") {
-    return "Mark alterations ready";
-  }
-
+export function getMarkReadyActionLabel(_openOrder: OpenOrder, pendingPickupCount: number) {
   return pendingPickupCount > 1 ? `Mark ${pendingPickupCount} ready` : "Mark ready";
 }
 
