@@ -11,14 +11,13 @@ import {
   formatSummaryCurrency,
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
-  getOpenOrderOperationalPhase,
+  getOpenOrderStatusPills,
   getOpenOrderTypeLabel,
   type OrdersQueueKey,
 } from "../../selectors";
 import type { OrdersView } from "../../hooks/useOpenOrdersView";
 import { OperatorQueuePanel } from "./OperatorQueuePanel";
 import { QueueSection } from "./OpenOrdersWorklist";
-import { getPhaseTone } from "./meta";
 
 function AllOrdersRow({
   openOrder,
@@ -27,13 +26,13 @@ function AllOrdersRow({
   openOrder: OpenOrder;
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
-  const phase = getOpenOrderOperationalPhase(openOrder);
   const workType = getOpenOrderOperationalLane(openOrder);
   const locations = getOpenOrderLocationSummary(openOrder);
+  const statusPills = getOpenOrderStatusPills(openOrder);
 
   return (
     <div
-      className="grid cursor-pointer gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1.2fr)_180px_160px_140px_auto] lg:items-center"
+      className="grid cursor-pointer gap-3 px-4 py-3.5 lg:grid-cols-[minmax(0,1.1fr)_180px_160px_140px_minmax(18rem,auto)] lg:items-center"
       role="button"
       tabIndex={0}
       onClick={() => onOpenOrderCheckout(openOrder.id)}
@@ -63,10 +62,58 @@ function AllOrdersRow({
         <div className="app-text-overline">Total</div>
         <div className="app-text-strong mt-1">{formatSummaryCurrency(openOrder.total)}</div>
       </div>
-      <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-        <StatusPill tone={getPhaseTone(phase)}>{phase}</StatusPill>
+      <div className="flex flex-wrap items-center gap-2 lg:min-w-[18rem] lg:justify-end">
+        {statusPills.map((pill) => (
+          <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
+        ))}
         <PaymentStatusPill status={openOrder.paymentStatus} />
       </div>
+    </div>
+  );
+}
+
+function ClosedOrdersSection({
+  filteredHistoryItems,
+}: {
+  filteredHistoryItems: ClosedOrderHistoryItem[];
+}) {
+  if (!filteredHistoryItems.length) {
+    return (
+      <div className="app-work-surface">
+        <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
+          <div className="app-text-overline">Closed orders</div>
+        </div>
+        <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
+          No closed orders match this search.
+        </EmptyState>
+      </div>
+    );
+  }
+
+  return (
+    <div className="app-work-surface">
+      <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
+        <div className="app-text-overline">Closed orders</div>
+      </div>
+      {filteredHistoryItems.map((order, index) => (
+        <div
+          key={order.id}
+          className={cx(
+            "app-table-row grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_140px_120px_auto] md:items-center",
+            index > 0 && "border-t border-[var(--app-border)]/35",
+          )}
+        >
+          <div className="min-w-0">
+            <div className="app-text-strong">{order.customerName}</div>
+            <div className="app-text-caption mt-1">{order.label}</div>
+          </div>
+          <div className="app-text-body font-medium">{formatClosedOrderDate(order.createdAt)}</div>
+          <div className="app-text-strong">{formatClosedOrderTotal(order.total)}</div>
+          <div className="flex justify-start md:justify-end">
+            <OrderStatusPill status={order.status} />
+          </div>
+        </div>
+      ))}
     </div>
   );
 }
@@ -76,7 +123,9 @@ export function OpenOrdersBody({
   activeQueue,
   baseOpenOrders,
   filteredQueueOrders,
+  filteredReadyOrders,
   filteredOperatorOrders,
+  filteredFactoryOrders,
   operatorQueueCounts,
   filteredHistoryItems,
   inHouseTailors,
@@ -89,7 +138,9 @@ export function OpenOrdersBody({
   activeQueue: OrdersQueueKey;
   baseOpenOrders: OpenOrder[];
   filteredQueueOrders: OpenOrder[];
+  filteredReadyOrders: OpenOrder[];
   filteredOperatorOrders: OpenOrder[];
+  filteredFactoryOrders: OpenOrder[];
   operatorQueueCounts: OperatorQueueStageCounts;
   filteredHistoryItems: ClosedOrderHistoryItem[];
   inHouseTailors: StaffMember[];
@@ -117,11 +168,41 @@ export function OpenOrdersBody({
   return (
     <div className="pt-1">
       {activeView === "all" ? (
-        baseOpenOrders.length === 0 ? (
-          <EmptyState>No active orders match this search and filter set.</EmptyState>
+        <div className="space-y-4">
+          {baseOpenOrders.length === 0 ? (
+            <div className="app-work-surface">
+              <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
+                <div className="app-text-overline">Active orders</div>
+              </div>
+              <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
+                No active orders match this search and filter set.
+              </EmptyState>
+            </div>
+          ) : (
+            <div className="app-work-surface">
+              <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
+                <div className="app-text-overline">Active orders</div>
+              </div>
+              {baseOpenOrders.map((openOrder, index) => (
+                <div
+                  key={openOrder.id}
+                  className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+                >
+                  <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} />
+                </div>
+              ))}
+            </div>
+          )}
+          <ClosedOrdersSection filteredHistoryItems={filteredHistoryItems} />
+        </div>
+      ) : null}
+
+      {activeView === "ready" ? (
+        filteredReadyOrders.length === 0 ? (
+          <EmptyState>No ready orders match this search and filter set.</EmptyState>
         ) : (
           <div className="app-work-surface">
-            {baseOpenOrders.map((openOrder, index) => (
+            {filteredReadyOrders.map((openOrder, index) => (
               <div
                 key={openOrder.id}
                 className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
@@ -155,28 +236,17 @@ export function OpenOrdersBody({
         />
       ) : null}
 
-      {activeView === "history" ? (
-        filteredHistoryItems.length === 0 ? (
-          <EmptyState>No closed orders match this search.</EmptyState>
+      {activeView === "factory" ? (
+        filteredFactoryOrders.length === 0 ? (
+          <EmptyState>No factory orders match this search and filter set.</EmptyState>
         ) : (
           <div className="app-work-surface">
-            {filteredHistoryItems.map((order, index) => (
+            {filteredFactoryOrders.map((openOrder, index) => (
               <div
-                key={order.id}
-                className={cx(
-                  "app-table-row grid gap-3 px-4 py-3.5 md:grid-cols-[minmax(0,1fr)_140px_120px_auto] md:items-center",
-                  index > 0 && "border-t border-[var(--app-border)]/35",
-                )}
+                key={openOrder.id}
+                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
               >
-                <div className="min-w-0">
-                  <div className="app-text-strong">{order.customerName}</div>
-                  <div className="app-text-caption mt-1">{order.label}</div>
-                </div>
-                <div className="app-text-body font-medium">{formatClosedOrderDate(order.createdAt)}</div>
-                <div className="app-text-strong">{formatClosedOrderTotal(order.total)}</div>
-                <div className="flex justify-start md:justify-end">
-                  <OrderStatusPill status={order.status} />
-                </div>
+                <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} />
               </div>
             ))}
           </div>

@@ -9,10 +9,7 @@ export const queueMeta: Array<{
   { key: "all", label: "Everything" },
   { key: "due_today", label: "Due today" },
   { key: "due_tomorrow", label: "Due tomorrow" },
-  { key: "ready_for_pickup", label: "Ready" },
   { key: "overdue", label: "Overdue" },
-  { key: "in_house", label: "In-house" },
-  { key: "factory", label: "Factory" },
 ];
 
 export const queueOverviewMeta: Array<{
@@ -34,28 +31,10 @@ export const queueOverviewMeta: Array<{
     icon: Clock3,
   },
   {
-    key: "ready_for_pickup",
-    title: "Ready for pickup",
-    subtitle: "Orders that are ready for the customer to pick up.",
-    icon: Clock3,
-  },
-  {
     key: "overdue",
     title: "Overdue",
     subtitle: "Orders that missed their ready date.",
     icon: PackageSearch,
-  },
-  {
-    key: "in_house",
-    title: "In-house production",
-    subtitle: "Alterations and mixed orders being worked on in-house.",
-    icon: PackageSearch,
-  },
-  {
-    key: "factory",
-    title: "Custom work",
-    subtitle: "Custom orders being handled outside the shop.",
-    icon: Clock3,
   },
 ];
 
@@ -71,6 +50,10 @@ export function formatWorklistTotal(value: number) {
 export function getPhaseTone(phase: string) {
   if (phase === "Accepted") {
     return "dark" as const;
+  }
+
+  if (phase === "Partially ready") {
+    return "default" as const;
   }
 
   if (phase === "In progress") {

@@ -4,7 +4,9 @@ import { ActionButton, EmptyState, StatusPill, SurfaceHeader, cx } from "../../.
 import {
   formatOpenOrderCreatedAt,
   formatSummaryCurrency,
+  getMarkReadyActionLabel,
   getOpenOrderTypeLabel,
+  getOpenOrderStatusPills,
   getOperatorQueueStage,
   getOperatorQueueStageCounts,
   getPickupAlertState,
@@ -93,6 +95,7 @@ function OperatorQueueRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const stage = getOperatorQueueStage(openOrder);
+  const statusPills = getOpenOrderStatusPills(openOrder);
   const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration");
   const pendingPickupIds = inHousePickups.filter((pickup) => !pickup.readyForPickup).map((pickup) => pickup.id);
   const nextPickup = inHousePickups
@@ -107,7 +110,7 @@ function OperatorQueueRow({
   const stagePill = getOperatorStagePill(stage);
 
   return (
-    <div className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(260px,0.8fr)_auto] xl:items-start">
+    <div className="grid gap-4 px-4 py-4 xl:grid-cols-[minmax(0,1fr)_14rem_minmax(20rem,auto)] xl:items-start xl:gap-x-6">
       <div className="min-w-0">
         <div className="app-text-strong">{openOrder.payerName}</div>
         <div className="app-text-caption mt-1">
@@ -127,7 +130,7 @@ function OperatorQueueRow({
         ) : null}
       </div>
 
-      <div className="space-y-3" onClick={(event) => event.stopPropagation()}>
+      <div className="space-y-3 xl:col-start-3 xl:min-w-[20rem]" onClick={(event) => event.stopPropagation()}>
         <div>
           <div className="app-text-overline">Assigned to</div>
           <div className="app-field-control mt-1 min-h-[2.75rem] px-3 py-2">
@@ -145,18 +148,25 @@ function OperatorQueueRow({
             </select>
           </div>
         </div>
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill tone={stagePill.tone}>
-            {stagePill.label}
-          </StatusPill>
+        <div className={cx("items-center gap-2", openOrder.orderType === "mixed" ? "flex flex-nowrap" : "flex flex-wrap")}>
+          {openOrder.orderType === "mixed"
+            ? statusPills.map((pill) => (
+              <StatusPill key={pill.label} tone={pill.tone} className="whitespace-nowrap">{pill.label}</StatusPill>
+            ))
+            : (
+              <StatusPill tone={stagePill.tone}>
+                {stagePill.label}
+              </StatusPill>
+            )}
           <div className="app-text-caption">{formatSummaryCurrency(openOrder.total)} total</div>
         </div>
       </div>
 
-      <div className="flex flex-wrap items-center gap-2 xl:justify-end">
+      <div className="flex flex-wrap items-center self-center gap-2 xl:col-start-2 xl:w-[14rem] xl:justify-center xl:pr-2">
         {stage === "ready_to_start" ? (
           <ActionButton
             tone="primary"
+            className="w-full justify-center whitespace-nowrap px-3 py-2 text-xs"
             disabled={!hasAssignee}
             onClick={(event) => {
               event.stopPropagation();
@@ -169,12 +179,13 @@ function OperatorQueueRow({
         {stage === "in_progress" && pendingPickupIds.length > 0 ? (
           <ActionButton
             tone="primary"
+            className="w-full justify-center whitespace-nowrap px-4 py-2 text-xs"
             onClick={(event) => {
               event.stopPropagation();
               onRequestMarkOpenOrderPickupReady(openOrder, pendingPickupIds);
             }}
           >
-            {pendingPickupIds.length > 1 ? `Mark ${pendingPickupIds.length} ready` : "Mark ready"}
+            {getMarkReadyActionLabel(openOrder, pendingPickupIds.length)}
           </ActionButton>
         ) : null}
         <ActionButton

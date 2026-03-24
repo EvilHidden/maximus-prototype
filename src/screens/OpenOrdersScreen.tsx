@@ -41,7 +41,9 @@ export function OpenOrdersScreen({
     baseOpenOrders,
     queueCounts,
     filteredQueueOrders,
+    filteredReadyOrders,
     filteredOperatorOrders,
+    filteredFactoryOrders,
     operatorQueueCounts,
     filteredHistoryItems,
     activeSubtitle,
@@ -57,9 +59,10 @@ export function OpenOrdersScreen({
           onViewChange={setActiveView}
           viewCounts={{
             queues: queueCounts.all,
+            ready: queueCounts.ready_for_pickup,
             operator: filteredOperatorOrders.length,
-            all: baseOpenOrders.length,
-            history: filteredHistoryItems.length,
+            factory: queueCounts.factory,
+            all: baseOpenOrders.length + filteredHistoryItems.length,
           }}
           query={query}
           onQueryChange={setQuery}
@@ -82,7 +85,9 @@ export function OpenOrdersScreen({
         activeQueue={activeQueue}
         baseOpenOrders={baseOpenOrders}
         filteredQueueOrders={filteredQueueOrders}
+        filteredReadyOrders={filteredReadyOrders}
         filteredOperatorOrders={filteredOperatorOrders}
+        filteredFactoryOrders={filteredFactoryOrders}
         operatorQueueCounts={operatorQueueCounts}
         filteredHistoryItems={filteredHistoryItems}
         inHouseTailors={inHouseTailors}

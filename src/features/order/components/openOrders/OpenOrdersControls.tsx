@@ -26,7 +26,7 @@ export function OpenOrdersControls({
 }: {
   activeView: OrdersView;
   onViewChange: (view: OrdersView) => void;
-  viewCounts: { queues: number; operator: number; all: number; history: number };
+  viewCounts: { queues: number; ready: number; operator: number; factory: number; all: number };
   query: string;
   onQueryChange: (value: string) => void;
   typeFilter: OrderType | "all";
@@ -50,9 +50,10 @@ export function OpenOrdersControls({
         <div className="flex flex-wrap gap-2">
           {([
             { key: "queues", label: "Needs attention", count: viewCounts.queues },
+            { key: "ready", label: "Ready", count: viewCounts.ready },
             { key: "operator", label: "In-house production", count: viewCounts.operator },
-            { key: "all", label: "All active orders", count: viewCounts.all },
-            { key: "history", label: "Closed orders", count: viewCounts.history },
+            { key: "factory", label: "Factory", count: viewCounts.factory },
+            { key: "all", label: "All orders", count: viewCounts.all },
           ] as const).map((view) => (
             <SelectionChip
               key={view.key}
@@ -100,7 +101,7 @@ export function OpenOrdersControls({
               <option value="mixed">Custom + Alterations</option>
             </SelectField>
 
-            {activeView !== "history" ? (
+            {activeView !== "all" ? (
               <SelectField
                 label={showOperatorControls ? "Viewing queue" : "Assigned to"}
                 value={assigneeFilter}

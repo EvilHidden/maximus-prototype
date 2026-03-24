@@ -1,6 +1,6 @@
 import { ActionButton, ModalShell, StatusPill } from "../../../components/ui/primitives";
 import type { OpenOrder } from "../../../types";
-import { getOpenOrderTypeLabel } from "../selectors";
+import { getMarkReadyActionLabel, getOpenOrderTypeLabel } from "../selectors";
 
 type ConfirmMarkReadyModalProps = {
   openOrder: OpenOrder;
@@ -16,12 +16,13 @@ export function ConfirmMarkReadyModal({
   onClose,
 }: ConfirmMarkReadyModalProps) {
   const pendingPickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.readyForPickup);
-  const confirmLabel = pendingPickupCount > 1 ? `Mark ${pendingPickupCount} ready` : "Mark ready";
+  const confirmLabel = getMarkReadyActionLabel(openOrder, pendingPickupCount);
+  const confirmSubtitle = `Set ${openOrder.payerName}'s alterations to ready for pickup?`;
 
   return (
     <ModalShell
       title={confirmLabel}
-      subtitle={`Set ${openOrder.payerName}'s in-house work to ready for pickup?`}
+      subtitle={confirmSubtitle}
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[460px]"
@@ -48,8 +49,8 @@ export function ConfirmMarkReadyModal({
           <div className="app-text-caption mt-1">{openOrder.itemSummary.join(", ")}</div>
           <div className="app-text-caption mt-1">
             {pendingPickupCount > 1
-              ? `${pendingPickupCount} in-house pickup slots will be marked ready.`
-              : "The in-house pickup slot will be marked ready."}
+              ? `${pendingPickupCount} alteration pickup slots will be marked ready.`
+              : "The alteration pickup slot will be marked ready."}
           </div>
         </div>
         {pendingPickups.length ? (
