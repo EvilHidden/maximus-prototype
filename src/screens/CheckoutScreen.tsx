@@ -1,18 +1,24 @@
-import { CheckCircle2, ClipboardList, CreditCard } from "lucide-react";
+import { ClipboardList, CreditCard } from "lucide-react";
 import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
-import { ActionButton, DefinitionList, EmptyState, SectionHeader, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
+import { ActionButton, EmptyState, SectionHeader, Surface, cx } from "../components/ui/primitives";
 import {
-  formatPickupSchedule,
   getCheckoutCollectionAmount,
   getOrderBagLineItems,
   getOrderType,
   getPickupRequired,
-  getPickupScheduleForScope,
   getPricingSummary,
-  getRequiredPickupScopes,
   getSummaryGuardrail,
 } from "../features/order/selectors";
-import { getPickupDateTime } from "../features/order/orderDateUtils";
+import {
+  formatCheckoutCurrency,
+  getCheckoutDisplayLineItem,
+  getDraftPickupSummary,
+  getReadyBySummary,
+  getSavedPickupSummary,
+} from "../features/order/checkoutDisplay";
+import { CheckoutAcceptedBanner } from "../features/order/components/checkout/CheckoutAcceptedBanner";
+import { CheckoutEmptyState } from "../features/order/components/checkout/CheckoutEmptyState";
+import { CheckoutSummaryRail } from "../features/order/components/checkout/CheckoutSummaryRail";
 
 type CheckoutScreenProps = {
   customers: Customer[];
@@ -29,145 +35,6 @@ type CheckoutScreenProps = {
   onCancelOpenOrder: (openOrderId: number) => void;
   onCompleteOpenOrderPickup: (openOrderId: number) => void;
 };
-
-function getDraftPickupSummary(order: OrderWorkflowState) {
-  const requiredPickupScopes = getRequiredPickupScopes(order);
-
-  return requiredPickupScopes
-    .map((scope) => {
-      const schedule = getPickupScheduleForScope(order, scope);
-      const scopeLabel = scope === "alteration" ? "Alterations" : "Custom garments";
-      const formatted = formatPickupSchedule(schedule.pickupDate, schedule.pickupTime);
-
-      if (formatted) {
-        return `${scopeLabel}: ${formatted}`;
-      }
-
-      if (scope === "custom" && schedule.eventDate) {
-        return `${scopeLabel}: Event due ${schedule.eventDate}`;
-      }
-
-      return `${scopeLabel}: Timing needed`;
-    })
-    .join(requiredPickupScopes.length > 1 ? "\n" : "");
-}
-
-function getSavedPickupSummary(openOrder: OpenOrder) {
-  return openOrder.pickupSchedules
-    .map((pickup) => {
-      const scopeLabel = pickup.scope === "alteration" ? "Alterations" : "Custom garments";
-      const formatted = formatPickupSchedule(pickup.pickupDate, pickup.pickupTime);
-
-      if (formatted) {
-        return `${scopeLabel}: ${formatted}`;
-      }
-
-      if (pickup.scope === "custom" && pickup.eventDate) {
-        return `${scopeLabel}: Event due ${pickup.eventDate}`;
-      }
-
-      return `${scopeLabel}: Timing needed`;
-    })
-    .join(openOrder.pickupSchedules.length > 1 ? "\n" : "");
-}
-
-function formatCheckoutCurrency(value: number) {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(value);
-}
-
-function formatCompactReadyBy(dateValue: string, timeValue: string) {
-  const pickupDateTime = getPickupDateTime(dateValue, timeValue);
-  if (!pickupDateTime) {
-    return null;
-  }
-
-  const dateLabel = new Intl.DateTimeFormat("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-  }).format(pickupDateTime);
-  return dateLabel;
-}
-
-function getReadyBySummary(openOrder: OpenOrder | null, pickupSummary: string) {
-  const pickupLines = pickupSummary.split("\n").filter(Boolean);
-
-  if (!openOrder) {
-    return {
-      headline: pickupLines[0] ?? "",
-      detail: pickupLines.slice(1).join("\n"),
-    };
-  }
-
-  const compactEntries = openOrder.pickupSchedules
-    .map((pickup) => ({
-      scopeLabel: pickup.scope === "alteration" ? "Alterations" : "Custom garments",
-      value: formatCompactReadyBy(pickup.pickupDate, pickup.pickupTime),
-    }))
-    .filter((entry): entry is { scopeLabel: string; value: string } => Boolean(entry.value));
-
-  if (!compactEntries.length) {
-    return {
-      headline: pickupLines[0] ?? "",
-      detail: pickupLines.slice(1).join("\n"),
-    };
-  }
-
-  const uniqueTimes = [...new Set(compactEntries.map((entry) => entry.value))];
-  if (uniqueTimes.length === 1) {
-    const scopeSummary = compactEntries.map((entry) => entry.scopeLabel).join(" + ");
-    return {
-      headline: uniqueTimes[0],
-      detail: scopeSummary,
-    };
-  }
-
-  return {
-    headline: "Multiple ready dates",
-    detail: compactEntries.map((entry) => `${entry.scopeLabel}: ${entry.value}`).join("\n"),
-  };
-}
-
-function toSentenceCase(value: string) {
-  if (!value) {
-    return "";
-  }
-
-  return value.charAt(0).toUpperCase() + value.slice(1);
-}
-
-function getCheckoutDisplayLineItem(item: OpenOrder["lineItems"][number]) {
-  if (item.kind === "alteration") {
-    const detail = item.components
-      .filter((component) => component.kind === "alteration_service")
-      .map((component) => toSentenceCase(component.value))
-      .join(", ");
-
-    return {
-      title: `Alteration - ${item.garmentLabel}`,
-      subtitle: detail ? toSentenceCase(detail) : "",
-    };
-  }
-
-  const primaryDetail = item.components
-    .filter((component) => component.kind === "wearer" || component.kind === "measurement_set")
-    .map((component) => component.value)
-    .join(" • ");
-  const optionDetail = item.components
-    .filter((component) => component.kind !== "wearer" && component.kind !== "measurement_set")
-    .map((component) => `${component.label} ${component.value}`)
-    .join(" • ");
-
-  return {
-    title: `Custom garment - ${item.garmentLabel}`,
-    subtitle: [primaryDetail, optionDetail].filter(Boolean).join("\n"),
-  };
-}
 
 export function CheckoutScreen({
   customers,
@@ -206,58 +73,7 @@ export function CheckoutScreen({
   const acceptedOrderNeedsPayment = Boolean(openOrder && isAcceptedOpenOrder && openOrder.balanceDue > 0);
 
   if (isEmptyDraftCheckout) {
-    return (
-      <div className="space-y-4">
-        <SectionHeader
-          icon={CreditCard}
-          title="Checkout"
-          subtitle="Start an order first, then come back here to finish checkout."
-        />
-
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
-          <Surface tone="work" className="overflow-hidden">
-            <div className="px-4 py-4">
-              <div className="app-text-overline">Checkout</div>
-              <div className="mt-1 app-text-value">No order in progress</div>
-              <div className="app-text-caption mt-1 max-w-[36rem]">
-                Checkout becomes available after you start an order, add the work, and set the promised-ready details.
-              </div>
-            </div>
-
-            <div className="border-t border-[var(--app-border)]/45 px-4 py-8">
-              <EmptyState className="rounded-[var(--app-radius-md)] border-dashed bg-[var(--app-surface-muted)]/25 px-6 py-8 shadow-none">
-                <div className="flex items-start gap-3">
-                  <div className="app-icon-chip">
-                    <ClipboardList className="h-4 w-4" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="app-text-overline">Nothing to check out yet</div>
-                    <div className="app-text-body mt-2">
-                      Start a new order to add the customer, the work, and the pickup timing.
-                    </div>
-                  </div>
-                </div>
-              </EmptyState>
-            </div>
-          </Surface>
-
-          <div className="space-y-4">
-            <Surface tone="support" className="p-4">
-              <SurfaceHeader
-                title="Next step"
-                subtitle="Start a new order to continue."
-              />
-
-              <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-                <ActionButton tone="primary" onClick={() => onScreenChange("order")}>
-                  New order
-                </ActionButton>
-              </div>
-            </Surface>
-          </div>
-        </div>
-      </div>
-    );
+    return <CheckoutEmptyState onAction={() => onScreenChange("order")} actionIcon={CreditCard} />;
   }
 
   const checkoutSubtitle = openOrder
@@ -385,26 +201,12 @@ export function CheckoutScreen({
           </div>
 
           {isAcceptedOpenOrder && showAcceptedConfirmation ? (
-            <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-              <div className="rounded-[var(--app-radius-md)] border border-emerald-200/80 bg-emerald-50/85 px-4 py-4 text-emerald-900 shadow-[0_14px_34px_-28px_rgba(5,150,105,0.55)]">
-                <div className="flex flex-wrap items-start gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
-                    <CheckCircle2 className="h-5 w-5" />
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <div className="app-text-overline text-emerald-700">All set</div>
-                    <div className="mt-1 text-[1.05rem] font-semibold tracking-[-0.015em] text-emerald-950">
-                      Order #{openOrder.id} has been accepted.
-                    </div>
-                    <div className="mt-1 text-sm leading-relaxed text-emerald-800/90">
-                      {acceptedOrderNeedsPayment
-                        ? `${openOrder.payerName}'s order is saved, the due date is set, and the team can start work. No payment was collected, so ${formatCheckoutCurrency(openOrder.balanceDue)} will be due later or at pickup.`
-                        : `${openOrder.payerName}'s order is saved, the due date is set, and the payment is already in. The team can start work.`}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
+            <CheckoutAcceptedBanner
+              openOrderId={openOrder.id}
+              payerName={openOrder.payerName}
+              balanceDue={openOrder.balanceDue}
+              acceptedOrderNeedsPayment={acceptedOrderNeedsPayment}
+            />
           ) : null}
 
           {activeLineItems.length === 0 ? (
@@ -504,18 +306,11 @@ export function CheckoutScreen({
         </Surface>
 
         <div className="space-y-4">
-          <Surface tone="support" className="p-4">
-            <SurfaceHeader
-              title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
-              subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, due, and total.") : "What will save with the order."}
-            />
-
-            <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-              <DefinitionList items={totalsItems} />
-            </div>
-
-            <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">
-              <div className="grid gap-2">
+          <CheckoutSummaryRail
+            title={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
+            subtitle={openOrder ? (isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, due, and total.") : "What will save with the order."}
+            totalsItems={totalsItems}
+          >
                 {!openOrder ? (
                   <>
                     {isEmptyDraftCheckout ? (
@@ -603,9 +398,7 @@ export function CheckoutScreen({
                     </ActionButton>
                   </>
                 )}
-              </div>
-            </div>
-          </Surface>
+          </CheckoutSummaryRail>
         </div>
       </div>
     </div>

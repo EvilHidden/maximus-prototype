@@ -122,8 +122,6 @@ export function OpenOrdersBody({
           activeQueue={activeQueue}
           openOrders={filteredQueueOrders}
           pickupAppointments={filteredQueuePickups}
-          inHouseTailors={inHouseTailors}
-          onAssignOpenOrderTailor={onAssignOpenOrderTailor}
           onStartOpenOrderWork={onStartOpenOrderWork}
           onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
           onOpenOrderCheckout={onOpenOrderCheckout}

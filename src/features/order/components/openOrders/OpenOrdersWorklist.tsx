@@ -1,5 +1,5 @@
 import { Clock3, MapPin, PackageSearch, type LucideIcon } from "lucide-react";
-import type { Appointment, OpenOrder, StaffMember } from "../../../../types";
+import type { Appointment, OpenOrder } from "../../../../types";
 import {
   ActionButton,
   EmptyState,
@@ -75,15 +75,11 @@ function WorkQueuePickupRow({ appointment }: { appointment: Appointment }) {
 
 function WorkQueueOrderRow({
   openOrder,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
 }: {
   openOrder: OpenOrder;
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
@@ -142,29 +138,10 @@ function WorkQueueOrderRow({
         }
       }}
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.8fr)_minmax(0,1.15fr)_220px] lg:items-start">
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1fr)_160px_180px] lg:items-start">
         <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-          {canManageInHouseWork ? (
-            <div className="mt-3 flex max-w-[280px] flex-col gap-1.5" onClick={(event) => event.stopPropagation()}>
-              <div className="app-text-overline">Assigned to</div>
-              <div className="app-field-control min-h-[2.75rem] px-3 py-2">
-                <select
-                  value={openOrder.inHouseAssignee?.id ?? "unassigned"}
-                  onChange={(event) => onAssignOpenOrderTailor(openOrder.id, event.target.value === "unassigned" ? null : event.target.value)}
-                  className="app-text-body min-w-0 flex-1 appearance-none pr-7"
-                >
-                  <option value="unassigned">Unassigned</option>
-                  {inHouseTailors.map((staffMember) => (
-                    <option key={staffMember.id} value={staffMember.id}>
-                      {staffMember.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          ) : null}
         </div>
 
         <div className="min-w-0 space-y-3">
@@ -210,34 +187,31 @@ function WorkQueueOrderRow({
           })}
         </div>
 
+        <div className="flex items-start lg:justify-center" onClick={(event) => event.stopPropagation()}>
+          {canStartWork ? (
+            <ActionButton
+              tone="primary"
+              className="w-full px-3 py-2 text-xs lg:w-auto"
+              disabled={!openOrder.inHouseAssignee}
+              onClick={() => onStartOpenOrderWork(openOrder.id)}
+            >
+              Start work
+            </ActionButton>
+          ) : null}
+          {canMarkReady ? (
+            <ActionButton
+              tone="primary"
+              className="w-full px-3 py-2 text-xs lg:w-auto"
+              onClick={() => {
+                pendingInHousePickupIds.forEach((pickupId) => onMarkOpenOrderPickupReady(openOrder.id, pickupId));
+              }}
+            >
+              {pendingInHousePickupIds.length > 1 ? `Mark ${pendingInHousePickupIds.length} ready` : "Mark ready"}
+            </ActionButton>
+          ) : null}
+        </div>
+
         <div className="flex flex-wrap items-start justify-between gap-3 lg:flex-col lg:items-end lg:text-right">
-          <div className="flex flex-wrap items-center gap-2 lg:justify-end">
-            {canStartWork ? (
-              <ActionButton
-                tone="primary"
-                className="px-3 py-2 text-xs"
-                disabled={!openOrder.inHouseAssignee}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  onStartOpenOrderWork(openOrder.id);
-                }}
-              >
-                Start work
-              </ActionButton>
-            ) : null}
-            {canMarkReady ? (
-              <ActionButton
-                tone="primary"
-                className="px-3 py-2 text-xs"
-                onClick={(event) => {
-                  event.stopPropagation();
-                  pendingInHousePickupIds.forEach((pickupId) => onMarkOpenOrderPickupReady(openOrder.id, pickupId));
-                }}
-              >
-                {pendingInHousePickupIds.length > 1 ? `Mark ${pendingInHousePickupIds.length} ready` : "Mark ready"}
-              </ActionButton>
-            ) : null}
-          </div>
           <div className="flex flex-wrap items-center gap-2 lg:justify-end">
             <StatusPill tone={getPhaseTone(phase)}>{getWorklistPhaseLabel(phase)}</StatusPill>
           </div>
@@ -259,8 +233,6 @@ export function QueueSection({
   activeQueue,
   openOrders,
   pickupAppointments,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
@@ -268,8 +240,6 @@ export function QueueSection({
   activeQueue: OrdersQueueKey;
   openOrders: OpenOrder[];
   pickupAppointments: Appointment[];
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
@@ -340,8 +310,6 @@ export function QueueSection({
               >
                 <WorkQueueOrderRow
                   openOrder={openOrder}
-                  inHouseTailors={inHouseTailors}
-                  onAssignOpenOrderTailor={onAssignOpenOrderTailor}
                   onStartOpenOrderWork={onStartOpenOrderWork}
                   onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
                   onOpenOrderCheckout={onOpenOrderCheckout}
