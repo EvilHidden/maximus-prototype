@@ -145,10 +145,6 @@ export function deriveCustomerMeasurementStatus(measurementSets: DbMeasurementSe
     return "on_file";
   }
 
-  if (measurementSets.some((set) => set.isDraft)) {
-    return "needs_update";
-  }
-
   return "missing";
 }
 
