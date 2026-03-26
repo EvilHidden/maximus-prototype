@@ -1,10 +1,9 @@
-import { CalendarClock, MapPin, ShoppingBag, Trash2 } from "lucide-react";
+import { CalendarClock, MapPin, ShoppingBag, Trash2, UserRound } from "lucide-react";
 import type { Customer, OrderBagLineItem, OrderType, PickupSchedule, PricingSummary, WorkflowMode } from "../../../types";
 import {
   EmptyState,
   InlineEmptyState,
   PanelSection,
-  SectionHeader,
   Surface,
   SummaryStack,
   cx,
@@ -67,42 +66,43 @@ export function OrderBag({
   };
 
   return (
-    <Surface tone="support" className="sticky top-0 p-3.5">
-      <SectionHeader
-        icon={ShoppingBag}
-        title="Cart"
-        subtitle={lineItems.length === 1 ? "1 item" : `${lineItems.length} items`}
-        action={
-          lineItems.length > 0 ? (
-            <ActionButton tone="quiet" className="px-3 py-2 text-xs" onClick={onClearCart}>
-              Clear cart
-            </ActionButton>
-          ) : null
-        }
-      />
+    <Surface tone="support" className="sticky top-0 p-3.5 xl:flex xl:h-full xl:min-h-0 xl:flex-col">
+      <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="flex items-start gap-3">
+          <ShoppingBag className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
+          <div>
+            <h2 className="app-section-title">Cart</h2>
+            <p className="app-section-copy">{lineItems.length === 1 ? "1 item" : `${lineItems.length} items`}</p>
+          </div>
+        </div>
+        {lineItems.length > 0 ? (
+          <ActionButton tone="quiet" className="px-3 py-2 text-xs" onClick={onClearCart}>
+            Clear cart
+          </ActionButton>
+        ) : null}
+      </div>
 
-      <SummaryStack className="space-y-4 text-sm">
+      <SummaryStack className="space-y-4 text-sm xl:flex xl:min-h-0 xl:flex-1 xl:flex-col">
         <PanelSection
           title="Paying customer"
           className="border-0 bg-transparent p-0"
-          action={
-            <button
-              onClick={onOpenCustomerModal}
-              className="inline-flex items-center app-kicker text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
-            >
-              Change
-            </button>
-          }
         >
-          <div className="px-1 py-0.5">
-            <div className="app-text-strong">{customer?.name ?? "Customer required"}</div>
-            <div className="app-text-caption mt-1">{customer?.phone ?? "Choose the customer paying for this order"}</div>
-          </div>
+          <button
+            onClick={onOpenCustomerModal}
+            className="flex w-full items-start gap-3 rounded-[var(--app-radius-md)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface-muted)]/38"
+          >
+            <UserRound className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
+            <div className="min-w-0 flex-1">
+              <div className="app-text-strong">{customer?.name ?? "Customer required"}</div>
+              <div className="app-text-caption mt-1">{customer?.phone ?? "Choose the customer paying for this order"}</div>
+            </div>
+            <div className="app-kicker shrink-0 pt-0.5 text-[var(--app-text-soft)]">Change</div>
+          </button>
         </PanelSection>
 
-        <PanelSection title="Items" className="border-0 bg-transparent p-0">
+        <PanelSection title="Items" className="border-0 bg-transparent p-0 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col">
           {lineItems.length > 0 ? (
-            <div className="max-h-[280px] overflow-auto">
+            <div className="xl:min-h-0 xl:flex-1 xl:overflow-auto xl:pr-1">
               {lineItems.map((item, index) => (
                 <div
                   key={item.id}
