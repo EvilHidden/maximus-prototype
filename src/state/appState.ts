@@ -26,10 +26,11 @@ type InitialAppStateData = {
 
 const ACTIVE_DRAFT_ORDER_ID = "draft-current";
 
-function createDraftOrderRecord(state: Pick<AppState, "order">): DraftOrderRecord {
+function createDraftOrderRecord(state: Pick<AppState, "order" | "selectedCustomerId">): DraftOrderRecord {
   return {
     id: ACTIVE_DRAFT_ORDER_ID,
     payerCustomerId: state.order.payerCustomerId,
+    selectedCustomerId: state.selectedCustomerId,
     updatedAt: new Date().toISOString(),
     snapshot: state.order,
   };
@@ -50,13 +51,14 @@ export function createInitialAppState({ database = createPrototypeDatabase() }: 
     : replaceDraftOrderRecords(database, [{
         id: ACTIVE_DRAFT_ORDER_ID,
         payerCustomerId: order.payerCustomerId,
+        selectedCustomerId: order.payerCustomerId,
         updatedAt: new Date().toISOString(),
         snapshot: order,
       }]);
 
   return {
     screen: "home",
-    selectedCustomerId: order.payerCustomerId,
+    selectedCustomerId: existingDraft?.selectedCustomerId ?? order.payerCustomerId,
     checkoutOpenOrderId: null,
     checkoutJustSavedOpenOrderId: null,
     checkoutJustCompletedOpenOrderId: null,

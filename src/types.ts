@@ -276,6 +276,7 @@ export type ClosedOrderHistoryItem = {
 export type DraftOrderRecord = {
   id: string;
   payerCustomerId: string | null;
+  selectedCustomerId: string | null;
   updatedAt: string;
   snapshot: OrderWorkflowState;
 };

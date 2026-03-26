@@ -49,6 +49,7 @@ type SerializeOrderWorkflowArgs = {
   now: Date;
   existingOrder?: DbOrder | null;
   existingScopes?: DbOrderScope[];
+  existingPickupAppointments?: DbPickupAppointment[];
   staffMembers: DbStaffMember[];
 };
 
@@ -229,6 +230,75 @@ function getDefaultAlterationAssigneeStaffId(
   return staffMembers.find((staffMember) => staffMember.primaryLocationId === pickupLocationId)?.id ?? null;
 }
 
+function getAlterationPickupSummary(items: OrderWorkflowState["alteration"]["items"]) {
+  return items.map((item) => `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim());
+}
+
+function getCustomPickupSummary(items: OrderWorkflowState["custom"]["items"]) {
+  return items.map((item) => item.selectedGarment ?? "Custom garment");
+}
+
+function getOrderWidePickupSummary(order: OrderWorkflowState) {
+  return [
+    ...getAlterationPickupSummary(order.alteration.items),
+    ...getCustomPickupSummary(order.custom.items),
+  ].join(", ");
+}
+
+function findExistingPickupAppointment(
+  existingPickupAppointments: DbPickupAppointment[],
+  scopeId: string,
+  scope: WorkflowMode,
+) {
+  const scopedAppointment = existingPickupAppointments.find((appointment) => appointment.scopeId === scopeId);
+  if (scopedAppointment) {
+    return scopedAppointment;
+  }
+
+  if (scope === "alteration") {
+    return existingPickupAppointments.find((appointment) => appointment.scopeId === null) ?? null;
+  }
+
+  return null;
+}
+
+function findPickupAppointmentForScope(
+  pickupAppointments: DbPickupAppointment[],
+  orderId: string,
+  scopeId: string,
+) {
+  return pickupAppointments.find((appointment) => (
+    appointment.orderId === orderId && (appointment.scopeId === scopeId || appointment.scopeId === null)
+  )) ?? null;
+}
+
+function getEditableItemId(orderId: string, workflow: WorkflowMode, lineId: string) {
+  const orderNumber = Number.parseInt(orderId.replace(/\D/g, ""), 10);
+  const lineNumberMatch = lineId.match(/(\d+)$/);
+  const lineNumber = lineNumberMatch ? Number.parseInt(lineNumberMatch[1], 10) : Number.NaN;
+
+  if (!Number.isNaN(orderNumber) && !Number.isNaN(lineNumber)) {
+    return orderNumber * 1000 + (workflow === "custom" ? 500 : 0) + lineNumber;
+  }
+
+  const fallbackSeed = `${orderId}:${workflow}:${lineId}`;
+  let hash = 0;
+  for (const character of fallbackSeed) {
+    hash = ((hash * 31) + character.charCodeAt(0)) % 1_000_000;
+  }
+
+  return 9_000_000 + hash;
+}
+
+function getMonogramValue(
+  components: DbOrderScopeLineComponent[],
+  position: "left" | "center" | "right",
+) {
+  return components.find((component) => (
+    component.kind === "monogram" && component.label.toLowerCase() === `monogram ${position}`
+  ))?.value ?? "";
+}
+
 export function serializeOrderWorkflowToRecords({
   order,
   customers,
@@ -238,6 +308,7 @@ export function serializeOrderWorkflowToRecords({
   now,
   existingOrder = null,
   existingScopes = [],
+  existingPickupAppointments = [],
   staffMembers,
 }: SerializeOrderWorkflowArgs): SerializedOrderWorkflow | null {
   const orderType = getOrderType(order);
@@ -255,7 +326,7 @@ export function serializeOrderWorkflowToRecords({
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
     createdAt: existingOrder?.createdAt ?? toDateTimeString(now),
-    status: "open",
+    status: existingOrder?.status ?? "open",
     operationalStatus: existingOrder?.operationalStatus ?? "accepted",
     holdUntilAllScopesReady: orderType === "mixed",
   };
@@ -293,13 +364,13 @@ export function serializeOrderWorkflowToRecords({
       id: scopeId,
       orderId,
       workflow: scope,
-      phase: "in_progress",
+      phase: existingScope?.phase ?? "in_progress",
       assigneeStaffId: scope === "alteration"
         ? existingScope?.assigneeStaffId ?? getDefaultAlterationAssigneeStaffId(staffMembers, locations, alterationPickup.pickupLocation)
         : null,
       promisedReadyAt,
-      readyAt: null,
-      pickedUpAt: null,
+      readyAt: existingScope?.readyAt ?? null,
+      pickedUpAt: existingScope?.pickedUpAt ?? null,
       eventId,
       appointmentOptional: scope === "custom",
     });
@@ -367,28 +438,28 @@ export function serializeOrderWorkflowToRecords({
       lineComponents.push(...components);
     });
 
-    const pickupSummary = scope === "alteration"
-      ? matchingAlterationItems.map((item) => `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim())
-      : matchingCustomItems.map((item) => item.selectedGarment ?? "Custom garment");
-
     if (scope === "alteration" && alterationPickup.pickupLocation) {
       const pickupDate = alterationPickup.pickupDate;
+      const existingPickupAppointment = findExistingPickupAppointment(existingPickupAppointments, scopeId, scope);
+      const pickupSummary = existingPickupAppointment?.scopeId === null
+        ? getOrderWidePickupSummary(order)
+        : getAlterationPickupSummary(matchingAlterationItems).join(", ");
 
       pickupAppointments.push({
-        id: `pickup-${orderId}-${scopeIndex + 1}`,
+        id: existingPickupAppointment?.id ?? `pickup-${orderId}-${scopeIndex + 1}`,
         orderId,
-        scopeId,
+        scopeId: existingPickupAppointment ? existingPickupAppointment.scopeId : scopeId,
         scopeLineId: null,
         customerId: order.payerCustomerId,
         scheduledFor: createDateTimeString(pickupDate, alterationPickup.pickupTime || "12:00"),
         locationId: createLocationId(alterationPickup.pickupLocation),
-        source: "prototype",
-        durationMinutes: 15,
+        source: existingPickupAppointment?.source ?? "prototype",
+        durationMinutes: existingPickupAppointment?.durationMinutes ?? 15,
         typeKey: "pickup",
-        statusKey: "scheduled",
-        summary: pickupSummary.join(", "),
-        confirmationStatus: null,
-        rush: false,
+        statusKey: existingPickupAppointment?.statusKey ?? "scheduled",
+        summary: pickupSummary,
+        confirmationStatus: existingPickupAppointment?.confirmationStatus ?? null,
+        rush: existingPickupAppointment?.rush ?? false,
       });
     }
   });
@@ -497,7 +568,7 @@ export function deserializeOrderWorkflowFromRecords(
           }));
 
         return {
-          id: Number.parseInt(line.id.replace(/\D/g, ""), 10) || Date.now(),
+          id: getEditableItemId(order.id, "alteration", line.id),
           garment: line.garmentLabel,
           modifiers,
           subtotal: line.unitPrice * line.quantity,
@@ -514,7 +585,7 @@ export function deserializeOrderWorkflowFromRecords(
           .sort((left, right) => left.sortOrder - right.sortOrder);
 
         return {
-          id: Number.parseInt(line.id.replace(/\D/g, ""), 10) || Date.now(),
+          id: getEditableItemId(order.id, "custom", line.id),
           gender: getCustomGenderForGarment(database, line.garmentLabel),
           wearerCustomerId: line.wearerCustomerId,
           selectedGarment: line.garmentLabel,
@@ -527,9 +598,9 @@ export function deserializeOrderWorkflowFromRecords(
           buttons: getComponentValue(components, "buttons", "") || null,
           lining: getComponentValue(components, "lining", "") || null,
           threads: getComponentValue(components, "threads", "") || null,
-          monogramLeft: getComponentValue(components, "monogram", ""),
-          monogramCenter: components.filter((component) => component.kind === "monogram")[1]?.value ?? "",
-          monogramRight: components.filter((component) => component.kind === "monogram")[2]?.value ?? "",
+          monogramLeft: getMonogramValue(components, "left"),
+          monogramCenter: getMonogramValue(components, "center"),
+          monogramRight: getMonogramValue(components, "right"),
           pocketType: getComponentValue(components, "pocket_type", "") || null,
           lapel: getComponentValue(components, "lapel", "") || null,
           canvas: getComponentValue(components, "canvas", "") || null,
@@ -544,9 +615,7 @@ export function deserializeOrderWorkflowFromRecords(
     : [];
 
   const getAlterationFulfillment = (scope: DbOrderScope | undefined): AlterationPickup => {
-    const pickupAppointment = scope
-      ? database.pickupAppointments.find((appointment) => appointment.orderId === order.id && appointment.scopeId === scope.id)
-      : null;
+    const pickupAppointment = scope ? findPickupAppointmentForScope(database.pickupAppointments, order.id, scope.id) : null;
     const pickupDate = pickupAppointment?.scheduledFor.slice(0, 10) ?? "";
     const pickupTime = pickupAppointment
       ? pickupAppointment.scheduledFor.slice(11, 16)

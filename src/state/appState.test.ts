@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { adaptCustomers } from "../db/adapters";
 import { createPrototypeDatabase } from "../db/runtime";
 import type { Customer } from "../types";
-import { appReducer, createInitialAppState } from "./appState";
+import { appReducer, createInitialAppState, createInitialOrderState } from "./appState";
 
 const jordan: Customer = {
   id: "C-1001",
@@ -201,6 +201,7 @@ describe("app state", () => {
     database.draftOrders = [{
       id: "draft-current",
       payerCustomerId: "C-1001",
+      selectedCustomerId: "C-1001",
       updatedAt: "2026-03-22T12:00:00.000Z",
       snapshot: {
         activeWorkflow: "alteration",
@@ -256,6 +257,102 @@ describe("app state", () => {
       garment: "Trousers",
       subtotal: 20,
     });
+  });
+
+  it("hydrates wearer-focused custom draft context even when the payer is still unset", () => {
+    const database = createPrototypeDatabase();
+    database.customers.push({
+      id: "C-1997",
+      name: "Morgan Lee",
+      phone: "555-0197",
+      email: "morgan@example.com",
+      address: "97 New St",
+      preferredLocationId: "loc_fifth_avenue",
+      lastVisitLabel: "New",
+      measurementsStatus: "missing",
+      marketingOptIn: true,
+      notes: "",
+      status: "active",
+    });
+    const snapshot = createInitialOrderState();
+    snapshot.activeWorkflow = "custom";
+    snapshot.custom.draft.wearerCustomerId = "C-1997";
+    snapshot.custom.draft.selectedGarment = "Dinner jacket";
+    snapshot.custom.draft.measurements = {
+      ...snapshot.custom.draft.measurements,
+      Chest: "40",
+    };
+
+    database.draftOrders = [{
+      id: "draft-current",
+      payerCustomerId: null,
+      selectedCustomerId: "C-1997",
+      updatedAt: "2026-03-22T12:00:00.000Z",
+      snapshot,
+    }];
+
+    const state = createInitialAppState({ database });
+
+    expect(state.selectedCustomerId).toBe("C-1997");
+    expect(state.order.payerCustomerId).toBeNull();
+    expect(state.order.custom.draft.wearerCustomerId).toBe("C-1997");
+    expect(state.order.custom.draft.selectedGarment).toBe("Dinner jacket");
+  });
+
+  it("saves and deletes measurements after restoring wearer-focused draft context", () => {
+    const database = createPrototypeDatabase();
+    database.customers.push({
+      id: "C-1997",
+      name: "Morgan Lee",
+      phone: "555-0197",
+      email: "morgan@example.com",
+      address: "97 New St",
+      preferredLocationId: "loc_fifth_avenue",
+      lastVisitLabel: "New",
+      measurementsStatus: "missing",
+      marketingOptIn: true,
+      notes: "",
+      status: "active",
+    });
+    const snapshot = createInitialOrderState();
+    snapshot.activeWorkflow = "custom";
+    snapshot.custom.draft.wearerCustomerId = "C-1997";
+    snapshot.custom.draft.selectedGarment = "Dinner jacket";
+    snapshot.custom.draft.measurements = {
+      ...snapshot.custom.draft.measurements,
+      Chest: "42",
+    };
+
+    database.draftOrders = [{
+      id: "draft-current",
+      payerCustomerId: null,
+      selectedCustomerId: "C-1997",
+      updatedAt: "2026-03-22T12:00:00.000Z",
+      snapshot,
+    }];
+
+    const restored = createInitialAppState({ database });
+    const saved = appReducer(restored, {
+      type: "saveMeasurementSet",
+      payload: { mode: "update", title: "Draft wearer set" },
+    });
+
+    const savedId = saved.order.custom.draft.linkedMeasurementSetId;
+    expect(savedId).toBeTruthy();
+    expect(saved.database.measurementSets.find((set) => set.id === savedId)).toMatchObject({
+      customerId: "C-1997",
+      label: "Version 1",
+      isDraft: false,
+      suggested: true,
+    });
+
+    const deleted = appReducer(saved, {
+      type: "deleteMeasurementSet",
+      measurementSetId: savedId!,
+    });
+
+    expect(deleted.order.custom.draft.linkedMeasurementSetId).toBeNull();
+    expect(deleted.order.custom.draft.measurements).toMatchObject({ Chest: "42" });
   });
 
   it("starts a new measurement workspace without creating a measurement record", () => {
