@@ -40,6 +40,19 @@ function getSeedDates(referenceDate: Date): RuntimeSeedDates {
   };
 }
 
+function syncCustomerMeasurementStatuses(
+  customers: PrototypeDatabase["customers"],
+  measurementSets: PrototypeDatabase["measurementSets"],
+) {
+  const customersWithMeasurements = new Set(measurementSets.map((set) => set.customerId));
+
+  return customers.map((customer) => (
+    customersWithMeasurements.has(customer.id)
+      ? { ...customer, measurementsStatus: "on_file" as const }
+      : customer
+  ));
+}
+
 export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDatabase {
   const seedDates = getSeedDates(referenceDate);
   const locations = createLocations();
@@ -51,6 +64,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const customers = createCustomers();
   const customerEvents = createCustomerEvents(seedDates);
   const measurementSets = createMeasurementSets();
+  const normalizedCustomers = syncCustomerMeasurementStatuses(customers, measurementSets);
   const orders = createOrders(seedDates);
   const orderScopes = createOrderScopes(seedDates);
   const orderScopeLines = createOrderScopeLines(orders, orderScopes, measurementSets);
@@ -69,7 +83,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     customGarmentDefinitions,
     styleOptionDefinitions,
     measurementFieldDefinitions,
-    customers,
+    customers: normalizedCustomers,
     customerEvents,
     measurementSets,
     draftOrders: [],

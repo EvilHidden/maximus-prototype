@@ -11,6 +11,14 @@ function getSeedAlterationAssignee(scopeId: string) {
     return null;
   }
 
+  const unassignedScopes = new Set([
+    "scope-9004-alteration",
+  ]);
+
+  if (unassignedScopes.has(scopeId)) {
+    return null;
+  }
+
   const ninaAssignments = new Set([
     "scope-9002-alteration",
     "scope-9005-alteration",
@@ -65,6 +73,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       orderType: "alteration",
       createdAt: toDateTimeString(withOffset(baseDate, -1, 16, 10)),
       status: "open",
+      operationalStatus: "accepted",
       holdUntilAllScopesReady: false,
     },
     {
@@ -235,6 +244,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       orderType: "alteration",
       createdAt: toDateTimeString(withOffset(baseDate, -2, 11, 15)),
       status: "open",
+      operationalStatus: "accepted",
       holdUntilAllScopesReady: false,
     },
     {
@@ -331,7 +341,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       id: "order-9024",
       displayId: "ORD-9024",
       payerCustomerId: "C-1325",
-      payerName: "Chloe Martin",
+      payerName: "Tessa Monroe",
       orderType: "mixed",
       createdAt: toDateTimeString(withOffset(baseDate, -4, 12, 15)),
       status: "open",

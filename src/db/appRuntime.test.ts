@@ -37,5 +37,29 @@ describe("app runtime", () => {
       pickupSchedules: expect.any(Array),
       displayId: expect.any(String),
     });
+
+    const maria = customers.find((customer) => customer.id === "C-1078");
+    expect(maria?.measurementsStatus).toBe("on_file");
+
+    const mariaMixedOrder = openOrders.find((order) => order.id === 8904);
+    expect(mariaMixedOrder?.lineItems).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          kind: "alteration",
+          garmentLabel: "Jacket",
+          components: expect.arrayContaining([
+            expect.objectContaining({ kind: "alteration_service", value: "Bicep" }),
+            expect.objectContaining({ kind: "alteration_service", value: "Lining replacement" }),
+          ]),
+        }),
+        expect.objectContaining({
+          kind: "custom",
+          components: expect.arrayContaining([
+            expect.objectContaining({ kind: "measurement_set", value: "Version 1" }),
+            expect.objectContaining({ kind: "fabric", value: "Ivory stretch wool" }),
+          ]),
+        }),
+      ]),
+    );
   });
 });
