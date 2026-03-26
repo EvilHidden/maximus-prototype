@@ -243,7 +243,7 @@ export function getOpenOrderPickupGroups(
     .filter((pickup) => (includePickedUp || !pickup.pickedUp) && (!scopes || scopes.includes(pickup.scope)))
     .reduce<OpenOrderPickupGroup[]>((groups, pickup) => {
       const pickupAlert = getPickupAlertState(pickup.pickupDate, pickup.pickupTime, pickup.readyForPickup, now);
-      const pickupSummary = getPickupStatusSummary(pickup);
+      const pickupSummary = getPickupStatusSummary(pickup, now);
       const key = `${pickup.scope}__${pickupSummary}__${pickupAlert.label}`;
       const existingGroup = groups.find((group) => group.key === key);
 
@@ -537,12 +537,12 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
   };
 }
 
-export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][number]) {
+export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][number], now = new Date()) {
   if (pickup.scope === "custom" && !pickup.pickupDate) {
     return getCustomFulfillmentSummary(pickup.eventType, pickup.eventDate, pickup.pickupLocation);
   }
 
-  const pickupSummary = formatOperationalPickupSchedule(pickup.pickupDate, pickup.pickupTime);
+  const pickupSummary = formatOperationalPickupSchedule(pickup.pickupDate, pickup.pickupTime, now);
   return `${pickupSummary ?? "Promised ready time not set"}${pickup.pickupLocation ? ` • ${pickup.pickupLocation}` : ""}`;
 }
 
