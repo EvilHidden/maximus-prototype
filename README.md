@@ -207,6 +207,39 @@ npm run start-topic -- "short topic name"
 npm run ship -- "Short PR title"
 ```
 
+## Cloudflare Pages demo deploy
+
+This repo can be deployed to Cloudflare Pages as a static Vite app with no code changes.
+
+Recommended Pages settings:
+
+- Framework preset
+  - `Vite`
+- Production branch
+  - `main`
+- Build command
+  - `npm run build`
+- Build output directory
+  - `dist`
+
+This repo also includes [`public/_redirects`](/Users/daniel/Dev%20Work/maximus/public/_redirects), which provides a single-page-app fallback:
+
+- `/* /index.html 200`
+
+That rule is harmless for the current app and keeps the deploy safe if client-side routes are introduced later.
+
+Important demo note:
+
+- the prototype still runs with browser-local state
+- each viewer gets their own isolated copy of the seeded demo data
+- changes made by one viewer are not shared with anyone else
+
+For a semi-private client demo, the easiest setup is:
+
+- deploy to Cloudflare Pages
+- attach a custom subdomain if you want a cleaner client URL
+- protect the site with Cloudflare Access if you do not want an open public link
+
 ## Build checks
 
 This repo includes a lightweight GitHub Actions build check that runs on pushes to `main` and on pull requests. The goal is not enterprise CI, just a simple guardrail so collaborative changes fail fast when the app stops building.
