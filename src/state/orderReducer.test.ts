@@ -422,7 +422,7 @@ describe("order reducer", () => {
       pickedUpAt: null,
     });
 
-    const updatedLine = state.database.orderScopeLines.find((line) => line.scopeId === "order-9003-custom" && line.garmentLabel === "Dinner jacket");
+    const updatedLine = state.database.orderScopeLines.find((line) => line.scopeId === "order-9003-custom" && line.garmentLabel === "Tuxedo jacket");
     expect(updatedLine).toBeTruthy();
     const updatedFabric = state.database.orderScopeLineComponents.find((component) => component.lineId === updatedLine!.id && component.kind === "fabric");
     expect(updatedFabric?.value).toBe("Ivory Barathea");
