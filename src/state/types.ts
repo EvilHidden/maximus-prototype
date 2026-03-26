@@ -71,8 +71,8 @@ export type UpdateAppointmentPayload = {
 };
 
 export type SaveMeasurementSetPayload = {
-  mode: "draft" | "saved";
-  title: string;
+  mode: "update" | "copy";
+  title?: string;
 };
 
 export type AppAction =
@@ -101,7 +101,7 @@ export type AppAction =
   | { type: "confirmAppointment"; appointmentId: string }
   | { type: "completeAppointment"; appointmentId: string }
   | { type: "cancelAppointment"; appointmentId: string }
-  | { type: "createDraftMeasurementSet" }
+  | { type: "startNewMeasurementSet" }
   | { type: "saveMeasurementSet"; payload: SaveMeasurementSetPayload }
   | { type: "deleteMeasurementSet"; measurementSetId: string }
   | { type: "selectAlterationGarment"; garment: string }

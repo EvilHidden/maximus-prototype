@@ -263,7 +263,7 @@ describe("app state", () => {
     });
   });
 
-  it("creates a draft measurement set through db mutations and updates customer status", () => {
+  it("starts a new measurement workspace without creating a measurement record", () => {
     const database = createPrototypeDatabase();
     database.customers.push({
       id: "C-1999",
@@ -281,15 +281,14 @@ describe("app state", () => {
     const state = createInitialAppState({ database });
     const targetCustomer = database.customers.find((customer) => customer.id === "C-1999")!;
     state.selectedCustomerId = targetCustomer.id;
+    state.order.custom.draft.linkedMeasurementSetId = "SET-C1001-V1";
+    state.order.custom.draft.measurements = { Chest: "38" };
 
-    const next = appReducer(state, { type: "createDraftMeasurementSet" });
+    const next = appReducer(state, { type: "startNewMeasurementSet" });
 
-    expect(next.order.custom.draft.linkedMeasurementSetId).toMatch(/^SET-.*-DRAFT-/);
-    expect(next.database.measurementSets.find((set) => set.id === next.order.custom.draft.linkedMeasurementSetId)).toMatchObject({
-      customerId: targetCustomer.id,
-      label: "Draft",
-      isDraft: true,
-    });
+    expect(next.order.custom.draft.linkedMeasurementSetId).toBeNull();
+    expect(next.order.custom.draft.measurements.Chest).toBe("");
+    expect(next.database.measurementSets).toHaveLength(database.measurementSets.length);
     expect(adaptCustomers(next.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("missing");
   });
 
@@ -311,11 +310,10 @@ describe("app state", () => {
     const state = createInitialAppState({ database });
     const targetCustomer = database.customers.find((customer) => customer.id === "C-1998")!;
     state.selectedCustomerId = targetCustomer.id;
-    const withDraft = appReducer(state, { type: "createDraftMeasurementSet" });
-    withDraft.order.custom.draft.measurements = { Chest: "41" };
-    const saved = appReducer(withDraft, {
+    state.order.custom.draft.measurements = { Chest: "41" };
+    const saved = appReducer(state, {
       type: "saveMeasurementSet",
-      payload: { mode: "saved", title: "Wedding fit" },
+      payload: { mode: "update", title: "Wedding fit" },
     });
 
     const savedId = saved.order.custom.draft.linkedMeasurementSetId;
@@ -331,13 +329,8 @@ describe("app state", () => {
       measurementSetId: savedId!,
     });
 
-    expect(deleted.order.custom.draft.linkedMeasurementSetId).toBeTruthy();
-    expect(deleted.database.measurementSets.find((set) => set.id === deleted.order.custom.draft.linkedMeasurementSetId)).toMatchObject({
-      customerId: targetCustomer.id,
-      label: "Draft",
-      isDraft: true,
-      values: { Chest: "41" },
-    });
+    expect(deleted.order.custom.draft.linkedMeasurementSetId).toBeNull();
+    expect(deleted.order.custom.draft.measurements).toMatchObject({ Chest: "41" });
     expect(adaptCustomers(deleted.database).find((customer) => customer.id === targetCustomer.id)?.measurementsStatus).toBe("missing");
   });
 

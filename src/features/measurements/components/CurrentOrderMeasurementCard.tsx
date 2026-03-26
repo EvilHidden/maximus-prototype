@@ -16,8 +16,8 @@ type CurrentOrderMeasurementCardProps = {
   hasEnteredMeasurements: boolean;
   orderContext: MeasurementOrderContext | null;
   hasCheckoutPath: boolean;
-  onOpenSaveDraft: () => void;
-  onOpenSaveSet: () => void;
+  onSaveCurrentSet: () => void;
+  onSaveAsNewSet: () => void;
   onBackToOrder: () => void;
   checkoutDisabledReason?: string;
   onCheckout: () => void;
@@ -29,85 +29,98 @@ export function CurrentOrderMeasurementCard({
   hasEnteredMeasurements,
   orderContext,
   hasCheckoutPath,
-  onOpenSaveDraft,
-  onOpenSaveSet,
+  onSaveCurrentSet,
+  onSaveAsNewSet,
   onBackToOrder,
   checkoutDisabledReason,
   onCheckout,
 }: CurrentOrderMeasurementCardProps) {
+  const currentSetTitle = (() => {
+    if (activeSetDisplay) {
+      return `${activeSetDisplay.title} • ${activeSetDisplay.version}`;
+    }
+    if (hasEnteredMeasurements) {
+      return "Unsaved measurements";
+    }
+    return "No set selected";
+  })();
+
+  const currentSetDetail = (() => {
+    if (activeSetDisplay) {
+      return activeSetDisplay.subline ?? "Saved set";
+    }
+    if (hasEnteredMeasurements) {
+      return customer ? "These edits are only in the current workspace until you save them." : "Choose a customer before saving this set.";
+    }
+    return customer ? "Choose a saved set or start entering measurements." : "Choose a customer to load or save measurement sets.";
+  })();
+
+  const primarySaveLabel = activeSetDisplay ? "Update set" : "Save set";
+
   return (
     <div>
       <div className="mb-4">
-        <div className="app-text-overline">Use with order</div>
-        <div className="app-text-value mt-1">{orderContext ? "Current item" : "No active order item"}</div>
+        <div className="app-text-overline">Active order</div>
+        <div className="app-text-value mt-1">{orderContext ? "Current item" : "No active order"}</div>
       </div>
 
-      <div className="mb-4 border-t border-b border-[var(--app-border)]/32 py-3">
+      <div className="mb-5 border-t border-b border-[var(--app-border)]/32 py-3">
         {orderContext ? (
           <>
             <div className="app-text-overline">{orderContext.eyebrow}</div>
             <div className="app-text-strong mt-1">{orderContext.title}</div>
             <div className="app-text-caption mt-1">{orderContext.detail}</div>
-            <div className="app-text-caption mt-2">{orderContext.note}</div>
           </>
         ) : (
           <>
-            <div className="app-text-overline">Measurement lookup</div>
-            <div className="app-text-strong mt-1">Not tied to an order</div>
-            <div className="app-text-caption mt-1">You can review saved sets here without building an order.</div>
+            <div className="app-text-overline">Current set</div>
+            <div className="app-text-strong mt-1">{currentSetTitle}</div>
+            <div className="app-text-caption mt-1">{currentSetDetail}</div>
           </>
         )}
 
-        <div className="mt-3 border-t border-[var(--app-border)]/38 pt-3">
-          <div className="app-text-overline">Saved status</div>
-          {activeSetDisplay ? (
-            <div className="mt-1">
-              <div className="app-text-body">
-                {activeSetDisplay.title} • {activeSetDisplay.version}
-              </div>
-              {activeSetDisplay.subline ? <div className="app-text-caption mt-1">{activeSetDisplay.subline}</div> : null}
-            </div>
-          ) : hasEnteredMeasurements ? (
-            <div className="app-text-body-muted mt-1">New set not saved yet.</div>
-          ) : (
-            <div className="app-text-body-muted mt-1">No saved set linked yet.</div>
-          )}
-        </div>
+        {orderContext ? (
+          <div className="mt-3 border-t border-[var(--app-border)]/38 pt-3">
+            <div className="app-text-overline">Current set</div>
+            <div className="app-text-strong mt-1">{currentSetTitle}</div>
+            <div className="app-text-caption mt-1">{currentSetDetail}</div>
+          </div>
+        ) : null}
       </div>
 
-      <div className="mb-2 app-text-overline">Save measurements</div>
-      <div className="grid gap-2 sm:grid-cols-2">
+      <div className="mb-2 app-text-overline">Save current measurements</div>
+      <div className="space-y-2">
         <ActionButton
-          tone="secondary"
-          className="flex min-h-10 items-center justify-center gap-2 px-3 py-2 text-center"
-          onClick={onOpenSaveDraft}
-          disabled={!customer}
-        >
-          <Save className="h-4 w-4" />
-          <span>Save working draft</span>
-        </ActionButton>
-        <ActionButton
-          tone="secondary"
-          className="flex min-h-10 items-center justify-center gap-2 px-3 py-2 text-center"
-          onClick={onOpenSaveSet}
+          tone="primary"
+          className="flex min-h-11 w-full items-center justify-center gap-2 px-3 py-2 text-center"
+          onClick={onSaveCurrentSet}
           disabled={!customer}
         >
           <Tag className="h-4 w-4" />
-          <span>Save to customer</span>
+          <span>{primarySaveLabel}</span>
+        </ActionButton>
+        <ActionButton
+          tone="secondary"
+          className="flex min-h-10 w-full items-center justify-center gap-2 px-3 py-2 text-center"
+          onClick={onSaveAsNewSet}
+          disabled={!customer}
+        >
+          <Save className="h-4 w-4" />
+          <span>Save as new set</span>
         </ActionButton>
       </div>
 
-      {orderContext ? <div className="mb-2 mt-4 app-text-overline">Order actions</div> : null}
+      {orderContext ? <div className="mb-2 mt-5 app-text-overline">Order actions</div> : null}
       {orderContext ? (
-        <div className="grid gap-2 sm:grid-cols-2">
-          <ActionButton tone="secondary" className="flex min-h-10 items-center justify-center gap-2 px-3 py-2 text-center" onClick={onBackToOrder}>
+        <div className="space-y-2">
+          <ActionButton tone="secondary" className="flex min-h-10 w-full items-center justify-center gap-2 px-3 py-2 text-center" onClick={onBackToOrder}>
             <ArrowLeft className="h-4 w-4" />
             <span>Back to order</span>
           </ActionButton>
           {hasCheckoutPath ? (
             <ActionButton
               tone="primary"
-              className="flex min-h-10 items-center justify-center gap-2 px-3 py-2 text-center"
+              className="flex min-h-10 w-full items-center justify-center gap-2 px-3 py-2 text-center"
               onClick={onCheckout}
               disabled={Boolean(checkoutDisabledReason)}
               title={checkoutDisabledReason}

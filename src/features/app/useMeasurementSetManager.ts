@@ -11,12 +11,12 @@ export function useMeasurementSetManager({
   measurementSets,
   dispatch,
 }: UseMeasurementSetManagerArgs) {
-  const saveMeasurements = useCallback((mode: "draft" | "saved", title: string) => {
+  const saveMeasurements = useCallback((mode: "update" | "copy", title?: string) => {
     dispatch({ type: "saveMeasurementSet", payload: { mode, title } });
   }, [dispatch]);
 
-  const createDraftMeasurements = useCallback(() => {
-    dispatch({ type: "createDraftMeasurementSet" });
+  const startNewMeasurementSet = useCallback(() => {
+    dispatch({ type: "startNewMeasurementSet" });
   }, [dispatch]);
 
   const deleteMeasurementSet = useCallback((measurementSetId: string) => {
@@ -26,7 +26,7 @@ export function useMeasurementSetManager({
   return {
     measurementSets,
     saveMeasurements,
-    createDraftMeasurements,
+    startNewMeasurementSet,
     deleteMeasurementSet,
   };
 }

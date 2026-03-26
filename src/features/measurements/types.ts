@@ -6,7 +6,6 @@ export type MeasurementSetDisplay = {
   version: string;
   status: string | null;
   subline: string | null;
-  isDraft: boolean;
 };
 
 export type MeasurementStatusModel = {
