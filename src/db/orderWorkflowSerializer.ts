@@ -1,5 +1,7 @@
 import type {
+  AlterationPickup,
   Customer,
+  CustomOccasion,
   CustomGarmentDraft,
   OpenOrderPaymentStatus,
   OrderWorkflowState,
@@ -265,22 +267,23 @@ export function serializeOrderWorkflowToRecords({
   const pickupAppointments: DbPickupAppointment[] = [];
 
   getRequiredPickupScopes(order).forEach((scope, scopeIndex) => {
-    const schedule = order.fulfillment[scope];
+    const alterationPickup = order.fulfillment.alteration;
+    const customOccasion = order.fulfillment.custom;
     const scopeId = `${orderId}-${scope}`;
-    const eventId = scope === "custom" && schedule.eventType !== "none" && schedule.eventDate
+    const eventId = scope === "custom" && customOccasion.eventType !== "none" && customOccasion.eventDate
       ? `event-${orderId}-${scope}`
       : null;
     const promisedReadyAt = scope === "alteration"
-      ? (schedule.pickupDate ? createDateTimeString(schedule.pickupDate, schedule.pickupTime || "12:00") : null)
-      : (schedule.eventDate ? createDateTimeString(schedule.eventDate, "12:00") : null);
+      ? (alterationPickup.pickupDate ? createDateTimeString(alterationPickup.pickupDate, alterationPickup.pickupTime || "12:00") : null)
+      : (customOccasion.eventDate ? createDateTimeString(customOccasion.eventDate, "12:00") : null);
 
     if (eventId && order.payerCustomerId) {
       customerEvents.push({
         id: eventId,
         customerId: order.payerCustomerId,
-        type: schedule.eventType,
-        title: `${schedule.eventType} deadline for ${displayId}`,
-        eventDate: schedule.eventDate,
+        type: customOccasion.eventType,
+        title: `${customOccasion.eventType} deadline for ${displayId}`,
+        eventDate: customOccasion.eventDate,
       });
     }
 
@@ -292,7 +295,7 @@ export function serializeOrderWorkflowToRecords({
       workflow: scope,
       phase: "in_progress",
       assigneeStaffId: scope === "alteration"
-        ? existingScope?.assigneeStaffId ?? getDefaultAlterationAssigneeStaffId(staffMembers, locations, schedule.pickupLocation)
+        ? existingScope?.assigneeStaffId ?? getDefaultAlterationAssigneeStaffId(staffMembers, locations, alterationPickup.pickupLocation)
         : null,
       promisedReadyAt,
       readyAt: null,
@@ -368,10 +371,8 @@ export function serializeOrderWorkflowToRecords({
       ? matchingAlterationItems.map((item) => `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim())
       : matchingCustomItems.map((item) => item.selectedGarment ?? "Custom garment");
 
-    if (schedule.pickupLocation) {
-      const pickupDate = scope === "alteration"
-        ? schedule.pickupDate
-        : (schedule.eventDate || orderRecord.createdAt.slice(0, 10));
+    if (scope === "alteration" && alterationPickup.pickupLocation) {
+      const pickupDate = alterationPickup.pickupDate;
 
       pickupAppointments.push({
         id: `pickup-${orderId}-${scopeIndex + 1}`,
@@ -379,8 +380,8 @@ export function serializeOrderWorkflowToRecords({
         scopeId,
         scopeLineId: null,
         customerId: order.payerCustomerId,
-        scheduledFor: createDateTimeString(pickupDate, scope === "alteration" ? schedule.pickupTime || "12:00" : "12:00"),
-        locationId: createLocationId(schedule.pickupLocation),
+        scheduledFor: createDateTimeString(pickupDate, alterationPickup.pickupTime || "12:00"),
+        locationId: createLocationId(alterationPickup.pickupLocation),
         source: "prototype",
         durationMinutes: 15,
         typeKey: "pickup",
@@ -542,11 +543,10 @@ export function deserializeOrderWorkflowFromRecords(
       })
     : [];
 
-  const getFulfillmentForScope = (scope: DbOrderScope | undefined, workflow: WorkflowMode) => {
+  const getAlterationFulfillment = (scope: DbOrderScope | undefined): AlterationPickup => {
     const pickupAppointment = scope
       ? database.pickupAppointments.find((appointment) => appointment.orderId === order.id && appointment.scopeId === scope.id)
       : null;
-    const event = scope?.eventId ? database.customerEvents.find((candidate) => candidate.id === scope.eventId) : null;
     const pickupDate = pickupAppointment?.scheduledFor.slice(0, 10) ?? "";
     const pickupTime = pickupAppointment
       ? pickupAppointment.scheduledFor.slice(11, 16)
@@ -562,8 +562,14 @@ export function deserializeOrderWorkflowFromRecords(
       pickupDate,
       pickupTime,
       pickupLocation: pickupLocation as PickupLocation | "",
-      eventType: workflow === "custom" ? event?.type ?? "none" : "none",
-      eventDate: workflow === "custom" ? event?.eventDate ?? "" : "",
+    };
+  };
+
+  const getCustomOccasion = (scope: DbOrderScope | undefined): CustomOccasion => {
+    const event = scope?.eventId ? database.customerEvents.find((candidate) => candidate.id === scope.eventId) : null;
+    return {
+      eventType: event?.type ?? "none",
+      eventDate: event?.eventDate ?? "",
     };
   };
 
@@ -582,8 +588,8 @@ export function deserializeOrderWorkflowFromRecords(
       items: customItems,
     },
     fulfillment: {
-      alteration: getFulfillmentForScope(alterationScope, "alteration"),
-      custom: getFulfillmentForScope(customScope, "custom"),
+      alteration: getAlterationFulfillment(alterationScope),
+      custom: getCustomOccasion(customScope),
     },
   };
 }

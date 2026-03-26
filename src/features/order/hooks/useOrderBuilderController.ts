@@ -100,9 +100,7 @@ export function useOrderBuilderController({
       : summaryGuardrail.missingCustomer
         ? "Choose the customer paying for this order before you continue."
         : summaryGuardrail.missingPickup
-          ? orderType === "mixed"
-            ? "Set both pickup times before you continue."
-            : "Set the pickup date, time, and location before you continue."
+          ? "Set the alteration pickup before you continue."
           : summaryGuardrail.customIncomplete
             ? "Finish the custom garment configuration before continuing to checkout."
             : undefined;

@@ -240,13 +240,8 @@ describe("app state", () => {
             pickupDate: "2026-03-24",
             pickupTime: "15:00",
             pickupLocation: "Queens",
-            eventType: "none",
-            eventDate: "",
           },
           custom: {
-            pickupDate: "",
-            pickupTime: "",
-            pickupLocation: "",
             eventType: "none",
             eventDate: "",
           },

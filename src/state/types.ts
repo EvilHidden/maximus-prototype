@@ -1,9 +1,10 @@
 import type {
+  AlterationPickup,
   AppointmentConfirmationStatus,
   AppointmentTypeKey,
   AlterationService,
   Customer,
-  CustomOrderEventType,
+  CustomOccasion,
   CustomGarmentGender,
   OpenOrder,
   OrderWorkflowState,
@@ -31,14 +32,8 @@ export type SetAlterationItemPayload = {
   modifiers?: AlterationService[];
 };
 
-export type SetPickupSchedulePayload = {
-  scope: WorkflowMode;
-  pickupDate: string;
-  pickupTime: string;
-  pickupLocation: PickupLocation | "";
-  eventType: CustomOrderEventType;
-  eventDate: string;
-};
+export type SetAlterationPickupPayload = AlterationPickup;
+export type SetCustomOccasionPayload = CustomOccasion;
 
 export type AddCustomItemPayload = {
   wearerName: string | null;
@@ -109,7 +104,8 @@ export type AppAction =
   | { type: "addAlterationItem" }
   | { type: "setAlterationItem"; payload: SetAlterationItemPayload }
   | { type: "removeAlterationItem"; itemId: number }
-  | { type: "setPickupSchedule"; payload: SetPickupSchedulePayload }
+  | { type: "setAlterationPickup"; payload: SetAlterationPickupPayload }
+  | { type: "setCustomOccasion"; payload: SetCustomOccasionPayload }
   | { type: "selectCustomGender"; gender: CustomGarmentGender | null }
   | { type: "selectCustomWearer"; customerId: string | null }
   | { type: "selectCustomGarment"; garment: string | null }

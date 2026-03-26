@@ -550,7 +550,7 @@ export function getPickupAlertState(dateValue: string, timeValue: string, readyF
 
 export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][number], now = new Date()) {
   if (pickup.scope === "custom" && !pickup.pickupDate) {
-    return getCustomFulfillmentSummary(pickup.eventType, pickup.eventDate, pickup.pickupLocation);
+    return getCustomFulfillmentSummary(pickup.eventType, pickup.eventDate);
   }
 
   const pickupSummary = formatOperationalPickupSchedule(pickup.pickupDate, pickup.pickupTime, now);

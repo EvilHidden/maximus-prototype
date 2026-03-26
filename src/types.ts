@@ -8,7 +8,7 @@ export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
 export type OpenOrderPaymentStatus = "due_later" | "ready_to_collect" | "pending" | "captured";
 export type OpenOrderOperationalStatus = "accepted" | "in_progress" | "partially_ready" | "ready_for_pickup";
-export type CustomOrderEventType = "none" | "wedding" | "prom";
+export type CustomOrderEventType = "none" | "wedding" | "prom" | "anniversary";
 export type AppointmentSource = "square" | "manual" | "prototype";
 export type ServiceAppointmentType =
   | "alteration_fitting"
@@ -25,10 +25,13 @@ export type AppointmentConfirmationStatus = "confirmed" | "unconfirmed";
 export type AppointmentPrepFlag = "needs_measurements";
 export type AppointmentProfileFlag = "missing_phone" | "missing_email" | "missing_address" | "needs_marketing_opt_in";
 export type AppointmentContextFlag = AppointmentConfirmationStatus | "rush";
-export type PickupSchedule = {
+export type AlterationPickup = {
   pickupDate: string;
   pickupTime: string;
   pickupLocation: PickupLocation | "";
+};
+
+export type CustomOccasion = {
   eventType: CustomOrderEventType;
   eventDate: string;
 };
@@ -39,7 +42,7 @@ export type StaffMember = {
   primaryLocation: PickupLocation;
 };
 
-export type OpenOrderPickup = PickupSchedule & {
+export type OpenOrderPickup = AlterationPickup & CustomOccasion & {
   id: string;
   scope: WorkflowMode;
   label: string;
@@ -219,8 +222,8 @@ export type OrderWorkflowState = {
   alteration: AlterationBuilderState;
   custom: CustomBuilderState;
   fulfillment: {
-    alteration: PickupSchedule;
-    custom: PickupSchedule;
+    alteration: AlterationPickup;
+    custom: CustomOccasion;
   };
 };
 

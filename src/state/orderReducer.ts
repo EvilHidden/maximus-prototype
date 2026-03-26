@@ -236,17 +236,29 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           },
         },
       };
-    case "setPickupSchedule":
+    case "setAlterationPickup":
       return {
         ...state,
         order: {
           ...state.order,
           fulfillment: {
             ...state.order.fulfillment,
-            [action.payload.scope]: {
+            alteration: {
               pickupDate: action.payload.pickupDate,
               pickupTime: action.payload.pickupTime,
               pickupLocation: action.payload.pickupLocation,
+            },
+          },
+        },
+      };
+    case "setCustomOccasion":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          fulfillment: {
+            ...state.order.fulfillment,
+            custom: {
               eventType: action.payload.eventType,
               eventDate: action.payload.eventDate,
             },

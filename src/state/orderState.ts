@@ -51,13 +51,8 @@ export function createInitialOrderState(): OrderWorkflowState {
         pickupDate: "",
         pickupTime: "",
         pickupLocation: "",
-        eventType: "none",
-        eventDate: "",
       },
       custom: {
-        pickupDate: "",
-        pickupTime: "",
-        pickupLocation: "",
         eventType: "none",
         eventDate: "",
       },
