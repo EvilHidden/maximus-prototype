@@ -4,9 +4,7 @@ import { ActionButton, EmptyState, SurfaceHeader, cx } from "../../../../compone
 import {
   formatOpenOrderCreatedAt,
   getInHouseOpenOrderPickups,
-  getOpenOrderMixedStatusSummary,
   getOpenOrderPickupGroups,
-  getOpenOrderTypeLabel,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
   getOperatorQueueStage,
@@ -38,6 +36,18 @@ const stageMeta: Array<{
     subtitle: "Work already underway in-house.",
   },
 ];
+
+function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
+  if (orderType === "mixed") {
+    return "Alteration + Custom Garment";
+  }
+
+  if (orderType === "custom") {
+    return "Custom Garment";
+  }
+
+  return "Alteration";
+}
 
 function OperatorQueueSummary({
   stageCounts,
@@ -201,7 +211,6 @@ function OperatorQueueRow({
   onOpenOrderCheckout: (openOrderId: number) => void;
 }) {
   const stage = getOperatorQueueStage(openOrder);
-  const mixedStatusSummary = getOpenOrderMixedStatusSummary(openOrder);
   const pickupGroups = getOpenOrderPickupGroups(openOrder, { scopes: ["alteration"] });
   const stageStatusDisplay = getOperatorStageStatusDisplay(stage);
 
@@ -226,13 +235,8 @@ function OperatorQueueRow({
         <div className="min-w-0">
           <div className="app-text-overline lg:hidden">Customer</div>
           <div className="app-text-value mt-1 lg:mt-0">{openOrder.payerName}</div>
-          <div className="app-text-caption mt-1">
-            {getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}
-          </div>
-          <div className="app-text-caption mt-2 line-clamp-2">{openOrder.itemSummary.join(", ")}</div>
-          {mixedStatusSummary ? (
-            <div className="app-text-caption mt-2">{mixedStatusSummary.secondary.replace(": ", " • ")}</div>
-          ) : null}
+          <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
+          <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
         </div>
 
         <div className="min-w-0">
