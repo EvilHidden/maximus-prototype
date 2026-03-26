@@ -102,7 +102,7 @@ export function useOrderBuilderController({
         : summaryGuardrail.missingPickup
           ? "Set the alteration pickup before you continue."
           : summaryGuardrail.customIncomplete
-            ? "Finish the custom garment configuration before continuing to checkout."
+            ? "Finish the custom garment configuration before continuing to review."
             : undefined;
   const customAddDisabledReason = !order.custom.draft.gender
     ? "Select a gender before building the custom garment."

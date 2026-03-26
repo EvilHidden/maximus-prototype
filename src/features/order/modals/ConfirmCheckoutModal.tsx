@@ -18,8 +18,8 @@ export function ConfirmCheckoutModal({
 }: ConfirmCheckoutModalProps) {
   return (
     <ModalShell
-      title="Checkout"
-      subtitle={`Take ${openOrder.payerName}'s payment in Square before marking it collected here.`}
+      title="Take payment"
+      subtitle={`Take ${openOrder.payerName}'s payment in Square before marking it collected on the order.`}
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[500px]"
@@ -44,7 +44,11 @@ export function ConfirmCheckoutModal({
         <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/18 px-3 py-3">
           <div className="app-text-overline">Amount due now</div>
           <div className="mt-1 app-text-value">{formatCheckoutCurrency(amountDue)}</div>
-          <div className="app-text-caption mt-1">{openOrder.itemSummary.join(", ")}</div>
+          <div className="app-text-caption mt-1">
+            {amountDue < openOrder.balanceDue
+              ? `This payment covers what is ready today. ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays with the unfinished work.`
+              : openOrder.itemSummary.join(", ")}
+          </div>
         </div>
         <div className="app-text-body">
           1. Go to the Square terminal and take the customer's payment.

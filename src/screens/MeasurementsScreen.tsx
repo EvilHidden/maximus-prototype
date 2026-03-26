@@ -156,13 +156,13 @@ export function MeasurementsScreen({
   })();
   const checkoutDisabledReason =
     orderType === null
-      ? "Add at least one item to the order before going to checkout."
+      ? "Add at least one item to the order before reviewing it."
       : summaryGuardrail.missingCustomer
-        ? "Choose the customer paying for this order before checkout."
+        ? "Choose the customer paying for this order before review."
         : summaryGuardrail.missingPickup
-          ? "Set the pickup details before going to checkout."
+          ? "Set the pickup details before reviewing the order."
           : summaryGuardrail.customIncomplete
-            ? "Finish the custom garment setup before going to checkout."
+            ? "Finish the custom garment setup before reviewing the order."
             : undefined;
 
   const setActiveMeasurementValue = (nextInches: number, nextFraction: number) => {

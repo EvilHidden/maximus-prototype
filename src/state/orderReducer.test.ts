@@ -193,7 +193,7 @@ describe("order reducer", () => {
     });
   });
 
-  it("starts work on an accepted order without leaving checkout", () => {
+  it("starts work on an accepted order without leaving the focused order flow", () => {
     const state = createInitialAppState();
     state.order.activeWorkflow = "alteration";
     state.order.payerCustomerId = "C-1042";
@@ -254,7 +254,7 @@ describe("order reducer", () => {
     });
   });
 
-  it("records checkout in one step and keeps the order anchored in checkout", () => {
+  it("records payment in one step and keeps the order anchored in the focused order flow", () => {
     const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
     const state = appReducer(createInitialAppState({ database }), { type: "openCheckoutForOpenOrder", openOrderId: 9005 });
 

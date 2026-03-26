@@ -471,4 +471,24 @@ describe("app state", () => {
       statusKey: "scheduled",
     });
   });
+
+  it("opens an order into the dedicated details screen", () => {
+    const state = createInitialAppState();
+
+    const next = appReducer(state, { type: "openOrderDetails", openOrderId: 9003 });
+
+    expect(next.screen).toBe("orderDetails");
+    expect(next.checkoutOpenOrderId).toBe(9003);
+    expect(next.checkoutJustSavedOpenOrderId).toBeNull();
+    expect(next.checkoutJustCompletedOpenOrderId).toBeNull();
+  });
+
+  it("clears the focused open order when leaving the details flow through nav", () => {
+    const state = appReducer(createInitialAppState(), { type: "openOrderDetails", openOrderId: 9003 });
+
+    const next = appReducer(state, { type: "setScreen", screen: "openOrders" });
+
+    expect(next.screen).toBe("openOrders");
+    expect(next.checkoutOpenOrderId).toBeNull();
+  });
 });

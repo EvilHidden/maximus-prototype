@@ -75,6 +75,7 @@ export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "startOrderForCustomer"; customerId: string }
   | { type: "openCheckoutForDraft" }
+  | { type: "openOrderDetails"; openOrderId: number }
   | { type: "openCheckoutForOpenOrder"; openOrderId: number }
   | { type: "openOrderForEdit"; openOrderId: number }
   | { type: "setCustomer"; customerId: string | null }

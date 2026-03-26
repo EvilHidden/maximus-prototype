@@ -10,7 +10,7 @@ type CheckoutEmptyStateProps = {
 };
 
 export function CheckoutEmptyState({
-  title = "Checkout",
+  title = "Review order",
   subtitle = "Start an order first, then come back here to take payment.",
   actionLabel = "New order",
   actionIcon: ActionIcon = ClipboardList,
@@ -23,10 +23,10 @@ export function CheckoutEmptyState({
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
-            <div className="app-text-overline">Checkout</div>
+            <div className="app-text-overline">Review order</div>
             <div className="mt-1 app-text-value">No order in progress</div>
             <div className="app-text-caption mt-1 max-w-[36rem]">
-              Checkout is available after you start an order, add the work, and set the pickup timing.
+              Review is available after you start an order, add the work, and set the pickup timing.
             </div>
           </div>
 

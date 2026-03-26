@@ -126,7 +126,7 @@ export function CurrentOrderMeasurementCard({
               title={checkoutDisabledReason}
             >
               <ArrowRight className="h-4 w-4" />
-              <span>Go to checkout</span>
+              <span>Review order</span>
             </ActionButton>
           ) : null}
         </div>

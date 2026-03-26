@@ -317,12 +317,12 @@ function OrdersSectionHeader({
 function AllOrdersRow({
   openOrder,
   onRequestMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
   variant = "default",
 }: {
   openOrder: OpenOrder;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
   variant?: "default" | "ready" | "factory";
 }) {
   const timeline = getOrderTimelineSummary(openOrder);
@@ -341,11 +341,11 @@ function AllOrdersRow({
       className={rowGridClassName}
       role="button"
       tabIndex={0}
-      onClick={() => onOpenOrderCheckout(openOrder.id)}
+      onClick={() => onOpenOrderDetails(openOrder.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpenOrderCheckout(openOrder.id);
+          onOpenOrderDetails(openOrder.id);
         }
       }}
     >
@@ -673,7 +673,7 @@ export function OpenOrdersBody({
   onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
 }: {
   activeView: OrdersView;
   activeQueue: OrdersQueueKey;
@@ -689,7 +689,7 @@ export function OpenOrdersBody({
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const [markReadyConfirmation, setMarkReadyConfirmation] = useState<{
     openOrder: OpenOrder;
@@ -740,7 +740,7 @@ export function OpenOrdersBody({
                     <AllOrdersRow
                       openOrder={openOrder}
                       onRequestMarkOpenOrderPickupReady={(candidate, pickupIds) => setMarkReadyConfirmation({ openOrder: candidate, pickupIds })}
-                      onOpenOrderCheckout={onOpenOrderCheckout}
+                      onOpenOrderDetails={onOpenOrderDetails}
                     />
                   </div>
                 ))}
@@ -766,7 +766,7 @@ export function OpenOrdersBody({
                   <AllOrdersRow
                     openOrder={openOrder}
                     onRequestMarkOpenOrderPickupReady={(candidate, pickupIds) => setMarkReadyConfirmation({ openOrder: candidate, pickupIds })}
-                    onOpenOrderCheckout={onOpenOrderCheckout}
+                    onOpenOrderDetails={onOpenOrderDetails}
                     variant="ready"
                   />
                 </div>
@@ -781,7 +781,7 @@ export function OpenOrdersBody({
           openOrders={filteredQueueOrders}
           onStartOpenOrderWork={onStartOpenOrderWork}
           onRequestMarkOpenOrderPickupReady={(openOrder, pickupIds) => setMarkReadyConfirmation({ openOrder, pickupIds })}
-          onOpenOrderCheckout={onOpenOrderCheckout}
+          onOpenOrderDetails={onOpenOrderDetails}
         />
       ) : null}
 
@@ -793,7 +793,7 @@ export function OpenOrdersBody({
           onAssignOpenOrderTailor={onAssignOpenOrderTailor}
           onStartOpenOrderWork={onStartOpenOrderWork}
           onRequestMarkOpenOrderPickupReady={(openOrder, pickupIds) => setMarkReadyConfirmation({ openOrder, pickupIds })}
-          onOpenOrderCheckout={onOpenOrderCheckout}
+          onOpenOrderDetails={onOpenOrderDetails}
         />
       ) : null}
 
@@ -827,7 +827,7 @@ export function OpenOrdersBody({
                   <AllOrdersRow
                     openOrder={openOrder}
                     onRequestMarkOpenOrderPickupReady={(candidate, pickupIds) => setMarkReadyConfirmation({ openOrder: candidate, pickupIds })}
-                    onOpenOrderCheckout={onOpenOrderCheckout}
+                    onOpenOrderDetails={onOpenOrderDetails}
                     variant="factory"
                   />
                 </div>

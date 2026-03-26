@@ -10,7 +10,7 @@ type OpenOrdersScreenProps = {
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
   onStartNewOrder: () => void;
 };
 
@@ -22,7 +22,7 @@ export function OpenOrdersScreen({
   onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
   onStartNewOrder,
 }: OpenOrdersScreenProps) {
   const {
@@ -103,7 +103,7 @@ export function OpenOrdersScreen({
         onAssignOpenOrderTailor={onAssignOpenOrderTailor}
         onStartOpenOrderWork={onStartOpenOrderWork}
         onMarkOpenOrderPickupReady={onMarkOpenOrderPickupReady}
-        onOpenOrderCheckout={onOpenOrderCheckout}
+        onOpenOrderDetails={onOpenOrderDetails}
       />
     </div>
   );
