@@ -75,7 +75,9 @@ export function EditAlterationItemModal({
                 key={`${garment}-${service.name}`}
                 onClick={() => onToggleModifier(service)}
                 className={`flex h-full min-h-[7.5rem] flex-col border p-3 text-left text-sm ${
-                  isSelected ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
+                  isSelected
+                    ? "app-workflow-toggle app-workflow-toggle--active app-workflow-toggle--flush-hover"
+                    : "app-workflow-toggle app-workflow-toggle--flush-hover"
                 }`}
               >
                 <div className="mb-2 flex min-h-[2.75rem] items-start justify-between gap-2">

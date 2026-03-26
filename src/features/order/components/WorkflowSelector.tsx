@@ -34,10 +34,7 @@ export function WorkflowSelector({
 
   return (
     <Surface tone="control" className="px-3.5 py-3">
-      <div className="mb-2.5 flex items-center justify-between gap-3">
-        <div className="app-kicker text-[var(--app-text-muted)]">Service type</div>
-        {activeWorkflow ? <div className="app-text-caption">Switch modes</div> : null}
-      </div>
+      <div className="mb-2.5 app-kicker text-[var(--app-text-muted)]">Service type</div>
 
       <div className="grid grid-cols-2 gap-2.5">
         {options.map((option) => {

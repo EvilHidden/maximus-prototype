@@ -453,6 +453,10 @@ button {
   box-shadow: var(--app-shadow-sm);
 }
 
+.app-workflow-toggle--flush-hover:hover {
+  transform: none;
+}
+
 .app-workflow-toggle--active {
   border-color: var(--app-accent);
   background: var(--app-surface-muted);
