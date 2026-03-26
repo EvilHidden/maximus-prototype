@@ -1,5 +1,5 @@
 import { CalendarClock, MapPin, ShoppingBag, Trash2, UserRound } from "lucide-react";
-import type { Customer, OrderBagLineItem, OrderType, PickupSchedule, PricingSummary, WorkflowMode } from "../../../types";
+import type { Customer, OrderBagLineItem, OrderType, OrderWorkflowState, PricingSummary, WorkflowMode } from "../../../types";
 import {
   EmptyState,
   InlineEmptyState,
@@ -20,7 +20,7 @@ type OrderBagProps = {
   activeWorkflow: WorkflowMode | null;
   continueLabel: string;
   pickupRequired: boolean;
-  pickupSchedules: Record<WorkflowMode, PickupSchedule>;
+  pickupSchedules: OrderWorkflowState["fulfillment"];
   onOpenCustomerModal: () => void;
   onOpenPickupModal: (scope: WorkflowMode) => void;
   onEditAlterationItem: (itemId: number) => void;
@@ -62,7 +62,7 @@ export function OrderBag({
         : [];
   const pickupSectionTitles: Record<WorkflowMode, string> = {
     alteration: orderType === "mixed" ? "Alteration pickup" : "Pickup",
-    custom: orderType === "mixed" ? "Custom pickup" : "Pickup",
+    custom: orderType === "mixed" ? "Custom occasion" : "Occasion",
   };
 
   return (
@@ -189,9 +189,56 @@ export function OrderBag({
         </PanelSection>
 
         {pickupRequired ? visiblePickupScopes.map((scope) => {
-          const schedule = pickupSchedules[scope];
-          const hasPickup = Boolean(schedule.pickupDate && schedule.pickupTime && schedule.pickupLocation);
-          const formattedPickupSchedule = hasPickup ? formatPickupSchedule(schedule.pickupDate, schedule.pickupTime) : null;
+          if (scope === "custom") {
+            const customOccasion = pickupSchedules.custom;
+            const hasOccasion = customOccasion.eventType !== "none";
+
+            return (
+              <PanelSection
+                key={scope}
+                title={pickupSectionTitles[scope]}
+                className="border-0 bg-transparent p-0"
+                action={
+                  <ActionButton
+                    tone="quiet"
+                    onClick={() => onOpenPickupModal(scope)}
+                    className="min-h-8 px-3 py-1.5 text-xs"
+                  >
+                    {hasOccasion ? "Edit occasion" : "Add occasion"}
+                  </ActionButton>
+                }
+              >
+                {hasOccasion ? (
+                  <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/26 px-3.5 py-3.5">
+                    <div className="flex items-start gap-3">
+                      <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/85 p-2">
+                        <CalendarClock className="h-4 w-4 text-[var(--app-text-muted)]" />
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <div className="app-kicker text-[var(--app-text-muted)]">Occasion</div>
+                        <div className="app-text-body mt-1 font-medium leading-[1.45]">
+                          {getCustomFulfillmentSummary(customOccasion.eventType, customOccasion.eventDate)}
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <InlineEmptyState className="border-[var(--app-border-strong)]/70 bg-[var(--app-surface)]/26 px-3.5 py-3.5">
+                    <div className="app-text-body font-medium">No occasion set</div>
+                    <div className="app-text-caption mt-1">
+                      Add an occasion only if this garment is tied to a wedding, prom, anniversary, or another dated event.
+                    </div>
+                  </InlineEmptyState>
+                )}
+              </PanelSection>
+            );
+          }
+
+          const alterationPickup = pickupSchedules.alteration;
+          const hasPickup = Boolean(alterationPickup.pickupDate && alterationPickup.pickupTime && alterationPickup.pickupLocation);
+          const formattedPickupSchedule = hasPickup
+            ? formatPickupSchedule(alterationPickup.pickupDate, alterationPickup.pickupTime)
+            : null;
 
           return (
             <PanelSection
@@ -226,22 +273,14 @@ export function OrderBag({
                     </div>
                     <div className="min-w-0 flex-1">
                       <div className="app-kicker text-[var(--app-text-muted)]">Pickup location</div>
-                      <div className="app-text-body mt-1 font-medium leading-[1.45]">{schedule.pickupLocation}</div>
+                      <div className="app-text-body mt-1 font-medium leading-[1.45]">{alterationPickup.pickupLocation}</div>
                     </div>
                   </div>
                 </div>
               ) : (
                 <InlineEmptyState className="border-[var(--app-border-strong)]/70 bg-[var(--app-surface)]/26 px-3.5 py-3.5">
-                  <div className="app-text-body font-medium">
-                    {scope === "custom" ? "Custom pickup details needed" : "Pickup details needed"}
-                  </div>
-                  <div className="app-text-caption mt-1">
-                    {scope === "custom"
-                      ? (
-                        getCustomFulfillmentSummary(schedule.eventType, schedule.eventDate, schedule.pickupLocation)
-                      )
-                      : "Set the pickup date, time, and location before you continue."}
-                  </div>
+                  <div className="app-text-body font-medium">Pickup details needed</div>
+                  <div className="app-text-caption mt-1">Set the pickup date, time, and location before you continue.</div>
                 </InlineEmptyState>
               )}
             </PanelSection>

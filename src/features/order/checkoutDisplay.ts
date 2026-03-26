@@ -1,5 +1,5 @@
 import type { OpenOrder, OrderWorkflowState } from "../../types";
-import { formatPickupSchedule, getPickupScheduleForScope, getRequiredPickupScopes } from "./selectors";
+import { formatPickupSchedule, getAlterationPickup, getCustomOccasion, getRequiredPickupScopes } from "./selectors";
 import { getPickupDateTime } from "./orderDateUtils";
 
 export function getDraftPickupSummary(order: OrderWorkflowState) {
@@ -7,16 +7,17 @@ export function getDraftPickupSummary(order: OrderWorkflowState) {
 
   return requiredPickupScopes
     .map((scope) => {
-      const schedule = getPickupScheduleForScope(order, scope);
       const scopeLabel = scope === "alteration" ? "Alterations" : "Custom garments";
-      const formatted = formatPickupSchedule(schedule.pickupDate, schedule.pickupTime);
+      const formatted = scope === "alteration"
+        ? formatPickupSchedule(getAlterationPickup(order).pickupDate, getAlterationPickup(order).pickupTime)
+        : null;
 
       if (formatted) {
         return `${scopeLabel}: ${formatted}`;
       }
 
-      if (scope === "custom" && schedule.eventDate) {
-        return `${scopeLabel}: Event due ${schedule.eventDate}`;
+      if (scope === "custom" && getCustomOccasion(order).eventDate) {
+        return `${scopeLabel}: Event due ${getCustomOccasion(order).eventDate}`;
       }
 
       return `${scopeLabel}: Timing needed`;

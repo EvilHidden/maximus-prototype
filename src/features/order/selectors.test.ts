@@ -106,13 +106,8 @@ function createMixedOrderState(): OrderWorkflowState {
         pickupDate: "2026-03-22",
         pickupTime: "14:00",
         pickupLocation: "Fifth Avenue",
-        eventType: "none",
-        eventDate: "",
       },
       custom: {
-        pickupDate: "",
-        pickupTime: "",
-        pickupLocation: "Queens",
         eventType: "wedding",
         eventDate: "2026-04-12",
       },

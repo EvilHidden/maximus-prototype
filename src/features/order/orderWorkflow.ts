@@ -254,7 +254,11 @@ export function getCustomEventTypeLabel(eventType: CustomOrderEventType) {
     return "Prom";
   }
 
-  return "No event";
+  if (eventType === "anniversary") {
+    return "Anniversary";
+  }
+
+  return "No occasion";
 }
 
 export function getOpenOrderTypeLabel(orderType: OrderType) {
@@ -289,6 +293,14 @@ export function getRequiredPickupScopes(order: OrderWorkflowState): WorkflowMode
 
 export function getPickupScheduleForScope(order: OrderWorkflowState, scope: WorkflowMode) {
   return order.fulfillment[scope];
+}
+
+export function getAlterationPickup(order: OrderWorkflowState) {
+  return order.fulfillment.alteration;
+}
+
+export function getCustomOccasion(order: OrderWorkflowState) {
+  return order.fulfillment.custom;
 }
 
 export function getCustomConfigured(order: OrderWorkflowState) {
@@ -366,38 +378,31 @@ export function getSummaryGuardrail(order: OrderWorkflowState, payerCustomer: Cu
   return {
     missingCustomer: !payerCustomer,
     missingPickup: requiredPickupScopes.some((scope) => {
-      const schedule = getPickupScheduleForScope(order, scope);
       if (scope === "custom") {
-        return !schedule.pickupLocation || (schedule.eventType !== "none" && !schedule.eventDate);
+        const schedule = getCustomOccasion(order);
+        return schedule.eventType !== "none" && !schedule.eventDate;
       }
 
+      const schedule = getAlterationPickup(order);
       return !schedule.pickupDate || !schedule.pickupTime || !schedule.pickupLocation;
     }),
     customIncomplete: customMissing,
   };
 }
 
-export function getCustomFulfillmentSummary(eventType: CustomOrderEventType, eventDate: string, pickupLocation: string) {
+export function getCustomFulfillmentSummary(eventType: CustomOrderEventType, eventDate: string) {
   const eventLabel = getCustomEventTypeLabel(eventType);
   const formattedEventDate = formatDateLabel(eventDate);
 
   if (eventType === "none") {
-    return pickupLocation ? `No event deadline • ${pickupLocation}` : "No event deadline";
-  }
-
-  if (formattedEventDate && pickupLocation) {
-    return `${eventLabel} by ${formattedEventDate} • ${pickupLocation}`;
+    return "No occasion set";
   }
 
   if (formattedEventDate) {
-    return `${eventLabel} by ${formattedEventDate}`;
+    return `${eventLabel} on ${formattedEventDate}`;
   }
 
-  if (pickupLocation) {
-    return `${eventLabel} • ${pickupLocation}`;
-  }
-
-  return eventLabel;
+  return `${eventLabel} date needed`;
 }
 
 export function getCanAddCustomDraftToOrder(order: OrderWorkflowState) {
@@ -421,20 +426,21 @@ export function buildOpenOrder(
   const payer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
   const paymentSummary = getDraftPaymentSummary(order, paymentStatus);
   const pickupSchedules = getRequiredPickupScopes(order).map((scope) => {
-    const schedule = getPickupScheduleForScope(order, scope);
+    const alterationPickup = getAlterationPickup(order);
+    const customOccasion = getCustomOccasion(order);
     const matchingItems = lineItems.filter((item) => item.kind === scope);
 
     return {
       id: `${orderId}-${scope}`,
       scope,
-      label: scope === "alteration" ? "Alteration pickup" : "Custom pickup",
+      label: scope === "alteration" ? "Alteration pickup" : "Occasion",
       itemSummary: matchingItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),
       itemCount: matchingItems.length,
-      pickupDate: schedule.pickupDate,
-      pickupTime: schedule.pickupTime,
-      pickupLocation: schedule.pickupLocation,
-      eventType: schedule.eventType,
-      eventDate: schedule.eventDate,
+      pickupDate: scope === "alteration" ? alterationPickup.pickupDate : "",
+      pickupTime: scope === "alteration" ? alterationPickup.pickupTime : "",
+      pickupLocation: scope === "alteration" ? alterationPickup.pickupLocation : "",
+      eventType: scope === "custom" ? customOccasion.eventType : "none",
+      eventDate: scope === "custom" ? customOccasion.eventDate : "",
       pickedUp: false,
       readyForPickup: false,
     };

@@ -63,7 +63,7 @@ export function OrderScreen({
       <SectionHeader
         icon={Receipt}
         title={editingOpenOrderId ? `Edit Order #${editingOpenOrderId}` : "New order"}
-        subtitle={editingOpenOrderId ? "Update the order and save it." : "Build the order and set the pickup details."}
+        subtitle={editingOpenOrderId ? "Update the order and save it." : "Build the order and finish the order details."}
       />
 
       <div
@@ -253,12 +253,22 @@ export function OrderScreen({
         />
       ) : null}
 
-      {controller.pickupModalScope ? (
+      {controller.pickupModalScope === "alteration" ? (
         <PickupScheduleModal
-          scope={controller.pickupModalScope}
-          schedule={order.fulfillment[controller.pickupModalScope]}
+          scope="alteration"
+          schedule={order.fulfillment.alteration}
           pickupLocations={referenceData.pickupLocations}
-          onChange={(patch) => dispatch({ type: "setPickupSchedule", payload: { scope: controller.pickupModalScope!, ...patch } })}
+          onChange={(patch) => dispatch({ type: "setAlterationPickup", payload: patch })}
+          onClose={() => controller.setPickupModalScope(null)}
+        />
+      ) : null}
+
+      {controller.pickupModalScope === "custom" ? (
+        <PickupScheduleModal
+          scope="custom"
+          schedule={order.fulfillment.custom}
+          pickupLocations={referenceData.pickupLocations}
+          onChange={(patch) => dispatch({ type: "setCustomOccasion", payload: patch })}
           onClose={() => controller.setPickupModalScope(null)}
         />
       ) : null}

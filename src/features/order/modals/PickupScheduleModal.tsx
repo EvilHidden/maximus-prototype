@@ -1,14 +1,22 @@
 import { useEffect, useState } from "react";
-import type { CustomOrderEventType, PickupLocation, PickupSchedule, WorkflowMode } from "../../../types";
+import type { AlterationPickup, CustomOccasion, CustomOrderEventType, PickupLocation } from "../../../types";
 import { ActionButton, FieldLabel, ModalShell } from "../../../components/ui/primitives";
 
-type PickupScheduleModalProps = {
-  scope: WorkflowMode;
-  schedule: PickupSchedule;
-  pickupLocations: PickupLocation[];
-  onChange: (patch: PickupSchedule) => void;
-  onClose: () => void;
-};
+type PickupScheduleModalProps =
+  | {
+      scope: "alteration";
+      schedule: AlterationPickup;
+      pickupLocations: PickupLocation[];
+      onChange: (patch: AlterationPickup) => void;
+      onClose: () => void;
+    }
+  | {
+      scope: "custom";
+      schedule: CustomOccasion;
+      pickupLocations: PickupLocation[];
+      onChange: (patch: CustomOccasion) => void;
+      onClose: () => void;
+    };
 
 function formatDateInputValue(value: Date) {
   const year = value.getFullYear();
@@ -74,6 +82,7 @@ const customEventOptions: Array<{ value: CustomOrderEventType; label: string }> 
   { value: "none", label: "None" },
   { value: "wedding", label: "Wedding" },
   { value: "prom", label: "Prom" },
+  { value: "anniversary", label: "Anniversary" },
 ];
 
 export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange, onClose }: PickupScheduleModalProps) {
@@ -86,23 +95,23 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
 
   const minPickupDate = formatDateInputValue(now);
   const isAlterationScope = scope === "alteration";
-  const isTodayPickup = schedule.pickupDate === minPickupDate;
+  const isTodayPickup = isAlterationScope && schedule.pickupDate === minPickupDate;
   const selectedPickupDateTime =
-    schedule.pickupDate && schedule.pickupTime
+    isAlterationScope && schedule.pickupDate && schedule.pickupTime
       ? new Date(`${schedule.pickupDate}T${schedule.pickupTime}`)
       : null;
   const hasPastPickupSelection =
     selectedPickupDateTime !== null && !Number.isNaN(selectedPickupDateTime.getTime()) && selectedPickupDateTime < now;
-  const timeOptions = schedule.pickupDate ? buildTimeOptions(now, isTodayPickup) : [];
-  const selectedTimeIsUnavailable = !!schedule.pickupTime && !timeOptions.includes(schedule.pickupTime);
+  const timeOptions = isAlterationScope && schedule.pickupDate ? buildTimeOptions(now, isTodayPickup) : [];
+  const selectedTimeIsUnavailable = isAlterationScope && !!schedule.pickupTime && !timeOptions.includes(schedule.pickupTime);
   const pickupInvalid = isAlterationScope
     ? !schedule.pickupDate || !schedule.pickupTime || !schedule.pickupLocation || hasPastPickupSelection || selectedTimeIsUnavailable
-    : !schedule.pickupLocation || (schedule.eventType !== "none" && !schedule.eventDate);
+    : schedule.eventType !== "none" && !schedule.eventDate;
 
   return (
     <ModalShell
-      title={scope === "alteration" ? "Set alteration pickup" : "Set custom order details"}
-      subtitle={isAlterationScope ? "Set date, time, and location" : "Set pickup location and any event deadline"}
+      title={scope === "alteration" ? "Set alteration pickup" : "Set occasion"}
+      subtitle={isAlterationScope ? "Set date, time, and location" : "Add the event only if this garment is tied to a timed occasion"}
       onClose={onClose}
       widthClassName="max-w-[720px]"
       footer={
@@ -112,10 +121,10 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
               ? "Pickup must be scheduled for an available future time."
               : isAlterationScope
                 ? "Required before moving the order forward."
-                : "Custom orders only need an event deadline if there is a real occasion."}
+                : "Wedding, prom, and anniversary dates help with reminders and follow-up."}
           </div>
           <ActionButton tone="primary" onClick={onClose} disabled={pickupInvalid}>
-            Save pickup
+            {isAlterationScope ? "Save pickup" : "Save occasion"}
           </ActionButton>
         </div>
       }
@@ -135,8 +144,6 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                         ? schedule.pickupTime
                         : "",
                     pickupLocation: schedule.pickupLocation,
-                    eventType: schedule.eventType,
-                    eventDate: schedule.eventDate,
                   })
                 }
                 type="date"
@@ -159,8 +166,6 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                           pickupDate: schedule.pickupDate,
                           pickupTime: timeOption,
                           pickupLocation: schedule.pickupLocation,
-                          eventType: schedule.eventType,
-                          eventDate: schedule.eventDate,
                         })}
                         className={[
                           "min-h-12 rounded-[var(--app-radius-md)] border px-3 py-2 text-sm font-medium transition",
@@ -191,9 +196,6 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                     key={option.value}
                     type="button"
                     onClick={() => onChange({
-                      pickupDate: "",
-                      pickupTime: "",
-                      pickupLocation: schedule.pickupLocation,
                       eventType: option.value,
                       eventDate: option.value === "none" ? "" : schedule.eventDate,
                     })}
@@ -212,18 +214,15 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
 
             {schedule.eventType !== "none" ? (
               <label className="block text-sm">
-                <FieldLabel>Event date</FieldLabel>
+                <FieldLabel>Occasion date</FieldLabel>
                 <input
                   value={schedule.eventDate}
-                  onChange={(event) =>
-                    onChange({
-                      pickupDate: "",
-                      pickupTime: "",
-                      pickupLocation: schedule.pickupLocation,
-                      eventType: schedule.eventType,
-                      eventDate: event.target.value,
-                    })
-                  }
+                    onChange={(event) =>
+                      onChange({
+                        eventType: schedule.eventType,
+                        eventDate: event.target.value,
+                      })
+                    }
                   type="date"
                   min={minPickupDate}
                   className="app-input min-h-12 text-base"
@@ -231,38 +230,38 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
               </label>
             ) : (
               <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
-                <div className="app-text-caption">No event deadline set. This custom order will be ready when production is complete.</div>
+                <div className="app-text-caption">No occasion attached to this garment.</div>
               </div>
             )}
           </>
         )}
 
-        <div>
-          <FieldLabel>Pickup location</FieldLabel>
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {pickupLocations.map((location) => (
-              <button
-                key={location}
-                type="button"
-                onClick={() => onChange({
-                  pickupDate: isAlterationScope ? schedule.pickupDate : "",
-                  pickupTime: isAlterationScope ? schedule.pickupTime : "",
-                  pickupLocation: location,
-                  eventType: schedule.eventType,
-                  eventDate: schedule.eventDate,
-                })}
-                className={[
-                  "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left text-sm font-medium transition",
-                  schedule.pickupLocation === location
-                    ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                    : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
-                ].join(" ")}
-              >
-                {location}
-              </button>
-            ))}
+        {isAlterationScope ? (
+          <div>
+            <FieldLabel>Pickup location</FieldLabel>
+            <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
+              {pickupLocations.map((location) => (
+                <button
+                  key={location}
+                  type="button"
+                  onClick={() => onChange({
+                    pickupDate: schedule.pickupDate,
+                    pickupTime: schedule.pickupTime,
+                    pickupLocation: location,
+                  })}
+                  className={[
+                    "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left text-sm font-medium transition",
+                    schedule.pickupLocation === location
+                      ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                      : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
+                  ].join(" ")}
+                >
+                  {location}
+                </button>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
       </div>
     </ModalShell>
   );

@@ -83,8 +83,6 @@ describe("order reducer", () => {
       pickupDate: "2026-03-24",
       pickupTime: "15:30",
       pickupLocation: "Queens",
-      eventType: "none",
-      eventDate: "",
     };
 
     const next = tryReduceOrderAction(
@@ -211,8 +209,6 @@ describe("order reducer", () => {
       pickupDate: "2026-03-24",
       pickupTime: "15:30",
       pickupLocation: "Queens",
-      eventType: "none",
-      eventDate: "",
     };
 
     const saved = tryReduceOrderAction(

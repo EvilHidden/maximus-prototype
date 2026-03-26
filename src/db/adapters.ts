@@ -257,6 +257,11 @@ function getOpenOrderPickup(
     : promisedReadyAt
       ? new Intl.DateTimeFormat("en-US", { hour: "numeric", minute: "2-digit" }).format(promisedReadyAt)
       : "";
+  const pickupLocation = pickupAppointment
+    ? findLocationName(database.locations, pickupAppointment.locationId)
+    : scope.workflow === "alteration"
+      ? findLocationName(database.locations, database.customers.find((customer) => customer.id === order.payerCustomerId)?.preferredLocationId ?? "loc_fifth_avenue")
+      : "";
 
   return {
     id: scope.id,
@@ -266,7 +271,7 @@ function getOpenOrderPickup(
     itemCount: scopeLines.reduce((sum, line) => sum + line.quantity, 0),
     pickupDate,
     pickupTime,
-    pickupLocation: findLocationName(database.locations, pickupAppointment?.locationId ?? database.customers.find((customer) => customer.id === order.payerCustomerId)?.preferredLocationId ?? "loc_fifth_avenue"),
+    pickupLocation,
     eventType: database.customerEvents.find((event) => event.id === scope.eventId)?.type ?? "none",
     eventDate: database.customerEvents.find((event) => event.id === scope.eventId)?.eventDate ?? "",
     readyAt: scope.readyAt,
