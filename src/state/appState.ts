@@ -60,6 +60,7 @@ export function createInitialAppState({ database = createPrototypeDatabase() }: 
     selectedCustomerId: order.payerCustomerId,
     checkoutOpenOrderId: null,
     checkoutJustSavedOpenOrderId: null,
+    checkoutJustCompletedOpenOrderId: null,
     editingOpenOrderId: null,
     database: nextDatabase,
     order,
@@ -74,6 +75,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         screen: action.screen,
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
       });
     case "startOrderForCustomer":
       return syncDraftOrderRecord({
@@ -82,6 +84,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         selectedCustomerId: action.customerId,
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
         editingOpenOrderId: null,
         order: {
           ...createInitialOrderState(),
@@ -94,6 +97,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         screen: "checkout",
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
       });
     case "openCheckoutForOpenOrder":
       return syncDraftOrderRecord({
@@ -102,6 +106,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         editingOpenOrderId: null,
         checkoutOpenOrderId: action.openOrderId,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
       });
     case "openOrderForEdit": {
       const nextOrder = loadOrderWorkflowForEdit(state.database, action.openOrderId);
@@ -114,6 +119,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         screen: "order",
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
         editingOpenOrderId: action.openOrderId,
         selectedCustomerId: nextOrder.payerCustomerId,
         order: nextOrder,

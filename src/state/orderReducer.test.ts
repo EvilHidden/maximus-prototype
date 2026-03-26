@@ -154,6 +154,7 @@ describe("order reducer", () => {
       assigneeStaffId: null,
       promisedReadyAt: null,
       readyAt: null,
+      pickedUpAt: null,
       eventId: null,
       appointmentOptional: false,
     }];
@@ -254,6 +255,62 @@ describe("order reducer", () => {
         id: "staff-tailor-luis",
         name: "Luis Rivera",
       },
+    });
+  });
+
+  it("records checkout in one step and keeps the order anchored in checkout", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const state = appReducer(createInitialAppState({ database }), { type: "openCheckoutForOpenOrder", openOrderId: 9005 });
+
+    const next = tryReduceOrderAction(
+      state,
+      { type: "completeOpenOrderCheckout", openOrderId: 9005 },
+      { now: new Date("2026-03-22T16:05:00.000Z") },
+    );
+
+    expect(next?.checkoutOpenOrderId).toBe(9005);
+    expect(next?.checkoutJustCompletedOpenOrderId).toBe(9005);
+    expect(next?.database.payments.filter((payment) => payment.orderId === "order-9005")).toMatchObject([
+      {
+        status: "due_later",
+        amount: 0,
+      },
+      {
+        status: "captured",
+        amount: 95,
+      },
+    ]);
+    expect(adaptOpenOrders(next!.database).find((order) => order.id === 9005)).toMatchObject({
+      balanceDue: 0,
+      totalCollected: 95,
+    });
+  });
+
+  it("checks out only the ready pickup balance for a mixed order", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const targetScope = database.orderScopes.find((scope) => scope.id === "scope-9003-alteration");
+    expect(targetScope).toBeTruthy();
+    targetScope!.phase = "ready";
+    targetScope!.readyAt = "2026-03-22T15:30:00.000Z";
+    database.payments = database.payments.filter((payment) => payment.orderId !== "order-9003");
+
+    const state = appReducer(createInitialAppState({ database }), { type: "openCheckoutForOpenOrder", openOrderId: 9003 });
+    const before = adaptOpenOrders(state.database).find((order) => order.id === 9003);
+    expect(before?.pickupBalanceDue).toBe(120);
+    expect(before?.balanceDue).toBeGreaterThan(120);
+
+    const next = tryReduceOrderAction(
+      state,
+      { type: "completeOpenOrderCheckout", openOrderId: 9003 },
+      { now: new Date("2026-03-22T16:10:00.000Z") },
+    );
+
+    expect(next?.checkoutJustCompletedOpenOrderId).toBe(9003);
+    const after = adaptOpenOrders(next!.database).find((order) => order.id === 9003);
+    expect(after).toMatchObject({
+      totalCollected: 120,
+      balanceDue: 2240,
+      pickupBalanceDue: 0,
     });
   });
 

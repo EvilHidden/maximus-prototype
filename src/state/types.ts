@@ -19,6 +19,7 @@ export type AppState = {
   selectedCustomerId: string | null;
   checkoutOpenOrderId: number | null;
   checkoutJustSavedOpenOrderId: number | null;
+  checkoutJustCompletedOpenOrderId: number | null;
   editingOpenOrderId: number | null;
   database: PrototypeDatabase;
   order: OrderWorkflowState;
@@ -90,8 +91,7 @@ export type AppAction =
   | { type: "saveOpenOrder"; paymentStatus: OpenOrder["paymentStatus"]; openCheckout: boolean }
   | { type: "assignOpenOrderTailor"; openOrderId: number; staffId: string | null }
   | { type: "startOpenOrderWork"; openOrderId: number }
-  | { type: "startOpenOrderPayment"; openOrderId: number }
-  | { type: "captureOpenOrderPayment"; openOrderId: number }
+  | { type: "completeOpenOrderCheckout"; openOrderId: number }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }
   | { type: "completeOpenOrderPickup"; openOrderId: number }
   | { type: "cancelOpenOrder"; openOrderId: number }

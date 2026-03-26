@@ -446,6 +446,7 @@ export function buildOpenOrder(
     payerName: payer?.name ?? "Walk-in customer",
     orderType,
     operationalStatus: "accepted",
+    holdUntilAllScopesReady: orderType === "mixed",
     inHouseAssignee: null,
     itemCount: lineItems.length,
     lineItems,

@@ -141,16 +141,53 @@ function createLineComponent(
 
 function createInitialPaymentRecords(
   orderId: string,
+  orderType: OrderType,
   paymentStatus: OpenOrderPaymentStatus,
   amount: number,
+  customSubtotal: number,
   now: Date,
 ): DbPaymentRecord[] {
   if (paymentStatus === "captured" && amount > 0) {
+    if (orderType === "mixed" && customSubtotal > 0) {
+      const depositAmount = Math.round(customSubtotal * 0.5 * 100) / 100;
+      const alterationAmount = Math.max(amount - depositAmount, 0);
+      const records: DbPaymentRecord[] = [];
+
+      if (depositAmount > 0) {
+        records.push({
+          id: `pay-${orderId}-1`,
+          orderId,
+          source: "prototype",
+          status: "captured",
+          allocation: "custom_deposit",
+          amount: depositAmount,
+          collectedAt: toDateTimeString(now),
+          squarePaymentId: null,
+        });
+      }
+
+      if (alterationAmount > 0) {
+        records.push({
+          id: `pay-${orderId}-2`,
+          orderId,
+          source: "prototype",
+          status: "captured",
+          allocation: "alteration_balance",
+          amount: alterationAmount,
+          collectedAt: toDateTimeString(now),
+          squarePaymentId: null,
+        });
+      }
+
+      return records;
+    }
+
     return [{
       id: `pay-${orderId}-1`,
       orderId,
       source: "prototype",
       status: "captured",
+      allocation: orderType === "custom" ? "custom_deposit" : "full_balance",
       amount,
       collectedAt: toDateTimeString(now),
       squarePaymentId: null,
@@ -163,6 +200,7 @@ function createInitialPaymentRecords(
       orderId,
       source: "prototype",
       status: "pending",
+      allocation: orderType === "custom" ? "custom_deposit" : orderType === "alteration" ? "full_balance" : undefined,
       amount,
       collectedAt: null,
       squarePaymentId: null,
@@ -258,6 +296,7 @@ export function serializeOrderWorkflowToRecords({
         : null,
       promisedReadyAt,
       readyAt: null,
+      pickedUpAt: null,
       eventId,
       appointmentOptional: scope === "custom",
     });
@@ -363,7 +402,7 @@ export function serializeOrderWorkflowToRecords({
     scopeLines,
     lineComponents,
     pickupAppointments,
-    paymentRecords: createInitialPaymentRecords(orderId, paymentStatus, checkoutCollectionAmount, now),
+    paymentRecords: createInitialPaymentRecords(orderId, orderType, paymentStatus, checkoutCollectionAmount, order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item.selectedGarment), 0), now),
   };
 }
 
