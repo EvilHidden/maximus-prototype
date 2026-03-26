@@ -9,12 +9,13 @@ Usage:
 
 What it does:
   1. Verifies you are on a codex/ branch and not on main
-  2. Runs npm run check for a fast local gate
-  3. Stages all changes and commits them with the provided title
-  4. Pushes the current branch
-  5. Creates or reuses a pull request to main
-  6. Enables auto-merge with branch deletion after the full GitHub build passes
-  7. Waits for the merge, then switches back to main and deletes the local topic branch
+  2. Verifies your topic branch is up to date with origin/main
+  3. Runs npm run check for a fast local gate
+  4. Stages all changes and commits them with the provided title
+  5. Pushes the current branch
+  6. Creates or reuses a pull request to main
+  7. Enables auto-merge with branch deletion after the full GitHub build passes
+  8. Waits for the merge, then switches back to main and deletes the local topic branch
 
 Important:
   - Never reuse a codex/ branch after its PR has been merged or closed.
@@ -39,6 +40,19 @@ fi
 
 if [[ "$current_branch" != codex/* ]]; then
   echo "Refusing to ship from ${current_branch}. Use a codex/ branch for shippable topic work."
+  exit 1
+fi
+
+echo "Fetching latest ${base_branch}..."
+git fetch origin "$base_branch"
+
+if ! git merge-base --is-ancestor "origin/${base_branch}" HEAD; then
+  echo "Refusing to ship from ${current_branch}. It is behind origin/${base_branch}."
+  echo "Update first with:"
+  echo "  git checkout ${base_branch}"
+  echo "  git pull --ff-only origin ${base_branch}"
+  echo "  git checkout ${current_branch}"
+  echo "  git merge ${base_branch}"
   exit 1
 fi
 
