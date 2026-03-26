@@ -80,7 +80,7 @@ export function getWorklistPhaseLabel(phase: string) {
 }
 
 export function getWorklistPaymentLabel(balanceDue: number) {
-  return balanceDue > 0 ? "PAYMENT DUE" : "PAID";
+  return balanceDue > 0 ? "BALANCE DUE" : "PAID";
 }
 
 export function getWorklistPaymentTextClassName(balanceDue: number) {

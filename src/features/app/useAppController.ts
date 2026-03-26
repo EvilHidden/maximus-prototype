@@ -60,9 +60,8 @@ export function useAppController() {
     saveDraftOrder,
     assignOpenOrderTailor,
     startOpenOrderWork,
-    startOpenOrderPayment,
-    captureOpenOrderPayment,
-  } = useAppWorkflowActions({ dispatch, order: state.order });
+    completeOpenOrderCheckout,
+  } = useAppWorkflowActions({ dispatch });
 
   return {
     state,
@@ -86,7 +85,6 @@ export function useAppController() {
     saveDraftOrder,
     assignOpenOrderTailor,
     startOpenOrderWork,
-    startOpenOrderPayment,
-    captureOpenOrderPayment,
+    completeOpenOrderCheckout,
   };
 }

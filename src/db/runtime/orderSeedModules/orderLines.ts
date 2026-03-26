@@ -90,11 +90,11 @@ export function createOrderScopeLines(
   return [
     { id: "line-9001-1", scopeId: "scope-9001-custom", label: "Two-piece suit", quantity: 1, unitPrice: 1495 },
     { id: "line-9002-1", scopeId: "scope-9002-alteration", label: "Dress hem", quantity: 1, unitPrice: 240 },
-    { id: "line-9002-2", scopeId: "scope-9002-alteration", label: "Vest waist suppression", quantity: 1, unitPrice: 107.8 },
+    { id: "line-9002-2", scopeId: "scope-9002-alteration", label: "Vest waist suppression", quantity: 1, unitPrice: 108 },
     { id: "line-9003-1", scopeId: "scope-9003-alteration", label: "Trouser taper", quantity: 1, unitPrice: 120 },
     { id: "line-9003-2", scopeId: "scope-9003-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1495 },
-    { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, unitPrice: 741.85 },
-    { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, unitPrice: 54.45 },
+    { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, unitPrice: 745 },
+    { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, unitPrice: 55 },
     { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, unitPrice: 95 },
     { id: "line-9006-1", scopeId: "scope-9006-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1495 },
     { id: "line-9007-1", scopeId: "scope-9007-alteration", label: "Skirt hem", quantity: 1, unitPrice: 65 },
@@ -111,7 +111,7 @@ export function createOrderScopeLines(
     { id: "line-8610-1", scopeId: "scope-8610-alteration", label: "Trouser hem + taper", quantity: 1, unitPrice: 65 },
     { id: "line-8443-1", scopeId: "scope-8443-custom", label: "Dinner jacket consult", quantity: 1, unitPrice: 0 },
     { id: "line-8904-1", scopeId: "scope-8904-alteration", label: "Wedding party alteration set", quantity: 1, unitPrice: 320 },
-    { id: "line-8904-2", scopeId: "scope-8904-custom", label: "Wedding jacket", quantity: 1, unitPrice: 0 },
+    { id: "line-8904-2", scopeId: "scope-8904-custom", label: "Wedding jacket", quantity: 1, unitPrice: 1495 },
     { id: "line-8732-1", scopeId: "scope-8732-alteration", label: "Bridesmaid dress fitting", quantity: 1, unitPrice: 95 },
     { id: "line-8940-1", scopeId: "scope-8940-alteration", label: "Rush suit sleeve adjustment", quantity: 1, unitPrice: 80 },
     { id: "line-8528-1", scopeId: "scope-8528-alteration", label: "Pant waist suppression", quantity: 1, unitPrice: 35 },
@@ -131,6 +131,8 @@ export function createOrderScopeLines(
     { id: "line-9023-1", scopeId: "scope-9023-custom", label: "Dinner suit", quantity: 1, unitPrice: 1545 },
     { id: "line-9024-1", scopeId: "scope-9024-alteration", label: "Trouser hem", quantity: 1, unitPrice: 85 },
     { id: "line-9024-2", scopeId: "scope-9024-custom", label: "Wedding suit", quantity: 1, unitPrice: 1595 },
+    { id: "line-9025-1", scopeId: "scope-9025-alteration", label: "Jacket suppression", quantity: 1, unitPrice: 95 },
+    { id: "line-9025-2", scopeId: "scope-9025-custom", label: "Ceremony suit", quantity: 1, unitPrice: 1695 },
   ].map((line) => buildSeedOrderScopeLine(line, ordersById, scopesById, measurementSets));
 }
 

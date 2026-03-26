@@ -9,6 +9,7 @@ import {
 import {
   getOpenOrderOperationalPhase,
   getOpenOrderPickupGroups,
+  getNeedsAttentionPickupGroups,
   formatOpenOrderCreatedAt,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
@@ -123,7 +124,7 @@ function WorkQueueOrderRow({
   const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.pickedUp);
   const canManageInHouseWork = inHousePickups.length > 0;
   const canStartWork = canManageInHouseWork && openOrder.operationalStatus === "accepted";
-  const pickupGroups = getOpenOrderPickupGroups(openOrder);
+  const pickupGroups = getNeedsAttentionPickupGroups(openOrder);
 
   const getGroupedItemSummary = (items: string[]) => {
     const uniqueItems = [...new Set(items)];

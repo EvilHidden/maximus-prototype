@@ -171,7 +171,8 @@ export function isOpenOrderReadyForPickup(openOrder: OpenOrder) {
 }
 
 export function isOpenOrderFullyReadyForPickup(openOrder: OpenOrder) {
-  return Boolean(openOrder.pickupSchedules.length) && openOrder.pickupSchedules.every(isPickupAwaitingPickup);
+  const unpickedPickups = openOrder.pickupSchedules.filter((pickup) => !pickup.pickedUp);
+  return Boolean(unpickedPickups.length) && unpickedPickups.every((pickup) => pickup.readyForPickup);
 }
 
 export function getOpenOrderReadinessBreakdown(openOrder: OpenOrder) {
@@ -250,7 +251,7 @@ export function getOpenOrderPickupGroups(
       if (existingGroup) {
         existingGroup.itemSummary.push(...pickup.itemSummary);
         existingGroup.pickupIds.push(pickup.id);
-        if (pickup.scope === "alteration" && !pickup.readyForPickup) {
+        if (!pickup.readyForPickup) {
           existingGroup.actionPickupIds.push(pickup.id);
         }
         return groups;
@@ -263,11 +264,21 @@ export function getOpenOrderPickupGroups(
         alertLabel: pickupAlert.label,
         itemSummary: [...pickup.itemSummary],
         pickupIds: [pickup.id],
-        actionPickupIds: pickup.scope === "alteration" && !pickup.readyForPickup ? [pickup.id] : [],
+        actionPickupIds: !pickup.readyForPickup ? [pickup.id] : [],
       });
 
       return groups;
     }, []);
+}
+
+export function getNeedsAttentionPickupGroups(openOrder: OpenOrder, now = new Date()) {
+  const pickupGroups = getOpenOrderPickupGroups(openOrder, { now });
+  const unresolvedPickupGroups = pickupGroups.filter((group) => {
+    const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
+    return representativePickup ? isPickupPending(representativePickup) : false;
+  });
+
+  return unresolvedPickupGroups.length > 0 ? unresolvedPickupGroups : pickupGroups;
 }
 
 export function getOpenOrderStatusPills(openOrder: OpenOrder, now = new Date()) {

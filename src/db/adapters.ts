@@ -23,7 +23,7 @@ import type {
   DbOrderScopeLineComponent,
   PrototypeDatabase,
 } from "./schema";
-import { getOpenOrderPickupBalanceDue, getRecordedPaymentSummary } from "../features/order/paymentSummary";
+import { getOpenOrderPickupBalanceDueFromPayments, getRecordedPaymentSummary } from "../features/order/paymentSummary";
 
 function findLocationName(locations: DbLocation[], locationId: string) {
   return locations.find((location) => location.id === locationId)?.name ?? "Fifth Avenue";
@@ -270,6 +270,7 @@ function getOpenOrderPickup(
     eventType: database.customerEvents.find((event) => event.id === scope.eventId)?.type ?? "none",
     eventDate: database.customerEvents.find((event) => event.id === scope.eventId)?.eventDate ?? "",
     readyAt: scope.readyAt,
+    pickedUpAt: scope.pickedUpAt,
     pickedUp: scope.phase === "picked_up",
     readyForPickup: scope.phase === "ready",
   };
@@ -346,6 +347,12 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
       const staffMember = alterationScope?.assigneeStaffId
         ? database.staffMembers.find((candidate) => candidate.id === alterationScope.assigneeStaffId)
         : null;
+      const completedAt = order.status === "complete"
+        ? scopes
+          .map((scope) => scope.pickedUpAt)
+          .filter((value): value is string => Boolean(value))
+          .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null
+        : null;
 
       return {
         id: order.displayId,
@@ -366,10 +373,12 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
         collectedToday: payment.collectedToday,
         balanceDue: payment.balanceDue,
         createdAt: order.createdAt,
+        completedAt,
         status: order.status === "canceled" ? "Canceled" : "Picked up",
         total: payment.total,
       };
-    });
+    })
+    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
 }
 
 export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
@@ -453,6 +462,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         payerName: order.payerName,
         orderType: order.orderType,
         operationalStatus: deriveOperationalStatus(order, scopes),
+        holdUntilAllScopesReady: order.holdUntilAllScopesReady,
         inHouseAssignee: (() => {
           const alterationScope = scopes.find((scope) => scope.workflow === "alteration");
           if (!alterationScope?.assigneeStaffId) {
@@ -477,7 +487,13 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
 
       return {
         ...openOrder,
-        pickupBalanceDue: getOpenOrderPickupBalanceDue(openOrder),
+        pickupBalanceDue: getOpenOrderPickupBalanceDueFromPayments({
+          orderType: openOrder.orderType,
+          lineItems: openOrder.lineItems,
+          pickupSchedules: openOrder.pickupSchedules,
+          payments: database.payments.filter((candidate) => candidate.orderId === order.id),
+          total: openOrder.total,
+        }),
       };
     });
 }

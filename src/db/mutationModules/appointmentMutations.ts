@@ -236,6 +236,7 @@ export function completeAppointmentRecord(
           ...scope,
           phase: "picked_up" as const,
           readyAt: scope.readyAt ?? toDateTimeString(now),
+          pickedUpAt: toDateTimeString(now),
         }
       : scope
   ));
@@ -283,6 +284,7 @@ export function cancelAppointmentRecord(
           ? {
               ...scope,
               phase: "in_progress" as const,
+              pickedUpAt: null,
             }
           : scope
       ))

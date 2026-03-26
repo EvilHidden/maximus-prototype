@@ -113,6 +113,7 @@ export type DbOrderScope = {
   assigneeStaffId: string | null;
   promisedReadyAt: string | null;
   readyAt: string | null;
+  pickedUpAt: string | null;
   eventId: string | null;
   appointmentOptional: boolean;
 };
@@ -192,6 +193,7 @@ export type DbPaymentRecord = {
   orderId: string;
   source: "square" | "prototype";
   status: OpenOrderPaymentStatus;
+  allocation?: "custom_deposit" | "alteration_balance" | "custom_balance" | "full_balance";
   amount: number;
   collectedAt: string | null;
   squarePaymentId: string | null;
