@@ -59,7 +59,7 @@ export function OrderScreen({
   });
 
   return (
-    <div className="space-y-4">
+    <div className={cx("space-y-4", order.activeWorkflow === "alteration" && "xl:flex xl:h-full xl:flex-col")}>
       <SectionHeader
         icon={Receipt}
         title={editingOpenOrderId ? `Edit Order #${editingOpenOrderId}` : "New order"}
@@ -69,7 +69,7 @@ export function OrderScreen({
       <div
         className={cx(
           "grid gap-3.5 xl:grid-cols-[1.25fr_0.75fr]",
-          order.activeWorkflow === "alteration" && "xl:h-[calc(100vh-2.5rem)] xl:min-h-0",
+          order.activeWorkflow === "alteration" && "xl:min-h-0 xl:flex-1",
         )}
       >
         <div
@@ -206,7 +206,7 @@ export function OrderScreen({
           ) : null}
         </div>
 
-        <div className={cx(order.activeWorkflow === "alteration" && "xl:min-h-0", "space-y-3.5")}>
+        <div className={cx("space-y-3.5 xl:flex xl:flex-col", order.activeWorkflow === "alteration" && "xl:min-h-0")}>
           <OrderBag
             customer={payerCustomer}
             lineItems={controller.lineItems}
