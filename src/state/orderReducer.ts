@@ -6,12 +6,11 @@ import {
   cancelAppointmentRecord,
   completeAppointmentRecord,
   confirmAppointmentRecord,
+  completeOpenOrderCheckout,
   completeOpenOrderPickup,
-  captureOrderPayment,
   markOrderScopePickupReady,
   saveOrderWorkflowToDatabase,
   startOpenOrderWork,
-  startOrderPaymentCollection,
 } from "../db/mutations";
 import {
   createEmptyMeasurements,
@@ -81,6 +80,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           screen: action.openCheckout ? "checkout" : "openOrders",
           checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           checkoutJustSavedOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
+          checkoutJustCompletedOpenOrderId: null,
           editingOpenOrderId: null,
           database: savedOrder.database,
           order: createInitialOrderState(),
@@ -95,21 +95,20 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
       return {
         ...state,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
         database: startOpenOrderWork(state.database, action.openOrderId, getNow(options)),
       };
-    case "startOpenOrderPayment":
+    case "completeOpenOrderCheckout":
       return {
         ...state,
-        database: startOrderPaymentCollection(state.database, action.openOrderId),
-      };
-    case "captureOpenOrderPayment":
-      return {
-        ...state,
-        database: captureOrderPayment(state.database, action.openOrderId, getNow(options)),
+        checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: action.openOrderId,
+        database: completeOpenOrderCheckout(state.database, action.openOrderId, getNow(options)),
       };
     case "markOpenOrderPickupReady":
       return {
         ...state,
+        checkoutJustCompletedOpenOrderId: null,
         database: markOrderScopePickupReady(state.database, action.pickupId, getNow(options)),
       };
     case "completeOpenOrderPickup":
@@ -118,6 +117,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         screen: "openOrders",
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
         editingOpenOrderId: null,
         database: completeOpenOrderPickup(state.database, action.openOrderId, getNow(options)),
       };
@@ -127,6 +127,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         screen: "openOrders",
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
         editingOpenOrderId: null,
         database: cancelOpenOrder(state.database, action.openOrderId, getNow(options)),
       };

@@ -6,11 +6,14 @@ import {
   filterOpenOrders,
   getCheckoutCollectionAmount,
   getNeedsAttentionOpenOrders,
+  getNeedsAttentionPickupGroups,
+  getOpenOrderPickupBalanceDue,
   getOpenOrderMixedStatusSummary,
   getOpenOrderOperationalPhase,
   getOpenOrderPickupGroups,
   getOpenOrderReadinessDetails,
   getOpenOrderStatusPills,
+  isOpenOrderFullyReadyForPickup,
   getOperatorQueueStage,
   getOperatorQueueStageCounts,
   getOrderQueueCounts,
@@ -124,6 +127,7 @@ function createOpenOrder(overrides: Partial<OpenOrder>): OpenOrder {
     payerName: "Jordan Patel",
     orderType: "alteration",
     operationalStatus: "accepted",
+    holdUntilAllScopesReady: false,
     inHouseAssignee: null,
     itemCount: 1,
     lineItems: [
@@ -211,6 +215,112 @@ describe("order selectors", () => {
       total: 1665.7875,
     });
     expect(getCheckoutCollectionAmount(order)).toBe(918.2875);
+  });
+
+  it("keeps custom deposit from offsetting alteration pickup balance on mixed orders", () => {
+    const mixedOrder = createOpenOrder({
+      orderType: "mixed",
+      holdUntilAllScopesReady: true,
+      lineItems: [
+        {
+          ...createOpenOrder({}).lineItems[0],
+          id: "line-alt",
+          kind: "alteration",
+          amount: 120,
+          title: "1. Alteration - Trousers",
+          sourceLabel: "Trouser taper",
+          garmentLabel: "Trousers",
+        },
+        {
+          ...createOpenOrder({}).lineItems[0],
+          id: "line-custom",
+          kind: "custom",
+          amount: 1495,
+          title: "2. Custom garment - Dinner jacket",
+          sourceLabel: "Dinner jacket",
+          garmentLabel: "Dinner jacket",
+          components: [],
+        },
+      ],
+      itemSummary: ["Trouser taper", "Dinner jacket"],
+      totalCollected: 747.5,
+      balanceDue: 1000.7875,
+      total: 1747.5,
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-alt-ready",
+          scope: "alteration",
+          itemSummary: ["Trouser taper"],
+          readyForPickup: true,
+          pickedUp: false,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-custom-not-ready",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          readyForPickup: false,
+          pickedUp: false,
+        },
+      ],
+    });
+
+    expect(getOpenOrderPickupBalanceDue(mixedOrder)).toBe(252.5);
+  });
+
+  it("charges only the custom remaining balance once alteration work has already been paid on a mixed order", () => {
+    const mixedOrder = createOpenOrder({
+      orderType: "mixed",
+      holdUntilAllScopesReady: true,
+      lineItems: [
+        {
+          ...createOpenOrder({}).lineItems[0],
+          id: "line-alt",
+          kind: "alteration",
+          amount: 120,
+          title: "1. Alteration - Trousers",
+          sourceLabel: "Trouser taper",
+          garmentLabel: "Trousers",
+        },
+        {
+          ...createOpenOrder({}).lineItems[0],
+          id: "line-custom",
+          kind: "custom",
+          amount: 1495,
+          title: "2. Custom garment - Dinner jacket",
+          sourceLabel: "Dinner jacket",
+          garmentLabel: "Dinner jacket",
+          components: [],
+        },
+      ],
+      itemSummary: ["Trouser taper", "Dinner jacket"],
+      totalCollected: 1000,
+      balanceDue: 747.5,
+      total: 1747.5,
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-alt-picked-up",
+          scope: "alteration",
+          itemSummary: ["Trouser taper"],
+          readyForPickup: false,
+          pickedUp: true,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-custom-ready",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          readyForPickup: true,
+          pickedUp: false,
+        },
+      ],
+    });
+
+    expect(getOpenOrderPickupBalanceDue(mixedOrder)).toBe(747.5);
   });
 
   it("reports missing guardrails for incomplete custom drafts and absent pickup details", () => {
@@ -380,6 +490,68 @@ describe("order selectors", () => {
     expect(getNeedsAttentionOpenOrders([mixedOrder]).map((order) => order.id)).toEqual([1010]);
   });
 
+  it("treats mixed orders with only the remaining unpicked scope ready as ready for pickup", () => {
+    const mixedOrder = createOpenOrder({
+      id: 1024,
+      orderType: "mixed",
+      operationalStatus: "partially_ready",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1024-alteration",
+          scope: "alteration",
+          label: "Alteration pickup",
+          itemSummary: ["Trouser hem"],
+          readyForPickup: false,
+          pickedUp: true,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1024-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Wedding suit"],
+          readyForPickup: true,
+          pickedUp: false,
+        },
+      ],
+    });
+
+    expect(isOpenOrderFullyReadyForPickup(mixedOrder)).toBe(true);
+    expect(getNeedsAttentionOpenOrders([mixedOrder])).toEqual([]);
+  });
+
+  it("shows only unresolved mixed-order pickup groups in needs attention", () => {
+    const mixedOrder = createOpenOrder({
+      id: 1016,
+      orderType: "mixed",
+      operationalStatus: "partially_ready",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1016-alteration",
+          scope: "alteration",
+          label: "Alteration pickup",
+          itemSummary: ["Bridesmaid hem"],
+          readyForPickup: true,
+          pickedUp: false,
+        },
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-1016-custom",
+          scope: "custom",
+          label: "Custom pickup",
+          itemSummary: ["Dinner jacket"],
+          readyForPickup: false,
+          pickedUp: false,
+        },
+      ],
+    });
+
+    expect(getNeedsAttentionPickupGroups(mixedOrder).map((group) => group.scope)).toEqual(["custom"]);
+    expect(getNeedsAttentionPickupGroups(mixedOrder)[0]?.itemSummary).toEqual(["Dinner jacket"]);
+  });
+
   it("prioritizes the most actionable mixed-order status in queue summaries", () => {
     const mixedOrder = createOpenOrder({
       id: 1015,
@@ -464,7 +636,7 @@ describe("order selectors", () => {
       },
       {
         key: "custom__Tomorrow · 11:00 AM • Fifth Avenue__Due tomorrow",
-        actionPickupIds: [],
+        actionPickupIds: ["pickup-1016-custom"],
       },
     ]);
   });

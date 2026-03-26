@@ -46,6 +46,7 @@ export type OpenOrderPickup = PickupSchedule & {
   itemSummary: string[];
   itemCount: number;
   readyAt?: string | null;
+  pickedUpAt?: string | null;
   pickedUp?: boolean;
   readyForPickup: boolean;
 };
@@ -229,6 +230,7 @@ export type OpenOrder = {
   payerName: string;
   orderType: OrderType;
   operationalStatus: OpenOrderOperationalStatus;
+  holdUntilAllScopesReady: boolean;
   inHouseAssignee: StaffMember | null;
   itemCount: number;
   lineItems: OrderBagLineItem[];
@@ -249,6 +251,7 @@ export type ClosedOrderHistoryItem = {
   customerName: string;
   label: string;
   createdAt: string;
+  completedAt?: string | null;
   status: string;
   total: number;
   displayId?: string;

@@ -15,14 +15,15 @@ export function ConfirmMarkReadyModal({
   onConfirm,
   onClose,
 }: ConfirmMarkReadyModalProps) {
-  const pendingPickups = openOrder.pickupSchedules.filter((pickup) => (
-    pickup.scope === "alteration" && pickupIds.includes(pickup.id)
-  ));
+  const pendingPickups = openOrder.pickupSchedules.filter((pickup) => pickupIds.includes(pickup.id));
   const pendingPickupCount = pendingPickups.length;
+  const scopeLabels = [...new Set(pendingPickups.map((pickup) => pickup.scope === "alteration" ? "alteration" : "custom"))];
+  const scopeSummary = scopeLabels.length > 1 ? "selected pickups" : scopeLabels[0] === "custom" ? "selected custom pickups" : "selected alteration pickups";
+  const singularScopeSummary = scopeLabels[0] === "custom" ? "custom pickup" : "alteration pickup";
   const confirmLabel = getMarkReadyActionLabel(openOrder, pendingPickupCount);
   const confirmSubtitle = pendingPickupCount > 1
-    ? `Set ${openOrder.payerName}'s selected alteration pickups to ready for pickup?`
-    : `Set ${openOrder.payerName}'s selected alteration pickup to ready for pickup?`;
+    ? `Set ${openOrder.payerName}'s ${scopeSummary} to ready for pickup?`
+    : `Set ${openOrder.payerName}'s ${singularScopeSummary} to ready for pickup?`;
 
   return (
     <ModalShell
@@ -54,8 +55,8 @@ export function ConfirmMarkReadyModal({
           <div className="app-text-caption mt-1">{openOrder.itemSummary.join(", ")}</div>
           <div className="app-text-caption mt-1">
             {pendingPickupCount > 1
-              ? `${pendingPickupCount} alteration pickup slots will be marked ready.`
-              : "The alteration pickup slot will be marked ready."}
+              ? `${pendingPickupCount} pickup slots will be marked ready.`
+              : "The pickup slot will be marked ready."}
           </div>
         </div>
         {pendingPickups.length ? (

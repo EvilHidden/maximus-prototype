@@ -1,7 +1,7 @@
 import { ClipboardList, MapPin, PackageSearch } from "lucide-react";
 import { useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
-import { EmptyState, SurfaceHeader, cx } from "../../../../components/ui/primitives";
+import { ActionButton, EmptyState, SurfaceHeader, cx } from "../../../../components/ui/primitives";
 import { ConfirmMarkReadyModal } from "../../modals/ConfirmMarkReadyModal";
 import {
   type OperatorQueueStageCounts,
@@ -107,7 +107,12 @@ function ReadyOrdersColumnHeader() {
 
 function getReadyPickupSummary(openOrder: OpenOrder) {
   const readyPickups = openOrder.pickupSchedules.filter((pickup) => pickup.readyForPickup && !pickup.pickedUp);
-  const displayPickups = readyPickups.length ? readyPickups : openOrder.pickupSchedules;
+  const readyAndPickedUpPickups = openOrder.pickupSchedules.filter((pickup) => pickup.readyForPickup || pickup.pickedUp);
+  const displayPickups = readyPickups.length
+    ? openOrder.orderType === "mixed" && readyAndPickedUpPickups.length > readyPickups.length
+      ? readyAndPickedUpPickups
+      : readyPickups
+    : openOrder.pickupSchedules;
   const locations = [...new Set(displayPickups.map((pickup) => pickup.pickupLocation).filter(Boolean))].join(" • ");
   const scheduleSummary = getCompactPickupScheduleSummary(displayPickups);
 
@@ -192,6 +197,14 @@ function getClosedOrderStatusTone(status: ClosedOrderHistoryItem["status"]) {
   return "default" as const;
 }
 
+function getClosedOrderCompletedLabel(value: string | null | undefined) {
+  if (!value) {
+    return null;
+  }
+
+  return formatOpenOrderCreatedAt(value);
+}
+
 function getFallbackGroupStatusLabel(openOrder: OpenOrder, index: number) {
   if (openOrder.orderType === "mixed") {
     return index === 0 ? "Alterations in progress" : "Custom in progress";
@@ -274,6 +287,10 @@ function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
   return "Alteration";
 }
 
+function getClosedScopeLabel(scope: OpenOrder["pickupSchedules"][number]["scope"]) {
+  return scope === "alteration" ? "Alteration" : "Custom Garment";
+}
+
 function OrdersSectionHeader({
   icon,
   title,
@@ -299,10 +316,12 @@ function OrdersSectionHeader({
 
 function AllOrdersRow({
   openOrder,
+  onRequestMarkOpenOrderPickupReady,
   onOpenOrderCheckout,
   variant = "default",
 }: {
   openOrder: OpenOrder;
+  onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderCheckout: (openOrderId: number) => void;
   variant?: "default" | "ready" | "factory";
 }) {
@@ -365,7 +384,7 @@ function AllOrdersRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.75rem] lg:items-start",
+                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.75rem_5rem] lg:items-start",
                     index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
                   )}
                 >
@@ -392,6 +411,22 @@ function AllOrdersRow({
                     <div className="flex min-h-14 items-center justify-start">
                       <div className={getOrdersStatusTextClassName(statusTone)}>{statusLabel}</div>
                     </div>
+                  </div>
+                  <div
+                    className="flex min-h-14 items-center justify-end"
+                    onClick={(event) => event.stopPropagation()}
+                  >
+                    {group.actionPickupIds.length ? (
+                      <ActionButton
+                        tone="primary"
+                        className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                        onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
+                      >
+                        Ready
+                      </ActionButton>
+                    ) : (
+                      <span className="app-text-caption opacity-0">No action</span>
+                    )}
                   </div>
                 </div>
               );
@@ -490,7 +525,11 @@ function ClosedOrdersSection({
             key={order.displayId ?? order.id}
             className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
           >
-            <div className="grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start lg:gap-x-4">
+            <div
+              className={cx(
+                "grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start lg:gap-x-4",
+              )}
+            >
               <div className="min-w-0">
                 <div className="app-text-strong">{order.payerName ?? order.customerName}</div>
                 <div className="app-text-caption mt-1">{`Order ${order.displayId ?? order.id}`} • {formatOpenOrderCreatedAt(order.createdAt)}</div>
@@ -498,46 +537,119 @@ function ClosedOrdersSection({
                   {order.orderType ? getWorkflowSummaryLabel(order.orderType) : "Alteration"}
                 </div>
               </div>
-              <div className="min-w-0">
-                <div className="app-text-overline lg:hidden">Order details</div>
-                <div className="mt-1 flex flex-wrap items-center gap-2">
-                  <div className="app-text-body font-medium">
-                    {getCompactPickupScheduleSummary(order.pickupSchedules) || "Pickup pending"}
+              {order.orderType === "mixed" ? (
+                <div className="min-w-0 lg:col-span-2">
+                  <div className="app-text-overline lg:hidden">Order details</div>
+                  <div className="mt-1">
+                    {order.pickupSchedules.map((pickup, pickupIndex) => (
+                      <div
+                        key={pickup.id}
+                        className={cx(
+                          "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start",
+                          pickupIndex === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
+                        )}
+                      >
+                        <div className="min-w-0">
+                          <div className="app-text-caption">{getClosedScopeLabel(pickup.scope)}</div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2">
+                            <div className="app-text-body font-medium">
+                              {formatPickupSchedule(pickup.pickupDate, pickup.pickupTime) || "Pickup pending"}
+                            </div>
+                            <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                            <span className="app-text-caption inline-flex items-center gap-1.5">
+                              {pickup.pickupLocation || "Pending"}
+                            </span>
+                          </div>
+                          <div className="app-text-caption mt-1 line-clamp-2">
+                            {pickup.itemSummary.join(", ")}
+                          </div>
+                          {pickupIndex === 0 && order.inHouseAssignee ? (
+                            <div className="app-text-caption mt-1">Assigned to {order.inHouseAssignee.name}</div>
+                          ) : null}
+                        </div>
+                        <div className="min-w-0">
+                          <div className="mt-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-start">
+                            <div className="min-w-0">
+                              <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
+                                Picked up
+                              </div>
+                              {pickup.pickedUpAt ? (
+                                <div className="app-text-caption mt-1">
+                                  {getClosedOrderCompletedLabel(pickup.pickedUpAt)}
+                                </div>
+                              ) : null}
+                            </div>
+                            <div className="text-left sm:text-right">
+                              {pickupIndex === 0 ? (
+                                <>
+                                  <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                                    {formatWorklistTotal(order.total)}
+                                  </div>
+                                  <div className="mt-1.5">
+                                    <span className={getWorklistPaymentTextClassName(order.balanceDue ?? 0)}>
+                                      {getWorklistPaymentLabel(order.balanceDue ?? 0)}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : (
+                                <span className="app-text-caption opacity-0">Paid</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
-                  <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                  <span className="app-text-caption inline-flex items-center gap-1.5">
-                    {order.pickupSchedules?.length
-                      ? [...new Set(order.pickupSchedules.map((pickup) => pickup.pickupLocation).filter(Boolean))].join(" • ")
-                      : "Pending"}
-                  </span>
                 </div>
-                <div className="app-text-caption mt-1 line-clamp-2">
-                  {order.itemSummary?.join(", ") || order.label}
-                </div>
-                {order.inHouseAssignee ? (
-                  <div className="app-text-caption mt-1">Assigned to {order.inHouseAssignee.name}</div>
-                ) : null}
-              </div>
-              <div className="min-w-0 text-left">
-                <div className="app-text-overline lg:hidden">Total</div>
-                <div className="mt-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-start">
+              ) : (
+                <>
                   <div className="min-w-0">
-                    <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
-                      {order.status}
-                    </div>
-                  </div>
-                  <div className="text-left sm:text-right">
-                    <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-                      {formatWorklistTotal(order.total)}
-                    </div>
-                    <div className="mt-1.5">
-                      <span className={getWorklistPaymentTextClassName(order.balanceDue ?? 0)}>
-                        {getWorklistPaymentLabel(order.balanceDue ?? 0)}
+                    <div className="app-text-overline lg:hidden">Order details</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <div className="app-text-body font-medium">
+                        {getCompactPickupScheduleSummary(order.pickupSchedules) || "Pickup pending"}
+                      </div>
+                      <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                      <span className="app-text-caption inline-flex items-center gap-1.5">
+                        {order.pickupSchedules?.length
+                          ? [...new Set(order.pickupSchedules.map((pickup) => pickup.pickupLocation).filter(Boolean))].join(" • ")
+                          : "Pending"}
                       </span>
                     </div>
+                    <div className="app-text-caption mt-1 line-clamp-2">
+                      {order.itemSummary?.join(", ") || order.label}
+                    </div>
+                    {order.inHouseAssignee ? (
+                      <div className="app-text-caption mt-1">Assigned to {order.inHouseAssignee.name}</div>
+                    ) : null}
                   </div>
-                </div>
-              </div>
+                  <div className="min-w-0 text-left">
+                    <div className="app-text-overline lg:hidden">Total</div>
+                    <div className="mt-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-start">
+                      <div className="min-w-0">
+                        <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
+                          {order.status}
+                        </div>
+                        {order.status === "Picked up" && order.completedAt ? (
+                          <div className="app-text-caption mt-1">
+                            {getClosedOrderCompletedLabel(order.completedAt)}
+                          </div>
+                        ) : null}
+                      </div>
+                      <div className="text-left sm:text-right">
+                        <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                          {formatWorklistTotal(order.total)}
+                        </div>
+                        <div className="mt-1.5">
+                          <span className={getWorklistPaymentTextClassName(order.balanceDue ?? 0)}>
+                            {getWorklistPaymentLabel(order.balanceDue ?? 0)}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         ))}
@@ -625,7 +737,11 @@ export function OpenOrdersBody({
                     key={openOrder.id}
                     className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
                   >
-                    <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} />
+                    <AllOrdersRow
+                      openOrder={openOrder}
+                      onRequestMarkOpenOrderPickupReady={(candidate, pickupIds) => setMarkReadyConfirmation({ openOrder: candidate, pickupIds })}
+                      onOpenOrderCheckout={onOpenOrderCheckout}
+                    />
                   </div>
                 ))}
               </div>
@@ -644,12 +760,17 @@ export function OpenOrdersBody({
             <ReadyOrdersColumnHeader />
             {filteredReadyOrders.map((openOrder, index) => (
               <div
-                key={openOrder.id}
-                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
-              >
-                <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} variant="ready" />
-              </div>
-            ))}
+                  key={openOrder.id}
+                  className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+                >
+                  <AllOrdersRow
+                    openOrder={openOrder}
+                    onRequestMarkOpenOrderPickupReady={(candidate, pickupIds) => setMarkReadyConfirmation({ openOrder: candidate, pickupIds })}
+                    onOpenOrderCheckout={onOpenOrderCheckout}
+                    variant="ready"
+                  />
+                </div>
+              ))}
           </div>
         )
       ) : null}
@@ -703,7 +824,12 @@ export function OpenOrdersBody({
                   key={openOrder.id}
                   className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
                 >
-                  <AllOrdersRow openOrder={openOrder} onOpenOrderCheckout={onOpenOrderCheckout} variant="factory" />
+                  <AllOrdersRow
+                    openOrder={openOrder}
+                    onRequestMarkOpenOrderPickupReady={(candidate, pickupIds) => setMarkReadyConfirmation({ openOrder: candidate, pickupIds })}
+                    onOpenOrderCheckout={onOpenOrderCheckout}
+                    variant="factory"
+                  />
                 </div>
               ))}
             </div>

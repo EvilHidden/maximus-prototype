@@ -44,7 +44,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Maria Ellis",
       orderType: "alteration",
       createdAt: toDateTimeString(withOffset(baseDate, -2, 14, 5)),
-      status: "partially_ready",
+      status: "open",
       holdUntilAllScopesReady: false,
     },
     {
@@ -94,7 +94,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Maria Ellis",
       orderType: "alteration",
       createdAt: toDateTimeString(withOffset(baseDate, -1, 12, 40)),
-      status: "partially_ready",
+      status: "open",
       holdUntilAllScopesReady: false,
     },
     {
@@ -214,7 +214,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "David Nguyen",
       orderType: "alteration",
       createdAt: "2026-03-14T08:45:00",
-      status: "partially_ready",
+      status: "open",
       holdUntilAllScopesReady: false,
     },
     {
@@ -254,7 +254,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Lily Park",
       orderType: "mixed",
       createdAt: toDateTimeString(withOffset(baseDate, -1, 13, 5)),
-      status: "partially_ready",
+      status: "open",
       holdUntilAllScopesReady: true,
     },
     {
@@ -264,7 +264,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Gabriel Stone",
       orderType: "alteration",
       createdAt: toDateTimeString(withOffset(baseDate, -4, 10, 25)),
-      status: "partially_ready",
+      status: "open",
       holdUntilAllScopesReady: false,
     },
     {
@@ -334,14 +334,24 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Chloe Martin",
       orderType: "mixed",
       createdAt: toDateTimeString(withOffset(baseDate, -4, 12, 15)),
-      status: "partially_picked_up",
+      status: "open",
+      holdUntilAllScopesReady: true,
+    },
+    {
+      id: "order-9025",
+      displayId: "ORD-9025",
+      payerCustomerId: "C-1247",
+      payerName: "Malik Johnson",
+      orderType: "mixed",
+      createdAt: "2026-02-18T11:25:00",
+      status: "complete",
       holdUntilAllScopesReady: true,
     },
   ];
 }
 
 export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates): DbOrderScope[] {
-  const scopes: Array<Omit<DbOrderScope, "assigneeStaffId">> = [
+  const scopes: Array<Omit<DbOrderScope, "assigneeStaffId" | "pickedUpAt">> = [
     {
       id: "scope-9001-custom",
       orderId: "order-9001",
@@ -712,10 +722,31 @@ export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates)
       eventId: null,
       appointmentOptional: true,
     },
+    {
+      id: "scope-9025-alteration",
+      orderId: "order-9025",
+      workflow: "alteration",
+      phase: "picked_up",
+      promisedReadyAt: "2026-02-24T17:00:00",
+      readyAt: "2026-02-24T13:15:00",
+      eventId: null,
+      appointmentOptional: true,
+    },
+    {
+      id: "scope-9025-custom",
+      orderId: "order-9025",
+      workflow: "custom",
+      phase: "picked_up",
+      promisedReadyAt: "2026-02-27T17:30:00",
+      readyAt: "2026-02-27T14:20:00",
+      eventId: "event-malik-wedding",
+      appointmentOptional: true,
+    },
   ];
 
   return scopes.map((scope) => ({
     ...scope,
+    pickedUpAt: scope.phase === "picked_up" ? scope.readyAt ?? scope.promisedReadyAt : null,
     assigneeStaffId: getSeedAlterationAssignee(scope.id),
   }));
 }

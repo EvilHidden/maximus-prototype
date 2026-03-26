@@ -31,8 +31,7 @@ export function AppScreenContent({
   saveDraftOrder,
   assignOpenOrderTailor,
   startOpenOrderWork,
-  startOpenOrderPayment,
-  captureOpenOrderPayment,
+  completeOpenOrderCheckout,
 }: AppController) {
   if (state.screen === "home") {
     return (
@@ -144,12 +143,11 @@ export function AppScreenContent({
       payerCustomer={payerCustomer}
       openOrder={checkoutOpenOrder}
       showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
+      showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
       order={state.order}
       onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       onSaveDraftOrder={saveDraftOrder}
-      onStartOpenOrderWork={startOpenOrderWork}
-      onStartOpenOrderPayment={startOpenOrderPayment}
-      onCaptureOpenOrderPayment={captureOpenOrderPayment}
+      onCompleteOpenOrderCheckout={completeOpenOrderCheckout}
       onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
       onCancelOpenOrder={(openOrderId) => dispatch({ type: "cancelOpenOrder", openOrderId })}
       onCompleteOpenOrderPickup={(openOrderId) => dispatch({ type: "completeOpenOrderPickup", openOrderId })}

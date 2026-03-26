@@ -4,6 +4,7 @@ import type {
   OpenOrderPaymentStatus,
   OrderWorkflowState,
 } from "../../types";
+import { getOpenOrderPickupBalanceDueFromPayments } from "../../features/order/paymentSummary";
 import { deserializeOrderWorkflowFromRecords, serializeOrderWorkflowToRecords } from "../orderWorkflowSerializer";
 import type { DbOrderScope, PrototypeDatabase } from "../schema";
 import type { OrderMutationOptions } from "./shared";
@@ -16,6 +17,109 @@ import {
   getTotalCollected,
   toDateTimeString,
 } from "./shared";
+
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function getScopeSubtotal(database: PrototypeDatabase, orderId: string, workflow: DbOrderScope["workflow"]) {
+  const scopeIds = database.orderScopes
+    .filter((scope) => scope.orderId === orderId && scope.workflow === workflow)
+    .map((scope) => scope.id);
+
+  return database.orderScopeLines
+    .filter((line) => scopeIds.includes(line.scopeId))
+    .reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+}
+
+function getReadyScopeWorkflows(database: PrototypeDatabase, orderId: string) {
+  return new Set(
+    database.orderScopes
+      .filter((scope) => scope.orderId === orderId && scope.phase === "ready")
+      .map((scope) => scope.workflow),
+  );
+}
+
+function getCollectibleAmount(database: PrototypeDatabase, orderId: string) {
+  const order = database.orders.find((candidate) => candidate.id === orderId);
+  if (!order) {
+    return 0;
+  }
+
+  const total = getOrderTotal(database, orderId);
+  const totalCollected = getTotalCollected(database, orderId);
+  const readyWorkflows = getReadyScopeWorkflows(database, orderId);
+
+  if (!readyWorkflows.size) {
+    return roundCurrency(Math.max(total - totalCollected, 0));
+  }
+
+  const scopeIds = database.orderScopes
+    .filter((scope) => scope.orderId === orderId)
+    .map((scope) => scope.id);
+  const lineItems = database.orderScopeLines
+    .filter((line) => scopeIds.includes(line.scopeId))
+    .map((line) => {
+      const scope = database.orderScopes.find((candidate) => candidate.id === line.scopeId);
+      return {
+        id: line.id,
+        kind: scope?.workflow ?? "alteration",
+        title: line.label,
+        subtitle: "",
+        amount: line.quantity * line.unitPrice,
+        sourceLabel: line.label,
+        garmentLabel: line.garmentLabel,
+        components: [],
+      };
+    });
+  const pickupSchedules = database.orderScopes
+    .filter((scope) => scope.orderId === orderId)
+    .map((scope) => ({
+      id: scope.id,
+      scope: scope.workflow,
+      label: scope.workflow === "custom" ? "Custom pickup" : "Alteration pickup",
+      itemSummary: [],
+      itemCount: 0,
+      pickupDate: "",
+      pickupTime: "",
+      pickupLocation: "Fifth Avenue" as const,
+      eventType: "none" as const,
+      eventDate: "",
+      readyAt: scope.readyAt,
+      pickedUpAt: scope.pickedUpAt,
+      pickedUp: scope.phase === "picked_up",
+      readyForPickup: scope.phase === "ready",
+    }));
+
+  return getOpenOrderPickupBalanceDueFromPayments({
+    orderType: order.orderType,
+    lineItems,
+    pickupSchedules,
+    payments: database.payments.filter((payment) => payment.orderId === orderId),
+    total,
+  });
+}
+
+function getPaymentAllocation(
+  database: PrototypeDatabase,
+  orderId: string,
+  amount: number,
+): "custom_deposit" | "alteration_balance" | "custom_balance" | "full_balance" | undefined {
+  const readyWorkflows = [...getReadyScopeWorkflows(database, orderId)];
+  if (readyWorkflows.length !== 1) {
+    return undefined;
+  }
+
+  if (readyWorkflows[0] === "alteration") {
+    return "alteration_balance";
+  }
+
+  if (readyWorkflows[0] === "custom") {
+    return "custom_balance";
+  }
+
+  return undefined;
+}
 
 export function replaceDraftOrderRecords(
   database: PrototypeDatabase,
@@ -119,16 +223,17 @@ export function saveOrderWorkflowToDatabase(
   };
 }
 
-export function startOrderPaymentCollection(
+export function completeOpenOrderCheckout(
   database: PrototypeDatabase,
   openOrderId: number,
+  now = new Date(),
 ): PrototypeDatabase {
   const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
   if (!orderId) {
     return database;
   }
 
-  const amount = Math.max(getOrderTotal(database, orderId) - getTotalCollected(database, orderId), 0);
+  const amount = getCollectibleAmount(database, orderId);
   if (amount <= 0) {
     return database;
   }
@@ -142,12 +247,14 @@ export function startOrderPaymentCollection(
         id: `pay-${orderId}-${paymentIndex}`,
         orderId,
         source: "prototype",
-        status: "pending",
+        status: "captured",
+        allocation: getPaymentAllocation(database, orderId, amount),
         amount,
-        collectedAt: null,
+        collectedAt: toDateTimeString(now),
         squarePaymentId: null,
       },
     ],
+    generatedAt: toDateTimeString(now),
   };
 }
 
@@ -200,40 +307,6 @@ export function startOpenOrderWork(
   };
 }
 
-export function captureOrderPayment(
-  database: PrototypeDatabase,
-  openOrderId: number,
-  now = new Date(),
-): PrototypeDatabase {
-  const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
-  if (!orderId) {
-    return database;
-  }
-
-  const amount = Math.max(getOrderTotal(database, orderId) - getTotalCollected(database, orderId), 0);
-  if (amount <= 0) {
-    return database;
-  }
-
-  const paymentIndex = database.payments.filter((payment) => payment.orderId === orderId).length + 1;
-  return {
-    ...database,
-    payments: [
-      ...database.payments,
-      {
-        id: `pay-${orderId}-${paymentIndex}`,
-        orderId,
-        source: "prototype",
-        status: "captured",
-        amount,
-        collectedAt: toDateTimeString(now),
-        squarePaymentId: null,
-      },
-    ],
-    generatedAt: toDateTimeString(now),
-  };
-}
-
 export function markOrderScopePickupReady(
   database: PrototypeDatabase,
   scopeId: string,
@@ -246,6 +319,7 @@ export function markOrderScopePickupReady(
           phase: "ready",
           promisedReadyAt: scope.promisedReadyAt ?? toDateTimeString(now),
           readyAt: scope.readyAt ?? toDateTimeString(now),
+          pickedUpAt: null,
         }
       : scope
   ));
@@ -293,6 +367,7 @@ export function completeOpenOrderPickup(
           ...scope,
           phase: "picked_up" as const,
           readyAt: scope.readyAt ?? toDateTimeString(now),
+          pickedUpAt: toDateTimeString(now),
         }
       : scope
   ));
