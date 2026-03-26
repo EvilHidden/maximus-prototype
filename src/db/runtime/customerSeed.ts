@@ -455,6 +455,15 @@ export function createCustomerEvents({ baseDate }: RuntimeSeedDates): DbCustomer
 export function createMeasurementSets(): DbMeasurementSet[] {
   return [
     {
+      id: "SET-C1078-V1",
+      customerId: "C-1078",
+      label: "Version 1",
+      takenAt: "Mar 10",
+      note: "Wedding party baseline",
+      values: { ...andreaValues, Chest: "35.5", Waist: "29.25", "Sleeve Length": "23.75" },
+      suggested: true,
+    },
+    {
       id: "SET-C1042-V4",
       customerId: "C-1042",
       label: "Version 4",
@@ -530,6 +539,24 @@ export function createMeasurementSets(): DbMeasurementSet[] {
       takenAt: "Feb 21",
       note: "Latest on file",
       values: sofiaValues,
+      suggested: true,
+    },
+    {
+      id: "SET-C1214-V1",
+      customerId: "C-1214",
+      label: "Version 1",
+      takenAt: "Mar 18",
+      note: "Bridesmaid jacket consult",
+      values: { ...andreaValues, Chest: "34.75", Waist: "28.75", Length: "39.5" },
+      suggested: true,
+    },
+    {
+      id: "SET-C1238-V1",
+      customerId: "C-1238",
+      label: "Version 1",
+      takenAt: "Feb 25",
+      note: "Editorial tuxedo baseline",
+      values: { ...sofiaValues, Chest: "35.25", Waist: "28.5", Length: "40.25" },
       suggested: true,
     },
     ...additionalMeasurementSets,
