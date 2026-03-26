@@ -36,55 +36,54 @@ export function MeasurementValueEditor({
   }, [focusKey]);
 
   return (
-    <div className="grid gap-4">
-      <div>
-        <div className="mb-2 flex items-center justify-between gap-3">
-          <div className="app-text-overline">Measurement value</div>
-          <button
-            onClick={onClear}
-            className="inline-flex h-8 items-center gap-1 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-2 text-xs font-medium text-[var(--app-text-soft)] transition hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-text)]"
-          >
-            <X className="h-3.5 w-3.5" />
-            Clear
-          </button>
+    <div className="grid gap-3">
+      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_308px] xl:items-stretch">
+        <div className="flex min-w-0">
+          <input
+            ref={activeInputRef}
+            value={value}
+            onChange={(event) => onChangeValue(event.target.value)}
+            inputMode="decimal"
+            enterKeyHint="done"
+            pattern="[0-9]*[.]?[0-9]*"
+            placeholder="Enter inches"
+            className="app-input min-h-[8.5rem] h-full px-4 text-center text-[5.75rem] font-semibold leading-none tracking-[-0.08em] tabular-nums xl:min-h-[8.75rem] xl:text-[6.6rem]"
+          />
         </div>
-        <div className="grid grid-cols-[56px_minmax(0,1fr)_56px] items-stretch gap-2">
-          <ActionButton tone="secondary" className="min-h-16 px-0 text-lg font-semibold" onClick={() => onStepInches(-1)}>
-            <Minus className="h-4 w-4" />
-          </ActionButton>
-          <div className="flex min-w-0">
-            <input
-              ref={activeInputRef}
-              value={value}
-              onChange={(event) => onChangeValue(event.target.value)}
-              inputMode="decimal"
-              enterKeyHint="done"
-              pattern="[0-9]*[.]?[0-9]*"
-              placeholder="Enter inches"
-              className="app-input min-h-16 h-full text-center text-[2rem] font-semibold"
-            />
+
+        <div className="relative">
+          <div className="absolute right-0 top-0 z-10">
+            <button
+              onClick={onClear}
+              className="inline-flex h-8 items-center gap-1 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] px-2 text-xs font-medium text-[var(--app-text-soft)] transition hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-text)]"
+            >
+              <X className="h-3.5 w-3.5" />
+              Clear
+            </button>
           </div>
-          <ActionButton tone="secondary" className="min-h-16 px-0 text-lg font-semibold" onClick={() => onStepInches(1)}>
-            <Plus className="h-4 w-4" />
-          </ActionButton>
+          <div className="grid h-full grid-cols-4 gap-1.5 pt-10">
+            {fractions.map((fractionOption) => (
+              <button
+                key={fractionOption.label}
+                onClick={() => onSetFraction(fractionOption.value)}
+                className={`flex min-h-[3.6rem] items-center justify-center border px-0 py-2 text-[2.35rem] font-semibold leading-none ${
+                  fraction === fractionOption.value ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
+                }`}
+              >
+                {fractionOption.label}
+              </button>
+            ))}
+          </div>
         </div>
       </div>
 
-      <div>
-        <div className="mb-2 app-text-overline">Quarter step</div>
-        <div className="grid grid-cols-4 gap-2">
-          {fractions.map((fractionOption) => (
-            <button
-              key={fractionOption.label}
-              onClick={() => onSetFraction(fractionOption.value)}
-              className={`border px-3 py-3 text-sm font-medium ${
-                fraction === fractionOption.value ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
-              }`}
-            >
-              {fractionOption.label}
-            </button>
-          ))}
-        </div>
+      <div className="grid grid-cols-2 gap-3">
+        <ActionButton tone="secondary" className="min-h-[4rem] px-0 text-xl font-semibold" onClick={() => onStepInches(-1)}>
+          <Minus className="h-5 w-5" />
+        </ActionButton>
+        <ActionButton tone="secondary" className="min-h-[4rem] px-0 text-xl font-semibold" onClick={() => onStepInches(1)}>
+          <Plus className="h-5 w-5" />
+        </ActionButton>
       </div>
     </div>
   );

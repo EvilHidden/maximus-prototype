@@ -25,19 +25,25 @@ export function SavedMeasurementsRail({
 }: SavedMeasurementsRailProps) {
   return (
     <div>
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="mb-3 flex items-start justify-between gap-3">
         <div>
-          <div className="app-text-value">{customer?.name ?? "No customer selected"}</div>
-          <div className="app-text-caption mt-1">Saved sets</div>
+          <div className="app-text-overline">Measurement sets</div>
+          <div className="app-text-value mt-1">{customer?.name ?? "No customer selected"}</div>
+          {customer ? <div className="app-text-caption mt-1">{customerHistory.length} on file</div> : null}
         </div>
-        <ActionButton tone="secondary" className="inline-flex min-h-11 items-center gap-1.5 px-3 py-2 text-sm" onClick={onCreateDraftSet}>
-          <Plus className="h-3.5 w-3.5" />
-          New set
-        </ActionButton>
+        <div className="flex items-center gap-2">
+          <button className="app-text-caption underline-offset-2 hover:underline" onClick={onOpenCustomerModal}>
+            {customer ? "Change" : "Choose"}
+          </button>
+          <ActionButton tone="secondary" className="inline-flex min-h-10 items-center gap-1.5 px-3 py-2 text-sm" onClick={onCreateDraftSet}>
+            <Plus className="h-3.5 w-3.5" />
+            New set
+          </ActionButton>
+        </div>
       </div>
 
       {customerHistory.length > 0 ? (
-        <div className="divide-y divide-[var(--app-border)]/35 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/40 bg-[var(--app-surface)]/14 text-sm">
+        <div className="divide-y divide-[var(--app-border)]/24 text-sm">
           {customerHistory.map((set) => {
             const display = getMeasurementSetDisplay(set);
             const isCurrent = linkedMeasurementSetId === set.id;
@@ -45,7 +51,7 @@ export function SavedMeasurementsRail({
             return (
               <div
                 key={set.id}
-                className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 p-0 transition ${isCurrent ? "bg-[var(--app-surface)]/34" : ""}`}
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 p-0 transition ${isCurrent ? "bg-[color:color-mix(in_srgb,var(--app-surface-muted)_24%,transparent)]" : ""}`}
               >
                 <button onClick={() => onApplySet(set)} className="block w-full min-w-0 px-4 py-3 text-left">
                   <div className="flex items-start justify-between gap-3">
@@ -75,7 +81,7 @@ export function SavedMeasurementsRail({
         </div>
       ) : (
         <EmptyState className="space-y-3">
-          <div>{customer ? "No saved sets yet." : "Choose a customer to see saved sets."}</div>
+          <div>{customer ? "No saved sets yet." : "Choose a customer."}</div>
           {!customer ? (
             <ActionButton tone="secondary" className="min-h-11 px-4" onClick={onOpenCustomerModal}>
               Choose customer
