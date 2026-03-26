@@ -9,13 +9,24 @@ import {
 import {
   getOpenOrderOperationalPhase,
   getOpenOrderPickupGroups,
-  getOpenOrderTypeLabel,
   formatOpenOrderCreatedAt,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
   type OrdersQueueKey,
 } from "../../selectors";
 import { formatWorklistTotal, getPhaseTone, getWorklistPaymentLabel, getWorklistPaymentTextClassName, getWorklistPhaseLabel, queueMeta, queueOverviewMeta } from "./meta";
+
+function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
+  if (orderType === "mixed") {
+    return "Alteration + Custom Garment";
+  }
+
+  if (orderType === "custom") {
+    return "Custom Garment";
+  }
+
+  return "Alteration";
+}
 
 function getWorklistStatusTextClassName(tone: "default" | "dark" | "success" | "warn" | "danger") {
   if (tone === "success") {
@@ -139,7 +150,8 @@ function WorkQueueOrderRow({
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.75rem] lg:items-start lg:gap-x-5">
         <div className="min-w-0">
           <div className="app-text-value">{openOrder.payerName}</div>
-          <div className="app-text-caption mt-1">{getOpenOrderTypeLabel(openOrder.orderType)} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
+          <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
+          <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
         </div>
 
         <div className="min-w-0">
@@ -226,18 +238,11 @@ function WorkQueueOrderRow({
         </div>
 
         <div className="min-w-0 text-left sm:text-right lg:min-w-[7.5rem]">
-          {openOrder.orderType !== "mixed" ? (
-            <div className={getWorklistStatusTextClassName(getPhaseTone(phase))}>
-              {getWorklistPhaseLabel(phase)}
-            </div>
-          ) : null}
-          <div className={cx(openOrder.orderType !== "mixed" && "mt-3")}>
-            <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-              {formatWorklistTotal(openOrder.total)}
-            </div>
-            <div className="mt-1.5">
-              <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>{getWorklistPaymentLabel(openOrder.balanceDue)}</span>
-            </div>
+          <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+            {formatWorklistTotal(openOrder.total)}
+          </div>
+          <div className="mt-1.5">
+            <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>{getWorklistPaymentLabel(openOrder.balanceDue)}</span>
           </div>
         </div>
       </div>

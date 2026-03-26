@@ -175,7 +175,7 @@ export function OpenOrdersControls({
             <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
               <div className="flex min-w-max gap-2 px-1">
                 {([
-                  { key: "active", label: "Active orders", count: allOrdersTabCounts.active },
+                  { key: "active", label: "Open orders", count: allOrdersTabCounts.active },
                   { key: "closed", label: "Closed orders", count: allOrdersTabCounts.closed },
                 ] as const).map((tab) => (
                   <SelectionChip
