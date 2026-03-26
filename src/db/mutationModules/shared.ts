@@ -104,6 +104,7 @@ export function createDraftOrderRecord(draftOrder: DraftOrderRecord): DbDraftOrd
   return {
     id: draftOrder.id,
     payerCustomerId: draftOrder.payerCustomerId,
+    selectedCustomerId: draftOrder.selectedCustomerId,
     updatedAt: draftOrder.updatedAt,
     snapshot: draftOrder.snapshot,
   };

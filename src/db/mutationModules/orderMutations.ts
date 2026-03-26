@@ -157,6 +157,7 @@ export function saveOrderWorkflowToDatabase(
     now,
     existingOrder,
     existingScopes: existingOrder ? database.orderScopes.filter((scope) => scope.orderId === existingOrder.id) : [],
+    existingPickupAppointments: existingOrder ? database.pickupAppointments.filter((appointment) => appointment.orderId === existingOrder.id) : [],
     staffMembers: database.staffMembers,
   });
   if (!serialized) {

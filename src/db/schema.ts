@@ -89,6 +89,7 @@ export type DbMeasurementSet = {
 export type DbDraftOrder = {
   id: string;
   payerCustomerId: string | null;
+  selectedCustomerId: string | null;
   updatedAt: string;
   snapshot: OrderWorkflowState;
 };

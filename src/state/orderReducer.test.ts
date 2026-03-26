@@ -341,14 +341,40 @@ describe("order reducer", () => {
     });
   });
 
-  it("loads a saved order into the builder for editing and resaves it in place", () => {
+  it("loads a saved order into the builder for editing and resaves it in place without resetting lifecycle state", () => {
     const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const orderRecord = database.orders.find((order) => order.displayId === "ORD-9003");
+    const alterationScope = database.orderScopes.find((scope) => scope.id === "scope-9003-alteration");
+    const customScope = database.orderScopes.find((scope) => scope.id === "scope-9003-custom");
+    const pickupAppointment = database.pickupAppointments.find((appointment) => appointment.id === "pickup-1003");
+    expect(orderRecord).toBeTruthy();
+    expect(alterationScope).toBeTruthy();
+    expect(customScope).toBeTruthy();
+    expect(pickupAppointment).toBeTruthy();
+
+    orderRecord!.status = "partially_picked_up";
+    orderRecord!.operationalStatus = "in_progress";
+    alterationScope!.phase = "picked_up";
+    alterationScope!.readyAt = "2026-03-22T15:30:00.000Z";
+    alterationScope!.pickedUpAt = "2026-03-22T17:15:00.000Z";
+    alterationScope!.assigneeStaffId = "staff-tailor-luis";
+    customScope!.phase = "ready";
+    customScope!.readyAt = "2026-03-23T11:00:00.000Z";
+    pickupAppointment!.statusKey = "completed";
+    pickupAppointment!.confirmationStatus = "confirmed";
+
+    const originalCreatedAt = orderRecord!.createdAt;
     let state = createInitialAppState({ database });
 
     state = appReducer(state, { type: "openOrderForEdit", openOrderId: 9003 });
     expect(state.editingOpenOrderId).toBe(9003);
     expect(state.order.alteration.items.length).toBeGreaterThan(0);
     expect(state.order.custom.items.length).toBeGreaterThan(0);
+    expect(state.order.fulfillment.alteration).toMatchObject({
+      pickupDate: "2026-03-27",
+      pickupTime: "14:15",
+      pickupLocation: "Long Island",
+    });
 
     const customItemId = state.order.custom.items[0]?.id;
     expect(customItemId).toBeTruthy();
@@ -370,10 +396,71 @@ describe("order reducer", () => {
     )!;
 
     expect(state.database.orders.filter((order) => order.displayId === "ORD-9003")).toHaveLength(1);
+    expect(state.database.orders.find((order) => order.displayId === "ORD-9003")).toMatchObject({
+      createdAt: originalCreatedAt,
+      status: "partially_picked_up",
+      operationalStatus: "in_progress",
+      holdUntilAllScopesReady: true,
+    });
+
+    const updatedAlterationScope = state.database.orderScopes.find((scope) => (
+      scope.orderId === "order-9003" && scope.workflow === "alteration"
+    ));
+    expect(updatedAlterationScope).toMatchObject({
+      phase: "picked_up",
+      readyAt: "2026-03-22T15:30:00.000Z",
+      pickedUpAt: "2026-03-22T17:15:00.000Z",
+      assigneeStaffId: "staff-tailor-luis",
+    });
+
+    const updatedCustomScope = state.database.orderScopes.find((scope) => (
+      scope.orderId === "order-9003" && scope.workflow === "custom"
+    ));
+    expect(updatedCustomScope).toMatchObject({
+      phase: "ready",
+      readyAt: "2026-03-23T11:00:00.000Z",
+      pickedUpAt: null,
+    });
+
     const updatedLine = state.database.orderScopeLines.find((line) => line.scopeId === "order-9003-custom" && line.garmentLabel === "Dinner jacket");
     expect(updatedLine).toBeTruthy();
     const updatedFabric = state.database.orderScopeLineComponents.find((component) => component.lineId === updatedLine!.id && component.kind === "fabric");
     expect(updatedFabric?.value).toBe("Ivory Barathea");
+
+    expect(state.database.pickupAppointments.filter((appointment) => appointment.orderId === "order-9003")).toHaveLength(1);
+    expect(state.database.pickupAppointments.find((appointment) => appointment.orderId === "order-9003")).toMatchObject({
+      id: "pickup-1003",
+      scopeId: null,
+      statusKey: "completed",
+      confirmationStatus: "confirmed",
+      locationId: "loc_long_island",
+    });
+  });
+
+  it("preserves canceled pickup appointments when an alteration order is edited", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const pickupAppointment = database.pickupAppointments.find((appointment) => appointment.id === "pickup-1009");
+    expect(pickupAppointment).toBeTruthy();
+    pickupAppointment!.statusKey = "canceled";
+    pickupAppointment!.confirmationStatus = "unconfirmed";
+
+    let state = createInitialAppState({ database });
+    state = appReducer(state, { type: "openOrderForEdit", openOrderId: 9004 });
+    state = tryReduceOrderAction(
+      state,
+      { type: "setAlterationItem", payload: { itemId: state.order.alteration.items[0]!.id, modifiers: [{ name: "Hem", price: 60 }] } },
+    )!;
+    state = tryReduceOrderAction(
+      state,
+      { type: "saveOpenOrder", paymentStatus: "due_later", openCheckout: false },
+      { now: new Date("2026-03-22T16:00:00.000Z") },
+    )!;
+
+    expect(state.database.pickupAppointments.find((appointment) => appointment.orderId === "order-9004")).toMatchObject({
+      id: "pickup-1009",
+      statusKey: "canceled",
+      confirmationStatus: "unconfirmed",
+    });
   });
 
   it("cancels an open order and moves it into closed history", () => {

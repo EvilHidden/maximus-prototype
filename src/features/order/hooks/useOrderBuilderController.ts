@@ -144,7 +144,7 @@ export function useOrderBuilderController({
   };
 
   const handleShowCustomDisabledReason = (reason: string) => {
-    setCustomValidationVisible(false);
+    setCustomValidationVisible(true);
     showToast(reason);
   };
 
