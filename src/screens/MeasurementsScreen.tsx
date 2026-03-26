@@ -23,11 +23,11 @@ type MeasurementsScreenProps = {
   measurementSets: MeasurementSet[];
   measurementFields: string[];
   order: OrderWorkflowState;
-  onCreateDraftSet: () => void;
+  onStartNewSet: () => void;
   onSelectCustomer: (customerId: string) => void;
   onUpdateMeasurement: (field: string, value: string) => void;
   onReplaceMeasurements: (values: Record<string, string>, measurementSetId: string | null) => void;
-  onSaveMeasurementSet: (mode: "draft" | "saved", title: string) => void;
+  onSaveMeasurementSet: (mode: "update" | "copy", title?: string) => void;
   onDeleteMeasurementSet: (measurementSetId: string) => void;
   onScreenChange: (screen: Screen) => void;
 };
@@ -84,7 +84,7 @@ export function MeasurementsScreen({
   measurementSets,
   measurementFields,
   order,
-  onCreateDraftSet,
+  onStartNewSet,
   onSelectCustomer,
   onUpdateMeasurement,
   onReplaceMeasurements,
@@ -98,7 +98,7 @@ export function MeasurementsScreen({
   const [activeField, setActiveField] = useState(fieldNames[0] ?? "");
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
   const [customerQuery, setCustomerQuery] = useState("");
-  const [saveMode, setSaveMode] = useState<"draft" | "saved" | null>(null);
+  const [saveMode, setSaveMode] = useState<"copy" | "save" | null>(null);
   const [saveTitle, setSaveTitle] = useState("");
   const [pendingDeleteSetId, setPendingDeleteSetId] = useState<string | null>(null);
 
@@ -169,13 +169,14 @@ export function MeasurementsScreen({
     onUpdateMeasurement(activeField, formatMeasurementValue(Math.max(0, nextInches), nextFraction));
   };
 
-  const openSaveModal = (mode: "draft" | "saved") => {
+  const extractSetTitle = (note: string) => {
+    const noteParts = note.split(" • ");
+    return noteParts.length > 1 ? noteParts.slice(1).join(" • ") : note;
+  };
+
+  const openSaveModal = (mode: "copy" | "save") => {
     setSaveMode(mode);
-    if (activeSet?.isDraft) {
-      setSaveTitle(activeSet.note.split(" • ").slice(1).join(" • "));
-      return;
-    }
-    setSaveTitle("");
+    setSaveTitle(activeSet ? extractSetTitle(activeSet.note) : "");
   };
 
   return (
@@ -271,7 +272,7 @@ export function MeasurementsScreen({
                   customer={selectedCustomer}
                   customerHistory={customerHistory}
                   linkedMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
-                  onCreateDraftSet={onCreateDraftSet}
+                  onStartNewSet={onStartNewSet}
                   onOpenCustomerModal={() => setCustomerModalOpen(true)}
                   onApplySet={(set) => onReplaceMeasurements(set.values, set.id)}
                   onDeleteSet={setPendingDeleteSetId}
@@ -284,8 +285,14 @@ export function MeasurementsScreen({
                 hasEnteredMeasurements={hasEnteredMeasurements}
                 orderContext={orderContext}
                 hasCheckoutPath={Boolean(orderContext)}
-                onOpenSaveDraft={() => openSaveModal("draft")}
-                onOpenSaveSet={() => openSaveModal("saved")}
+                onSaveCurrentSet={() => {
+                  if (activeSet) {
+                    onSaveMeasurementSet("update");
+                    return;
+                  }
+                  openSaveModal("save");
+                }}
+                onSaveAsNewSet={() => openSaveModal("copy")}
                 onBackToOrder={() => onScreenChange("order")}
                 checkoutDisabledReason={checkoutDisabledReason}
                 onCheckout={() => onScreenChange("checkout")}
@@ -314,7 +321,7 @@ export function MeasurementsScreen({
 
       {saveMode ? (
         <ModalShell
-          title={saveMode === "draft" ? "Save draft set" : activeSet?.isDraft ? "Save as a set" : "Save measurement set"}
+          title={saveMode === "copy" ? "Save as new set" : "Save measurement set"}
           subtitle={selectedCustomer?.name ?? "Customer required"}
           onClose={() => {
             setSaveMode(null);
@@ -335,13 +342,13 @@ export function MeasurementsScreen({
               <ActionButton
                 tone="primary"
                 onClick={() => {
-                  onSaveMeasurementSet(saveMode, saveTitle);
+                  onSaveMeasurementSet(saveMode === "copy" ? "copy" : "update", saveTitle);
                   setSaveMode(null);
                   setSaveTitle("");
                 }}
                 disabled={!selectedCustomer || !saveTitle.trim()}
               >
-                {saveMode === "draft" ? "Save draft" : "Save set"}
+                {saveMode === "copy" ? "Save new set" : "Save set"}
               </ActionButton>
             </div>
           }
@@ -351,16 +358,14 @@ export function MeasurementsScreen({
             <input
               value={saveTitle}
               onChange={(event) => setSaveTitle(event.target.value)}
-              placeholder={saveMode === "draft" ? "Draft name" : "Saved set name"}
+              placeholder="Measurement set name"
               className="app-input app-text-body py-3"
             />
           </label>
           <div className="app-text-body-muted mt-3">
-            {saveMode === "draft"
-              ? "Drafts stay editable and can be saved as a set later."
-              : activeSet?.isDraft
-                ? "This draft will be saved as a reusable set for this customer."
-                : "This saves the current measurements to the selected customer and makes them available with the customer's saved sets."}
+            {saveMode === "copy"
+              ? "This saves the current measurements as a new reusable set."
+              : "This saves the current measurements as the active set for this customer."}
           </div>
         </ModalShell>
       ) : null}

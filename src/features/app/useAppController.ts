@@ -50,7 +50,7 @@ export function useAppController() {
     [openOrders, state.checkoutOpenOrderId],
   );
 
-  const { measurementSets, saveMeasurements, createDraftMeasurements, deleteMeasurementSet } = useMeasurementSetManager({
+  const { measurementSets, saveMeasurements, startNewMeasurementSet, deleteMeasurementSet } = useMeasurementSetManager({
     measurementSets: derivedMeasurementSets,
     dispatch,
   });
@@ -80,7 +80,7 @@ export function useAppController() {
     startWorkflow,
     openWorkflowAppointment,
     saveMeasurements,
-    createDraftMeasurements,
+    startNewMeasurementSet,
     deleteMeasurementSet,
     saveDraftOrder,
     assignOpenOrderTailor,

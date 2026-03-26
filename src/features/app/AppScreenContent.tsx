@@ -26,7 +26,7 @@ export function AppScreenContent({
   startWorkflow,
   openWorkflowAppointment,
   saveMeasurements,
-  createDraftMeasurements,
+  startNewMeasurementSet,
   deleteMeasurementSet,
   saveDraftOrder,
   assignOpenOrderTailor,
@@ -91,7 +91,7 @@ export function AppScreenContent({
         measurementSets={measurementSets}
         measurementFields={referenceData.measurementFields}
         order={state.order}
-        onCreateDraftSet={createDraftMeasurements}
+        onStartNewSet={startNewMeasurementSet}
         onSelectCustomer={(customerId) => {
           dispatch({ type: "setCustomer", customerId });
           if (state.order.activeWorkflow === "custom") {

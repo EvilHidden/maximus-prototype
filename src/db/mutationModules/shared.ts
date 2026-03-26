@@ -48,8 +48,8 @@ export type SaveMeasurementSetPayload = {
   customerId: string;
   measurementSetId: string | null;
   measurements: Record<string, string>;
-  mode: "draft" | "saved";
-  title: string;
+  mode: "update" | "copy";
+  title?: string;
 };
 
 export type DeleteMeasurementSetPayload = {

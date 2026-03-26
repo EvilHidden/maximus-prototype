@@ -16,17 +16,15 @@ export function getMeasurementSetDisplay(set: MeasurementSet): MeasurementSetDis
       version: compactVersionLabel(set.label),
       status: set.suggested ? "Latest on file" : null,
       subline: date,
-      isDraft: Boolean(set.isDraft),
     };
   }
 
   return {
     id: set.id,
-    title: set.isDraft ? set.note : "Measurement set",
-    version: set.isDraft ? "Draft" : compactVersionLabel(set.label),
+    title: "Measurement set",
+    version: compactVersionLabel(set.label),
     status: set.suggested ? set.note : null,
     subline: !set.suggested ? set.note : null,
-    isDraft: Boolean(set.isDraft),
   };
 }
 
@@ -54,7 +52,7 @@ export function getMeasurementStatusModel(
     const display = getMeasurementSetDisplay(activeSet);
     return {
       title: display.title,
-      detail: activeSet.isDraft ? "Draft in progress" : display.version,
+      detail: display.version,
     };
   }
 
@@ -81,7 +79,7 @@ export function getMeasurementOptions(
 
   return measurementSets
     .filter((set) => set.customerId === customer.id)
-    .map((set) => ({ ...set, kind: set.isDraft ? ("draft" as const) : ("history" as const) }));
+    .map((set) => ({ ...set, kind: "history" as const }));
 }
 
 export function getMeasurementSetLabel(measurementSets: MeasurementSet[], measurementSetId: string | null) {

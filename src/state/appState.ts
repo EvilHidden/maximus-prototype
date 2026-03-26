@@ -2,7 +2,6 @@ import { createPrototypeDatabase } from "../db/runtime";
 import {
   addCustomerRecord,
   archiveCustomerRecord,
-  createDraftMeasurementSetRecord,
   createManualAppointmentRecord,
   deleteMeasurementSetRecord,
   loadOrderWorkflowForEdit,
@@ -156,31 +155,21 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         database: updateAppointmentRecord(state.database, action.payload),
       });
-    case "createDraftMeasurementSet": {
-      const result = createDraftMeasurementSetRecord(
-        state.database,
-        state.selectedCustomerId,
-      );
-
+    case "startNewMeasurementSet":
       return syncDraftOrderRecord({
         ...state,
-        database: result.database,
         order: {
           ...state.order,
           custom: {
             ...state.order.custom,
             draft: {
               ...state.order.custom.draft,
-              linkedMeasurementSetId: result.linkedMeasurementSetId || null,
-              measurements: {
-                ...createEmptyMeasurements(),
-                ...result.values,
-              },
+              linkedMeasurementSetId: null,
+              measurements: createEmptyMeasurements(),
             },
           },
         },
       });
-    }
     case "saveMeasurementSet": {
       if (!state.selectedCustomerId) {
         return state;
