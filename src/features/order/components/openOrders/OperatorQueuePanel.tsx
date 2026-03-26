@@ -201,14 +201,14 @@ function OperatorQueueRow({
   onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
 }: {
   openOrder: OpenOrder;
   inHouseTailors: StaffMember[];
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const stage = getOperatorQueueStage(openOrder);
   const pickupGroups = getOpenOrderPickupGroups(openOrder, { scopes: ["alteration"] });
@@ -223,11 +223,11 @@ function OperatorQueueRow({
       className="cursor-pointer px-4 py-4"
       role="button"
       tabIndex={0}
-      onClick={() => onOpenOrderCheckout(openOrder.id)}
+      onClick={() => onOpenOrderDetails(openOrder.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpenOrderCheckout(openOrder.id);
+          onOpenOrderDetails(openOrder.id);
         }
       }}
     >
@@ -349,7 +349,7 @@ function OperatorQueueStageSection({
   onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
 }: {
   title: string;
   subtitle: string;
@@ -358,7 +358,7 @@ function OperatorQueueStageSection({
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   if (!openOrders.length) {
     return null;
@@ -389,7 +389,7 @@ function OperatorQueueStageSection({
               onAssignOpenOrderTailor={onAssignOpenOrderTailor}
               onStartOpenOrderWork={onStartOpenOrderWork}
               onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
-              onOpenOrderCheckout={onOpenOrderCheckout}
+              onOpenOrderDetails={onOpenOrderDetails}
             />
           </div>
         ))}
@@ -405,7 +405,7 @@ export function OperatorQueuePanel({
   onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
 }: {
   openOrders: OpenOrder[];
   stageCounts: OperatorQueueStageCounts;
@@ -413,7 +413,7 @@ export function OperatorQueuePanel({
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const sortedOrders = sortOperatorQueueOrders(openOrders);
   const ordersByStage = stageMeta.reduce<Record<OperatorQueueStageKey, OpenOrder[]>>((groups, stage) => {
@@ -475,7 +475,7 @@ export function OperatorQueuePanel({
             onAssignOpenOrderTailor={onAssignOpenOrderTailor}
             onStartOpenOrderWork={onStartOpenOrderWork}
             onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
-            onOpenOrderCheckout={onOpenOrderCheckout}
+            onOpenOrderDetails={onOpenOrderDetails}
           />
         ))}
       </div>

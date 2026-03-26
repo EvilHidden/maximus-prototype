@@ -1,5 +1,5 @@
 export type ThemeMode = "light" | "dark";
-export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders" | "appointments";
+export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders" | "orderDetails" | "appointments";
 export type WorkflowMode = "alteration" | "custom";
 export type OrderType = WorkflowMode | "mixed";
 export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";

@@ -545,10 +545,10 @@ function ReadyPickupRow({
       </div>
       <div className="flex items-center gap-2">
         <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onOpenOrder}>
-          Edit order
+          View order
         </ActionButton>
         <ActionButton tone="primary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onCheckout}>
-          Checkout
+          Review payment
         </ActionButton>
       </div>
     </div>

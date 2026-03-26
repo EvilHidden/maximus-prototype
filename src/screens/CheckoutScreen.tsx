@@ -25,7 +25,7 @@ import { CheckoutSummaryRail } from "../features/order/components/checkout/Check
 import { ConfirmCancelOrderModal } from "../features/order/modals/ConfirmCancelOrderModal";
 import { ConfirmCheckoutModal } from "../features/order/modals/ConfirmCheckoutModal";
 
-type CheckoutScreenProps = {
+type ReviewOrderScreenProps = {
   customers: Customer[];
   payerCustomer: Customer | null;
   openOrder: OpenOrder | null;
@@ -33,6 +33,7 @@ type CheckoutScreenProps = {
   showCheckoutCompletion: boolean;
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
+  onBackToOpenOrder: (openOrderId: number) => void;
   onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
   onCompleteOpenOrderCheckout: (openOrderId: number) => void;
   onEditOpenOrder: (openOrderId: number) => void;
@@ -40,7 +41,7 @@ type CheckoutScreenProps = {
   onCompleteOpenOrderPickup: (openOrderId: number) => void;
 };
 
-export function CheckoutScreen({
+export function ReviewOrderScreen({
   customers,
   payerCustomer,
   openOrder,
@@ -48,12 +49,13 @@ export function CheckoutScreen({
   showCheckoutCompletion,
   order,
   onScreenChange,
+  onBackToOpenOrder,
   onSaveDraftOrder,
   onCompleteOpenOrderCheckout,
   onEditOpenOrder,
   onCancelOpenOrder,
   onCompleteOpenOrderPickup,
-}: CheckoutScreenProps) {
+}: ReviewOrderScreenProps) {
   const [checkoutConfirmOpen, setCheckoutConfirmOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const orderType = getOrderType(order);
@@ -82,6 +84,7 @@ export function CheckoutScreen({
       ? readyPickupBalanceDue
       : openOrder.balanceDue
     : checkoutCollectionAmount;
+  const remainingLater = openOrder && dueNow < openOrder.balanceDue ? openOrder.balanceDue - dueNow : 0;
   const showPaymentCompleteState = Boolean(openOrder && showCheckoutCompletion);
   const openCheckoutConfirmation = () => setCheckoutConfirmOpen(true);
   const closeCheckoutConfirmation = () => setCheckoutConfirmOpen(false);
@@ -112,8 +115,8 @@ export function CheckoutScreen({
               : "This order is paid."
     : isDraftAlterationOnly
       ? "Review the order and accept it."
-      : draftShouldCollectNow
-        ? "Review the order, accept it, and take payment."
+    : draftShouldCollectNow
+        ? "Review the order, accept it, and decide whether to take payment now."
         : "Review the order and accept it.";
 
   const pageMeta = openOrder ? (
@@ -174,7 +177,7 @@ export function CheckoutScreen({
         ...(isAcceptedOpenOrder ? [{ label: "Status", value: "Accepted" }] : []),
         { label: "Collected", value: formatCheckoutCurrency(openOrder.totalCollected) },
         { label: hasReadyScopesToPickup && dueNow !== openOrder.balanceDue ? "Due today" : "Due", value: formatCheckoutCurrency(dueNow) },
-        ...(hasReadyScopesToPickup && dueNow !== openOrder.balanceDue ? [{ label: "Remaining later", value: formatCheckoutCurrency(openOrder.balanceDue) }] : []),
+        ...(remainingLater > 0 ? [{ label: "Later after today", value: formatCheckoutCurrency(remainingLater) }] : []),
         { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
       ]
     : [
@@ -189,15 +192,15 @@ export function CheckoutScreen({
     <div className="space-y-4">
       <SectionHeader
         icon={CreditCard}
-        title="Checkout"
+        title={openOrder ? "Take payment" : "Review order"}
         subtitle={checkoutSubtitle}
         action={!isAcceptedOpenOrder && !showPaymentCompleteState ? (
           <ActionButton
             tone="secondary"
             className="px-3 py-2 text-xs"
-            onClick={() => onScreenChange(openOrder ? "openOrders" : "order")}
+            onClick={() => (openOrder ? onBackToOpenOrder(openOrder.id) : onScreenChange("order"))}
           >
-            {openOrder ? "Back to orders" : "New order"}
+            {openOrder ? "Back to order details" : "New order"}
           </ActionButton>
         ) : undefined}
       />
@@ -214,7 +217,7 @@ export function CheckoutScreen({
                       : isAcceptedOpenOrder
                       ? showAcceptedConfirmation ? "Order saved" : "Order summary"
                       : "Order summary"
-                    : "New order"}
+                    : "Review before saving"}
                 </div>
                 <div className="mt-1 app-text-value">
                   {openOrder ? `Order #${openOrder.id}` : "Order summary"}
@@ -234,7 +237,7 @@ export function CheckoutScreen({
                           ? "This order is saved and ready for work. Payment is still due."
                           : "This order is saved and ready for work."
                       : "Review the customer details, check the order, and collect any remaining payment."
-                    : "Review the order, check the pickup timing, and accept it."}
+                    : "Review the order, confirm the pickup timing, and then accept it."}
                 </div>
               </div>
               {pageMeta}
@@ -288,9 +291,9 @@ export function CheckoutScreen({
                         <ActionButton
                           tone="primary"
                           className="px-3 py-2 text-xs"
-                          onClick={() => onScreenChange(openOrder ? "openOrders" : "order")}
+                          onClick={() => (openOrder ? onBackToOpenOrder(openOrder.id) : onScreenChange("order"))}
                         >
-                          {openOrder ? "Back to orders" : "New order"}
+                          {openOrder ? "Back to order details" : "New order"}
                         </ActionButton>
                       </div>
                     </div>
@@ -372,8 +375,8 @@ export function CheckoutScreen({
 
         <div className="space-y-4">
           <CheckoutSummaryRail
-            title={openOrder ? (showPaymentCompleteState ? "What happened" : isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Order totals"}
-            subtitle={openOrder ? (showPaymentCompleteState ? "Payment recorded, with any remaining balance still tied to unfinished work." : isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, still due, and total.") : "What will be saved with this order."}
+            title={openOrder ? (showPaymentCompleteState ? "What happened" : isAcceptedOpenOrder && showAcceptedConfirmation ? "What happened" : "Payment summary") : "Review summary"}
+            subtitle={openOrder ? (showPaymentCompleteState ? "Payment recorded, with any remaining balance still tied to unfinished work." : isAcceptedOpenOrder && showAcceptedConfirmation ? (acceptedOrderNeedsPayment ? "Order saved, with payment still due." : "Order saved, with payment already collected.") : "Collected, still due, and total.") : "What will be saved when you accept this order."}
             totalsItems={totalsItems}
           >
                 {!openOrder ? (
@@ -423,11 +426,11 @@ export function CheckoutScreen({
                       <>
                         {dueNow > 0 ? (
                           <ActionButton tone="primary" onClick={openCheckoutConfirmation}>
-                            Checkout
+                            Confirm payment
                           </ActionButton>
                         ) : null}
-                        <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
-                          Back to orders
+                        <ActionButton tone="secondary" onClick={() => onBackToOpenOrder(openOrder.id)}>
+                          Back to order details
                         </ActionButton>
                         <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
                           Edit order
@@ -435,8 +438,8 @@ export function CheckoutScreen({
                       </>
                     ) : (
                       <div className="grid gap-2">
-                        <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
-                          Back to orders
+                        <ActionButton tone="secondary" onClick={() => onBackToOpenOrder(openOrder.id)}>
+                          Back to order details
                         </ActionButton>
                         <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
                           Edit order
@@ -449,13 +452,13 @@ export function CheckoutScreen({
                           Complete pickup
                         </ActionButton>
                       ) : (
-                        <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
-                          View order
+                        <ActionButton tone="primary" onClick={() => onBackToOpenOrder(openOrder.id)}>
+                          View order details
                         </ActionButton>
                       )
                     ) : isAcceptedOpenOrder ? null : hasReadyScopesToPickup && dueNow > 0 ? (
                       <ActionButton tone="primary" onClick={openCheckoutConfirmation}>
-                        Checkout
+                        Confirm payment
                       </ActionButton>
                     ) : hasReadyScopesToPickup ? (
                       <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder.id)}>
@@ -463,11 +466,11 @@ export function CheckoutScreen({
                       </ActionButton>
                     ) : openOrder.balanceDue > 0 ? (
                       <ActionButton tone="primary" onClick={openCheckoutConfirmation}>
-                        Checkout
+                        Confirm payment
                       </ActionButton>
                     ) : (
-                      <ActionButton tone="primary" onClick={() => onScreenChange("openOrders")}>
-                        View order
+                      <ActionButton tone="primary" onClick={() => onBackToOpenOrder(openOrder.id)}>
+                        View order details
                       </ActionButton>
                     )}
                     <ActionButton tone="secondary" onClick={openCancelConfirmation} disabled={showPaymentCompleteState}>

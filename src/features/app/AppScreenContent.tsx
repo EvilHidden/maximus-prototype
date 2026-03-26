@@ -4,7 +4,8 @@ import { OrderScreen } from "../../screens/OrderScreen";
 import { MeasurementsScreen } from "../../screens/MeasurementsScreen";
 import { OpenOrdersScreen } from "../../screens/OpenOrdersScreen";
 import { AppointmentsScreen } from "../../screens/AppointmentsScreen";
-import { CheckoutScreen } from "../../screens/CheckoutScreen";
+import { ReviewOrderScreen } from "../../screens/CheckoutScreen";
+import { OrderDetailsScreen } from "../../screens/OrderDetailsScreen";
 import type { useAppController } from "./useAppController";
 
 type AppController = ReturnType<typeof useAppController>;
@@ -43,8 +44,8 @@ export function AppScreenContent({
         onStartWorkflow={startWorkflow}
         onOpenAppointment={openWorkflowAppointment}
         onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
-        onOpenReadyPickupOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
-        onCheckoutReadyPickup={(openOrderId) => dispatch({ type: "openCheckoutForOpenOrder", openOrderId })}
+        onOpenReadyPickupOrder={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
+        onCheckoutReadyPickup={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
       />
     );
   }
@@ -117,8 +118,24 @@ export function AppScreenContent({
         onAssignOpenOrderTailor={assignOpenOrderTailor}
         onStartOpenOrderWork={startOpenOrderWork}
         onMarkOpenOrderPickupReady={(openOrderId, pickupId) => dispatch({ type: "markOpenOrderPickupReady", openOrderId, pickupId })}
-        onOpenOrderCheckout={(openOrderId) => dispatch({ type: "openCheckoutForOpenOrder", openOrderId })}
+        onOpenOrderDetails={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
         onStartNewOrder={() => startWorkflow("alteration")}
+      />
+    );
+  }
+
+  if (state.screen === "orderDetails") {
+    return (
+      <OrderDetailsScreen
+        customers={customers}
+        openOrder={checkoutOpenOrder}
+        showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
+        showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
+        onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        onCompleteOpenOrderCheckout={completeOpenOrderCheckout}
+        onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
+        onCancelOpenOrder={(openOrderId) => dispatch({ type: "cancelOpenOrder", openOrderId })}
+        onCompleteOpenOrderPickup={(openOrderId) => dispatch({ type: "completeOpenOrderPickup", openOrderId })}
       />
     );
   }
@@ -138,7 +155,7 @@ export function AppScreenContent({
   }
 
   return (
-    <CheckoutScreen
+    <ReviewOrderScreen
       customers={customers}
       payerCustomer={payerCustomer}
       openOrder={checkoutOpenOrder}
@@ -146,6 +163,7 @@ export function AppScreenContent({
       showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
       order={state.order}
       onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+      onBackToOpenOrder={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
       onSaveDraftOrder={saveDraftOrder}
       onCompleteOpenOrderCheckout={completeOpenOrderCheckout}
       onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}

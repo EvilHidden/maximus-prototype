@@ -77,7 +77,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
 
         return {
           ...state,
-          screen: action.openCheckout ? "checkout" : "openOrders",
+          screen: action.openCheckout ? "orderDetails" : "openOrders",
           checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           checkoutJustSavedOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           checkoutJustCompletedOpenOrderId: null,

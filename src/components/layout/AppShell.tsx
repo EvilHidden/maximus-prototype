@@ -30,9 +30,18 @@ const navIcons = {
   order: ClipboardList,
   measurements: Ruler,
   checkout: Wallet,
+  orderDetails: Package,
 } satisfies Record<Screen, typeof Home>;
 
 export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, children }: AppShellProps) {
+  const getActiveNavScreen = (value: Screen) => {
+    if (value === "orderDetails") {
+      return "openOrders";
+    }
+
+    return value;
+  };
+
   return (
     <div className="app-shell">
       <div className="grid h-full grid-cols-[228px_minmax(0,1fr)] gap-3 p-3">
@@ -55,7 +64,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
                     onClick={() => onScreenChange(item.key)}
                     className={cx(
                       "flex w-full items-center gap-3 rounded-[12px] px-3.5 py-3 text-left transition",
-                      screen === item.key
+                      getActiveNavScreen(screen) === item.key
                         ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
                         : "border border-transparent bg-transparent text-[var(--app-text-muted)] hover:border-[var(--app-border)]/55 hover:bg-[var(--app-surface)]/42 hover:text-[var(--app-text)]",
                     )}

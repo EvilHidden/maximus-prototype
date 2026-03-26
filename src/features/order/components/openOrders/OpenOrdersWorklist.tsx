@@ -113,12 +113,12 @@ function WorkQueueOrderRow({
   openOrder,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
 }: {
   openOrder: OpenOrder;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const phase = getOpenOrderOperationalPhase(openOrder);
   const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.pickedUp);
@@ -140,11 +140,11 @@ function WorkQueueOrderRow({
       className="cursor-pointer px-4 py-4"
       role="button"
       tabIndex={0}
-      onClick={() => onOpenOrderCheckout(openOrder.id)}
+      onClick={() => onOpenOrderDetails(openOrder.id)}
       onKeyDown={(event) => {
         if (event.key === "Enter" || event.key === " ") {
           event.preventDefault();
-          onOpenOrderCheckout(openOrder.id);
+          onOpenOrderDetails(openOrder.id);
         }
       }}
     >
@@ -256,13 +256,13 @@ export function QueueSection({
   openOrders,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
-  onOpenOrderCheckout,
+  onOpenOrderDetails,
 }: {
   activeQueue: OrdersQueueKey;
   openOrders: OpenOrder[];
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
-  onOpenOrderCheckout: (openOrderId: number) => void;
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const count = openOrders.length;
 
@@ -316,7 +316,7 @@ export function QueueSection({
                 openOrder={openOrder}
                 onStartOpenOrderWork={onStartOpenOrderWork}
                 onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
-                onOpenOrderCheckout={onOpenOrderCheckout}
+                onOpenOrderDetails={onOpenOrderDetails}
               />
             </div>
           ))}
