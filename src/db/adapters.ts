@@ -211,6 +211,9 @@ function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): Op
   return getOrderLines(database, orderId).map((line, index) => {
     const scope = database.orderScopes.find((candidate) => candidate.id === line.scopeId);
     const components = getScopeLineComponents(database, line.id);
+    const componentAmounts = new Map(
+      database.alterationServiceDefinitions.map((definition) => [`${definition.category}::${definition.name}`, definition.price]),
+    );
 
     return {
       id: `${orderId}-${line.id}`,
@@ -231,6 +234,9 @@ function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): Op
         label: component.label,
         value: component.value,
         sortOrder: component.sortOrder,
+        amount: component.kind === "alteration_service"
+          ? componentAmounts.get(`${line.garmentLabel}::${component.value}`)
+          : undefined,
       })),
     };
   });

@@ -1,4 +1,4 @@
-import { CalendarClock, ClipboardList, CreditCard, MapPin } from "lucide-react";
+import { CalendarClock, ChevronDown, ClipboardList, CreditCard, MapPin } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Customer, OpenOrder, Screen } from "../types";
 import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
@@ -10,7 +10,6 @@ import {
 } from "../features/order/selectors";
 import {
   formatCheckoutCurrency,
-  getCheckoutDisplayLineItem,
 } from "../features/order/checkoutDisplay";
 import { getPickupDateTime } from "../features/order/orderDateUtils";
 import { CheckoutAcceptedBanner } from "../features/order/components/checkout/CheckoutAcceptedBanner";
@@ -31,7 +30,7 @@ type OrderDetailsScreenProps = {
 };
 
 function getScopeLabel(scope: OpenOrder["pickupSchedules"][number]["scope"]) {
-  return scope === "alteration" ? "Alterations" : "Custom garment";
+  return scope === "alteration" ? "Alterations" : "Custom garments";
 }
 
 function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups>[number], representativePickup: OpenOrder["pickupSchedules"][number] | null) {
@@ -63,7 +62,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Overdue",
       tone: "danger" as const,
-      detail: "This scope is past its promised ready time.",
+      detail: "This is past its ready time.",
     };
   }
 
@@ -71,7 +70,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Due soon",
       tone: "warn" as const,
-      detail: "This scope is coming due shortly.",
+      detail: "This is due within the next hour.",
     };
   }
 
@@ -128,6 +127,19 @@ function formatScopeReadyBy(pickup: OpenOrder["pickupSchedules"][number] | null)
   }).format(pickupDateTime);
 }
 
+function getCustomItemRows(item: OpenOrder["lineItems"][number]) {
+  return item.components
+    .filter((component) => component.kind !== "alteration_service")
+    .map((component) => ({
+      label: component.kind === "measurement_set"
+        ? "Measurements"
+        : component.kind === "pocket_type"
+          ? "Pockets"
+          : component.label,
+      value: component.value,
+    }));
+}
+
 export function OrderDetailsScreen({
   customers,
   openOrder,
@@ -141,11 +153,20 @@ export function OrderDetailsScreen({
 }: OrderDetailsScreenProps) {
   const [checkoutConfirmOpen, setCheckoutConfirmOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [expandedItemIds, setExpandedItemIds] = useState<string[]>([]);
 
   const checkoutCustomer = useMemo(
     () => (openOrder ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null : null),
     [customers, openOrder],
   );
+
+  const toggleItemExpanded = (itemId: string) => {
+    setExpandedItemIds((current) => (
+      current.includes(itemId)
+        ? current.filter((candidate) => candidate !== itemId)
+        : [...current, itemId]
+    ));
+  };
 
   if (!openOrder) {
     return (
@@ -275,7 +296,7 @@ export function OrderDetailsScreen({
           </div>
 
           <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-            <div className="app-text-overline">Order progress</div>
+            <div className="app-text-overline">Order items</div>
             <div className="mt-3 space-y-3">
               {pickupGroups.map((group, index) => {
                 const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
@@ -318,37 +339,84 @@ export function OrderDetailsScreen({
                         </div>
                       </div>
                       <div className="text-left sm:text-right">
-                        <div className="app-text-overline">Amount</div>
+                        <div className="app-text-overline">Subtotal</div>
                         <div className="mt-1 text-[1.02rem] font-semibold tracking-[-0.015em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
                           {formatCheckoutCurrency(scopeAmount)}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-3">
-                      <div className="min-w-0 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/28 px-3 py-3">
-                        <div className="app-text-overline">Items</div>
-                        <div className="mt-2 space-y-2">
-                          {scopeLineItems.length > 0 ? (
-                            scopeLineItems.map((item) => {
-                              const displayItem = getCheckoutDisplayLineItem(item);
+                    <div className="mt-4 border-t border-[var(--app-border)]/35 pt-3">
+                      <div className="app-text-overline">Items</div>
+                      {scopeLineItems.length > 0 ? (
+                        <div className="mt-2 divide-y divide-[var(--app-border)]/25">
+                          {scopeLineItems.map((item) => {
+                            const serviceRows = item.components.filter((component) => component.kind === "alteration_service");
+                            const customRows = getCustomItemRows(item);
+                            const itemTitle = item.kind === "alteration" ? item.garmentLabel : item.sourceLabel;
+                            const isExpanded = expandedItemIds.includes(item.id);
 
-                              return (
-                                <div key={item.id} className="min-w-0">
-                                  <div className="min-w-0">
-                                    <div className="app-text-strong">{displayItem.title}</div>
-                                    {displayItem.subtitle ? (
-                                      <div className="app-text-caption mt-1 whitespace-pre-line leading-relaxed">{displayItem.subtitle}</div>
-                                    ) : null}
+                            return (
+                              <div key={item.id} className="py-3 first:pt-0 last:pb-0">
+                                <button
+                                  type="button"
+                                  onClick={() => toggleItemExpanded(item.id)}
+                                  className="flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1 text-left transition hover:bg-[var(--app-surface-muted)]/18"
+                                >
+                                  <div className="flex min-w-0 flex-1 items-start gap-2">
+                                    <ChevronDown
+                                      className={cx(
+                                        "mt-0.5 h-4 w-4 shrink-0 text-[var(--app-text-soft)] transition-transform",
+                                        isExpanded && "rotate-180",
+                                      )}
+                                    />
+                                    <div className="min-w-0 flex-1">
+                                      <div className="app-text-strong">{itemTitle}</div>
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            })
-                          ) : (
-                            <div className="app-text-caption whitespace-pre-line leading-relaxed">{group.itemSummary.join(", ")}</div>
-                          )}
+                                  <div className="shrink-0 text-right">
+                                    <div className="app-text-strong [font-variant-numeric:tabular-nums]">
+                                      {formatCheckoutCurrency(item.amount)}
+                                    </div>
+                                  </div>
+                                </button>
+
+                                {isExpanded ? (
+                                  item.kind === "alteration" ? (
+                                    serviceRows.length > 0 ? (
+                                      <div className="mt-2 space-y-1.5 pl-7">
+                                        {serviceRows.map((component) => (
+                                          <div key={component.id} className="flex items-start justify-between gap-4">
+                                            <div className="app-text-caption leading-relaxed">{component.value}</div>
+                                            <div className="app-text-caption shrink-0 [font-variant-numeric:tabular-nums]">
+                                              {formatCheckoutCurrency(component.amount ?? 0)}
+                                            </div>
+                                          </div>
+                                        ))}
+                                      </div>
+                                    ) : null
+                                  ) : customRows.length > 0 ? (
+                                    <div className="mt-2 space-y-1.5 pl-7">
+                                      {customRows.map((row, rowIndex) => (
+                                        <div key={`${item.id}-row-${rowIndex}`} className="flex items-start justify-between gap-4">
+                                          <div className="app-text-caption uppercase tracking-[0.12em] text-[var(--app-text-soft)]">
+                                            {row.label}
+                                          </div>
+                                          <div className="app-text-caption max-w-[60%] whitespace-pre-line text-right leading-relaxed text-[var(--app-text)]">
+                                            {row.value}
+                                          </div>
+                                        </div>
+                                      ))}
+                                    </div>
+                                  ) : null
+                                ) : null}
+                              </div>
+                            );
+                          })}
                         </div>
-                      </div>
+                      ) : (
+                        <div className="app-text-caption mt-2 whitespace-pre-line leading-relaxed">{group.itemSummary.join(", ")}</div>
+                      )}
                     </div>
                   </div>
                 );

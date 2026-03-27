@@ -102,6 +102,7 @@ function createAlterationComponents(itemId: number, modifiers: OrderWorkflowStat
     label: "Service",
     value: modifier.name,
     sortOrder: index + 1,
+    amount: modifier.price,
   }));
 }
 
