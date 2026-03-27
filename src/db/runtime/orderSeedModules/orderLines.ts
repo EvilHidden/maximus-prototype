@@ -5,6 +5,8 @@ import type {
   DbOrderScopeLine,
   DbOrderScopeLineComponent,
 } from "../../schema";
+import { getCustomGarmentPrice } from "../../pricing";
+import { createAlterationServiceDefinitions } from "../referenceSeed";
 
 function inferAlterationGarment(label: string) {
   const normalized = label.toLowerCase();
@@ -59,7 +61,7 @@ type SeedScopeLineInput = {
   scopeId: string;
   label: string;
   quantity: number;
-  unitPrice: number;
+  unitPrice?: number;
   garmentLabel?: string;
   alterationServices?: string[];
   wearerCustomerId?: string | null;
@@ -68,6 +70,37 @@ type SeedScopeLineInput = {
   measurementSetId?: string | null;
   customComponents?: SeedCustomComponent[];
 };
+
+const alterationServicePriceByKey = new Map(
+  createAlterationServiceDefinitions().map((definition) => [`${definition.category}::${definition.name}`, definition.price]),
+);
+
+function getSeedAlterationServiceAmounts(input: SeedScopeLineInput) {
+  const garmentLabel = input.garmentLabel ?? inferAlterationGarment(input.label);
+  const services = input.alterationServices ?? inferAlterationServices(input.label);
+
+  return services.map((service) => {
+    const price = alterationServicePriceByKey.get(`${garmentLabel}::${service}`);
+
+    if (typeof price !== "number") {
+      throw new Error(`${input.id} uses unpriced alteration ${garmentLabel} / ${service}.`);
+    }
+
+    return price;
+  });
+}
+
+function getSeedLineUnitPrice(input: SeedScopeLineInput, scopeWorkflow: DbOrderScope["workflow"] | undefined) {
+  if (scopeWorkflow === "alteration") {
+    return getSeedAlterationServiceAmounts(input).reduce((sum, amount) => sum + amount, 0);
+  }
+
+  if (scopeWorkflow === "custom" && input.customComponents?.length) {
+    return getCustomGarmentPrice(input.garmentLabel ?? input.label);
+  }
+
+  return input.unitPrice ?? 0;
+}
 
 function buildCustomSeedComponents(input: {
   fabric: string;
@@ -216,51 +249,51 @@ const editorialSuitDetails = buildCustomSeedComponents({
 });
 
 const seedScopeLines: SeedScopeLineInput[] = [
-  { id: "line-9001-1", scopeId: "scope-9001-custom", label: "Two-piece suit", quantity: 1, unitPrice: 1495, garmentLabel: "Two-piece suit", customComponents: classicNavySuit },
-  { id: "line-9002-1", scopeId: "scope-9002-alteration", label: "Dress hem", quantity: 1, unitPrice: 240, garmentLabel: "Dress", alterationServices: ["Hem"] },
-  { id: "line-9002-2", scopeId: "scope-9002-alteration", label: "Vest waist suppression", quantity: 1, unitPrice: 108, garmentLabel: "Vest", alterationServices: ["Stomach", "Seat"] },
-  { id: "line-9003-1", scopeId: "scope-9003-alteration", label: "Trouser taper", quantity: 1, unitPrice: 120, garmentLabel: "Pants", alterationServices: ["Thigh", "Bottom"] },
-  { id: "line-9003-2", scopeId: "scope-9003-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1495, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
-  { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, unitPrice: 745, garmentLabel: "Vest", customComponents: buildCustomSeedComponents({ fabric: "Black barathea", buttons: "Black satin", lining: "Burgundy paisley", threads: "Tone on tone" }) },
-  { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, unitPrice: 55, garmentLabel: "Pants", alterationServices: ["Length"] },
-  { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, unitPrice: 95, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
-  { id: "line-9006-1", scopeId: "scope-9006-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1495, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
-  { id: "line-9007-1", scopeId: "scope-9007-alteration", label: "Skirt hem", quantity: 1, unitPrice: 65, garmentLabel: "Skirt", alterationServices: ["Hem"] },
-  { id: "line-9008-1", scopeId: "scope-9008-custom", label: "Wedding tuxedo", quantity: 1, unitPrice: 1895, garmentLabel: "Three-piece tuxedo", customComponents: blackTieTuxedo },
-  { id: "line-9009-1", scopeId: "scope-9009-alteration", label: "Jacket suppression", quantity: 1, unitPrice: 85, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
-  { id: "line-9009-2", scopeId: "scope-9009-alteration", label: "Sleeve shorten", quantity: 1, unitPrice: 55, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
-  { id: "line-9010-1", scopeId: "scope-9010-alteration", label: "Blouse sleeve taper", quantity: 1, unitPrice: 72, garmentLabel: "Blouse", alterationServices: ["Bicep", "Sleeve length"] },
-  { id: "line-9010-2", scopeId: "scope-9010-custom", label: "Reception jacket", quantity: 1, unitPrice: 1295, garmentLabel: "Jacket", customComponents: receptionJacketDetails },
-  { id: "line-9011-1", scopeId: "scope-9011-custom", label: "Mother-of-the-bride suit", quantity: 1, unitPrice: 1595, garmentLabel: "Two-piece suit", customComponents: motherBrideSuitDetails },
-  { id: "line-9012-1", scopeId: "scope-9012-alteration", label: "Stage pant hem", quantity: 1, unitPrice: 45, garmentLabel: "Pants", alterationServices: ["Length"] },
-  { id: "line-9012-2", scopeId: "scope-9012-alteration", label: "Jacket sleeve shorten", quantity: 1, unitPrice: 65, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
-  { id: "line-9013-1", scopeId: "scope-9013-custom", label: "Black-tie tuxedo", quantity: 1, unitPrice: 1695, garmentLabel: "Three-piece tuxedo", customComponents: blackTieTuxedo },
-  { id: "line-8821-1", scopeId: "scope-8821-custom", label: "Custom navy suit", quantity: 1, unitPrice: 1495, garmentLabel: "Two-piece suit", customComponents: classicNavySuit },
-  { id: "line-8610-1", scopeId: "scope-8610-alteration", label: "Trouser hem + taper", quantity: 1, unitPrice: 65, garmentLabel: "Pants", alterationServices: ["Hem", "Taper"] },
+  { id: "line-9001-1", scopeId: "scope-9001-custom", label: "Two-piece suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: classicNavySuit },
+  { id: "line-9002-1", scopeId: "scope-9002-alteration", label: "Dress hem", quantity: 1, garmentLabel: "Dress", alterationServices: ["Hem"] },
+  { id: "line-9002-2", scopeId: "scope-9002-alteration", label: "Vest waist suppression", quantity: 1, garmentLabel: "Vest", alterationServices: ["Stomach", "Seat"] },
+  { id: "line-9003-1", scopeId: "scope-9003-alteration", label: "Trouser taper", quantity: 1, garmentLabel: "Pants", alterationServices: ["Thigh", "Bottom"] },
+  { id: "line-9003-2", scopeId: "scope-9003-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
+  { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, garmentLabel: "Vest", customComponents: buildCustomSeedComponents({ fabric: "Black barathea", buttons: "Black satin", lining: "Burgundy paisley", threads: "Tone on tone" }) },
+  { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Length"] },
+  { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
+  { id: "line-9006-1", scopeId: "scope-9006-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
+  { id: "line-9007-1", scopeId: "scope-9007-alteration", label: "Skirt hem", quantity: 1, garmentLabel: "Skirt", alterationServices: ["Hem"] },
+  { id: "line-9008-1", scopeId: "scope-9008-custom", label: "Wedding tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: blackTieTuxedo },
+  { id: "line-9009-1", scopeId: "scope-9009-alteration", label: "Jacket suppression", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
+  { id: "line-9009-2", scopeId: "scope-9009-alteration", label: "Sleeve shorten", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
+  { id: "line-9010-1", scopeId: "scope-9010-alteration", label: "Blouse sleeve taper", quantity: 1, garmentLabel: "Blouse", alterationServices: ["Bicep", "Sleeve length"] },
+  { id: "line-9010-2", scopeId: "scope-9010-custom", label: "Reception jacket", quantity: 1, garmentLabel: "Jacket", customComponents: receptionJacketDetails },
+  { id: "line-9011-1", scopeId: "scope-9011-custom", label: "Mother-of-the-bride suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: motherBrideSuitDetails },
+  { id: "line-9012-1", scopeId: "scope-9012-alteration", label: "Stage pant hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Length"] },
+  { id: "line-9012-2", scopeId: "scope-9012-alteration", label: "Jacket sleeve shorten", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
+  { id: "line-9013-1", scopeId: "scope-9013-custom", label: "Black-tie tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: blackTieTuxedo },
+  { id: "line-8821-1", scopeId: "scope-8821-custom", label: "Custom navy suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: classicNavySuit },
+  { id: "line-8610-1", scopeId: "scope-8610-alteration", label: "Trouser hem + taper", quantity: 1, garmentLabel: "Pants", alterationServices: ["Hem", "Taper"] },
   { id: "line-8443-1", scopeId: "scope-8443-custom", label: "Dinner jacket consult", quantity: 1, unitPrice: 0, garmentLabel: "Tuxedo jacket" },
-  { id: "line-8904-1", scopeId: "scope-8904-alteration", label: "Wedding party jacket alterations", quantity: 1, unitPrice: 320, garmentLabel: "Jacket", alterationServices: ["Bicep", "Chest", "Sleeve length", "Lining replacement"] },
-  { id: "line-8904-2", scopeId: "scope-8904-custom", label: "Wedding jacket", quantity: 1, unitPrice: 1495, garmentLabel: "Jacket", customComponents: weddingJacketDetails },
-  { id: "line-8732-1", scopeId: "scope-8732-alteration", label: "Bridesmaid dress fitting", quantity: 1, unitPrice: 95, garmentLabel: "Dress", alterationServices: ["Shoulder", "Waist"] },
-  { id: "line-8940-1", scopeId: "scope-8940-alteration", label: "Rush suit sleeve adjustment", quantity: 1, unitPrice: 80, garmentLabel: "Jacket", alterationServices: ["Sleeve length from shoulder"] },
-  { id: "line-8528-1", scopeId: "scope-8528-alteration", label: "Pant waist suppression", quantity: 1, unitPrice: 35, garmentLabel: "Pants", alterationServices: ["Waist", "Seat"] },
-  { id: "line-9014-1", scopeId: "scope-9014-alteration", label: "Dress bustle", quantity: 1, unitPrice: 110, garmentLabel: "Dress", alterationServices: ["Bustle"] },
-  { id: "line-9014-2", scopeId: "scope-9014-alteration", label: "Waist take-in", quantity: 1, unitPrice: 65, garmentLabel: "Dress", alterationServices: ["Waist"] },
-  { id: "line-9015-1", scopeId: "scope-9015-custom", label: "Prom tuxedo", quantity: 1, unitPrice: 1595, garmentLabel: "Three-piece tuxedo", customComponents: promTuxedoDetails },
-  { id: "line-9016-1", scopeId: "scope-9016-alteration", label: "Bridesmaid hem", quantity: 1, unitPrice: 140, garmentLabel: "Dress", alterationServices: ["Hem"] },
-  { id: "line-9016-2", scopeId: "scope-9016-custom", label: "Dinner jacket", quantity: 1, unitPrice: 1325, garmentLabel: "Jacket", customComponents: editorialSuitDetails },
-  { id: "line-9017-1", scopeId: "scope-9017-alteration", label: "Suit suppression", quantity: 1, unitPrice: 95, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
-  { id: "line-9017-2", scopeId: "scope-9017-alteration", label: "Trouser hem", quantity: 1, unitPrice: 55, garmentLabel: "Pants", alterationServices: ["Hem"] },
-  { id: "line-9018-1", scopeId: "scope-9018-custom", label: "Midnight tuxedo", quantity: 1, unitPrice: 1795, garmentLabel: "Three-piece tuxedo", customComponents: midnightTuxedo },
-  { id: "line-9019-1", scopeId: "scope-9019-alteration", label: "Trouser taper", quantity: 1, unitPrice: 85, garmentLabel: "Pants", alterationServices: ["Taper"] },
-  { id: "line-9019-2", scopeId: "scope-9019-custom", label: "Ceremony suit", quantity: 1, unitPrice: 1695, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
-  { id: "line-9020-1", scopeId: "scope-9020-alteration", label: "Gown shoulder lift", quantity: 1, unitPrice: 125, garmentLabel: "Gown", alterationServices: ["Shoulder"] },
-  { id: "line-9021-1", scopeId: "scope-9021-custom", label: "Charcoal suit", quantity: 1, unitPrice: 1495, garmentLabel: "Two-piece suit", customComponents: charcoalSuitDetails },
-  { id: "line-9022-1", scopeId: "scope-9022-alteration", label: "Sari blouse adjustment", quantity: 1, unitPrice: 90, garmentLabel: "Sari blouse", alterationServices: ["Shoulder", "Waist"] },
-  { id: "line-9023-1", scopeId: "scope-9023-custom", label: "Dinner suit", quantity: 1, unitPrice: 1545, garmentLabel: "Two-piece suit", customComponents: galaSuitDetails },
-  { id: "line-9024-1", scopeId: "scope-9024-alteration", label: "Trouser hem", quantity: 1, unitPrice: 85, garmentLabel: "Pants", alterationServices: ["Hem"] },
-  { id: "line-9024-2", scopeId: "scope-9024-custom", label: "Wedding suit", quantity: 1, unitPrice: 1595, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
-  { id: "line-9025-1", scopeId: "scope-9025-alteration", label: "Jacket suppression", quantity: 1, unitPrice: 95, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
-  { id: "line-9025-2", scopeId: "scope-9025-custom", label: "Ceremony suit", quantity: 1, unitPrice: 1695, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
+  { id: "line-8904-1", scopeId: "scope-8904-alteration", label: "Wedding party jacket alterations", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Bicep", "Chest", "Sleeve length", "Lining replacement"] },
+  { id: "line-8904-2", scopeId: "scope-8904-custom", label: "Wedding jacket", quantity: 1, garmentLabel: "Jacket", customComponents: weddingJacketDetails },
+  { id: "line-8732-1", scopeId: "scope-8732-alteration", label: "Bridesmaid dress fitting", quantity: 1, garmentLabel: "Dress", alterationServices: ["Shoulder", "Waist"] },
+  { id: "line-8940-1", scopeId: "scope-8940-alteration", label: "Rush suit sleeve adjustment", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length from shoulder"] },
+  { id: "line-8528-1", scopeId: "scope-8528-alteration", label: "Pant waist suppression", quantity: 1, garmentLabel: "Pants", alterationServices: ["Waist", "Seat"] },
+  { id: "line-9014-1", scopeId: "scope-9014-alteration", label: "Dress bustle", quantity: 1, garmentLabel: "Dress", alterationServices: ["Bustle"] },
+  { id: "line-9014-2", scopeId: "scope-9014-alteration", label: "Waist take-in", quantity: 1, garmentLabel: "Dress", alterationServices: ["Waist"] },
+  { id: "line-9015-1", scopeId: "scope-9015-custom", label: "Prom tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: promTuxedoDetails },
+  { id: "line-9016-1", scopeId: "scope-9016-alteration", label: "Bridesmaid hem", quantity: 1, garmentLabel: "Dress", alterationServices: ["Hem"] },
+  { id: "line-9016-2", scopeId: "scope-9016-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Jacket", customComponents: editorialSuitDetails },
+  { id: "line-9017-1", scopeId: "scope-9017-alteration", label: "Suit suppression", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
+  { id: "line-9017-2", scopeId: "scope-9017-alteration", label: "Trouser hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Hem"] },
+  { id: "line-9018-1", scopeId: "scope-9018-custom", label: "Midnight tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: midnightTuxedo },
+  { id: "line-9019-1", scopeId: "scope-9019-alteration", label: "Trouser taper", quantity: 1, garmentLabel: "Pants", alterationServices: ["Taper"] },
+  { id: "line-9019-2", scopeId: "scope-9019-custom", label: "Ceremony suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
+  { id: "line-9020-1", scopeId: "scope-9020-alteration", label: "Gown shoulder lift", quantity: 1, garmentLabel: "Gown", alterationServices: ["Shoulder"] },
+  { id: "line-9021-1", scopeId: "scope-9021-custom", label: "Charcoal suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: charcoalSuitDetails },
+  { id: "line-9022-1", scopeId: "scope-9022-alteration", label: "Sari blouse adjustment", quantity: 1, garmentLabel: "Sari blouse", alterationServices: ["Shoulder", "Waist"] },
+  { id: "line-9023-1", scopeId: "scope-9023-custom", label: "Dinner suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: galaSuitDetails },
+  { id: "line-9024-1", scopeId: "scope-9024-alteration", label: "Trouser hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Hem"] },
+  { id: "line-9024-2", scopeId: "scope-9024-custom", label: "Wedding suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
+  { id: "line-9025-1", scopeId: "scope-9025-alteration", label: "Jacket suppression", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
+  { id: "line-9025-2", scopeId: "scope-9025-custom", label: "Ceremony suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
 ];
 
 function buildSeedOrderScopeLine(
@@ -282,7 +315,7 @@ function buildSeedOrderScopeLine(
     scopeId: input.scopeId,
     label: input.label,
     quantity: input.quantity,
-    unitPrice: input.unitPrice,
+    unitPrice: getSeedLineUnitPrice(input, scope?.workflow),
     garmentLabel: input.garmentLabel ?? (scope?.workflow === "custom" ? input.label : inferAlterationGarment(input.label)),
     wearerCustomerId: scope?.workflow === "custom" ? (input.wearerCustomerId ?? order?.payerCustomerId ?? null) : null,
     wearerName: scope?.workflow === "custom" ? (input.wearerName ?? order?.payerName ?? null) : null,

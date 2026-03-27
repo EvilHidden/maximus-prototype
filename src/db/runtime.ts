@@ -72,7 +72,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const pickupNotifications = createPickupNotifications(seedDates);
   const pickupAppointments = createPickupAppointments(seedDates);
   const serviceAppointments = createServiceAppointments(seedDates);
-  const payments = createPayments(seedDates);
+  const payments = createPayments(seedDates, orders, orderScopes, orderScopeLines);
   const squareLinks = createSquareLinks(orders);
 
   return {

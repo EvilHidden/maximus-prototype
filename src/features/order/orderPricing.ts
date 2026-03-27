@@ -1,19 +1,8 @@
 import type { OrderWorkflowState, PricingSummary } from "../../types";
+import { getCustomGarmentPrice } from "../../db/pricing";
 
 function formatCurrency(value: number) {
   return `$${value.toFixed(2)}`;
-}
-
-export function getCustomGarmentPrice(garment: string | null) {
-  if (!garment) {
-    return 0;
-  }
-
-  if (garment === "Three-piece suit" || garment === "Three-piece tuxedo") {
-    return 2495;
-  }
-
-  return 1495;
 }
 
 export function getPricingSummary(order: OrderWorkflowState): PricingSummary {
@@ -35,3 +24,5 @@ export function getPricingSummary(order: OrderWorkflowState): PricingSummary {
 export function formatSummaryCurrency(value: number) {
   return formatCurrency(value);
 }
+
+export { getCustomGarmentPrice };
