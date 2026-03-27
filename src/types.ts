@@ -124,6 +124,7 @@ export type OrderLineComponent = {
   label: string;
   value: string;
   sortOrder: number;
+  amount?: number;
 };
 
 export type AlterationCategory = {
