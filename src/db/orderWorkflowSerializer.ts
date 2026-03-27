@@ -11,6 +11,7 @@ import type {
   WorkflowMode,
 } from "../types";
 import { getCheckoutCollectionAmount } from "../features/order/paymentSummary";
+import { getAlterationServicePrice, getCustomGarmentPrice } from "./pricing";
 import type {
   DbCustomerEvent,
   DbLocation,
@@ -62,18 +63,6 @@ function createDateTimeString(date: string, time: string | null, fallbackHour = 
   const safeHour = Number.isNaN(hour) ? fallbackHour : hour;
   const safeMinute = Number.isNaN(minute) ? fallbackMinute : minute;
   return `${date}T${`${safeHour}`.padStart(2, "0")}:${`${safeMinute}`.padStart(2, "0")}:00`;
-}
-
-function getCustomGarmentPrice(garment: string | null) {
-  if (!garment) {
-    return 0;
-  }
-
-  if (garment === "Three-piece suit" || garment === "Three-piece tuxedo") {
-    return 2495;
-  }
-
-  return 1495;
 }
 
 function getOrderType(order: OrderWorkflowState): OrderType | null {
@@ -502,18 +491,6 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
   };
 }
 
-function getAlterationServicePrice(
-  database: {
-    alterationServiceDefinitions: Array<{ category: string; name: string; price: number }>;
-  },
-  garmentLabel: string,
-  serviceName: string,
-) {
-  return database.alterationServiceDefinitions.find((service) => (
-    service.category === garmentLabel && service.name === serviceName
-  ))?.price ?? 0;
-}
-
 function getCustomGenderForGarment(
   database: {
     customGarmentDefinitions: Array<{ label: string; gender: "male" | "female" }>;
@@ -564,7 +541,7 @@ export function deserializeOrderWorkflowFromRecords(
           .filter((component) => component.kind === "alteration_service")
           .map((component) => ({
             name: component.value,
-            price: getAlterationServicePrice(database, line.garmentLabel, component.value),
+            price: getAlterationServicePrice(database.alterationServiceDefinitions, line.garmentLabel, component.value),
           }));
 
         return {

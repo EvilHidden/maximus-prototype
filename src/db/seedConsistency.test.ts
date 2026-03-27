@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { adaptOpenOrders } from "./adapters";
+import { getCustomGarmentPrice } from "./pricing";
 import { createPrototypeDatabase } from "./runtime";
 import { getOperatorQueueStageCounts } from "../features/order/operatorQueue";
 
@@ -88,6 +89,50 @@ describe("seed consistency", () => {
               `${line.id} uses unpriced alteration "${line.garmentLabel} / ${component.value}"`,
             ).toBe(true);
           });
+      });
+  });
+
+  it("keeps seeded alteration line totals aligned with their service breakdowns", () => {
+    const alterationPriceByKey = new Map(
+      database.alterationServiceDefinitions.map((definition) => [`${definition.category}::${definition.name}`, definition.price]),
+    );
+    const alterationScopeIds = new Set(database.orderScopes.filter((scope) => scope.workflow === "alteration").map((scope) => scope.id));
+
+    database.orderScopeLines
+      .filter((line) => alterationScopeIds.has(line.scopeId))
+      .forEach((line) => {
+        const components = database.orderScopeLineComponents.filter((component) => component.lineId === line.id);
+        const serviceComponents = components.filter((component) => component.kind === "alteration_service");
+        const serviceTotal = serviceComponents.reduce(
+          (sum, component) => sum + (alterationPriceByKey.get(`${line.garmentLabel}::${component.value}`) ?? 0),
+          0,
+        );
+
+        expect(
+          serviceTotal,
+          `${line.id} has ${serviceComponents.length} alteration service(s) totaling ${serviceTotal}, but the line subtotal is ${line.unitPrice * line.quantity}`,
+        ).toBe(line.unitPrice * line.quantity);
+      });
+  });
+
+  it("keeps seeded custom garment lines aligned with canonical garment pricing", () => {
+    const customScopeIds = new Set(database.orderScopes.filter((scope) => scope.workflow === "custom").map((scope) => scope.id));
+
+    database.orderScopeLines
+      .filter((line) => customScopeIds.has(line.scopeId))
+      .forEach((line) => {
+        const hasBuildComponents = database.orderScopeLineComponents.some((component) => (
+          component.lineId === line.id && component.kind !== "wearer" && component.kind !== "measurement_set"
+        ));
+
+        if (!hasBuildComponents) {
+          return;
+        }
+
+        expect(
+          line.unitPrice * line.quantity,
+          `${line.id} uses ${line.garmentLabel} but subtotal ${line.unitPrice * line.quantity} does not match canonical price.`,
+        ).toBe(getCustomGarmentPrice(line.garmentLabel));
       });
   });
 
