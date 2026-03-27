@@ -140,6 +140,21 @@ function getCustomItemRows(item: OpenOrder["lineItems"][number]) {
     }));
 }
 
+function getCollapsedItemSummary(item: OpenOrder["lineItems"][number]) {
+  if (item.kind === "alteration") {
+    const services = item.components
+      .filter((component) => component.kind === "alteration_service")
+      .map((component) => component.value);
+
+    return services.join(" • ");
+  }
+
+  const wearer = item.components.find((component) => component.kind === "wearer")?.value;
+  const measurements = item.components.find((component) => component.kind === "measurement_set")?.value;
+
+  return [wearer, measurements].filter(Boolean).join(" • ");
+}
+
 export function OrderDetailsScreen({
   customers,
   openOrder,
@@ -283,21 +298,42 @@ export function OrderDetailsScreen({
           ) : null}
 
           <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-            <div className="min-w-0">
-              <div className="app-text-overline">Customer</div>
-              <div className="mt-2 space-y-1.5">
-                <div className="app-text-strong">{openOrder.payerName}</div>
-                {checkoutCustomer?.phone ? <div className="app-text-caption">{checkoutCustomer.phone}</div> : null}
-                {checkoutCustomer?.email ? <div className="app-text-caption">{checkoutCustomer.email}</div> : null}
-                {checkoutCustomer?.address ? <div className="app-text-caption whitespace-pre-line">{checkoutCustomer.address}</div> : null}
-                {openOrder.payerCustomerId === null ? <div className="app-text-caption">Walk-in customer</div> : null}
+            <div className="grid gap-4 md:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+              <div className="min-w-0">
+                <div className="app-text-overline">Customer</div>
+                <div className="mt-2 app-text-strong">{openOrder.payerName}</div>
+                <div className="mt-2 space-y-1.5">
+                  {checkoutCustomer?.phone ? <div className="app-text-caption">{checkoutCustomer.phone}</div> : null}
+                  {checkoutCustomer?.email ? <div className="app-text-caption">{checkoutCustomer.email}</div> : null}
+                  {checkoutCustomer?.address ? <div className="app-text-caption whitespace-pre-line">{checkoutCustomer.address}</div> : null}
+                  {openOrder.payerCustomerId === null ? <div className="app-text-caption">Walk-in customer</div> : null}
+                </div>
+              </div>
+              <div className="min-w-0">
+                <div className="app-text-overline">Order status</div>
+                <div className="mt-2 flex flex-wrap items-center gap-2">
+                  <StatusPill tone={openOrder.balanceDue > 0 ? "warn" : "success"}>
+                    {openOrder.balanceDue > 0 ? "Balance due" : "Paid"}
+                  </StatusPill>
+                </div>
+                <div className="app-text-caption mt-2 leading-relaxed">
+                  {hasReadyScopesToPickup
+                    ? remainingLater > 0
+                      ? `${formatCheckoutCurrency(dueNow)} is due for today's handoff. ${formatCheckoutCurrency(remainingLater)} stays on the unfinished work.`
+                      : dueNow > 0
+                        ? `${formatCheckoutCurrency(dueNow)} is due before the handoff is complete.`
+                        : "The ready portion is already paid and can be handed off."
+                    : openOrder.balanceDue > 0
+                      ? `${formatCheckoutCurrency(openOrder.balanceDue)} is still open on this order.`
+                      : "No balance is outstanding on this order."}
+                </div>
               </div>
             </div>
           </div>
 
           <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
             <div className="app-text-overline">Order items</div>
-            <div className="mt-3 space-y-3">
+            <div className="mt-3 space-y-2.5">
               {pickupGroups.map((group, index) => {
                 const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
                 const statusDisplay = getGroupStatusDisplay(group, representativePickup);
@@ -312,7 +348,7 @@ export function OrderDetailsScreen({
                   <div
                     key={group.key}
                     className={cx(
-                      "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/28 px-4 py-3",
+                      "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-4 py-3",
                       index > 0 && "mt-3",
                     )}
                   >
@@ -333,9 +369,9 @@ export function OrderDetailsScreen({
                               <span>{representativePickup.pickupLocation}</span>
                             </div>
                           ) : null}
-                        </div>
-                        <div className="app-text-caption mt-2 whitespace-pre-line leading-relaxed">
-                          {statusDisplay.detail}
+                          <div className="app-text-caption text-[var(--app-text-soft)]">
+                            {scopeLineItems.length} {scopeLineItems.length === 1 ? "item" : "items"}
+                          </div>
                         </div>
                       </div>
                       <div className="text-left sm:text-right">
@@ -347,21 +383,24 @@ export function OrderDetailsScreen({
                     </div>
 
                     <div className="mt-4 border-t border-[var(--app-border)]/35 pt-3">
-                      <div className="app-text-overline">Items</div>
                       {scopeLineItems.length > 0 ? (
-                        <div className="mt-2 divide-y divide-[var(--app-border)]/25">
+                        <div className="divide-y divide-[var(--app-border)]/25">
                           {scopeLineItems.map((item) => {
                             const serviceRows = item.components.filter((component) => component.kind === "alteration_service");
                             const customRows = getCustomItemRows(item);
                             const itemTitle = item.kind === "alteration" ? item.garmentLabel : item.sourceLabel;
+                            const collapsedSummary = getCollapsedItemSummary(item);
                             const isExpanded = expandedItemIds.includes(item.id);
 
                             return (
-                              <div key={item.id} className="py-3 first:pt-0 last:pb-0">
+                              <div key={item.id} className="py-2.5 first:pt-0 last:pb-0">
                                 <button
                                   type="button"
                                   onClick={() => toggleItemExpanded(item.id)}
-                                  className="flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1 text-left transition hover:bg-[var(--app-surface-muted)]/18"
+                                  className={cx(
+                                    "flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface)]/65 focus:outline-none",
+                                    isExpanded && "bg-[var(--app-surface)]/80",
+                                  )}
                                 >
                                   <div className="flex min-w-0 flex-1 items-start gap-2">
                                     <ChevronDown
@@ -372,6 +411,11 @@ export function OrderDetailsScreen({
                                     />
                                     <div className="min-w-0 flex-1">
                                       <div className="app-text-strong">{itemTitle}</div>
+                                      {collapsedSummary ? (
+                                        <div className="app-text-caption mt-1 truncate pr-4">
+                                          {collapsedSummary}
+                                        </div>
+                                      ) : null}
                                     </div>
                                   </div>
                                   <div className="shrink-0 text-right">
@@ -384,11 +428,11 @@ export function OrderDetailsScreen({
                                 {isExpanded ? (
                                   item.kind === "alteration" ? (
                                     serviceRows.length > 0 ? (
-                                      <div className="mt-2 space-y-1.5 pl-7">
+                                      <div className="mt-2 space-y-1.5 border-l-2 border-[var(--app-border)]/55 pl-5">
                                         {serviceRows.map((component) => (
                                           <div key={component.id} className="flex items-start justify-between gap-4">
-                                            <div className="app-text-caption leading-relaxed">{component.value}</div>
-                                            <div className="app-text-caption shrink-0 [font-variant-numeric:tabular-nums]">
+                                            <div className="app-text-body-muted leading-relaxed">{component.value}</div>
+                                            <div className="app-text-body-muted shrink-0 [font-variant-numeric:tabular-nums]">
                                               {formatCheckoutCurrency(component.amount ?? 0)}
                                             </div>
                                           </div>
@@ -396,13 +440,13 @@ export function OrderDetailsScreen({
                                       </div>
                                     ) : null
                                   ) : customRows.length > 0 ? (
-                                    <div className="mt-2 space-y-1.5 pl-7">
+                                    <div className="mt-2 space-y-2 border-l-2 border-[var(--app-border)]/55 pl-5">
                                       {customRows.map((row, rowIndex) => (
                                         <div key={`${item.id}-row-${rowIndex}`} className="flex items-start justify-between gap-4">
-                                          <div className="app-text-caption uppercase tracking-[0.12em] text-[var(--app-text-soft)]">
+                                          <div className="app-text-body-muted">
                                             {row.label}
                                           </div>
-                                          <div className="app-text-caption max-w-[60%] whitespace-pre-line text-right leading-relaxed text-[var(--app-text)]">
+                                          <div className="app-text-body-muted max-w-[58%] whitespace-pre-line text-right leading-relaxed text-[var(--app-text)]">
                                             {row.value}
                                           </div>
                                         </div>
@@ -427,8 +471,8 @@ export function OrderDetailsScreen({
 
         <div className="space-y-4">
           <CheckoutSummaryRail
-            title="Order totals"
-            subtitle={remainingLater > 0 ? "What is due today versus what stays on the order afterward." : "Collected so far and what is still due."}
+            title="Payment summary"
+            subtitle={remainingLater > 0 ? "Due today and what stays with unfinished work." : "Collected so far and what is still open."}
             totalsItems={totalsItems}
           >
             {dueNow > 0 ? (
