@@ -273,12 +273,12 @@ describe("order reducer", () => {
       },
       {
         status: "captured",
-        amount: 95,
+        amount: 40,
       },
     ]);
     expect(adaptOpenOrders(next!.database).find((order) => order.id === 9005)).toMatchObject({
       balanceDue: 0,
-      totalCollected: 95,
+      totalCollected: 40,
     });
   });
 
@@ -292,8 +292,8 @@ describe("order reducer", () => {
 
     const state = appReducer(createInitialAppState({ database }), { type: "openCheckoutForOpenOrder", openOrderId: 9003 });
     const before = adaptOpenOrders(state.database).find((order) => order.id === 9003);
-    expect(before?.pickupBalanceDue).toBe(120);
-    expect(before?.balanceDue).toBeGreaterThan(120);
+    expect(before?.pickupBalanceDue).toBe(40);
+    expect(before?.balanceDue).toBeGreaterThan(40);
 
     const next = tryReduceOrderAction(
       state,
@@ -304,8 +304,8 @@ describe("order reducer", () => {
     expect(next?.checkoutJustCompletedOpenOrderId).toBe(9003);
     const after = adaptOpenOrders(next!.database).find((order) => order.id === 9003);
     expect(after).toMatchObject({
-      totalCollected: 120,
-      balanceDue: 2240,
+      totalCollected: 40,
+      balanceDue: 2990,
       pickupBalanceDue: 0,
     });
   });
