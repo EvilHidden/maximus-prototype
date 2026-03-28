@@ -23,9 +23,9 @@ import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextCla
 import { QueueSection } from "./OpenOrdersWorklist";
 
 const OPEN_ORDER_ROW_GRID_CLASS =
-  "grid cursor-pointer gap-4 px-4 py-4 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start lg:gap-x-4";
+  "grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start lg:gap-x-4";
 const READY_ORDER_ROW_GRID_CLASS =
-  "grid cursor-pointer gap-4 px-4 py-3.5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] lg:items-center";
+  "grid gap-4 px-4 py-3.5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] lg:items-center";
 
 function getPickupScheduleSummary(pickups: OpenOrder["pickupSchedules"] | ClosedOrderHistoryItem["pickupSchedules"]) {
   const labels = (pickups ?? [])
@@ -337,18 +337,7 @@ function AllOrdersRow({
   const rowGridClassName = isReadyVariant ? READY_ORDER_ROW_GRID_CLASS : OPEN_ORDER_ROW_GRID_CLASS;
 
   return (
-    <div
-      className={rowGridClassName}
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpenOrderDetails(openOrder.id)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpenOrderDetails(openOrder.id);
-        }
-      }}
-    >
+    <div className={rowGridClassName}>
       <div className="min-w-0">
         <div className="app-text-strong">{openOrder.payerName}</div>
         {isReadyVariant || isFactoryVariant ? (
@@ -362,6 +351,16 @@ function AllOrdersRow({
             <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
           </>
         )}
+        <div className="mt-3">
+          <ActionButton
+            type="button"
+            tone="secondary"
+            className="min-h-9 px-3 py-2 text-xs"
+            onClick={() => onOpenOrderDetails(openOrder.id)}
+          >
+            Open details
+          </ActionButton>
+        </div>
       </div>
       {isReadyVariant ? null : (
         <div className="min-w-0">
@@ -414,7 +413,6 @@ function AllOrdersRow({
                   </div>
                   <div
                     className="flex min-h-14 items-center justify-end"
-                    onClick={(event) => event.stopPropagation()}
                   >
                     {group.actionPickupIds.length ? (
                       <ActionButton

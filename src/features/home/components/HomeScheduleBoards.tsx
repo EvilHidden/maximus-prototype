@@ -106,7 +106,6 @@ function AppointmentAlertIconButton({
       type="button"
       className={[
         "relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
-        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-focus)] focus-visible:ring-offset-2 focus-visible:ring-offset-[var(--app-surface)]",
         tone === "danger"
           ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
           : tone === "info"
