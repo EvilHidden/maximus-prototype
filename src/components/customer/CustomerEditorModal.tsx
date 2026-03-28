@@ -201,11 +201,15 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
           </ActionButton>
           <ActionButton
             tone="primary"
-            disabled={isInvalid}
-            disabledReason={validationMessage}
-            onDisabledPress={() => setShowValidation(true)}
             className="min-h-12 px-4 py-2.5 text-sm"
-            onClick={() => onSave({ ...draft, name: formattedName, address: formattedAddress })}
+            onClick={() => {
+              if (isInvalid) {
+                setShowValidation(true);
+                return;
+              }
+
+              onSave({ ...draft, name: formattedName, address: formattedAddress });
+            }}
           >
             {mode === "add" ? "Add customer" : "Save changes"}
           </ActionButton>

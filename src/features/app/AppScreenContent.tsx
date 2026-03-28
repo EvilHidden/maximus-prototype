@@ -99,6 +99,7 @@ export function AppScreenContent({
             dispatch({ type: "selectCustomWearer", customerId });
           }
         }}
+        onAddCustomer={(customer) => dispatch({ type: "addCustomer", customer })}
         onUpdateMeasurement={(field, value) => dispatch({ type: "updateMeasurements", field, value })}
         onReplaceMeasurements={(values, measurementSetId) => dispatch({ type: "replaceMeasurements", values, measurementSetId })}
         onSaveMeasurementSet={saveMeasurements}

@@ -1,3 +1,4 @@
+import { useMemo, useState } from "react";
 import { Receipt } from "lucide-react";
 import type { Customer, MeasurementSet, Screen } from "../types";
 import type { Dispatch } from "react";
@@ -15,9 +16,11 @@ import { MeasurementSetModal } from "../features/order/modals/MeasurementSetModa
 import { EditAlterationItemModal } from "../features/order/modals/EditAlterationItemModal";
 import { ConfirmRemoveItemModal } from "../features/order/modals/ConfirmRemoveItemModal";
 import { ConfirmClearBagModal } from "../features/order/modals/ConfirmClearBagModal";
+import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import type { AppState } from "../state/appState";
 import { useToast } from "../components/ui/toast";
 import { useOrderBuilderController } from "../features/order/hooks/useOrderBuilderController";
+import { createNextCustomerId } from "../features/customer/selectors";
 
 type OrderScreenProps = {
   customers: Customer[];
@@ -45,6 +48,7 @@ export function OrderScreen({
   onSaveDraftOrder,
 }: OrderScreenProps) {
   const { showToast } = useToast();
+  const [customerCreateTarget, setCustomerCreateTarget] = useState<"payer" | "wearer" | null>(null);
   const controller = useOrderBuilderController({
     customers,
     measurementSets,
@@ -57,6 +61,42 @@ export function OrderScreen({
     onSaveDraftOrder,
     showToast,
   });
+  const customerDateFormatter = useMemo(
+    () => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }),
+    [],
+  );
+
+  const handleCreateCustomer = (target: "payer" | "wearer") => {
+    if (target === "payer") {
+      controller.setCustomerModalOpen(false);
+    } else {
+      controller.setWearerModalOpen(false);
+    }
+    controller.setCustomerQuery("");
+    setCustomerCreateTarget(target);
+  };
+
+  const handleSaveNewCustomer = (draft: Customer) => {
+    const nextCustomer: Customer = {
+      ...draft,
+      id: createNextCustomerId(customers),
+      lastVisit: customerDateFormatter.format(new Date()),
+      measurementsStatus: "missing",
+    };
+
+    dispatch({ type: "addCustomer", customer: nextCustomer });
+
+    if (customerCreateTarget === "wearer") {
+      dispatch({ type: "selectCustomWearer", customerId: nextCustomer.id });
+      dispatch({ type: "setCustomer", customerId: nextCustomer.id });
+    } else {
+      dispatch({ type: "setOrderPayer", customerId: nextCustomer.id });
+      dispatch({ type: "setCustomer", customerId: nextCustomer.id });
+    }
+
+    showToast(`${nextCustomer.name} added.`);
+    setCustomerCreateTarget(null);
+  };
 
   return (
     <div className={cx("space-y-4", order.activeWorkflow === "alteration" && "xl:flex xl:h-full xl:flex-col")}>
@@ -249,6 +289,7 @@ export function OrderScreen({
             controller.setCustomerModalOpen(false);
             controller.setCustomerQuery("");
           }}
+          onCreateCustomer={() => handleCreateCustomer("payer")}
           onClose={() => {
             controller.setCustomerModalOpen(false);
             controller.setCustomerQuery("");
@@ -287,10 +328,19 @@ export function OrderScreen({
             controller.setWearerModalOpen(false);
             controller.setCustomerQuery("");
           }}
+          onCreateCustomer={() => handleCreateCustomer("wearer")}
           onClose={() => {
             controller.setWearerModalOpen(false);
             controller.setCustomerQuery("");
           }}
+        />
+      ) : null}
+
+      {customerCreateTarget ? (
+        <CustomerEditorModal
+          mode="add"
+          onClose={() => setCustomerCreateTarget(null)}
+          onSave={handleSaveNewCustomer}
         />
       ) : null}
 

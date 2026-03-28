@@ -289,7 +289,7 @@ export function CustomGarmentBuilder({
                       key={gender}
                       onClick={() => onSelectGender(gender)}
                       className={cx(
-                        "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-all",
+                        "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-[background-color,border-color,color,box-shadow]",
                         selectedGender === gender
                           ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
                           : "border border-[var(--app-border)]/55 bg-[var(--app-surface)]/45 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
@@ -486,11 +486,17 @@ export function CustomGarmentBuilder({
           ) : null}
           <ActionButton
             tone="primary"
-            disabled={!canAddToOrder}
-            disabledReason={addDisabledReason}
-            onDisabledPress={onShowDisabledReason}
             className="min-h-12 min-w-[200px] px-5 text-sm"
-            onClick={onAddToOrder}
+            onClick={() => {
+              if (!canAddToOrder) {
+                if (addDisabledReason && onShowDisabledReason) {
+                  onShowDisabledReason(addDisabledReason);
+                }
+                return;
+              }
+
+              onAddToOrder();
+            }}
           >
             {isEditing ? "Save changes" : "Add to Cart"}
           </ActionButton>

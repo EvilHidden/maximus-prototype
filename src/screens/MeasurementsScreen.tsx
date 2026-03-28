@@ -2,7 +2,10 @@ import { useMemo, useState } from "react";
 import { Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
 import { ModalShell, SectionHeader, ActionButton, Surface } from "../components/ui/primitives";
+import { useToast } from "../components/ui/toast";
+import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { filterCustomers, getActiveCustomers } from "../features/customer/selectors";
+import { createNextCustomerId } from "../features/customer/selectors";
 import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModal";
 import {
   getLinkedMeasurementSet,
@@ -25,6 +28,7 @@ type MeasurementsScreenProps = {
   order: OrderWorkflowState;
   onStartNewSet: () => void;
   onSelectCustomer: (customerId: string) => void;
+  onAddCustomer: (customer: Customer) => void;
   onUpdateMeasurement: (field: string, value: string) => void;
   onReplaceMeasurements: (values: Record<string, string>, measurementSetId: string | null) => void;
   onSaveMeasurementSet: (mode: "update" | "copy", title?: string) => void;
@@ -86,21 +90,28 @@ export function MeasurementsScreen({
   order,
   onStartNewSet,
   onSelectCustomer,
+  onAddCustomer,
   onUpdateMeasurement,
   onReplaceMeasurements,
   onSaveMeasurementSet,
   onDeleteMeasurementSet,
   onScreenChange,
 }: MeasurementsScreenProps) {
+  const { showToast } = useToast();
   const formatMeasurementReadout = (value: string) =>
     value.trim().length > 0 ? `${formatMeasurementDisplayValue(value)} in` : "Tap to enter inches";
   const fieldNames = measurementFields;
   const [activeField, setActiveField] = useState(fieldNames[0] ?? "");
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
+  const [customerCreateOpen, setCustomerCreateOpen] = useState(false);
   const [customerQuery, setCustomerQuery] = useState("");
   const [saveMode, setSaveMode] = useState<"copy" | "save" | null>(null);
   const [saveTitle, setSaveTitle] = useState("");
   const [pendingDeleteSetId, setPendingDeleteSetId] = useState<string | null>(null);
+  const customerDateFormatter = useMemo(
+    () => new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }),
+    [],
+  );
 
   const customerHistory = selectedCustomer ? measurementSets.filter((set) => set.customerId === selectedCustomer.id) : [];
   const filteredCustomers = useMemo(() => filterCustomers(getActiveCustomers(customers), customerQuery), [customers, customerQuery]);
@@ -312,9 +323,34 @@ export function MeasurementsScreen({
             setCustomerModalOpen(false);
             setCustomerQuery("");
           }}
+          onCreateCustomer={() => {
+            setCustomerModalOpen(false);
+            setCustomerQuery("");
+            setCustomerCreateOpen(true);
+          }}
           onClose={() => {
             setCustomerModalOpen(false);
             setCustomerQuery("");
+          }}
+        />
+      ) : null}
+
+      {customerCreateOpen ? (
+        <CustomerEditorModal
+          mode="add"
+          onClose={() => setCustomerCreateOpen(false)}
+          onSave={(draft) => {
+            const nextCustomer: Customer = {
+              ...draft,
+              id: createNextCustomerId(customers),
+              lastVisit: customerDateFormatter.format(new Date()),
+              measurementsStatus: "missing",
+            };
+
+            onAddCustomer(nextCustomer);
+            onSelectCustomer(nextCustomer.id);
+            showToast(`${nextCustomer.name} added.`);
+            setCustomerCreateOpen(false);
           }}
         />
       ) : null}
