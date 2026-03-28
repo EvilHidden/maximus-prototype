@@ -34,10 +34,10 @@ const honorificOptions = ["", "Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Prof."];
 const suffixOptions = ["", "Jr.", "Sr.", "II", "III", "IV", "V"];
 const stateOptions = ["", "NY", "NJ", "CT"];
 const inputClassName =
-  "mt-2 w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-muted)] px-3 py-3 app-text-body outline-none";
+  "mt-2 w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-muted)] px-3 py-3 app-text-body";
 const selectClassName = `${inputClassName} appearance-none pr-10 bg-[right_0.9rem_center] bg-[length:0.8rem] bg-no-repeat`;
 const compactSelectClassName =
-  "mt-2 w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-muted)] px-3 py-2.5 text-[0.82rem] text-[var(--app-text-muted)] outline-none appearance-none pr-9 bg-[right_0.8rem_center] bg-[length:0.75rem] bg-no-repeat";
+  "mt-2 w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-muted)] px-3 py-2.5 text-[0.82rem] text-[var(--app-text-muted)] appearance-none pr-9 bg-[right_0.8rem_center] bg-[length:0.75rem] bg-no-repeat";
 const selectCaretStyle = {
   backgroundImage:
     "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237b8694' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 7 5 6 5-6'/%3E%3C/svg%3E\")",
@@ -237,6 +237,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                       value={nameDraft.firstName}
                       onChange={(event) => setNameDraft((current) => ({ ...current, firstName: event.target.value }))}
                       onBlur={markFieldTouched("firstName")}
+                      name="customer-first-name"
+                      autoComplete="given-name"
                       className={getFieldClassName(inputClassName, "firstName")}
                     />
                     {getFieldHint("firstName")}
@@ -247,6 +249,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                       value={nameDraft.lastName}
                       onChange={(event) => setNameDraft((current) => ({ ...current, lastName: event.target.value }))}
                       onBlur={markFieldTouched("lastName")}
+                      name="customer-last-name"
+                      autoComplete="family-name"
                       className={getFieldClassName(inputClassName, "lastName")}
                     />
                     {getFieldHint("lastName")}
@@ -257,6 +261,7 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                   <label className="block">
                     <FieldLabel>Phone</FieldLabel>
                     <input
+                      type="tel"
                       value={draft.phone}
                       onChange={(event) =>
                         setDraft((current) => ({
@@ -264,14 +269,20 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                           phone: formatPhoneNumber(event.target.value),
                         }))
                       }
+                      name="customer-phone"
+                      inputMode="tel"
+                      autoComplete="tel"
                       className={inputClassName}
                     />
                   </label>
                   <label className="block">
                     <FieldLabel>Email</FieldLabel>
                     <input
+                      type="email"
                       value={draft.email}
                       onChange={(event) => setDraft((current) => ({ ...current, email: event.target.value }))}
+                      name="customer-email"
+                      autoComplete="email"
                       className={inputClassName}
                     />
                   </label>
@@ -286,6 +297,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <input
                           value={addressDraft.addressLine1}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, addressLine1: event.target.value }))}
+                          name="customer-address-line1"
+                          autoComplete="address-line1"
                           className={inputClassName}
                         />
                       </label>
@@ -294,6 +307,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <input
                           value={addressDraft.unit}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, unit: event.target.value }))}
+                          name="customer-address-line2"
+                          autoComplete="address-line2"
                           className={inputClassName}
                         />
                       </label>
@@ -305,6 +320,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <input
                           value={addressDraft.city}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, city: event.target.value }))}
+                          name="customer-address-city"
+                          autoComplete="address-level2"
                           className={inputClassName}
                         />
                       </label>
@@ -313,6 +330,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <select
                           value={addressDraft.state}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, state: event.target.value }))}
+                          name="customer-address-state"
+                          autoComplete="address-level1"
                           className={selectClassName}
                           style={selectCaretStyle}
                         >
@@ -328,6 +347,8 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                         <input
                           value={addressDraft.zip}
                           onChange={(event) => setAddressDraft((current) => ({ ...current, zip: event.target.value }))}
+                          name="customer-address-postal-code"
+                          autoComplete="postal-code"
                           className={inputClassName}
                         />
                       </label>

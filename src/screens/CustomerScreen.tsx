@@ -42,7 +42,7 @@ function CustomerRow({
   return (
     <button
       onClick={onOpen}
-      className="grid w-full gap-3 border-b border-[var(--app-border)]/45 px-4 py-3 text-left transition hover:bg-[var(--app-surface-muted)]/65 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-border-strong)] sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.7fr)_180px_140px_180px_24px] xl:items-center"
+      className="grid w-full gap-3 border-b border-[var(--app-border)]/45 px-4 py-3 text-left transition hover:bg-[var(--app-surface-muted)]/65 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.7fr)_180px_140px_180px_24px] xl:items-center"
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">

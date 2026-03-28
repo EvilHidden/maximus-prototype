@@ -398,7 +398,7 @@ export function OrderDetailsScreen({
                                   type="button"
                                   onClick={() => toggleItemExpanded(item.id)}
                                   className={cx(
-                                    "flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface)]/65 focus:outline-none",
+                                    "flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface)]/65",
                                     isExpanded && "bg-[var(--app-surface)]/80",
                                   )}
                                 >

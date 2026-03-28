@@ -219,24 +219,23 @@ function OperatorQueueRow({
   }
 
   return (
-    <div
-      className="cursor-pointer px-4 py-4"
-      role="button"
-      tabIndex={0}
-      onClick={() => onOpenOrderDetails(openOrder.id)}
-      onKeyDown={(event) => {
-        if (event.key === "Enter" || event.key === " ") {
-          event.preventDefault();
-          onOpenOrderDetails(openOrder.id);
-        }
-      }}
-    >
+    <div className="px-4 py-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] lg:items-start">
         <div className="min-w-0">
           <div className="app-text-overline lg:hidden">Customer</div>
           <div className="app-text-value mt-1 lg:mt-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
           <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+          <div className="mt-3">
+            <ActionButton
+              type="button"
+              tone="secondary"
+              className="min-h-9 px-3 py-2 text-xs"
+              onClick={() => onOpenOrderDetails(openOrder.id)}
+            >
+              Open details
+            </ActionButton>
+          </div>
         </div>
 
         <div className="min-w-0">
@@ -287,7 +286,7 @@ function OperatorQueueRow({
                       ) : null}
                     </div>
                   </div>
-                  <div className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")} onClick={(event) => event.stopPropagation()}>
+                  <div className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")}>
                     {showPerPickupAction ? (
                       <ActionButton
                         tone="primary"

@@ -80,7 +80,12 @@ export function ToastProvider({ children }: { children: ReactNode }) {
     <ToastContext.Provider value={value}>
       {children}
       {toast ? (
-        <div className="pointer-events-none fixed bottom-5 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2">
+        <div
+          className="pointer-events-none fixed bottom-5 left-1/2 z-50 w-[min(28rem,calc(100vw-2rem))] -translate-x-1/2"
+          role="status"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)] bg-[var(--app-accent)] px-4 py-3 text-sm font-medium text-[var(--app-accent-contrast)] shadow-[var(--app-shadow-lg)]">
             {toast.message}
           </div>

@@ -16,6 +16,7 @@
   --app-accent: #0f172a;
   --app-accent-hover: #1e293b;
   --app-accent-contrast: #ffffff;
+  --app-focus: #2563eb;
   --app-warn-bg: #fff7ed;
   --app-warn-border: #fdba74;
   --app-warn-text: #b45309;
@@ -51,6 +52,7 @@
   --app-accent: #e2e8f0;
   --app-accent-hover: #cbd5e1;
   --app-accent-contrast: #0f172a;
+  --app-focus: #93c5fd;
   --app-warn-bg: #451a03;
   --app-warn-border: #92400e;
   --app-warn-text: #fbbf24;
@@ -90,6 +92,18 @@ textarea {
 
 button {
   letter-spacing: 0.01em;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
+}
+
+input:focus-visible,
+select:focus-visible,
+textarea:focus-visible {
+  outline: 2px solid var(--app-focus);
+  outline-offset: 2px;
 }
 
 .app-shell {
@@ -166,6 +180,12 @@ button {
   outline: none;
 }
 
+.app-input:focus-visible,
+.app-select:focus-visible {
+  border-color: var(--app-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-focus) 24%, transparent);
+}
+
 .app-field-shell {
   display: flex;
   flex-direction: column;
@@ -190,6 +210,16 @@ button {
   border: 0;
   background: transparent;
   color: var(--app-text);
+  outline: none;
+}
+
+.app-field-control:focus-within {
+  border-color: var(--app-focus);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--app-focus) 24%, transparent);
+}
+
+.app-field-control input:focus-visible,
+.app-field-control select:focus-visible {
   outline: none;
 }
 
@@ -303,6 +333,10 @@ button {
   border: 1px solid var(--app-border);
   padding: 0.75rem 1rem;
   transition: background-color 160ms ease, color 160ms ease, border-color 160ms ease, opacity 160ms ease;
+}
+
+.app-btn:focus-visible {
+  outline-color: var(--app-focus);
 }
 
 .app-btn:disabled {
@@ -446,6 +480,10 @@ button {
   padding: 1rem;
   text-align: left;
   transition: transform 160ms ease, border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+}
+
+.app-workflow-toggle:focus-visible {
+  outline-color: var(--app-focus);
 }
 
 .app-workflow-toggle:hover {
