@@ -60,7 +60,6 @@ type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
   tone?: "primary" | "secondary" | "quiet";
   fullWidth?: boolean;
   disabledReason?: string;
-  onDisabledPress?: (reason: string) => void;
 };
 
 type QuickActionTileProps = {
@@ -358,9 +357,7 @@ export function ActionButton({
   className,
   children,
   disabledReason,
-  onDisabledPress,
   disabled,
-  onClick,
   ...props
 }: ActionButtonProps) {
   const tones = {
@@ -369,32 +366,20 @@ export function ActionButton({
     quiet: "app-btn app-btn--quiet",
   };
 
-  const isGuarded = Boolean(disabled);
+  const isDisabled = Boolean(disabled);
 
   return (
     <button
       className={cx(
         "app-text-body font-medium",
         tones[tone],
-        isGuarded && "app-btn--disabled",
+        isDisabled && "app-btn--disabled",
         fullWidth && "w-full",
         className,
       )}
-      aria-disabled={isGuarded}
-      onClick={(event) => {
-        if (isGuarded) {
-          event.preventDefault();
-          event.stopPropagation();
-          if (disabledReason && onDisabledPress) {
-            onDisabledPress(disabledReason);
-          }
-          return;
-        }
-
-        onClick?.(event);
-      }}
+      title={isDisabled && disabledReason && !props.title ? disabledReason : props.title}
       {...props}
-      disabled={false}
+      disabled={isDisabled}
     >
       {children}
     </button>

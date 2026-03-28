@@ -208,10 +208,16 @@ export function AlterationBuilder({
           <div className="app-text-value">${currentSubtotal.toFixed(2)}</div>
           <ActionButton
             tone="primary"
-            disabled={!selectedGarment || selectedModifiers.length === 0}
-            disabledReason={addDisabledReason}
-            onDisabledPress={onShowDisabledReason}
-            onClick={onAddItem}
+            onClick={() => {
+              if (!selectedGarment || selectedModifiers.length === 0) {
+                if (addDisabledReason && onShowDisabledReason) {
+                  onShowDisabledReason(addDisabledReason);
+                }
+                return;
+              }
+
+              onAddItem();
+            }}
           >
             Add to Cart
           </ActionButton>

@@ -300,10 +300,16 @@ export function OrderBag({
         <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border-strong)]/50 pt-3">
           <ActionButton
             tone="primary"
-            disabled={continueDisabled}
-            disabledReason={continueDisabledReason}
-            onDisabledPress={onShowDisabledReason}
-            onClick={onContinue}
+            onClick={() => {
+              if (continueDisabled) {
+                if (continueDisabledReason && onShowDisabledReason) {
+                  onShowDisabledReason(continueDisabledReason);
+                }
+                return;
+              }
+
+              onContinue();
+            }}
           >
             {continueLabel}
           </ActionButton>
