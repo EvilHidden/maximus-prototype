@@ -24,7 +24,7 @@ export type AppointmentStatusKey = ServiceAppointmentStatus | PickupAppointmentS
 export type AppointmentConfirmationStatus = "confirmed" | "unconfirmed";
 export type AppointmentPrepFlag = "needs_measurements";
 export type AppointmentProfileFlag = "missing_phone" | "missing_email" | "missing_address" | "needs_marketing_opt_in";
-export type AppointmentContextFlag = AppointmentConfirmationStatus | "rush";
+export type AppointmentContextFlag = AppointmentConfirmationStatus;
 export type AlterationPickup = {
   pickupDate: string;
   pickupTime: string;
@@ -137,6 +137,7 @@ export type AlterationItem = {
   garment: string;
   modifiers: AlterationService[];
   subtotal: number;
+  isRush: boolean;
 };
 
 export type MeasurementSet = {
@@ -160,6 +161,7 @@ export type OrderBagLineItem = {
   title: string;
   subtitle: string;
   amount: number;
+  isRush: boolean;
   sourceLabel: string;
   garmentLabel: string;
   wearerCustomerId?: string | null;
@@ -184,12 +186,14 @@ export type PricingSummary = {
 export type AlterationBuilderState = {
   selectedGarment: string;
   selectedModifiers: AlterationService[];
+  selectedRush: boolean;
   items: AlterationItem[];
 };
 
 export type CustomGarmentDraft = {
   gender: CustomGarmentGender | null;
   wearerCustomerId: string | null;
+  isRush: boolean;
   selectedGarment: string | null;
   linkedMeasurementSetId: string | null;
   measurements: Record<string, string>;

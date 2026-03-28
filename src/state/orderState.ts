@@ -13,6 +13,7 @@ export function createInitialCustomDraft(): CustomGarmentDraft {
   return {
     gender: null,
     wearerCustomerId: null,
+    isRush: false,
     selectedGarment: null,
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(),
@@ -43,6 +44,7 @@ export function createInitialOrderState(): OrderWorkflowState {
     alteration: {
       selectedGarment: "",
       selectedModifiers: [],
+      selectedRush: false,
       items: [],
     },
     custom: createInitialCustomState(),

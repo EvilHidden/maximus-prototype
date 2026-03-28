@@ -8,8 +8,10 @@ type EditAlterationItemModalProps = {
   services: AlterationService[];
   selectedModifiers: AlterationService[];
   subtotal: number;
+  isRush: boolean;
   onSetGarment: (garment: string) => void;
   onToggleModifier: (modifier: AlterationService) => void;
+  onToggleRush: () => void;
   onRequestRemove: () => void;
   onClose: () => void;
 };
@@ -20,8 +22,10 @@ export function EditAlterationItemModal({
   services,
   selectedModifiers,
   subtotal,
+  isRush,
   onSetGarment,
   onToggleModifier,
+  onToggleRush,
   onRequestRemove,
   onClose,
 }: EditAlterationItemModalProps) {
@@ -37,6 +41,13 @@ export function EditAlterationItemModal({
             Item subtotal: <span className="font-semibold text-[var(--app-text)]">${subtotal.toFixed(2)}</span>
           </div>
           <div className="flex items-center gap-2">
+            <ActionButton
+              tone="secondary"
+              className={isRush ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)] hover:bg-[var(--app-danger-bg)]/80" : undefined}
+              onClick={onToggleRush}
+            >
+              {isRush ? "Rush item" : "Mark rush"}
+            </ActionButton>
             <ActionButton tone="secondary" onClick={onRequestRemove}>
               Remove item
             </ActionButton>

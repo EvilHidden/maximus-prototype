@@ -376,6 +376,7 @@ export function serializeOrderWorkflowToRecords({
         garmentLabel: item.garment,
         quantity: 1,
         unitPrice: item.subtotal,
+        isRush: item.isRush,
         wearerCustomerId: null,
         wearerName: null,
         measurementSetId: null,
@@ -400,6 +401,7 @@ export function serializeOrderWorkflowToRecords({
         garmentLabel,
         quantity: 1,
         unitPrice: getCustomGarmentPrice(item.selectedGarment),
+        isRush: item.isRush,
         wearerCustomerId: item.wearerCustomerId,
         wearerName: getWearerName(item.wearerCustomerId, customers, item.wearerName),
         measurementSetId: item.linkedMeasurementSetId,
@@ -448,7 +450,6 @@ export function serializeOrderWorkflowToRecords({
         statusKey: existingPickupAppointment?.statusKey ?? "scheduled",
         summary: pickupSummary,
         confirmationStatus: existingPickupAppointment?.confirmationStatus ?? null,
-        rush: existingPickupAppointment?.rush ?? false,
       });
     }
   });
@@ -475,6 +476,7 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
   return {
     gender: null,
     wearerCustomerId: null,
+    isRush: false,
     selectedGarment: null,
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(),
@@ -549,6 +551,7 @@ export function deserializeOrderWorkflowFromRecords(
           garment: line.garmentLabel,
           modifiers,
           subtotal: line.unitPrice * line.quantity,
+          isRush: line.isRush,
         };
       })
     : [];
@@ -565,6 +568,7 @@ export function deserializeOrderWorkflowFromRecords(
           id: getEditableItemId(order.id, "custom", line.id),
           gender: getCustomGenderForGarment(database, line.garmentLabel),
           wearerCustomerId: line.wearerCustomerId,
+          isRush: line.isRush,
           selectedGarment: line.garmentLabel,
           linkedMeasurementSetId: line.measurementSetId,
           measurements: {
@@ -627,6 +631,7 @@ export function deserializeOrderWorkflowFromRecords(
     alteration: {
       selectedGarment: "",
       selectedModifiers: [],
+      selectedRush: false,
       items: alterationItems,
     },
     custom: {

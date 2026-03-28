@@ -174,6 +174,17 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         },
       };
     }
+    case "toggleAlterationRush":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            selectedRush: !state.order.alteration.selectedRush,
+          },
+        },
+      };
     case "addAlterationItem": {
       if (!state.order.alteration.selectedGarment || state.order.alteration.selectedModifiers.length === 0) {
         return state;
@@ -194,9 +205,11 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
                 garment: state.order.alteration.selectedGarment,
                 modifiers: [...state.order.alteration.selectedModifiers],
                 subtotal,
+                isRush: state.order.alteration.selectedRush,
               },
             ],
             selectedModifiers: [],
+            selectedRush: false,
           },
         },
       };
@@ -220,6 +233,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
                 garment,
                 modifiers,
                 subtotal: modifiers.reduce((sum, modifier) => sum + modifier.price, 0),
+                isRush: action.payload.isRush ?? item.isRush,
               };
             }),
           },

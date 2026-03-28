@@ -8,6 +8,7 @@ type AlterationBuilderProps = {
   selectedGarment: string;
   currentServices: AlterationService[];
   selectedModifiers: AlterationService[];
+  selectedRush: boolean;
   currentSubtotal: number;
   addDisabledReason?: string;
   onShowDisabledReason?: (reason: string) => void;
@@ -16,6 +17,7 @@ type AlterationBuilderProps = {
   missingServices?: boolean;
   onSelectGarment: (garment: string) => void;
   onToggleModifier: (modifier: AlterationService) => void;
+  onToggleRush: () => void;
   onAddItem: () => void;
 };
 
@@ -24,6 +26,7 @@ export function AlterationBuilder({
   selectedGarment,
   currentServices,
   selectedModifiers,
+  selectedRush,
   currentSubtotal,
   addDisabledReason,
   onShowDisabledReason,
@@ -32,6 +35,7 @@ export function AlterationBuilder({
   missingServices = false,
   onSelectGarment,
   onToggleModifier,
+  onToggleRush,
   onAddItem,
 }: AlterationBuilderProps) {
   const selectedServiceSummary = selectedModifiers.map((modifier) => modifier.name).join(", ");
@@ -191,6 +195,16 @@ export function AlterationBuilder({
           )}
         </div>
         <div className="flex shrink-0 items-center gap-3 self-center">
+          <ActionButton
+            tone="secondary"
+            className={cx(
+              "min-h-10 px-3 py-2 text-xs",
+              selectedRush && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)] hover:bg-[var(--app-danger-bg)]/80",
+            )}
+            onClick={onToggleRush}
+          >
+            {selectedRush ? "Rush item" : "Mark rush"}
+          </ActionButton>
           <div className="app-text-value">${currentSubtotal.toFixed(2)}</div>
           <ActionButton
             tone="primary"

@@ -38,7 +38,6 @@ export function createManualAppointmentRecord(
         typeKey: payload.typeKey,
         statusKey: "scheduled",
         confirmationStatus: "unconfirmed",
-        rush: false,
       },
       ...database.serviceAppointments,
     ],

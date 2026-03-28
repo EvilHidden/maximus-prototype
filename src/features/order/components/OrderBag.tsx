@@ -4,6 +4,7 @@ import {
   EmptyState,
   InlineEmptyState,
   PanelSection,
+  StatusPill,
   Surface,
   SummaryStack,
   cx,
@@ -127,8 +128,11 @@ export function OrderBag({
                 >
                   <div className="flex items-start justify-between gap-3 px-3">
                     <div className="min-w-0 flex-1">
-                      <div className="app-kicker text-[var(--app-text-muted)]">
-                        {index + 1}. {item.kind === "custom" ? "Custom garment" : "Alteration"}
+                      <div className="mt-0.5 flex flex-wrap items-center gap-2">
+                        <div className="app-kicker text-[var(--app-text-muted)]">
+                          {index + 1}. {item.kind === "custom" ? "Custom garment" : "Alteration"}
+                        </div>
+                        {item.isRush ? <StatusPill tone="danger">Rush</StatusPill> : null}
                       </div>
                       <div className="mt-1 app-text-strong leading-tight">{item.garmentLabel}</div>
                       {item.subtitle ? (

@@ -126,6 +126,7 @@ export type DbOrderScopeLine = {
   garmentLabel: string;
   quantity: number;
   unitPrice: number;
+  isRush: boolean;
   wearerCustomerId: string | null;
   wearerName: string | null;
   measurementSetId: string | null;
@@ -165,7 +166,6 @@ export type DbPickupAppointment = {
   statusKey: Extract<AppointmentStatusKey, "scheduled" | "completed" | "canceled">;
   summary: string;
   confirmationStatus: AppointmentConfirmationStatus | null;
-  rush: boolean;
 };
 
 export type DbServiceAppointment = {
@@ -186,7 +186,6 @@ export type DbServiceAppointment = {
   >;
   statusKey: Extract<AppointmentStatusKey, "scheduled" | "ready_to_check_in" | "prep_required" | "completed" | "canceled">;
   confirmationStatus: AppointmentConfirmationStatus | null;
-  rush: boolean;
 };
 
 export type DbPaymentRecord = {

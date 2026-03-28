@@ -1,4 +1,4 @@
-import { AlertCircle, CalendarDays, ChevronDown, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
+import { CalendarDays, ChevronDown, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Appointment } from "../../../types";
@@ -45,17 +45,6 @@ function getAppointmentAlertIcons(appointment: Appointment) {
       Icon: Ruler,
       tone: "info" as const,
     })),
-  );
-
-  icons.push(
-    ...appointment.contextFlags
-      .filter((flag) => flag === "rush")
-      .map((flag) => ({
-        key: flag,
-        label: getAppointmentContextFlagLabel(flag),
-        Icon: AlertCircle,
-        tone: "danger" as const,
-      })),
   );
 
   icons.push(

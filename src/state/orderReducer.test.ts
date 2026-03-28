@@ -37,6 +37,7 @@ describe("order reducer", () => {
         garment: "Trousers",
         modifiers: [{ name: "Hem", price: 20 }],
         subtotal: 20,
+        isRush: false,
       },
     ]);
   });
@@ -77,6 +78,7 @@ describe("order reducer", () => {
         garment: "Trousers",
         modifiers: [{ name: "Hem", price: 35 }],
         subtotal: 35,
+        isRush: false,
       },
     ];
     state.order.fulfillment.alteration = {
@@ -163,6 +165,7 @@ describe("order reducer", () => {
       garmentLabel: "Trousers",
       quantity: 1,
       unitPrice: 35,
+      isRush: false,
       wearerCustomerId: null,
       wearerName: null,
       measurementSetId: null,
@@ -203,6 +206,7 @@ describe("order reducer", () => {
         garment: "Trousers",
         modifiers: [{ name: "Hem", price: 35 }],
         subtotal: 35,
+        isRush: false,
       },
     ];
     state.order.fulfillment.alteration = {

@@ -410,7 +410,10 @@ export function OrderDetailsScreen({
                                       )}
                                     />
                                     <div className="min-w-0 flex-1">
-                                      <div className="app-text-strong">{itemTitle}</div>
+                                      <div className="flex flex-wrap items-center gap-2">
+                                        <div className="app-text-strong">{itemTitle}</div>
+                                        {item.isRush ? <StatusPill tone="danger">Rush</StatusPill> : null}
+                                      </div>
                                       {collapsedSummary ? (
                                         <div className="app-text-caption mt-1 truncate pr-4">
                                           {collapsedSummary}

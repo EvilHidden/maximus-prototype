@@ -92,6 +92,7 @@ export function OrderScreen({
                 selectedGarment={order.alteration.selectedGarment}
                 currentServices={controller.currentServices}
                 selectedModifiers={order.alteration.selectedModifiers}
+                selectedRush={order.alteration.selectedRush}
                 currentSubtotal={controller.currentAlterationSubtotal}
                 addDisabledReason={controller.addToCartDisabledReason}
                 onShowDisabledReason={controller.handleShowAlterationDisabledReason}
@@ -100,6 +101,7 @@ export function OrderScreen({
                 missingServices={controller.missingAlterationServices}
                 onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
                 onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
+                onToggleRush={() => dispatch({ type: "toggleAlterationRush" })}
                 onAddItem={() => {
                   controller.setAlterationValidationVisible(false);
                   dispatch({ type: "addAlterationItem" });
@@ -164,6 +166,7 @@ export function OrderScreen({
                     canvasOptions={referenceData.canvasOptions}
                     selectedGender={order.custom.draft.gender}
                     selectedGarment={order.custom.draft.selectedGarment}
+                    isRush={order.custom.draft.isRush}
                     fabric={order.custom.draft.fabric}
                     buttons={order.custom.draft.buttons}
                     lining={order.custom.draft.lining}
@@ -321,6 +324,7 @@ export function OrderScreen({
           services={controller.editingServices}
           selectedModifiers={controller.editingItem.modifiers}
           subtotal={controller.editingItem.subtotal}
+          isRush={controller.editingItem.isRush}
           onSetGarment={(garment) => dispatch({ type: "setAlterationItem", payload: { itemId: controller.editingItem!.id, garment, modifiers: [] } })}
           onToggleModifier={(modifier) => {
             const isSelected = controller.editingItem!.modifiers.some((selectedModifier) => selectedModifier.name === modifier.name);
@@ -331,9 +335,16 @@ export function OrderScreen({
                 modifiers: isSelected
                   ? controller.editingItem!.modifiers.filter((selectedModifier) => selectedModifier.name !== modifier.name)
                   : [...controller.editingItem!.modifiers, modifier],
-              },
-            });
+                },
+              });
           }}
+          onToggleRush={() => dispatch({
+            type: "setAlterationItem",
+            payload: {
+              itemId: controller.editingItem!.id,
+              isRush: !controller.editingItem!.isRush,
+            },
+          })}
           onRequestRemove={() => controller.setPendingDeleteItemId(controller.editingItem!.id)}
           onClose={() => controller.setEditingItemId(null)}
         />
