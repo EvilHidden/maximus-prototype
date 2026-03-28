@@ -64,14 +64,9 @@ function getAppointmentPrepFlags(
 
 function getAppointmentContextFlags(
   confirmationStatus: PrototypeDatabase["serviceAppointments"][number]["confirmationStatus"],
-  rush: boolean,
 ): AppointmentContextFlag[] {
   const flags: AppointmentContextFlag[] = [];
   flags.push(confirmationStatus ?? "unconfirmed");
-  if (rush) {
-    flags.push("rush");
-  }
-
   return flags;
 }
 
@@ -221,6 +216,7 @@ function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): Op
       title: `${index + 1}. ${createOpenOrderLineTitle(line, scope)}`,
       subtitle: createOpenOrderLineSubtitle(line, components, scope),
       amount: line.quantity * line.unitPrice,
+      isRush: line.isRush,
       sourceLabel: line.label,
       garmentLabel: line.garmentLabel,
       wearerCustomerId: line.wearerCustomerId,
@@ -415,7 +411,7 @@ export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
       status: getAppointmentStatusLabel(appointment.statusKey),
       prepFlags: getAppointmentPrepFlags(customer, "appointment"),
       profileFlags,
-      contextFlags: getAppointmentContextFlags(appointment.confirmationStatus, appointment.rush),
+      contextFlags: getAppointmentContextFlags(appointment.confirmationStatus),
       route: appointment.workflow,
     };
   });
@@ -445,7 +441,7 @@ export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
       status: getAppointmentStatusLabel(appointment.statusKey),
       prepFlags: getAppointmentPrepFlags(customer, "pickup"),
       profileFlags,
-      contextFlags: getAppointmentContextFlags(appointment.confirmationStatus, appointment.rush),
+      contextFlags: getAppointmentContextFlags(appointment.confirmationStatus),
       route: "pickup",
     };
   });

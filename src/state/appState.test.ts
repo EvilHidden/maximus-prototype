@@ -209,17 +209,20 @@ describe("app state", () => {
         alteration: {
           selectedGarment: "Trousers",
           selectedModifiers: [{ name: "Hem", price: 20 }],
+          selectedRush: false,
           items: [{
             id: 11,
             garment: "Trousers",
             modifiers: [{ name: "Hem", price: 20 }],
             subtotal: 20,
+            isRush: false,
           }],
         },
         custom: {
           draft: {
             gender: null,
             wearerCustomerId: null,
+            isRush: false,
             selectedGarment: null,
             linkedMeasurementSetId: null,
             measurements: { Chest: "" },

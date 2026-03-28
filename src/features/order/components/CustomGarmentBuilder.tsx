@@ -11,6 +11,7 @@ type CustomGarmentBuilderProps = {
   canvasOptions: string[];
   selectedGender: CustomGarmentGender | null;
   selectedGarment: string | null;
+  isRush: boolean;
   fabric: string | null;
   buttons: string | null;
   lining: string | null;
@@ -50,6 +51,7 @@ type CustomGarmentBuilderProps = {
     pocketType?: string | null;
     lapel?: string | null;
     canvas?: string | null;
+    isRush?: boolean;
   }) => void;
 };
 
@@ -183,6 +185,7 @@ export function CustomGarmentBuilder({
   canvasOptions,
   selectedGender,
   selectedGarment,
+  isRush,
   fabric,
   buttons,
   lining,
@@ -462,6 +465,16 @@ export function CustomGarmentBuilder({
           </div>
         </div>
         <div className="flex items-center gap-2">
+          <ActionButton
+            tone="secondary"
+            className={cx(
+              "min-h-12 px-4 text-sm",
+              isRush && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)] hover:bg-[var(--app-danger-bg)]/80",
+            )}
+            onClick={() => onSetConfiguration({ isRush: !isRush })}
+          >
+            {isRush ? "Rush item" : "Mark rush"}
+          </ActionButton>
           <div className="text-right">
             <div className="app-text-overline">Subtotal</div>
             <div className="app-text-strong mt-1">${currentSubtotal.toFixed(2)}</div>

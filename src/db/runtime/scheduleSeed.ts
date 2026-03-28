@@ -95,7 +95,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Alterations: trouser taper • Custom: dinner jacket, vest",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "pickup-1006",
@@ -111,7 +110,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Alterations: dress hem, vest waist suppression",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "pickup-1009",
@@ -127,7 +125,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Alterations: pant hem",
       confirmationStatus: null,
-      rush: false,
     },
     {
       id: "pickup-1010",
@@ -143,7 +140,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Alterations: blouse sleeve taper • Custom: reception jacket",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "pickup-1011",
@@ -159,7 +155,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Alterations: suit suppression, trouser hem",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "pickup-1012",
@@ -175,7 +170,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Alterations: bridesmaid hem • Custom: dinner jacket",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "pickup-1013",
@@ -191,7 +185,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Custom: dinner suit",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "pickup-1014",
@@ -207,7 +200,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "completed",
       summary: "Custom: midnight tuxedo",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "pickup-1015",
@@ -223,7 +215,6 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       statusKey: "scheduled",
       summary: "Custom: wedding suit",
       confirmationStatus: "confirmed",
-      rush: false,
     },
   ];
 }
@@ -245,7 +236,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "ready_to_check_in",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1002",
@@ -262,7 +252,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_consult",
       statusKey: "scheduled",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "APT-1004",
@@ -279,7 +268,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "first_fitting",
       statusKey: "prep_required",
       confirmationStatus: null,
-      rush: false,
     },
     {
       id: "APT-1005",
@@ -296,7 +284,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_consult",
       statusKey: "scheduled",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "APT-1007",
@@ -313,7 +300,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1008",
@@ -330,7 +316,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1009",
@@ -347,7 +332,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "wedding_party_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1010",
@@ -364,7 +348,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "wedding_party_fitting",
       statusKey: "prep_required",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1011",
@@ -381,7 +364,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
       confirmationStatus: "unconfirmed",
-      rush: true,
     },
     {
       id: "APT-1012",
@@ -398,7 +380,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1013",
@@ -415,7 +396,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "first_fitting",
       statusKey: "prep_required",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "APT-1014",
@@ -432,7 +412,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
       confirmationStatus: "unconfirmed",
-      rush: true,
     },
     {
       id: "APT-1015",
@@ -449,7 +428,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "wedding_party_fitting",
       statusKey: "prep_required",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1016",
@@ -466,7 +444,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "ready_to_check_in",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1017",
@@ -483,7 +460,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_consult",
       statusKey: "scheduled",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "APT-1018",
@@ -500,7 +476,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1019",
@@ -517,7 +492,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "APT-1020",
@@ -534,7 +508,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
     {
       id: "APT-1021",
@@ -551,7 +524,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "custom_consult",
       statusKey: "prep_required",
       confirmationStatus: "unconfirmed",
-      rush: false,
     },
     {
       id: "APT-1022",
@@ -568,7 +540,6 @@ export function createServiceAppointments({ baseDate }: RuntimeSeedDates): DbSer
       typeKey: "alteration_fitting",
       statusKey: "scheduled",
       confirmationStatus: "confirmed",
-      rush: false,
     },
   ];
 }

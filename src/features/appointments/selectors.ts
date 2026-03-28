@@ -117,8 +117,6 @@ export function getAppointmentContextFlagLabel(flag: AppointmentContextFlag) {
       return "Confirmed";
     case "unconfirmed":
       return "Unconfirmed";
-    case "rush":
-      return "Rush";
   }
 }
 
@@ -133,10 +131,6 @@ export function getAppointmentAttentionLabel(appointment: Appointment) {
 
   if (appointment.contextFlags.includes("unconfirmed")) {
     return "Unconfirmed";
-  }
-
-  if (appointment.contextFlags.includes("rush")) {
-    return "Rush";
   }
 
   if (appointment.contextFlags.includes("confirmed")) {

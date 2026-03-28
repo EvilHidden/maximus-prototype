@@ -67,6 +67,7 @@ function getCollectibleAmount(database: PrototypeDatabase, orderId: string) {
         title: line.label,
         subtitle: "",
         amount: line.quantity * line.unitPrice,
+        isRush: line.isRush,
         sourceLabel: line.label,
         garmentLabel: line.garmentLabel,
         components: [],

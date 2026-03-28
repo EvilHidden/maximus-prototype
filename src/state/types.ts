@@ -30,6 +30,7 @@ export type SetAlterationItemPayload = {
   itemId: number;
   garment?: string;
   modifiers?: AlterationService[];
+  isRush?: boolean;
 };
 
 export type SetAlterationPickupPayload = AlterationPickup;
@@ -102,6 +103,7 @@ export type AppAction =
   | { type: "deleteMeasurementSet"; measurementSetId: string }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
+  | { type: "toggleAlterationRush" }
   | { type: "addAlterationItem" }
   | { type: "setAlterationItem"; payload: SetAlterationItemPayload }
   | { type: "removeAlterationItem"; itemId: number }

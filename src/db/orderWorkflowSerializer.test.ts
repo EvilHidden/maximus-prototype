@@ -51,6 +51,7 @@ function createCustomOnlyOrder(monogram: { left: string; center: string; right: 
     id: 1,
     gender: "male",
     wearerCustomerId: "C-1001",
+    isRush: false,
     selectedGarment: "Dinner jacket",
     linkedMeasurementSetId: "SET-C-1001-V1",
     measurements,
@@ -102,11 +103,13 @@ describe("order workflow serializer", () => {
       garment: "Trousers",
       modifiers: [{ name: "Hem", price: 35 }],
       subtotal: 35,
+      isRush: false,
     }];
     order.custom.items = [{
       id: 1,
       gender: "male",
       wearerCustomerId: "C-1001",
+      isRush: false,
       selectedGarment: "Dinner jacket",
       linkedMeasurementSetId: "SET-C-1001-V1",
       measurements,

@@ -62,6 +62,7 @@ type SeedScopeLineInput = {
   label: string;
   quantity: number;
   unitPrice?: number;
+  isRush?: boolean;
   garmentLabel?: string;
   alterationServices?: string[];
   wearerCustomerId?: string | null;
@@ -256,7 +257,7 @@ const seedScopeLines: SeedScopeLineInput[] = [
   { id: "line-9003-2", scopeId: "scope-9003-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
   { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, garmentLabel: "Vest", customComponents: buildCustomSeedComponents({ fabric: "Black barathea", buttons: "Black satin", lining: "Burgundy paisley", threads: "Tone on tone" }) },
   { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Length"] },
-  { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
+  { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, isRush: true, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
   { id: "line-9006-1", scopeId: "scope-9006-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
   { id: "line-9007-1", scopeId: "scope-9007-alteration", label: "Skirt hem", quantity: 1, garmentLabel: "Skirt", alterationServices: ["Hem"] },
   { id: "line-9008-1", scopeId: "scope-9008-custom", label: "Wedding tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: blackTieTuxedo },
@@ -274,7 +275,7 @@ const seedScopeLines: SeedScopeLineInput[] = [
   { id: "line-8904-1", scopeId: "scope-8904-alteration", label: "Wedding party jacket alterations", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Bicep", "Chest", "Sleeve length", "Lining replacement"] },
   { id: "line-8904-2", scopeId: "scope-8904-custom", label: "Wedding jacket", quantity: 1, garmentLabel: "Jacket", customComponents: weddingJacketDetails },
   { id: "line-8732-1", scopeId: "scope-8732-alteration", label: "Bridesmaid dress fitting", quantity: 1, garmentLabel: "Dress", alterationServices: ["Shoulder", "Waist"] },
-  { id: "line-8940-1", scopeId: "scope-8940-alteration", label: "Rush suit sleeve adjustment", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length from shoulder"] },
+  { id: "line-8940-1", scopeId: "scope-8940-alteration", label: "Rush suit sleeve adjustment", quantity: 1, isRush: true, garmentLabel: "Jacket", alterationServices: ["Sleeve length from shoulder"] },
   { id: "line-8528-1", scopeId: "scope-8528-alteration", label: "Pant waist suppression", quantity: 1, garmentLabel: "Pants", alterationServices: ["Waist", "Seat"] },
   { id: "line-9014-1", scopeId: "scope-9014-alteration", label: "Dress bustle", quantity: 1, garmentLabel: "Dress", alterationServices: ["Bustle"] },
   { id: "line-9014-2", scopeId: "scope-9014-alteration", label: "Waist take-in", quantity: 1, garmentLabel: "Dress", alterationServices: ["Waist"] },
@@ -316,6 +317,7 @@ function buildSeedOrderScopeLine(
     label: input.label,
     quantity: input.quantity,
     unitPrice: getSeedLineUnitPrice(input, scope?.workflow),
+    isRush: input.isRush ?? false,
     garmentLabel: input.garmentLabel ?? (scope?.workflow === "custom" ? input.label : inferAlterationGarment(input.label)),
     wearerCustomerId: scope?.workflow === "custom" ? (input.wearerCustomerId ?? order?.payerCustomerId ?? null) : null,
     wearerName: scope?.workflow === "custom" ? (input.wearerName ?? order?.payerName ?? null) : null,
