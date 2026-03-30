@@ -5,6 +5,7 @@ import {
   createManualAppointmentRecord,
   deleteMeasurementSetRecord,
   loadOrderWorkflowForEdit,
+  revertAcceptedOrderSave,
   replaceDraftOrderRecords,
   rescheduleAppointmentRecord,
   saveMeasurementSetRecord,
@@ -62,6 +63,7 @@ export function createInitialAppState({ database = createPrototypeDatabase() }: 
     checkoutOpenOrderId: null,
     checkoutJustSavedOpenOrderId: null,
     checkoutJustCompletedOpenOrderId: null,
+    checkoutRequestedPaymentMode: null,
     editingOpenOrderId: null,
     database: nextDatabase,
     order,
@@ -77,6 +79,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
       });
     case "startOrderForCustomer":
       return syncDraftOrderRecord({
@@ -86,6 +89,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
         editingOpenOrderId: null,
         order: {
           ...createInitialOrderState(),
@@ -99,6 +103,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
       });
     case "openOrderDetails":
       return syncDraftOrderRecord({
@@ -108,6 +113,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutOpenOrderId: action.openOrderId,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
       });
     case "openCheckoutForOpenOrder":
       return syncDraftOrderRecord({
@@ -117,6 +123,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutOpenOrderId: action.openOrderId,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
       });
     case "openOrderForEdit": {
       const nextOrder = loadOrderWorkflowForEdit(state.database, action.openOrderId);
@@ -130,9 +137,34 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
         editingOpenOrderId: action.openOrderId,
         selectedCustomerId: nextOrder.payerCustomerId,
         order: nextOrder,
+      });
+    }
+    case "clearCheckoutPaymentRequest":
+      return syncDraftOrderRecord({
+        ...state,
+        checkoutRequestedPaymentMode: null,
+      });
+    case "revertAcceptedOrderSave": {
+      const restoredOrder = loadOrderWorkflowForEdit(state.database, action.openOrderId);
+      if (!restoredOrder) {
+        return state;
+      }
+
+      return syncDraftOrderRecord({
+        ...state,
+        screen: "checkout",
+        selectedCustomerId: restoredOrder.payerCustomerId,
+        checkoutOpenOrderId: null,
+        checkoutJustSavedOpenOrderId: null,
+        checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
+        editingOpenOrderId: null,
+        database: revertAcceptedOrderSave(state.database, action.openOrderId),
+        order: restoredOrder,
       });
     }
     case "setCustomer":

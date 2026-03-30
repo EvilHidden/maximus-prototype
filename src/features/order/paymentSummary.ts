@@ -1,4 +1,5 @@
 import type {
+  CheckoutPaymentMode,
   OpenOrder,
   OpenOrderPaymentStatus,
   OrderType,
@@ -17,9 +18,15 @@ export type PaymentSummary = {
   total: number;
 };
 
-function roundCurrency(value: number) {
-  return Math.round(value * 100) / 100;
-}
+export type PaymentPolicy = {
+  minimumDueNow: number;
+  depositAndAlterationAmount: number;
+  collectibleNow: number;
+  suggestedAmount: number;
+  remainingAfterSuggested: number;
+  allowDeferredPayment: boolean;
+  allowFullPrepay: boolean;
+};
 
 type MixedPaymentAllocation = {
   depositDue: number;
@@ -31,7 +38,38 @@ type MixedPaymentAllocation = {
   taxAmount: number;
 };
 
-function getMixedPaymentAllocation(openOrder: Pick<OpenOrder, "lineItems" | "totalCollected" | "total">): MixedPaymentAllocation {
+function roundCurrency(value: number) {
+  return Math.round(value * 100) / 100;
+}
+
+function getDraftOrderType(order: OrderWorkflowState): OrderType | null {
+  const hasAlterations = order.alteration.items.length > 0;
+  const hasCustom = order.custom.items.length > 0;
+
+  if (hasAlterations && hasCustom) {
+    return "mixed";
+  }
+
+  if (hasAlterations) {
+    return "alteration";
+  }
+
+  if (hasCustom) {
+    return "custom";
+  }
+
+  return null;
+}
+
+function getReadyScopes(pickupSchedules: Pick<OpenOrder["pickupSchedules"][number], "scope" | "readyForPickup" | "pickedUp">[]) {
+  return new Set(
+    pickupSchedules
+      .filter((pickup) => pickup.readyForPickup && !pickup.pickedUp)
+      .map((pickup) => pickup.scope),
+  );
+}
+
+export function getMixedPaymentAllocation(openOrder: Pick<OpenOrder, "lineItems" | "totalCollected" | "total">): MixedPaymentAllocation {
   const alterationSubtotal = openOrder.lineItems
     .filter((item) => item.kind === "alteration")
     .reduce((sum, item) => sum + item.amount, 0);
@@ -60,7 +98,7 @@ function getMixedPaymentAllocation(openOrder: Pick<OpenOrder, "lineItems" | "tot
   };
 }
 
-function getMixedPaymentAllocationFromPayments({
+export function getMixedPaymentAllocationFromPayments({
   payments,
   lineItems,
   total,
@@ -89,11 +127,9 @@ function getMixedPaymentAllocationFromPayments({
     .reduce((sum, payment) => sum + payment.amount, 0));
 
   const depositPaid = Math.min(allocatedDeposit, base.depositDue);
-  const afterDepositTarget = Math.max(base.depositDue - depositPaid, 0);
+  const remainingDepositGap = Math.max(base.depositDue - depositPaid, 0);
   const alterationPaidFromExplicit = Math.min(allocatedAlteration, base.alterationDue);
   const customFinalPaidFromExplicit = Math.min(allocatedCustomBalance, base.customFinalDue);
-
-  const remainingDepositGap = Math.max(afterDepositTarget, 0);
   const remainingAlterationGap = Math.max(base.alterationDue - alterationPaidFromExplicit, 0);
   const remainingCustomGap = Math.max(base.customFinalDue - customFinalPaidFromExplicit, 0);
 
@@ -103,54 +139,204 @@ function getMixedPaymentAllocationFromPayments({
   const fullAfterAlteration = Math.max(fullAfterDeposit - fullAppliedToAlteration, 0);
   const fullAppliedToCustom = Math.min(fullAfterAlteration, remainingCustomGap);
 
-  const depositAfterExplicit = depositPaid + fullAppliedToDeposit;
-  const alterationAfterExplicit = alterationPaidFromExplicit + fullAppliedToAlteration;
-  const customAfterExplicit = customFinalPaidFromExplicit + fullAppliedToCustom;
-
   return {
     ...base,
-    depositPaid: roundCurrency(depositAfterExplicit),
-    alterationPaid: roundCurrency(alterationAfterExplicit),
-    customFinalPaid: roundCurrency(customAfterExplicit),
+    depositPaid: roundCurrency(depositPaid + fullAppliedToDeposit),
+    alterationPaid: roundCurrency(alterationPaidFromExplicit + fullAppliedToAlteration),
+    customFinalPaid: roundCurrency(customFinalPaidFromExplicit + fullAppliedToCustom),
   };
 }
 
-function getDraftOrderType(order: OrderWorkflowState): OrderType | null {
-  const hasAlterations = order.alteration.items.length > 0;
-  const hasCustom = order.custom.items.length > 0;
-
-  if (hasAlterations && hasCustom) {
-    return "mixed";
+function getPaymentPolicyFromDraftPricing(pricing: PricingSummary, orderType: OrderType | null): PaymentPolicy {
+  if (!orderType) {
+    return {
+      minimumDueNow: 0,
+      depositAndAlterationAmount: 0,
+      collectibleNow: 0,
+      suggestedAmount: 0,
+      remainingAfterSuggested: 0,
+      allowDeferredPayment: true,
+      allowFullPrepay: false,
+    };
   }
 
-  if (hasAlterations) {
-    return "alteration";
+  if (orderType === "alteration") {
+    return {
+      minimumDueNow: 0,
+      depositAndAlterationAmount: 0,
+      collectibleNow: roundCurrency(pricing.total),
+      suggestedAmount: 0,
+      remainingAfterSuggested: roundCurrency(pricing.total),
+      allowDeferredPayment: true,
+      allowFullPrepay: pricing.total > 0,
+    };
   }
 
-  if (hasCustom) {
-    return "custom";
+  const minimumDueNow = roundCurrency(
+    orderType === "custom"
+      ? pricing.depositDue
+      : pricing.depositDue,
+  );
+  const collectibleNow = roundCurrency(pricing.total);
+
+  return {
+    minimumDueNow,
+    depositAndAlterationAmount: roundCurrency(
+      orderType === "mixed"
+        ? pricing.depositDue + pricing.alterationsSubtotal + pricing.taxAmount
+        : minimumDueNow,
+    ),
+    collectibleNow,
+    suggestedAmount: minimumDueNow,
+    remainingAfterSuggested: roundCurrency(Math.max(collectibleNow - minimumDueNow, 0)),
+    allowDeferredPayment: minimumDueNow <= 0,
+    allowFullPrepay: collectibleNow > minimumDueNow,
+  };
+}
+
+function getPolicyFromRecordedData({
+  orderType,
+  lineItems,
+  pickupSchedules,
+  payments,
+  total,
+}: {
+  orderType: OpenOrder["orderType"];
+  lineItems: OpenOrder["lineItems"];
+  pickupSchedules: OpenOrder["pickupSchedules"];
+  payments: DbPaymentRecord[];
+  total: number;
+}): PaymentPolicy {
+  const totalCollected = roundCurrency(payments.reduce((sum, payment) => (
+    payment.status === "captured" ? sum + payment.amount : sum
+  ), 0));
+  const balanceDue = roundCurrency(Math.max(total - totalCollected, 0));
+  const readyScopes = getReadyScopes(pickupSchedules);
+
+  if (balanceDue <= 0) {
+    return {
+      minimumDueNow: 0,
+      depositAndAlterationAmount: 0,
+      collectibleNow: 0,
+      suggestedAmount: 0,
+      remainingAfterSuggested: 0,
+      allowDeferredPayment: true,
+      allowFullPrepay: false,
+    };
   }
 
-  return null;
+  if (readyScopes.size) {
+    const minimumDueNow = getOpenOrderPickupBalanceDueFromPayments({
+      orderType,
+      lineItems,
+      pickupSchedules,
+      payments,
+      total,
+    });
+
+    return {
+      minimumDueNow,
+      depositAndAlterationAmount: minimumDueNow,
+      collectibleNow: balanceDue,
+      suggestedAmount: minimumDueNow,
+      remainingAfterSuggested: roundCurrency(Math.max(balanceDue - minimumDueNow, 0)),
+      allowDeferredPayment: minimumDueNow <= 0,
+      allowFullPrepay: balanceDue > minimumDueNow,
+    };
+  }
+
+  if (orderType === "alteration") {
+    return {
+      minimumDueNow: 0,
+      depositAndAlterationAmount: 0,
+      collectibleNow: balanceDue,
+      suggestedAmount: 0,
+      remainingAfterSuggested: balanceDue,
+      allowDeferredPayment: true,
+      allowFullPrepay: balanceDue > 0,
+    };
+  }
+
+  if (orderType === "custom") {
+    const customSubtotal = lineItems
+      .filter((item) => item.kind === "custom")
+      .reduce((sum, item) => sum + item.amount, 0);
+    const depositDue = roundCurrency(customSubtotal * 0.5);
+    const depositPaid = roundCurrency(Math.min(totalCollected, depositDue));
+    const minimumDueNow = roundCurrency(Math.max(depositDue - depositPaid, 0));
+
+    return {
+      minimumDueNow,
+      depositAndAlterationAmount: minimumDueNow,
+      collectibleNow: balanceDue,
+      suggestedAmount: minimumDueNow,
+      remainingAfterSuggested: roundCurrency(Math.max(balanceDue - minimumDueNow, 0)),
+      allowDeferredPayment: minimumDueNow <= 0,
+      allowFullPrepay: balanceDue > minimumDueNow,
+    };
+  }
+
+  const mixedAllocation = getMixedPaymentAllocationFromPayments({ payments, lineItems, total });
+  const minimumDueNow = roundCurrency(Math.max(mixedAllocation.depositDue - mixedAllocation.depositPaid, 0));
+  const depositAndAlterationAmount = roundCurrency(
+    Math.max(mixedAllocation.depositDue - mixedAllocation.depositPaid, 0)
+      + Math.max(mixedAllocation.alterationDue - mixedAllocation.alterationPaid, 0),
+  );
+
+  return {
+    minimumDueNow,
+    depositAndAlterationAmount,
+    collectibleNow: balanceDue,
+    suggestedAmount: minimumDueNow,
+    remainingAfterSuggested: roundCurrency(Math.max(balanceDue - minimumDueNow, 0)),
+    allowDeferredPayment: minimumDueNow <= 0,
+    allowFullPrepay: balanceDue > minimumDueNow,
+  };
+}
+
+function getPaymentStatusFromPolicy({
+  latestPayment,
+  balanceDue,
+  minimumDueNow,
+}: {
+  latestPayment: DbPaymentRecord | undefined;
+  balanceDue: number;
+  minimumDueNow: number;
+}): OpenOrderPaymentStatus {
+  if (latestPayment?.status === "pending") {
+    return "pending";
+  }
+
+  if (balanceDue <= 0) {
+    return "captured";
+  }
+
+  return minimumDueNow > 0 ? "ready_to_collect" : "due_later";
 }
 
 export function getCheckoutCollectionAmountForPricing(
   pricing: PricingSummary,
   orderType: OrderType | null,
 ) {
-  if (orderType === "custom") {
-    return pricing.depositDue;
-  }
-
-  if (orderType === "mixed") {
-    return pricing.alterationsSubtotal + pricing.taxAmount + pricing.depositDue;
-  }
-
-  return pricing.total;
+  return getPaymentPolicyFromDraftPricing(pricing, orderType).minimumDueNow;
 }
 
 export function getCheckoutCollectionAmount(order: OrderWorkflowState) {
   return getCheckoutCollectionAmountForPricing(getPricingSummary(order), getDraftOrderType(order));
+}
+
+export function getDraftPaymentPolicy(order: OrderWorkflowState): PaymentPolicy {
+  return getPaymentPolicyFromDraftPricing(getPricingSummary(order), getDraftOrderType(order));
+}
+
+export function getRecordedPaymentPolicy(args: {
+  orderType: OpenOrder["orderType"];
+  lineItems: OpenOrder["lineItems"];
+  pickupSchedules: OpenOrder["pickupSchedules"];
+  payments: DbPaymentRecord[];
+  total: number;
+}): PaymentPolicy {
+  return getPolicyFromRecordedData(args);
 }
 
 export function getDraftPaymentSummary(
@@ -158,8 +344,10 @@ export function getDraftPaymentSummary(
   paymentStatus: OpenOrderPaymentStatus,
 ): PaymentSummary {
   const pricing = getPricingSummary(order);
-  const collectionAmount = getCheckoutCollectionAmountForPricing(pricing, getDraftOrderType(order));
-  const totalCollected = paymentStatus === "captured" ? collectionAmount : 0;
+  const policy = getDraftPaymentPolicy(order);
+  const totalCollected = paymentStatus === "captured"
+    ? (policy.allowFullPrepay ? policy.collectibleNow : policy.minimumDueNow)
+    : 0;
 
   return {
     paymentStatus,
@@ -176,21 +364,25 @@ export function getRecordedPaymentSummary({
   generatedAt,
   orderType,
   total,
+  lineItems = [],
+  pickupSchedules = [],
 }: {
   payments: DbPaymentRecord[];
   generatedAt: string;
   orderType: OrderType;
   total: number;
+  lineItems?: OpenOrder["lineItems"];
+  pickupSchedules?: OpenOrder["pickupSchedules"];
 }): PaymentSummary {
   const latest = payments[payments.length - 1];
   const today = new Date(generatedAt);
   today.setHours(0, 0, 0, 0);
 
-  const totalCollected = payments.reduce((sum, record) => (
+  const totalCollected = roundCurrency(payments.reduce((sum, record) => (
     record.status === "captured" ? sum + record.amount : sum
-  ), 0);
+  ), 0));
 
-  const collectedToday = payments.reduce((sum, record) => {
+  const collectedToday = roundCurrency(payments.reduce((sum, record) => {
     if (record.status !== "captured" || !record.collectedAt) {
       return sum;
     }
@@ -202,21 +394,24 @@ export function getRecordedPaymentSummary({
 
     collectedAt.setHours(0, 0, 0, 0);
     return collectedAt.getTime() === today.getTime() ? sum + record.amount : sum;
-  }, 0);
+  }, 0));
 
-  const paymentStatus = latest?.status === "captured"
-    ? ("captured" satisfies OpenOrderPaymentStatus)
-    : latest?.status === "pending"
-      ? ("pending" satisfies OpenOrderPaymentStatus)
-      : orderType === "alteration"
-        ? ("due_later" satisfies OpenOrderPaymentStatus)
-        : ("ready_to_collect" satisfies OpenOrderPaymentStatus);
-
-  const balanceDue = Math.max(total - totalCollected, 0);
+  const balanceDue = roundCurrency(Math.max(total - totalCollected, 0));
+  const policy = getPolicyFromRecordedData({
+    orderType,
+    lineItems,
+    pickupSchedules,
+    payments,
+    total,
+  });
 
   return {
-    paymentStatus,
-    paymentDueNow: balanceDue,
+    paymentStatus: getPaymentStatusFromPolicy({
+      latestPayment: latest,
+      balanceDue,
+      minimumDueNow: policy.minimumDueNow,
+    }),
+    paymentDueNow: policy.minimumDueNow,
     totalCollected,
     collectedToday,
     balanceDue,
@@ -224,7 +419,21 @@ export function getRecordedPaymentSummary({
   };
 }
 
-export function getOpenOrderPickupBalanceDue(openOrder: Pick<OpenOrder, "orderType" | "lineItems" | "pickupSchedules" | "totalCollected" | "total">) {
+export function getPaymentAmountFromPolicy(policy: PaymentPolicy, mode: Exclude<CheckoutPaymentMode, "none">) {
+  if (mode === "full_balance") {
+    return roundCurrency(policy.collectibleNow);
+  }
+
+  if (mode === "deposit_and_alterations") {
+    return roundCurrency(policy.depositAndAlterationAmount);
+  }
+
+  return roundCurrency(policy.minimumDueNow);
+}
+
+export function getOpenOrderPickupBalanceDue(
+  openOrder: Pick<OpenOrder, "orderType" | "lineItems" | "pickupSchedules" | "totalCollected" | "total">,
+) {
   const alterationSubtotal = openOrder.lineItems
     .filter((item) => item.kind === "alteration")
     .reduce((sum, item) => sum + item.amount, 0);
@@ -232,11 +441,7 @@ export function getOpenOrderPickupBalanceDue(openOrder: Pick<OpenOrder, "orderTy
     .filter((item) => item.kind === "custom")
     .reduce((sum, item) => sum + item.amount, 0);
   const taxAmount = Math.max(openOrder.total - alterationSubtotal - customSubtotal, 0);
-  const readyScopes = new Set(
-    openOrder.pickupSchedules
-      .filter((pickup) => pickup.readyForPickup && !pickup.pickedUp)
-      .map((pickup) => pickup.scope),
-  );
+  const readyScopes = getReadyScopes(openOrder.pickupSchedules);
 
   if (!readyScopes.size) {
     return 0;
@@ -292,11 +497,7 @@ export function getOpenOrderPickupBalanceDueFromPayments({
   const totalCollected = payments.reduce((sum, payment) => (
     payment.status === "captured" ? sum + payment.amount : sum
   ), 0);
-  const readyScopes = new Set(
-    pickupSchedules
-      .filter((pickup) => pickup.readyForPickup && !pickup.pickedUp)
-      .map((pickup) => pickup.scope),
-  );
+  const readyScopes = getReadyScopes(pickupSchedules);
 
   if (!readyScopes.size) {
     return 0;

@@ -456,11 +456,14 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
       const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
       const lineItems = getOpenOrderLineItems(database, order.id);
       const total = getOrderTotal(database, order.id);
+      const pickupSchedules = scopes.map((scope) => getOpenOrderPickup(database, order, scope));
       const payment = getRecordedPaymentSummary({
         payments: database.payments.filter((candidate) => candidate.orderId === order.id),
         generatedAt: database.generatedAt,
         orderType: order.orderType,
         total,
+        lineItems,
+        pickupSchedules,
       });
 
       const openOrder: OpenOrder = {
@@ -482,7 +485,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         itemCount: lineItems.length,
         lineItems,
         itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),
-        pickupSchedules: scopes.map((scope) => getOpenOrderPickup(database, order, scope)),
+        pickupSchedules,
         paymentStatus: payment.paymentStatus,
         paymentDueNow: payment.paymentDueNow,
         totalCollected: payment.totalCollected,

@@ -1,10 +1,14 @@
 import type {
+  CheckoutPaymentMode,
   Customer,
-  DraftOrderRecord,
-  OpenOrderPaymentStatus,
   OrderWorkflowState,
 } from "../../types";
-import { getOpenOrderPickupBalanceDueFromPayments } from "../../features/order/paymentSummary";
+import {
+  getMixedPaymentAllocationFromPayments,
+  getOpenOrderPickupBalanceDueFromPayments,
+  getPaymentAmountFromPolicy,
+  getRecordedPaymentPolicy,
+} from "../../features/order/paymentSummary";
 import { deserializeOrderWorkflowFromRecords, serializeOrderWorkflowToRecords } from "../orderWorkflowSerializer";
 import type { DbOrderScope, PrototypeDatabase } from "../schema";
 import type { OrderMutationOptions } from "./shared";
@@ -40,20 +44,17 @@ function getReadyScopeWorkflows(database: PrototypeDatabase, orderId: string) {
   );
 }
 
-function getCollectibleAmount(database: PrototypeDatabase, orderId: string) {
+function getPaymentAmount(
+  database: PrototypeDatabase,
+  orderId: string,
+  paymentMode: Exclude<CheckoutPaymentMode, "none">,
+) {
   const order = database.orders.find((candidate) => candidate.id === orderId);
   if (!order) {
     return 0;
   }
 
   const total = getOrderTotal(database, orderId);
-  const totalCollected = getTotalCollected(database, orderId);
-  const readyWorkflows = getReadyScopeWorkflows(database, orderId);
-
-  if (!readyWorkflows.size) {
-    return roundCurrency(Math.max(total - totalCollected, 0));
-  }
-
   const scopeIds = database.orderScopes
     .filter((scope) => scope.orderId === orderId)
     .map((scope) => scope.id);
@@ -92,20 +93,27 @@ function getCollectibleAmount(database: PrototypeDatabase, orderId: string) {
       readyForPickup: scope.phase === "ready",
     }));
 
-  return getOpenOrderPickupBalanceDueFromPayments({
+  const payments = database.payments.filter((payment) => payment.orderId === orderId);
+  const policy = getRecordedPaymentPolicy({
     orderType: order.orderType,
     lineItems,
     pickupSchedules,
-    payments: database.payments.filter((payment) => payment.orderId === orderId),
+    payments,
     total,
   });
+
+  return getPaymentAmountFromPolicy(policy, paymentMode);
 }
 
 function getPaymentAllocation(
   database: PrototypeDatabase,
   orderId: string,
-  amount: number,
+  paymentMode: Exclude<CheckoutPaymentMode, "none">,
 ): "custom_deposit" | "alteration_balance" | "custom_balance" | "full_balance" | undefined {
+  if (paymentMode === "full_balance") {
+    return "full_balance";
+  }
+
   const readyWorkflows = [...getReadyScopeWorkflows(database, orderId)];
   if (readyWorkflows.length !== 1) {
     return undefined;
@@ -122,9 +130,96 @@ function getPaymentAllocation(
   return undefined;
 }
 
+function createCapturedPaymentRecords({
+  database,
+  orderId,
+  paymentMode,
+  amount,
+  now,
+}: {
+  database: PrototypeDatabase;
+  orderId: string;
+  paymentMode: Exclude<CheckoutPaymentMode, "none">;
+  amount: number;
+  now: Date;
+}) {
+  const order = database.orders.find((candidate) => candidate.id === orderId);
+  const existingCount = database.payments.filter((payment) => payment.orderId === orderId).length;
+
+  if (order?.orderType === "mixed" && paymentMode === "deposit_and_alterations") {
+    const scopeIds = database.orderScopes
+      .filter((scope) => scope.orderId === orderId)
+      .map((scope) => scope.id);
+    const lineItems = database.orderScopeLines
+      .filter((line) => scopeIds.includes(line.scopeId))
+      .map((line) => {
+        const scope = database.orderScopes.find((candidate) => candidate.id === line.scopeId);
+        return {
+          id: line.id,
+          kind: scope?.workflow ?? "alteration",
+          title: line.label,
+          subtitle: "",
+          amount: line.quantity * line.unitPrice,
+          isRush: line.isRush,
+          sourceLabel: line.label,
+          garmentLabel: line.garmentLabel,
+          components: [],
+        };
+      });
+    const total = getOrderTotal(database, orderId);
+    const allocation = getMixedPaymentAllocationFromPayments({
+      payments: database.payments.filter((payment) => payment.orderId === orderId),
+      lineItems,
+      total,
+    });
+    const depositAmount = roundCurrency(Math.max(allocation.depositDue - allocation.depositPaid, 0));
+    const alterationAmount = roundCurrency(Math.max(amount - depositAmount, 0));
+    const records = [];
+
+    if (depositAmount > 0) {
+      records.push({
+        id: `pay-${orderId}-${existingCount + records.length + 1}`,
+        orderId,
+        source: "prototype" as const,
+        status: "captured" as const,
+        allocation: "custom_deposit" as const,
+        amount: depositAmount,
+        collectedAt: toDateTimeString(now),
+        squarePaymentId: null,
+      });
+    }
+
+    if (alterationAmount > 0) {
+      records.push({
+        id: `pay-${orderId}-${existingCount + records.length + 1}`,
+        orderId,
+        source: "prototype" as const,
+        status: "captured" as const,
+        allocation: "alteration_balance" as const,
+        amount: alterationAmount,
+        collectedAt: toDateTimeString(now),
+        squarePaymentId: null,
+      });
+    }
+
+    return records;
+  }
+
+  return [{
+    id: `pay-${orderId}-${existingCount + 1}`,
+    orderId,
+    source: "prototype" as const,
+    status: "captured" as const,
+    allocation: getPaymentAllocation(database, orderId, paymentMode),
+    amount,
+    collectedAt: toDateTimeString(now),
+    squarePaymentId: null,
+  }];
+}
+
 export function replaceDraftOrderRecords(
   database: PrototypeDatabase,
-  draftOrders: DraftOrderRecord[],
+  draftOrders: import("../../types").DraftOrderRecord[],
 ): PrototypeDatabase {
   return {
     ...database,
@@ -136,11 +231,43 @@ export function loadOrderWorkflowForEdit(database: PrototypeDatabase, openOrderI
   return deserializeOrderWorkflowFromRecords(database, openOrderId);
 }
 
+export function revertAcceptedOrderSave(database: PrototypeDatabase, openOrderId: number): PrototypeDatabase {
+  const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
+  if (!orderId) {
+    return database;
+  }
+
+  const scopeIds = database.orderScopes
+    .filter((scope) => scope.orderId === orderId)
+    .map((scope) => scope.id);
+  const lineIds = database.orderScopeLines
+    .filter((line) => scopeIds.includes(line.scopeId))
+    .map((line) => line.id);
+  const eventIds = database.orderScopes
+    .filter((scope) => scope.orderId === orderId)
+    .map((scope) => scope.eventId)
+    .filter((eventId): eventId is string => Boolean(eventId));
+
+  return {
+    ...database,
+    customerEvents: database.customerEvents.filter((event) => !eventIds.includes(event.id)),
+    orders: database.orders.filter((order) => order.id !== orderId),
+    orderScopes: database.orderScopes.filter((scope) => scope.orderId !== orderId),
+    orderScopeLines: database.orderScopeLines.filter((line) => !scopeIds.includes(line.scopeId)),
+    orderScopeLineComponents: database.orderScopeLineComponents.filter((component) => !lineIds.includes(component.lineId)),
+    pickupNotifications: database.pickupNotifications.filter((notification) => !scopeIds.includes(notification.scopeId)),
+    pickupAppointments: database.pickupAppointments.filter((appointment) => appointment.orderId !== orderId),
+    serviceAppointments: database.serviceAppointments.filter((appointment) => appointment.orderId !== orderId),
+    payments: database.payments.filter((payment) => payment.orderId !== orderId),
+    squareLinks: database.squareLinks.filter((link) => link.orderId !== orderId),
+  };
+}
+
 export function saveOrderWorkflowToDatabase(
   database: PrototypeDatabase,
   order: OrderWorkflowState,
   customers: Customer[],
-  paymentStatus: OpenOrderPaymentStatus,
+  paymentMode: CheckoutPaymentMode,
   options: OrderMutationOptions = {},
   editingOpenOrderId: number | null = null,
 ): { database: PrototypeDatabase; openOrderId: number } | null {
@@ -153,7 +280,7 @@ export function saveOrderWorkflowToDatabase(
     order,
     customers,
     locations: database.locations,
-    paymentStatus,
+    paymentMode: editingOpenOrderId ? "none" : paymentMode,
     orderSequence: nextSequence,
     now,
     existingOrder,
@@ -228,6 +355,7 @@ export function saveOrderWorkflowToDatabase(
 export function completeOpenOrderCheckout(
   database: PrototypeDatabase,
   openOrderId: number,
+  paymentMode: Exclude<CheckoutPaymentMode, "none">,
   now = new Date(),
 ): PrototypeDatabase {
   const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
@@ -235,26 +363,16 @@ export function completeOpenOrderCheckout(
     return database;
   }
 
-  const amount = getCollectibleAmount(database, orderId);
+  const amount = getPaymentAmount(database, orderId, paymentMode);
   if (amount <= 0) {
     return database;
   }
 
-  const paymentIndex = database.payments.filter((payment) => payment.orderId === orderId).length + 1;
   return {
     ...database,
     payments: [
       ...database.payments,
-      {
-        id: `pay-${orderId}-${paymentIndex}`,
-        orderId,
-        source: "prototype",
-        status: "captured",
-        allocation: getPaymentAllocation(database, orderId, amount),
-        amount,
-        collectedAt: toDateTimeString(now),
-        squarePaymentId: null,
-      },
+      ...createCapturedPaymentRecords({ database, orderId, paymentMode, amount, now }),
     ],
     generatedAt: toDateTimeString(now),
   };

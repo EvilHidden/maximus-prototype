@@ -3,6 +3,7 @@ import type {
   AppointmentConfirmationStatus,
   AppointmentTypeKey,
   AlterationService,
+  CheckoutPaymentMode,
   Customer,
   CustomOccasion,
   CustomGarmentGender,
@@ -21,6 +22,7 @@ export type AppState = {
   checkoutOpenOrderId: number | null;
   checkoutJustSavedOpenOrderId: number | null;
   checkoutJustCompletedOpenOrderId: number | null;
+  checkoutRequestedPaymentMode: Exclude<CheckoutPaymentMode, "none"> | null;
   editingOpenOrderId: number | null;
   database: PrototypeDatabase;
   order: OrderWorkflowState;
@@ -79,17 +81,19 @@ export type AppAction =
   | { type: "openOrderDetails"; openOrderId: number }
   | { type: "openCheckoutForOpenOrder"; openOrderId: number }
   | { type: "openOrderForEdit"; openOrderId: number }
+  | { type: "clearCheckoutPaymentRequest" }
+  | { type: "revertAcceptedOrderSave"; openOrderId: number }
   | { type: "setCustomer"; customerId: string | null }
   | { type: "addCustomer"; customer: Customer }
   | { type: "updateCustomer"; customer: Customer }
   | { type: "archiveCustomer"; customerId: string }
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
-  | { type: "saveOpenOrder"; paymentStatus: OpenOrder["paymentStatus"]; openCheckout: boolean }
+  | { type: "saveOpenOrder"; paymentMode: CheckoutPaymentMode; openCheckout: boolean }
   | { type: "saveEditedOpenOrder" }
   | { type: "assignOpenOrderTailor"; openOrderId: number; staffId: string | null }
   | { type: "startOpenOrderWork"; openOrderId: number }
-  | { type: "completeOpenOrderCheckout"; openOrderId: number }
+  | { type: "completeOpenOrderCheckout"; openOrderId: number; paymentMode: Exclude<CheckoutPaymentMode, "none"> }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }
   | { type: "completeOpenOrderPickup"; openOrderId: number }
   | { type: "cancelOpenOrder"; openOrderId: number }

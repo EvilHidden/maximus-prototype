@@ -137,7 +137,10 @@ export function AppScreenContent({
         openOrder={checkoutOpenOrder}
         showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
         showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
+        requestedCheckoutPaymentMode={state.checkoutRequestedPaymentMode}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        onDismissRequestedCheckoutPayment={() => dispatch({ type: "clearCheckoutPaymentRequest" })}
+        onRevertAcceptedOrderSave={(openOrderId) => dispatch({ type: "revertAcceptedOrderSave", openOrderId })}
         onCompleteOpenOrderCheckout={completeOpenOrderCheckout}
         onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
         onCancelOpenOrder={(openOrderId) => dispatch({ type: "cancelOpenOrder", openOrderId })}
@@ -167,8 +170,11 @@ export function AppScreenContent({
       openOrder={checkoutOpenOrder}
       showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
       showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
+      requestedCheckoutPaymentMode={state.checkoutRequestedPaymentMode}
       order={state.order}
       onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+      onDismissRequestedCheckoutPayment={() => dispatch({ type: "clearCheckoutPaymentRequest" })}
+      onRevertAcceptedOrderSave={(openOrderId) => dispatch({ type: "revertAcceptedOrderSave", openOrderId })}
       onBackToOpenOrder={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
       onSaveDraftOrder={saveDraftOrder}
       onCompleteOpenOrderCheckout={completeOpenOrderCheckout}

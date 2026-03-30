@@ -2,7 +2,7 @@ import { useMemo, useState } from "react";
 import type { Dispatch } from "react";
 import type { AppReferenceData } from "../../../db";
 import type { AppAction, AppState } from "../../../state/appState";
-import type { Customer, MeasurementSet, Screen } from "../../../types";
+import type { CheckoutPaymentMode, Customer, MeasurementSet, Screen } from "../../../types";
 import { filterCustomers, getActiveCustomers } from "../../customer/selectors";
 import {
   getCanAddCustomDraftToOrder,
@@ -26,7 +26,7 @@ type UseOrderBuilderControllerArgs = {
   dispatch: Dispatch<AppAction>;
   onScreenChange: (screen: Screen) => void;
   onOpenDraftCheckout: () => void;
-  onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
+  onSaveDraftOrder: (paymentMode: CheckoutPaymentMode, openCheckout?: boolean) => void;
   showToast: (message: string) => void;
 };
 

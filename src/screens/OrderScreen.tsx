@@ -1,6 +1,6 @@
 import { useMemo, useState } from "react";
 import { ArrowLeft, FilePenLine, Receipt } from "lucide-react";
-import type { Customer, MeasurementSet, Screen } from "../types";
+import type { CheckoutPaymentMode, Customer, MeasurementSet, Screen } from "../types";
 import type { Dispatch } from "react";
 import type { AppAction } from "../state/appState";
 import type { AppReferenceData } from "../db";
@@ -33,7 +33,7 @@ type OrderScreenProps = {
   onScreenChange: (screen: Screen) => void;
   onBackToOrderDetails?: () => void;
   onOpenDraftCheckout: () => void;
-  onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
+  onSaveDraftOrder: (paymentMode: CheckoutPaymentMode, openCheckout?: boolean) => void;
   onSaveEditedOrder: () => void;
 };
 

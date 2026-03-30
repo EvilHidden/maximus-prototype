@@ -212,7 +212,7 @@ describe("order selectors", () => {
       depositDue: 747.5,
       total: 1665.7875,
     });
-    expect(getCheckoutCollectionAmount(order)).toBe(918.2875);
+    expect(getCheckoutCollectionAmount(order)).toBe(747.5);
   });
 
   it("keeps custom deposit from offsetting alteration pickup balance on mixed orders", () => {
@@ -778,10 +778,10 @@ describe("order selectors", () => {
       orderType: "mixed",
       operationalStatus: "accepted",
       paymentStatus: "captured",
-      paymentDueNow: 747.4999999999999,
-      totalCollected: 918.2875,
-      collectedToday: 918.2875,
-      balanceDue: 747.4999999999999,
+      paymentDueNow: 0,
+      totalCollected: 1665.79,
+      collectedToday: 1665.79,
+      balanceDue: 0,
       createdAt: now.toISOString(),
     });
     expect(openOrder?.pickupSchedules.map((pickup) => pickup.id)).toEqual([

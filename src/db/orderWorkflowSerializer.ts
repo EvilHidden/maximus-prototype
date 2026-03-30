@@ -1,9 +1,9 @@
 import type {
   AlterationPickup,
+  CheckoutPaymentMode,
   Customer,
   CustomOccasion,
   CustomGarmentDraft,
-  OpenOrderPaymentStatus,
   OrderWorkflowState,
   OrderLineComponentKind,
   OrderType,
@@ -11,6 +11,7 @@ import type {
   WorkflowMode,
 } from "../types";
 import { getCheckoutCollectionAmount } from "../features/order/paymentSummary";
+import { getPricingSummary } from "../features/order/orderPricing";
 import { getAlterationServicePrice, getCustomGarmentPrice } from "./pricing";
 import type {
   DbCustomerEvent,
@@ -45,7 +46,7 @@ type SerializeOrderWorkflowArgs = {
   order: OrderWorkflowState;
   customers: Customer[];
   locations: DbLocation[];
-  paymentStatus: OpenOrderPaymentStatus;
+  paymentMode: CheckoutPaymentMode;
   orderSequence: number;
   now: Date;
   existingOrder?: DbOrder | null;
@@ -134,13 +135,27 @@ function createLineComponent(
 function createInitialPaymentRecords(
   orderId: string,
   orderType: OrderType,
-  paymentStatus: OpenOrderPaymentStatus,
-  amount: number,
+  paymentMode: CheckoutPaymentMode,
+  minimumDueAmount: number,
+  depositAndAlterationAmount: number,
+  fullBalanceAmount: number,
   customSubtotal: number,
   now: Date,
 ): DbPaymentRecord[] {
-  if (paymentStatus === "captured" && amount > 0) {
-    if (orderType === "mixed" && customSubtotal > 0) {
+  if (paymentMode === "none") {
+    return [];
+  }
+
+  const amount = paymentMode === "full_balance"
+    ? fullBalanceAmount
+    : paymentMode === "deposit_and_alterations"
+      ? depositAndAlterationAmount
+      : minimumDueAmount;
+  if (amount <= 0) {
+    return [];
+  }
+
+  if ((paymentMode === "minimum_due" || paymentMode === "deposit_and_alterations") && orderType === "mixed" && customSubtotal > 0) {
       const depositAmount = Math.round(customSubtotal * 0.5 * 100) / 100;
       const alterationAmount = Math.max(amount - depositAmount, 0);
       const records: DbPaymentRecord[] = [];
@@ -171,35 +186,23 @@ function createInitialPaymentRecords(
         });
       }
 
-      return records;
-    }
+    return records;
+  }
 
-    return [{
+  return [{
       id: `pay-${orderId}-1`,
       orderId,
       source: "prototype",
       status: "captured",
-      allocation: orderType === "custom" ? "custom_deposit" : "full_balance",
+      allocation: paymentMode === "minimum_due" || paymentMode === "deposit_and_alterations"
+        ? orderType === "custom"
+          ? "custom_deposit"
+          : "full_balance"
+        : "full_balance",
       amount,
       collectedAt: toDateTimeString(now),
       squarePaymentId: null,
     }];
-  }
-
-  if (paymentStatus === "pending" && amount > 0) {
-    return [{
-      id: `pay-${orderId}-1`,
-      orderId,
-      source: "prototype",
-      status: "pending",
-      allocation: orderType === "custom" ? "custom_deposit" : orderType === "alteration" ? "full_balance" : undefined,
-      amount,
-      collectedAt: null,
-      squarePaymentId: null,
-    }];
-  }
-
-  return [];
 }
 
 function getDefaultAlterationAssigneeStaffId(
@@ -292,7 +295,7 @@ export function serializeOrderWorkflowToRecords({
   order,
   customers,
   locations,
-  paymentStatus,
+  paymentMode,
   orderSequence,
   now,
   existingOrder = null,
@@ -455,6 +458,7 @@ export function serializeOrderWorkflowToRecords({
   });
 
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
+  const pricingSummary = getPricingSummary(order);
 
   return {
     openOrderId: Number.parseInt(displayId.replace(/\D/g, ""), 10) || orderSequence,
@@ -464,7 +468,18 @@ export function serializeOrderWorkflowToRecords({
     scopeLines,
     lineComponents,
     pickupAppointments,
-    paymentRecords: createInitialPaymentRecords(orderId, orderType, paymentStatus, checkoutCollectionAmount, order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item.selectedGarment), 0), now),
+    paymentRecords: createInitialPaymentRecords(
+      orderId,
+      orderType,
+      paymentMode,
+      checkoutCollectionAmount,
+      orderType === "mixed"
+        ? pricingSummary.depositDue + pricingSummary.alterationsSubtotal + pricingSummary.taxAmount
+        : checkoutCollectionAmount,
+      pricingSummary.total,
+      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item.selectedGarment), 0),
+      now,
+    ),
   };
 }
 
