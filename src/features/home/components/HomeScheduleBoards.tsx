@@ -105,12 +105,12 @@ function AppointmentAlertIconButton({
     <button
       type="button"
       className={[
-        "relative inline-flex h-8 w-8 items-center justify-center rounded-full border transition-colors",
+        "relative inline-flex h-8 w-8 items-center justify-center rounded-full border shadow-[var(--app-shadow-sm)] transition-colors",
         tone === "danger"
           ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
           : tone === "info"
-            ? "border-sky-200 bg-sky-50 text-sky-700"
-            : "border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/85 text-[var(--app-text-muted)]",
+            ? "border-[var(--app-info-border)] bg-[var(--app-info-bg)] text-[var(--app-info-text)]"
+            : "border-[var(--app-border)]/74 bg-[var(--app-surface)] text-[var(--app-text-muted)]",
       ].join(" ")}
       aria-label={label}
       aria-expanded={isOpen}
@@ -118,7 +118,7 @@ function AppointmentAlertIconButton({
     >
       <Icon className="h-4 w-4" />
       {isOpen ? (
-        <span className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-20 w-max max-w-[12rem] -translate-x-1/2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/80 bg-[var(--app-surface)] px-2.5 py-2 text-center text-[0.7rem] font-medium leading-tight text-[var(--app-text)] shadow-lg">
+        <span className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-20 w-max max-w-[12rem] -translate-x-1/2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/82 bg-[var(--app-surface)] px-2.5 py-2 text-center text-[0.7rem] font-medium leading-tight text-[var(--app-text)] shadow-lg">
           {label}
         </span>
       ) : null}
@@ -143,9 +143,9 @@ export function HomeEmptyState({
         <SurfaceHeader
           icon={CalendarDays}
           iconStyle={{
-            borderColor: "#bfdbfe",
-            backgroundColor: "#eff6ff",
-            color: "#1d4ed8",
+            borderColor: "var(--app-info-border)",
+            backgroundColor: "var(--app-info-bg)",
+            color: "var(--app-info-text)",
           }}
           title={title}
           subtitle={detail}
@@ -206,7 +206,7 @@ function ScheduleRow({
         <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
       </div>
 
-      <div className="min-w-0 space-y-2">
+      <div className="min-w-0 space-y-2.5">
         <div className="flex flex-wrap items-center gap-2">
           <div className="app-text-value leading-tight">{appointment.customer}</div>
           {alertIcons.length ? (
@@ -244,14 +244,14 @@ function ScheduleRow({
         ) : null}
       </div>
 
-      <div className="grid gap-2 md:justify-items-stretch">
-        <ActionButton tone="primary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
-          Start order
-        </ActionButton>
-        <ActionButton tone="secondary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
-          Cancel appointment
-        </ActionButton>
-      </div>
+        <div className="grid gap-2 md:justify-items-stretch">
+          <ActionButton tone="primary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
+            Start order
+          </ActionButton>
+          <ActionButton tone="quiet" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
+            Cancel appointment
+          </ActionButton>
+        </div>
     </div>
   );
 }
@@ -619,14 +619,14 @@ function WorkSurfaceHeader({
   const iconStyle =
     tone === "info"
       ? {
-          borderColor: "#bae6fd",
-          backgroundColor: "#f0f9ff",
-          color: "#0369a1",
+          borderColor: "var(--app-info-border)",
+          backgroundColor: "var(--app-info-bg)",
+          color: "var(--app-info-text)",
         }
       : {
-          borderColor: "#a7f3d0",
-          backgroundColor: "#ecfdf5",
-          color: "#047857",
+          borderColor: "var(--app-success-border)",
+          backgroundColor: "var(--app-success-bg)",
+          color: "var(--app-success-text)",
         };
 
   return (

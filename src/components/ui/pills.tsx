@@ -22,8 +22,8 @@ type ReadinessPillProps = {
 
 const countToneClasses: Record<NonNullable<CountPillProps["tone"]>, string> = {
   default: "border-[var(--app-border)]/55 bg-[var(--app-surface)]/26 text-[var(--app-text-muted)]",
-  info: "border-sky-200 bg-sky-50 text-sky-700",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-700",
+  info: "border-[var(--app-info-border)] bg-[var(--app-info-bg)] text-[var(--app-info-text)]",
+  success: "border-[var(--app-success-border)] bg-[var(--app-success-bg)] text-[var(--app-success-text)]",
 };
 
 export function VipPill() {

@@ -56,7 +56,7 @@ export function Card({ children, className = "" }: CardProps) {
 
 export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHeaderProps) {
   return (
-    <div className="mb-4 flex items-start justify-between gap-3">
+    <div className="mb-4 flex items-start justify-between gap-4">
       <div className="flex items-start gap-3">
         <div className="app-icon-chip">
           <Icon className="h-4 w-4" />
@@ -78,7 +78,7 @@ export function SurfaceHeader({
   meta,
   className = "",
   titleClassName = "app-section-title",
-  subtitleClassName = "app-section-copy",
+  subtitleClassName = "app-text-caption",
   iconStyle,
 }: SurfaceHeaderProps) {
   return (

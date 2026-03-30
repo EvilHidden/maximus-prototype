@@ -164,8 +164,8 @@ export function AllOrdersRow({
       <div className="min-w-0">
         <div className="app-text-value min-w-0">{openOrder.payerName}</div>
         <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-        <div className="app-text-body mt-2 text-[var(--app-text)]/82">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-        <div className="mt-1.5">
+        <div className="app-text-body-muted mt-2 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+        <div className="mt-2">
           <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
         </div>
       </div>
@@ -222,7 +222,7 @@ export function AllOrdersRow({
                     {group.actionPickupIds.length ? (
                       <ActionButton
                         tone="primary"
-                        className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                        className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
                         onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
                       >
                         Ready

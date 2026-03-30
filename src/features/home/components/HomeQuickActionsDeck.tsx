@@ -19,8 +19,8 @@ type HomeQuickActionsDeckProps = {
 
 export function HomeQuickActionsDeck({ actions }: HomeQuickActionsDeckProps) {
   return (
-    <Surface tone="control" className="px-4 py-4">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
+    <Surface tone="control" className="px-4 py-4 md:px-5">
+      <div className="grid gap-3.5 md:grid-cols-2 xl:grid-cols-4">
         {actions.map((action) => (
           <QuickActionTile
             key={action.label}

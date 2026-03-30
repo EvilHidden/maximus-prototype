@@ -48,7 +48,7 @@ export function QuickActionTile({
     <button
       onClick={onClick}
       className={cx(
-        "group flex min-h-[112px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/18 px-4 py-4 text-left transition hover:bg-[var(--app-surface)]/34",
+        "group flex min-h-[116px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] px-4 py-4 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]",
         className,
       )}
     >
@@ -92,9 +92,9 @@ export function SelectionChip({
         className,
       )}
     >
-      {leading ? <span className="shrink-0">{leading}</span> : null}
-      <span>{children}</span>
-      {trailing ? <span className="shrink-0">{trailing}</span> : null}
+        {leading ? <span className="shrink-0">{leading}</span> : null}
+        <span>{children}</span>
+        {trailing ? <span className="shrink-0">{trailing}</span> : null}
     </button>
   );
 }

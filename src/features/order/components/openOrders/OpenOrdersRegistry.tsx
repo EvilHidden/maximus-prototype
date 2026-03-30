@@ -68,8 +68,8 @@ export function OpenOrdersBody({
             <div className="app-work-surface">
               <OrdersSectionHeader
                 icon={ClipboardList}
-                title="Open orders"
-                subtitle="Every open order, with timing and status kept in one scan."
+                title="All active orders"
+                subtitle="Scan every active order in one place."
               />
               <div className="border-t border-[var(--app-border)]/45">
                 <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
@@ -81,8 +81,8 @@ export function OpenOrdersBody({
             <div className="app-work-surface">
               <OrdersSectionHeader
                 icon={ClipboardList}
-                title="Open orders"
-                subtitle="Every open order, with timing and status kept in one scan."
+                title="All active orders"
+                subtitle="Scan every active order in one place."
               />
               <div className="border-t border-[var(--app-border)]/45">
                 {baseOpenOrders.map((openOrder, index) => (
@@ -153,11 +153,11 @@ export function OpenOrdersBody({
       {activeView === "factory" ? (
         filteredFactoryOrders.length === 0 ? (
           <div className="app-work-surface">
-            <OrdersSectionHeader
-              icon={PackageSearch}
-              title="Custom garments"
-              subtitle="Custom orders that still need production or pickup follow-through."
-            />
+              <OrdersSectionHeader
+                icon={PackageSearch}
+                title="Custom garments"
+                subtitle="Custom work that still needs production or pickup follow-through."
+              />
             <div className="border-t border-[var(--app-border)]/45">
               <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
                 No custom garment orders match this search and filter set.
@@ -166,11 +166,11 @@ export function OpenOrdersBody({
           </div>
         ) : (
           <div className="app-work-surface">
-            <OrdersSectionHeader
-              icon={PackageSearch}
-              title="Custom garments"
-              subtitle="Custom orders that still need production or pickup follow-through."
-            />
+              <OrdersSectionHeader
+                icon={PackageSearch}
+                title="Custom garments"
+                subtitle="Custom work that still needs production or pickup follow-through."
+              />
             <div className="border-t border-[var(--app-border)]/45">
               {filteredFactoryOrders.map((openOrder, index) => (
                 <div

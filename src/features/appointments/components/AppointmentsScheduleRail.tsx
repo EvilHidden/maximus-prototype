@@ -25,11 +25,11 @@ export function AppointmentsScheduleRail({
   const showDateInRow = !selectedDateKey;
 
   return (
-    <Surface tone="support" as="aside" className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4">
+    <Surface tone="support" as="aside" className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4 md:p-5">
       <SurfaceHeader
         title="Coming up"
         subtitle={railSubtitle}
-        className="mb-3"
+        className="mb-3 border-b border-[var(--app-border)]/40 pb-3"
         meta={
           selectedDateKey ? (
             <div className="w-[96px] shrink-0 text-right">
@@ -56,7 +56,7 @@ export function AppointmentsScheduleRail({
             return (
               <div
                 key={appointment.id}
-                className="border-b border-[var(--app-border)]/55 py-3.5 last:border-b-0"
+                className="border-b border-[var(--app-border)]/50 py-4 last:border-b-0"
               >
                 <div className="grid grid-cols-[84px_minmax(0,1fr)_auto] gap-3">
                   <div className="pt-0.5">
@@ -65,7 +65,7 @@ export function AppointmentsScheduleRail({
                   </div>
 
                   <div className="min-w-0">
-                    <div className="app-text-strong">{appointment.customer}</div>
+                    <div className="app-text-value text-[0.95rem]">{appointment.customer}</div>
                     <div className="app-text-caption mt-1">{appointment.location}</div>
                     <div className="app-text-body mt-2 font-medium">{getAppointmentVisitLabel(appointment)}</div>
                     {isUnconfirmed ? (

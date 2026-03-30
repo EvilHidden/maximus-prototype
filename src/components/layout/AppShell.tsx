@@ -46,12 +46,12 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
     <div className="app-shell">
       <div className="grid h-full grid-cols-[228px_minmax(0,1fr)] gap-3 p-3">
         <aside className="app-sidebar flex h-full min-h-0 flex-col rounded-[14px] border border-[var(--app-border)]/70 p-3">
-          <div className="rounded-[12px] border border-[var(--app-border)]/55 bg-[linear-gradient(180deg,rgba(255,255,255,0.04),rgba(255,255,255,0.01))] px-4 py-4">
+          <div className="rounded-[12px] border border-[var(--app-border)]/55 bg-[color:color-mix(in_srgb,var(--app-surface-muted)_72%,var(--app-surface))] px-4 py-4">
             <div className="app-text-strong">SAMEpage Tailor OS</div>
             <div className="app-text-overline mt-1">Operations</div>
           </div>
 
-          <div className="mt-3 flex-1 rounded-[12px] bg-[var(--app-surface)]/26 p-2">
+          <div className="mt-3 flex-1 rounded-[12px] bg-[color:color-mix(in_srgb,var(--app-surface-muted)_40%,transparent)] p-2">
             <div className="app-text-overline px-2 pb-2 pt-1">Workspace</div>
             <div className="space-y-1.5">
             {navItems.map((item) => (
