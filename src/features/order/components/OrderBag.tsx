@@ -67,7 +67,7 @@ export function OrderBag({
   };
 
   return (
-    <Surface tone="support" className="p-3.5 xl:sticky xl:top-0 xl:self-start">
+    <Surface tone="support" className="w-full p-3.5 xl:sticky xl:top-0">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <ShoppingBag className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
