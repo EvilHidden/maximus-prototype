@@ -21,6 +21,7 @@ import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { OperatorQueuePanel } from "./OperatorQueuePanel";
 import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
 import { QueueSection } from "./OpenOrdersWorklist";
+import { OrderDetailsLink } from "./OrderDetailsLink";
 
 const OPEN_ORDER_ROW_GRID_CLASS =
   "grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start lg:gap-x-4";
@@ -339,28 +340,24 @@ function AllOrdersRow({
   return (
     <div className={rowGridClassName}>
       <div className="min-w-0">
-        <div className="app-text-strong">{openOrder.payerName}</div>
+        <div className="app-text-value min-w-0">{openOrder.payerName}</div>
         {isReadyVariant || isFactoryVariant ? (
           <>
             <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-            <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+            <div className="app-text-body mt-2 text-[var(--app-text)]/82">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+            <div className="mt-1.5">
+              <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
+            </div>
           </>
         ) : (
           <>
             <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-            <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+            <div className="app-text-body mt-2 text-[var(--app-text)]/82">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+            <div className="mt-1.5">
+              <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
+            </div>
           </>
         )}
-        <div className="mt-3">
-          <ActionButton
-            type="button"
-            tone="secondary"
-            className="min-h-9 px-3 py-2 text-xs"
-            onClick={() => onOpenOrderDetails(openOrder.id)}
-          >
-            Open details
-          </ActionButton>
-        </div>
       </div>
       {isReadyVariant ? null : (
         <div className="min-w-0">
