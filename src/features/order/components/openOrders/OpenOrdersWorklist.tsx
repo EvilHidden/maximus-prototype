@@ -7,9 +7,8 @@ import {
   cx,
 } from "../../../../components/ui/primitives";
 import {
-  getOpenOrderOperationalPhase,
-  getOpenOrderPickupGroups,
   getNeedsAttentionPickupGroups,
+  getNeedsAttentionGroupState,
   formatOpenOrderCreatedAt,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
@@ -50,45 +49,6 @@ function getWorklistStatusTextClassName(tone: "default" | "dark" | "success" | "
   return "text-[0.82rem] font-semibold leading-tight text-[var(--app-text-muted)]";
 }
 
-function getPickupGroupStatusDisplay(
-  scope: OpenOrder["pickupSchedules"][number]["scope"],
-  isReadyForPickup: boolean,
-  alertLabel: string,
-) {
-  if (scope === "alteration") {
-    if (alertLabel === "Past promised ready time") {
-      return {
-        label: "Overdue",
-        className: getWorklistStatusTextClassName("danger"),
-      };
-    }
-
-    if (isReadyForPickup) {
-      return {
-        label: "Ready",
-        className: getWorklistStatusTextClassName("success"),
-      };
-    }
-
-    return {
-      label: "In progress",
-      className: getWorklistStatusTextClassName("default"),
-    };
-  }
-
-  if (isReadyForPickup) {
-    return {
-      label: "Ready",
-      className: getWorklistStatusTextClassName("success"),
-    };
-  }
-
-  return {
-    label: "In progress",
-    className: getWorklistStatusTextClassName("default"),
-  };
-}
-
 function OpenSectionHeader({
   icon: Icon,
   title,
@@ -121,10 +81,6 @@ function WorkQueueOrderRow({
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderDetails: (openOrderId: number) => void;
 }) {
-  const phase = getOpenOrderOperationalPhase(openOrder);
-  const inHousePickups = openOrder.pickupSchedules.filter((pickup) => pickup.scope === "alteration" && !pickup.pickedUp);
-  const canManageInHouseWork = inHousePickups.length > 0;
-  const canStartWork = canManageInHouseWork && openOrder.operationalStatus === "accepted";
   const pickupGroups = getNeedsAttentionPickupGroups(openOrder);
 
   const getGroupedItemSummary = (items: string[]) => {
@@ -161,9 +117,7 @@ function WorkQueueOrderRow({
                 ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
                 : null;
               const location = representativePickup?.pickupLocation ?? "";
-              const groupStatus = representativePickup
-                ? getPickupGroupStatusDisplay(group.scope, representativePickup.readyForPickup, group.alertLabel)
-                : null;
+              const groupState = getNeedsAttentionGroupState(openOrder, group);
 
               return (
                 <div
@@ -190,21 +144,21 @@ function WorkQueueOrderRow({
                     </div>
                   </div>
                   <div className={cx("min-w-0", index > 0 && "pt-2.5")}>
-                    {groupStatus ? (
+                    {groupState ? (
                       <div className="flex min-h-14 items-center justify-start">
-                        <div className={groupStatus.className}>{groupStatus.label}</div>
+                        <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
                       </div>
                     ) : null}
                   </div>
                   <div
                     className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")}
                   >
-                    {canStartWork ? (
+                    {groupState.actionKind === "start_work" ? (
                       index === 0 ? (
                         <ActionButton
                           tone="primary"
                           className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
-                          disabled={!openOrder.inHouseAssignee}
+                          disabled={groupState.actionDisabled}
                           onClick={() => onStartOpenOrderWork(openOrder.id)}
                         >
                           Start work
@@ -212,7 +166,7 @@ function WorkQueueOrderRow({
                       ) : (
                         <span className="app-text-caption opacity-0">No action</span>
                       )
-                    ) : group.actionPickupIds.length ? (
+                    ) : groupState.actionKind === "mark_ready" ? (
                       <ActionButton
                         tone="primary"
                         className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"

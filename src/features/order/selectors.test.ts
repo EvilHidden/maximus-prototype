@@ -6,6 +6,7 @@ import {
   filterOpenOrders,
   getCheckoutCollectionAmount,
   getNeedsAttentionOpenOrders,
+  getNeedsAttentionGroupState,
   getNeedsAttentionPickupGroups,
   getOpenOrderPickupBalanceDue,
   getOpenOrderMixedStatusSummary,
@@ -759,6 +760,55 @@ describe("order selectors", () => {
       ready_to_start: 1,
       in_progress: 1,
       ready: 1,
+    });
+  });
+
+  it("derives needs-attention status and action from the same grouped state model", () => {
+    const futurePickup = {
+      ...createOpenOrder({}).pickupSchedules[0],
+      pickupDate: "2026-04-10",
+      pickupTime: "13:00",
+    };
+    const awaitingAssignment = createOpenOrder({
+      id: 1101,
+      inHouseAssignee: null,
+      operationalStatus: "accepted",
+      pickupSchedules: [{ ...futurePickup, id: "pickup-awaiting-assignment" }],
+    });
+    const readyToStart = createOpenOrder({
+      id: 1102,
+      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
+      operationalStatus: "accepted",
+      pickupSchedules: [{ ...futurePickup, id: "pickup-ready-to-start" }],
+    });
+    const inProgress = createOpenOrder({
+      id: 1103,
+      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
+      operationalStatus: "in_progress",
+      pickupSchedules: [{ ...futurePickup, id: "pickup-in-progress" }],
+    });
+
+    const awaitingAssignmentState = getNeedsAttentionGroupState(awaitingAssignment, getNeedsAttentionPickupGroups(awaitingAssignment)[0]!);
+    const readyToStartState = getNeedsAttentionGroupState(readyToStart, getNeedsAttentionPickupGroups(readyToStart)[0]!);
+    const inProgressState = getNeedsAttentionGroupState(inProgress, getNeedsAttentionPickupGroups(inProgress)[0]!);
+
+    expect(awaitingAssignmentState).toMatchObject({
+      label: "Awaiting assignment",
+      tone: "warn",
+      actionKind: "start_work",
+      actionDisabled: true,
+    });
+    expect(readyToStartState).toMatchObject({
+      label: "Ready to start",
+      tone: "dark",
+      actionKind: "start_work",
+      actionDisabled: false,
+    });
+    expect(inProgressState).toMatchObject({
+      label: "In progress",
+      tone: "default",
+      actionKind: "mark_ready",
+      actionDisabled: false,
     });
   });
 
