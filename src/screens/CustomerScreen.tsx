@@ -10,6 +10,7 @@ import { CustomerProfileDrawer } from "../components/customer/CustomerProfileDra
 import {
   createNextCustomerId,
   filterCustomers,
+  getActiveCustomers,
   getCustomerLastOrderSummary,
 } from "../features/customer/selectors";
 
@@ -114,7 +115,9 @@ export function CustomerScreen({
   const [activeCustomerId, setActiveCustomerId] = useState<string | null>(selectedCustomer?.id ?? null);
   const [editorMode, setEditorMode] = useState<"add" | "edit" | null>(null);
 
-  const filteredCustomers = useMemo(() => filterCustomers(customers, query), [customers, query]);
+  const filteredCustomers = useMemo(() => {
+    return filterCustomers(getActiveCustomers(customers), query);
+  }, [customers, query]);
   const activeCustomer = useMemo(
     () => customers.find((customer) => customer.id === activeCustomerId) ?? null,
     [customers, activeCustomerId],
