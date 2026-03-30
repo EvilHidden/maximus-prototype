@@ -30,6 +30,7 @@ export function AppScreenContent({
   startNewMeasurementSet,
   deleteMeasurementSet,
   saveDraftOrder,
+  saveEditedOrder,
   assignOpenOrderTailor,
   startOpenOrderWork,
   completeOpenOrderCheckout,
@@ -78,8 +79,12 @@ export function AppScreenContent({
         editingOpenOrderId={state.editingOpenOrderId}
         dispatch={dispatch}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
+        onBackToOrderDetails={state.editingOpenOrderId !== null
+          ? () => dispatch({ type: "openOrderDetails", openOrderId: state.editingOpenOrderId! })
+          : undefined}
         onOpenDraftCheckout={() => dispatch({ type: "openCheckoutForDraft" })}
         onSaveDraftOrder={saveDraftOrder}
+        onSaveEditedOrder={saveEditedOrder}
       />
     );
   }

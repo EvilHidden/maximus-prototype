@@ -130,6 +130,7 @@ export function useOrderBuilderController({
     Boolean(order.custom.draft.selectedGarment) &&
     referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
     (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas);
+  const isEditingAlterationItem = editingItemId !== null;
 
   useCustomMeasurementDefaults({
     measurementSets,
@@ -237,6 +238,7 @@ export function useOrderBuilderController({
     measurementOptions,
     editingItem,
     editingCustomItem,
+    isEditingAlterationItem,
     editingServices,
     continueDisabledReason,
     customAddDisabledReason,
@@ -250,7 +252,28 @@ export function useOrderBuilderController({
     handleShowCustomDisabledReason,
     handleAddOrSaveCustomItem,
     handleCancelCustomEdit,
+    handleAddOrSaveAlterationItem: () => {
+      if (editingItemId !== null) {
+        dispatch({ type: "saveAlterationItem", itemId: editingItemId });
+        setEditingItemId(null);
+        setAlterationValidationVisible(false);
+        return;
+      }
+
+      setAlterationValidationVisible(false);
+      dispatch({ type: "addAlterationItem" });
+    },
+    handleCancelAlterationEdit: () => {
+      setEditingItemId(null);
+      setAlterationValidationVisible(false);
+      dispatch({ type: "resetAlterationDraft" });
+    },
     handleContinue,
+    handleOpenEditAlterationItem: (itemId: number) => {
+      setEditingCustomItemId(null);
+      setEditingItemId(itemId);
+      dispatch({ type: "loadAlterationItemForEdit", itemId });
+    },
     handleOpenEditCustomItem: (itemId: number) => {
       setEditingItemId(null);
       setEditingCustomItemId(itemId);
@@ -258,6 +281,10 @@ export function useOrderBuilderController({
     },
     handleRequestRemoveItem: (kind: "alteration" | "custom", itemId: number) => {
       if (kind === "alteration") {
+        if (editingItemId === itemId) {
+          setEditingItemId(null);
+          dispatch({ type: "resetAlterationDraft" });
+        }
         setPendingDeleteItemId(itemId);
         return;
       }

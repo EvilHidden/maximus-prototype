@@ -86,6 +86,7 @@ export type AppAction =
   | { type: "setOrderPayer"; customerId: string | null }
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "saveOpenOrder"; paymentStatus: OpenOrder["paymentStatus"]; openCheckout: boolean }
+  | { type: "saveEditedOpenOrder" }
   | { type: "assignOpenOrderTailor"; openOrderId: number; staffId: string | null }
   | { type: "startOpenOrderWork"; openOrderId: number }
   | { type: "completeOpenOrderCheckout"; openOrderId: number }
@@ -105,6 +106,9 @@ export type AppAction =
   | { type: "toggleAlterationModifier"; modifier: AlterationService }
   | { type: "toggleAlterationRush" }
   | { type: "addAlterationItem" }
+  | { type: "loadAlterationItemForEdit"; itemId: number }
+  | { type: "saveAlterationItem"; itemId: number }
+  | { type: "resetAlterationDraft" }
   | { type: "setAlterationItem"; payload: SetAlterationItemPayload }
   | { type: "removeAlterationItem"; itemId: number }
   | { type: "setAlterationPickup"; payload: SetAlterationPickupPayload }

@@ -10,6 +10,8 @@ type AlterationBuilderProps = {
   selectedModifiers: AlterationService[];
   selectedRush: boolean;
   currentSubtotal: number;
+  isEditing: boolean;
+  editingLabel?: string | null;
   addDisabledReason?: string;
   onShowDisabledReason?: (reason: string) => void;
   showValidation?: boolean;
@@ -19,6 +21,7 @@ type AlterationBuilderProps = {
   onToggleModifier: (modifier: AlterationService) => void;
   onToggleRush: () => void;
   onAddItem: () => void;
+  onCancelEdit: () => void;
 };
 
 export function AlterationBuilder({
@@ -28,6 +31,8 @@ export function AlterationBuilder({
   selectedModifiers,
   selectedRush,
   currentSubtotal,
+  isEditing,
+  editingLabel,
   addDisabledReason,
   onShowDisabledReason,
   showValidation = false,
@@ -37,17 +42,18 @@ export function AlterationBuilder({
   onToggleModifier,
   onToggleRush,
   onAddItem,
+  onCancelEdit,
 }: AlterationBuilderProps) {
   const selectedServiceSummary = selectedModifiers.map((modifier) => modifier.name).join(", ");
   const showValidationBanner = showValidation && (missingGarment || missingServices);
 
   return (
-    <Surface tone="work" className="flex h-full min-h-0 flex-col p-4">
+    <Surface tone="work" className="flex flex-col p-4">
       <div className="mb-4 flex items-start gap-3">
         <Scissors className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
         <div>
-          <h2 className="app-section-title">Alterations</h2>
-          <p className="app-section-copy">Choose the garment and services</p>
+          <h2 className="app-section-title">{isEditing ? "Edit item" : "Alterations"}</h2>
+          <p className="app-section-copy">{isEditing ? "Update the garment and services" : "Choose the garment and services"}</p>
         </div>
       </div>
 
@@ -55,7 +61,7 @@ export function AlterationBuilder({
         <Callout
           tone="danger"
           icon={TriangleAlert}
-          title={<StatusPill tone="danger">Can't add this yet</StatusPill>}
+          title={<StatusPill tone="danger">{isEditing ? "Can't save this yet" : "Can't add this yet"}</StatusPill>}
           className="mb-4"
         >
           <div className="app-text-caption">
@@ -120,7 +126,7 @@ export function AlterationBuilder({
       {selectedGarment ? (
         <div
           className={cx(
-            "mb-3.5 flex min-h-0 flex-1 flex-col rounded-[var(--app-radius-md)] border border-[var(--app-border)]/65 bg-[var(--app-surface-muted)]/18 p-3.5",
+            "mb-3.5 flex flex-col rounded-[var(--app-radius-md)] border border-[var(--app-border)]/65 bg-[var(--app-surface-muted)]/18 p-3.5",
             showValidation && missingServices && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/26",
           )}
         >
@@ -131,7 +137,7 @@ export function AlterationBuilder({
             </div>
             <div className="app-text-overline text-[var(--app-text)]">{selectedModifiers.length} selected</div>
           </div>
-          <div className="grid min-h-0 flex-1 auto-rows-[6.25rem] content-start gap-2 overflow-auto pr-1 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid auto-rows-[6.25rem] content-start gap-2 md:grid-cols-2 xl:grid-cols-3">
             {currentServices.map((service) => {
               const isSelected = selectedModifiers.some((modifier) => modifier.name === service.name);
               return (
@@ -177,7 +183,7 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <Surface tone="support" className="mt-auto flex flex-none flex-wrap items-start justify-between gap-3 pt-4 p-4 xl:pt-5">
+      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-3 p-4 xl:pt-5">
         <div className="shrink-0">
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption mt-1">
@@ -206,6 +212,15 @@ export function AlterationBuilder({
             {selectedRush ? "Rush item" : "Mark rush"}
           </ActionButton>
           <div className="app-text-value">${currentSubtotal.toFixed(2)}</div>
+          {isEditing ? (
+            <ActionButton
+              tone="secondary"
+              className="min-h-10 px-3 py-2 text-xs"
+              onClick={onCancelEdit}
+            >
+              Cancel edit
+            </ActionButton>
+          ) : null}
           <ActionButton
             tone="primary"
             onClick={() => {
@@ -219,7 +234,7 @@ export function AlterationBuilder({
               onAddItem();
             }}
           >
-            Add to Cart
+            {isEditing ? "Save item" : "Add to Cart"}
           </ActionButton>
         </div>
       </Surface>

@@ -489,11 +489,11 @@ export function OrderDetailsScreen({
               </ActionButton>
             ) : (
               <ActionButton tone="primary" onClick={() => onEditOpenOrder(openOrder.id)}>
-                Edit order
+                Edit in builder
               </ActionButton>
             )}
             <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
-              Edit order
+              Edit in builder
             </ActionButton>
             <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
               Back to orders
