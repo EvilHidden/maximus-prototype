@@ -38,12 +38,17 @@ Secondary goal:
 ## Collaboration Cadence
 - Before starting, name the problem and the subsystem out loud.
 - Create a fresh branch for that problem. Do not keep reopening old branches for unrelated work.
+- Before opening a second branch in the same subsystem, stop and answer explicitly:
+  - does an existing branch already contain the accepted fix?
+  - should the follow-up continue there instead?
 - Keep iterating locally by default. Only run the shipping flow when the user explicitly says `ship`.
+- In this repo, `ship` / `ship it` means the full `npm run ship -- "Short PR title"` flow through merge, return to `main`, and local branch deletion. Opening a PR manually is not sufficient.
 - During the work, check in periodically:
   - what problem are we solving?
   - are logic holes closed?
   - are design holes closed enough for this pass?
   - are we still inside the original branch scope?
+- If the user changes scope, sounds frustrated, or says the work drifted, restate the exact requested outcomes and do not expand the scope again without explicit confirmation.
 - Before merging, summarize:
   - what changed
   - what was validated
