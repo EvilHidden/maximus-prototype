@@ -26,6 +26,16 @@ npm run ship -- "Short PR title"
 
 That command runs a fast local `npm run check`, stages and commits the branch, pushes it, opens or reuses a PR to `main`, enables auto-merge, waits for the required build check to pass, then switches the local repo back to `main` and deletes the finished local topic branch.
 The `start-topic` command checks that your tree is clean, updates `main`, and creates a fresh `codex/` branch for the new idea.
+If you try to open a second local `codex/` branch in the same subsystem, `start-topic` now refuses by default and asks whether the accepted fix should continue on the existing branch instead.
+
+In this repo, `ship it` has one concrete meaning:
+
+- run `npm run ship -- "Short PR title"`
+- wait for merge
+- return local checkout to `main`
+- delete the finished local topic branch
+
+Pushing a branch, opening a draft PR, or saying “it’s ready” is not the same as shipped.
 
 ## Branch naming
 
@@ -200,6 +210,10 @@ Create a new branch instead of piling on if:
 - the next change would need a different test flow
 
 Do not keep reopening one branch for unrelated cleanup.
+Before creating a second branch in the same subsystem, explicitly answer:
+
+- Does an existing local branch already contain the accepted fix?
+- Should the follow-up continue there instead of splitting again?
 
 ## When two contributors are active
 
@@ -236,5 +250,6 @@ npm run ship -- "Short PR title"
 - Do not hand-roll recurring pill or badge markup in screens when `src/components/ui/pills.tsx` already covers the semantic case.
 - Do not merge without a successful build.
 - Do not treat accepted feedback as approval to ship. Keep iterating locally until the user explicitly says `ship`.
+- Do not treat “PR opened” as shipped. Only `npm run ship` counts as the full ship flow unless the script itself is blocked.
 - Do not leave finished branches hanging around after merge.
 - Do not keep committing on a `codex/` branch after its PR is merged or closed. Start a fresh branch for the next pass.

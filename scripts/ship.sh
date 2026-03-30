@@ -8,6 +8,7 @@ Usage:
   npm run ship -- --check
   npm run ship -- --dry-run "Short PR title"
   npm run ship -- --no-auto-merge "Short PR title"
+  npm run ship -- --allow-parallel-subsystem "Short PR title"
   npm run ship -- "Short PR title"
 
 What it does:
@@ -24,6 +25,7 @@ What it does:
 
 Important:
   - Never reuse a codex/ branch after its PR has been merged or closed.
+  - In this repo, "ship it" means running this script through merge and local branch cleanup. Opening a PR manually is not the same thing.
   - Untracked files are blocked by default and are never included silently.
   - If your branch is behind origin/main, the script will only auto-merge main when the working tree is clean.
 EOF
@@ -36,6 +38,7 @@ poll_interval_seconds=5
 check_only=false
 dry_run=false
 auto_merge=true
+allow_parallel_subsystem=false
 title=""
 
 while [[ $# -gt 0 ]]; do
@@ -50,6 +53,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --no-auto-merge)
       auto_merge=false
+      shift
+      ;;
+    --allow-parallel-subsystem)
+      allow_parallel_subsystem=true
       shift
       ;;
     --help|-h)
@@ -77,6 +84,8 @@ repo_root="$(git rev-parse --show-toplevel)"
 cd "$repo_root"
 
 current_branch="$(git branch --show-current)"
+topic_slug="${current_branch#codex/}"
+subsystem_token="${topic_slug%%-*}"
 
 print_update_help() {
   cat <<EOF
@@ -215,6 +224,11 @@ ensure_branch_allowed() {
   fi
 }
 
+print_branch_graph() {
+  echo "Relevant branch graph:"
+  git log --oneline --decorate --graph --max-count=12 --all --simplify-by-decoration
+}
+
 echo "Fetching latest ${base_branch}..."
 git fetch origin "$base_branch"
 
@@ -236,6 +250,13 @@ status_rollup_summary=""
 if [[ -n "$existing_pr_number" ]]; then
   status_rollup_summary="$(collect_check_rollup_summary "$current_branch")"
 fi
+
+same_subsystem_branches="$(
+  git for-each-ref --format='%(refname:short)' "refs/heads/codex/*" \
+    | grep -E "^codex/${subsystem_token}(-|$)" \
+    | grep -vx "${current_branch}" || true
+)"
+same_subsystem_branch_count="$(printf '%s\n' "$same_subsystem_branches" | sed '/^$/d' | wc -l | tr -d ' ')"
 
 tracked_changes="$(git status --short --untracked-files=no)"
 untracked_files="$(git ls-files --others --exclude-standard)"
@@ -303,10 +324,18 @@ print_readiness() {
   fi
   echo "  existing PR: ${existing_pr_number:-none}"
   echo "  existing PR state: ${existing_pr_state:-none}"
+  echo "  same-subsystem sibling branches: ${same_subsystem_branch_count}"
   if [[ -n "$existing_pr_number" ]]; then
     echo "  existing PR merge state: ${existing_pr_merge_state}"
     echo "  existing PR review decision: ${existing_pr_review_decision}"
     echo "  existing PR blocked: $(bool_text "$pr_blocked")"
+  fi
+
+  if [[ "$same_subsystem_branch_count" -gt 0 ]]; then
+    echo "  same-subsystem sibling branch list:"
+    while IFS= read -r line; do
+      [[ -n "$line" ]] && echo "    - $line"
+    done <<< "$same_subsystem_branches"
   fi
 
   if [[ "$tracked_change_count" -gt 0 ]]; then
@@ -354,6 +383,14 @@ if [[ "$check_only" == true ]]; then
     blocked=true
     print_blocker_summary "$current_branch"
   fi
+  if [[ "$allow_parallel_subsystem" == false && "$same_subsystem_branch_count" -gt 0 ]]; then
+    blocked=true
+    echo "Refusing to ship while same-subsystem sibling branches exist."
+    echo "Before shipping, answer:"
+    echo "  - Does one of those branches already contain the accepted fix?"
+    echo "  - Should this follow-up be merged onto one branch instead?"
+    print_branch_graph
+  fi
 
   if [[ "$blocked" == true ]]; then
     exit 1
@@ -368,6 +405,16 @@ fi
 if [[ "$branch_remote_state" == "behind" || "$branch_remote_state" == "diverged" ]]; then
   echo "Refusing to ship from ${current_branch}. Remote topic branch state is ${branch_remote_state}."
   print_remote_branch_help
+  exit 1
+fi
+
+if [[ "$allow_parallel_subsystem" == false && "$same_subsystem_branch_count" -gt 0 ]]; then
+  echo "Refusing to ship from ${current_branch}. Same-subsystem sibling branches exist:"
+  while IFS= read -r branch; do
+    [[ -n "$branch" ]] && echo "  - $branch"
+  done <<< "$same_subsystem_branches"
+  echo "Use one combined branch, delete the stale sibling branches, or rerun with --allow-parallel-subsystem if this is truly intentional."
+  print_branch_graph
   exit 1
 fi
 
