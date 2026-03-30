@@ -1,14 +1,16 @@
+import { lazy } from "react";
 import { HomeScreen } from "../../screens/HomeScreen";
 import { CustomerScreen } from "../../screens/CustomerScreen";
-import { OrderScreen } from "../../screens/OrderScreen";
-import { MeasurementsScreen } from "../../screens/MeasurementsScreen";
-import { OpenOrdersScreen } from "../../screens/OpenOrdersScreen";
-import { AppointmentsScreen } from "../../screens/AppointmentsScreen";
-import { ReviewOrderScreen } from "../../screens/CheckoutScreen";
-import { OrderDetailsScreen } from "../../screens/OrderDetailsScreen";
 import type { useAppController } from "./useAppController";
 
 type AppController = ReturnType<typeof useAppController>;
+
+const OrderScreen = lazy(async () => import("../../screens/OrderScreen").then((module) => ({ default: module.OrderScreen })));
+const MeasurementsScreen = lazy(async () => import("../../screens/MeasurementsScreen").then((module) => ({ default: module.MeasurementsScreen })));
+const OpenOrdersScreen = lazy(async () => import("../../screens/OpenOrdersScreen").then((module) => ({ default: module.OpenOrdersScreen })));
+const AppointmentsScreen = lazy(async () => import("../../screens/AppointmentsScreen").then((module) => ({ default: module.AppointmentsScreen })));
+const ReviewOrderScreen = lazy(async () => import("../../screens/CheckoutScreen").then((module) => ({ default: module.ReviewOrderScreen })));
+const OrderDetailsScreen = lazy(async () => import("../../screens/OrderDetailsScreen").then((module) => ({ default: module.OrderDetailsScreen })));
 
 export function AppScreenContent({
   state,
