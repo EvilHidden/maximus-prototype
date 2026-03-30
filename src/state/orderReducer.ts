@@ -1,5 +1,5 @@
 import type { AppAction, AppState } from "./types";
-import { adaptCustomers } from "../db/adapters";
+import { adaptCustomers, adaptOpenOrders } from "../db/adapters";
 import {
   assignOpenOrderTailor,
   cancelOpenOrder,
@@ -80,6 +80,37 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           screen: action.openCheckout ? "orderDetails" : "openOrders",
           checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           checkoutJustSavedOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
+          checkoutJustCompletedOpenOrderId: null,
+          editingOpenOrderId: null,
+          database: savedOrder.database,
+          order: createInitialOrderState(),
+        };
+      }
+    case "saveEditedOpenOrder":
+      {
+        if (!state.editingOpenOrderId) {
+          return state;
+        }
+
+        const currentOpenOrder = adaptOpenOrders(state.database).find((candidate) => candidate.id === state.editingOpenOrderId) ?? null;
+        const savedOrder = saveOrderWorkflowToDatabase(
+          state.database,
+          state.order,
+          adaptCustomers(state.database),
+          currentOpenOrder?.paymentStatus ?? "due_later",
+          { now: getNow(options), idFactory: options?.idFactory },
+          state.editingOpenOrderId,
+        );
+
+        if (!savedOrder) {
+          return state;
+        }
+
+        return {
+          ...state,
+          screen: "orderDetails",
+          checkoutOpenOrderId: savedOrder.openOrderId,
+          checkoutJustSavedOpenOrderId: null,
           checkoutJustCompletedOpenOrderId: null,
           editingOpenOrderId: null,
           database: savedOrder.database,
@@ -214,6 +245,68 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         },
       };
     }
+    case "loadAlterationItemForEdit": {
+      const item = state.order.alteration.items.find((candidate) => candidate.id === action.itemId);
+      if (!item) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          activeWorkflow: "alteration",
+          alteration: {
+            ...state.order.alteration,
+            selectedGarment: item.garment,
+            selectedModifiers: [...item.modifiers],
+            selectedRush: item.isRush,
+          },
+        },
+      };
+    }
+    case "saveAlterationItem": {
+      if (!state.order.alteration.selectedGarment || state.order.alteration.selectedModifiers.length === 0) {
+        return state;
+      }
+
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            items: state.order.alteration.items.map((item) => (
+              item.id !== action.itemId
+                ? item
+                : {
+                    ...item,
+                    garment: state.order.alteration.selectedGarment,
+                    modifiers: [...state.order.alteration.selectedModifiers],
+                    subtotal: state.order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0),
+                    isRush: state.order.alteration.selectedRush,
+                  }
+            )),
+            selectedGarment: "",
+            selectedModifiers: [],
+            selectedRush: false,
+          },
+        },
+      };
+    }
+    case "resetAlterationDraft":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            selectedGarment: "",
+            selectedModifiers: [],
+            selectedRush: false,
+          },
+        },
+      };
     case "setAlterationItem":
       return {
         ...state,

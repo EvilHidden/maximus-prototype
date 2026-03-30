@@ -441,6 +441,30 @@ describe("order reducer", () => {
     });
   });
 
+  it("saves an edited order back to order details while preserving its payment status", () => {
+    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+    const originalPaymentStatus = adaptOpenOrders(database).find((order) => order.id === 9004)?.paymentStatus;
+    expect(originalPaymentStatus).toBeTruthy();
+
+    let state = createInitialAppState({ database });
+    state = appReducer(state, { type: "openOrderForEdit", openOrderId: 9004 });
+    state = tryReduceOrderAction(
+      state,
+      { type: "setAlterationItem", payload: { itemId: state.order.alteration.items[0]!.id, modifiers: [{ name: "Hem", price: 60 }] } },
+    )!;
+
+    state = tryReduceOrderAction(
+      state,
+      { type: "saveEditedOpenOrder" },
+      { now: new Date("2026-03-22T16:00:00.000Z") },
+    )!;
+
+    expect(state.screen).toBe("orderDetails");
+    expect(state.checkoutOpenOrderId).toBe(9004);
+    expect(state.editingOpenOrderId).toBeNull();
+    expect(adaptOpenOrders(state.database).find((order) => order.id === 9004)?.paymentStatus).toBe(originalPaymentStatus);
+  });
+
   it("preserves canceled pickup appointments when an alteration order is edited", () => {
     const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
     const pickupAppointment = database.pickupAppointments.find((appointment) => appointment.id === "pickup-1009");

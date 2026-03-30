@@ -67,7 +67,7 @@ export function OrderBag({
   };
 
   return (
-    <Surface tone="support" className="sticky top-0 p-3.5 xl:flex xl:h-full xl:min-h-0 xl:flex-col">
+    <Surface tone="support" className="p-3.5 xl:sticky xl:top-0 xl:self-start">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <ShoppingBag className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
@@ -83,7 +83,7 @@ export function OrderBag({
         ) : null}
       </div>
 
-      <SummaryStack className="space-y-4 text-sm xl:flex xl:min-h-0 xl:flex-1 xl:flex-col">
+      <SummaryStack className="space-y-4 text-sm">
         <PanelSection
           title="Paying customer"
           className="border-0 bg-transparent p-0"
@@ -101,9 +101,9 @@ export function OrderBag({
           </button>
         </PanelSection>
 
-        <PanelSection title="Items" className="border-0 bg-transparent p-0 xl:flex xl:min-h-0 xl:flex-1 xl:flex-col">
+        <PanelSection title="Items" className="border-0 bg-transparent p-0">
           {lineItems.length > 0 ? (
-            <div className="xl:min-h-0 xl:flex-1 xl:overflow-auto xl:pr-1">
+            <div>
               {lineItems.map((item, index) => (
                 <div
                   key={item.id}
