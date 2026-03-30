@@ -161,7 +161,7 @@ export function OrderScreen({
         />
       )}
 
-      <div className="grid items-start gap-3.5 xl:grid-cols-[1.25fr_0.75fr]">
+      <div className="grid items-start gap-3.5 xl:grid-cols-[minmax(0,1fr)_minmax(19rem,21rem)]">
         <div className="space-y-3.5">
           <WorkflowSelector
             activeWorkflow={order.activeWorkflow}
@@ -284,7 +284,7 @@ export function OrderScreen({
           ) : null}
         </div>
 
-        <div className={cx("space-y-3.5 xl:flex xl:flex-col", order.activeWorkflow === "alteration" && "xl:min-h-0")}>
+        <div className={cx("space-y-3.5 xl:min-w-[19rem] xl:flex xl:flex-col", order.activeWorkflow === "alteration" && "xl:min-h-0")}>
           <OrderBag
             customer={payerCustomer}
             lineItems={controller.lineItems}
