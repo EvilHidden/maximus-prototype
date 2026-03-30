@@ -1,4 +1,10 @@
-import { ActionButton, ModalShell, StatusPill } from "../../../components/ui/primitives";
+import { CircleDollarSign, ReceiptText } from "lucide-react";
+import { ActionButton, Callout, ModalShell, StatusPill } from "../../../components/ui/primitives";
+import {
+  ModalFooterActions,
+  ModalSectionHeading,
+  ModalSummaryCard,
+} from "../../../components/ui/modalPatterns";
 import type { CheckoutPaymentMode, OpenOrder } from "../../../types";
 import { formatCheckoutCurrency } from "../checkoutDisplay";
 import { getOpenOrderTypeLabel } from "../selectors";
@@ -44,16 +50,37 @@ export function ConfirmCheckoutModal({
       : isDepositFlow
         ? "Mark deposit collected"
         : "Mark payment collected";
+  const amountDisplay = formatCheckoutCurrency(isOptionalPrepay ? fullAmountDue : amountDue);
+  const amountExplanation = isOptionalPrepay
+    ? `No payment is required yet, but you can take up to ${formatCheckoutCurrency(fullAmountDue)} before pickup.`
+    : isDepositAndAlterationsFlow
+      ? `This takes the custom deposit and pays for the alterations now. The other ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays on the custom work for later.`
+      : isDepositFlow
+        ? `This deposit gets the order going now. The other ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays for later.`
+        : amountDue < openOrder.balanceDue
+          ? `This pays for what is ready now. ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays with the unfinished work.`
+          : openOrder.itemSummary.join(", ");
+  const branchGuidance = canPrepayBeyondRequired && !lockPaymentMode
+    ? openOrder.orderType === "mixed" && !hasReadyPickup
+      ? `Collect the required ${formatCheckoutCurrency(minimumAmountDue)} deposit, take ${formatCheckoutCurrency(depositAndAlterationAmount)} to cover the deposit plus alterations, or collect the full remaining ${formatCheckoutCurrency(fullAmountDue)} now.`
+      : `Collect ${formatCheckoutCurrency(minimumAmountDue)} now, or take the full remaining ${formatCheckoutCurrency(fullAmountDue)} as prepayment.`
+    : null;
 
   return (
     <ModalShell
       title="Take payment"
-      subtitle={`Take ${openOrder.payerName}'s payment in Square before marking it collected on the order.`}
+      subtitle={`Take ${openOrder.payerName}'s payment in Square, then mark it here.`}
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[500px]"
       footer={
-        <div className="flex items-center justify-end gap-2">
+        <ModalFooterActions
+          leading={
+            <div className="app-text-caption">
+              Only mark this after Square says the payment went through.
+            </div>
+          }
+        >
           {lockPaymentMode ? (
             <>
               {isOptionalPrepay ? (
@@ -89,9 +116,9 @@ export function ConfirmCheckoutModal({
               <ActionButton tone="secondary" onClick={onClose}>
                 Back
               </ActionButton>
-              <ActionButton tone="secondary" onClick={() => onConfirm("minimum_due")}>
-                {isDepositFlow ? "Mark deposit collected" : "Mark required payment collected"}
-              </ActionButton>
+                <ActionButton tone="secondary" onClick={() => onConfirm("minimum_due")}>
+                  {isDepositFlow ? "Mark deposit collected" : "Mark required payment collected"}
+                </ActionButton>
               {openOrder.orderType === "mixed" && !hasReadyPickup ? (
                 <ActionButton tone="secondary" onClick={() => onConfirm("deposit_and_alterations")}>
                   Mark deposit + alteration payment collected
@@ -107,50 +134,59 @@ export function ConfirmCheckoutModal({
                 Back
               </ActionButton>
               <ActionButton tone="primary" onClick={() => onConfirm(selectedPaymentMode)}>
-              {confirmLabel}
+                {confirmLabel}
               </ActionButton>
             </>
           )}
-        </div>
+        </ModalFooterActions>
       }
     >
-      <div className="space-y-3">
+      <div className="space-y-4">
         <div className="flex flex-wrap items-center gap-2">
           <StatusPill tone="warn">Square</StatusPill>
           <div className="app-text-caption">
             {getOpenOrderTypeLabel(openOrder.orderType)} • Order #{openOrder.id}
           </div>
         </div>
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/18 px-3 py-3">
-          <div className="app-text-overline">{titleLabel}</div>
-          <div className="mt-1 app-text-value">{formatCheckoutCurrency(isOptionalPrepay ? fullAmountDue : amountDue)}</div>
-          <div className="app-text-caption mt-1">
-            {isOptionalPrepay
-              ? `No payment is required yet, but you can take up to ${formatCheckoutCurrency(fullAmountDue)} before pickup.`
-              : isDepositAndAlterationsFlow
-                ? `This payment takes the custom deposit and prepays the alterations. The remaining ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays on the custom portion until later.`
-              : isDepositFlow
-                ? `This deposit holds the order now. The remaining ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays on the order until later.`
-                : amountDue < openOrder.balanceDue
-                  ? `This payment covers what is ready today. ${formatCheckoutCurrency(openOrder.balanceDue - amountDue)} stays with the unfinished work.`
-                  : openOrder.itemSummary.join(", ")}
-          </div>
-        </div>
-        {canPrepayBeyondRequired && !lockPaymentMode ? (
-          <div className="app-text-caption rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/18 px-3 py-3">
-            {openOrder.orderType === "mixed" && !hasReadyPickup
-              ? `Collect the required ${formatCheckoutCurrency(minimumAmountDue)} deposit, take ${formatCheckoutCurrency(depositAndAlterationAmount)} to cover the deposit plus alterations, or collect the full remaining ${formatCheckoutCurrency(fullAmountDue)} now.`
-              : `Collect ${formatCheckoutCurrency(minimumAmountDue)} now, or take the full remaining ${formatCheckoutCurrency(fullAmountDue)} as prepayment.`}
-          </div>
+        <ModalSummaryCard
+          eyebrow="Paying customer"
+          title={openOrder.payerName}
+          description={openOrder.itemSummary.join(" · ")}
+          aside={
+            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)] px-3 py-2 text-right">
+              <div className="app-text-overline">{titleLabel}</div>
+              <div className="mt-1 app-text-value">{amountDisplay}</div>
+            </div>
+          }
+        />
+        <Callout tone="default" icon={CircleDollarSign} title={<span className="app-text-strong">What this pays for</span>}>
+          <div className="app-text-caption">{amountExplanation}</div>
+        </Callout>
+        {branchGuidance ? (
+          <Callout tone="warn" icon={ReceiptText} title={<span className="app-text-strong">Payment choices</span>}>
+            <div className="app-text-caption">{branchGuidance}</div>
+          </Callout>
         ) : null}
-        <div className="app-text-body">
-          1. Go to the Square terminal and take the customer's payment.
-        </div>
-        <div className="app-text-body">
-          2. Come back here only after the terminal payment is complete.
-        </div>
-        <div className="app-text-body">
-          3. Then mark the payment collected to keep this order in sync.
+        <div className="space-y-2">
+          <ModalSectionHeading
+            eyebrow="Square steps"
+            title="Take the payment in Square first"
+            description="Use this only after the card charge is done."
+          />
+          <div className="space-y-2">
+            {[
+              "Go to the Square terminal and take the customer's payment.",
+              "Come back here only after the terminal payment is complete.",
+              "Then mark the payment collected to keep the order in sync.",
+            ].map((step, index) => (
+              <div key={step} className="flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-3 py-3">
+                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--app-border)] bg-[var(--app-surface-muted)] app-text-caption font-semibold">
+                  {index + 1}
+                </div>
+                <div className="app-text-body">{step}</div>
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     </ModalShell>

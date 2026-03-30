@@ -374,6 +374,16 @@ textarea:focus-visible {
   color: var(--app-text-muted);
 }
 
+.app-btn--danger {
+  border-color: var(--app-danger-border);
+  background: color-mix(in srgb, var(--app-danger-bg) 82%, var(--app-surface));
+  color: var(--app-danger-text);
+}
+
+.app-btn--danger:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--app-danger-bg) 92%, var(--app-surface));
+}
+
 .app-pill {
   display: inline-flex;
   align-items: center;
@@ -513,6 +523,49 @@ textarea:focus-visible {
   background: var(--app-surface-elevated);
   box-shadow: var(--app-shadow-lg);
   padding: 1.25rem;
+  max-height: calc(100vh - 2rem);
+  overflow-y: auto;
+}
+
+.app-modal-panel {
+  border-radius: var(--app-radius-md);
+  border: 1px solid color-mix(in srgb, var(--app-border) 75%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 38%, var(--app-surface));
+  padding: 1rem;
+}
+
+.app-modal-panel--muted {
+  background: color-mix(in srgb, var(--app-surface-muted) 55%, var(--app-surface));
+}
+
+.app-modal-section-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.app-modal-meta-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem 1rem;
+}
+
+.app-modal-meta-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  color: var(--app-text-muted);
+}
+
+.app-modal-choice-list {
+  border: 1px solid color-mix(in srgb, var(--app-border) 70%, transparent);
+  border-radius: var(--app-radius-md);
+  overflow: hidden;
+}
+
+.app-modal-choice-list > * + * {
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 60%, transparent);
 }
 
 .app-table-shell {

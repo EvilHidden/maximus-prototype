@@ -57,7 +57,7 @@ type StatusPillProps = {
 };
 
 type ActionButtonProps = ButtonHTMLAttributes<HTMLButtonElement> & {
-  tone?: "primary" | "secondary" | "quiet";
+  tone?: "primary" | "secondary" | "quiet" | "danger";
   fullWidth?: boolean;
   disabledReason?: string;
 };
@@ -364,6 +364,7 @@ export function ActionButton({
     primary: "app-btn app-btn--primary",
     secondary: "app-btn app-btn--secondary",
     quiet: "app-btn app-btn--quiet",
+    danger: "app-btn app-btn--danger",
   };
 
   const isDisabled = Boolean(disabled);

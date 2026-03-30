@@ -1,7 +1,8 @@
 import { Mail, Phone } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ActionButton, ModalShell, StatusPill } from "../../../components/ui/primitives";
+import { ActionButton, Callout, EntityRow, InlineEmptyState, ModalShell, SearchField, SelectField } from "../../../components/ui/primitives";
 import { filterCustomers, getActiveCustomers } from "../../customer/selectors";
+import { ModalFooterActions, ModalMetaRow, ModalSectionHeading } from "../../../components/ui/modalPatterns";
 import type {
   Appointment,
   AppointmentConfirmationStatus,
@@ -43,12 +44,6 @@ export const serviceAppointmentTypeOptions: Array<{ value: ServiceAppointmentTyp
 
 function getAppointmentConfirmationStatus(appointment: Appointment): AppointmentConfirmationStatus {
   return appointment.contextFlags.includes("confirmed") ? "confirmed" : "unconfirmed";
-}
-
-function getConfirmationPillClassName(status: AppointmentConfirmationStatus) {
-  return status === "confirmed"
-    ? "border-[color:rgb(52_211_153_/_0.18)] bg-[color:rgb(52_211_153_/_0.06)] text-[color:rgb(209_250_229)]"
-    : "border-[color:rgb(245_158_11_/_0.18)] bg-[color:rgb(245_158_11_/_0.06)] text-[color:rgb(252_211_77)]";
 }
 
 function getLinkedOrderLabel(orderId: string | null | undefined) {
@@ -129,109 +124,92 @@ export function AppointmentComposerModal({
       showCloseButton={false}
       widthClassName="max-w-[720px]"
       footer={
-        <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            {isEditing && editingAppointment && onRequestCancel ? (
+        <ModalFooterActions
+          leading={
+            isEditing && editingAppointment && onRequestCancel ? (
               <ActionButton
-                tone="secondary"
+                tone="danger"
                 onClick={() => onRequestCancel(editingAppointment)}
-                className="border-[color:rgb(248_113_113_/_0.26)] text-[var(--app-danger-text)] hover:bg-[var(--app-danger-bg)]/18"
               >
                 {isPickup ? "Cancel pickup" : "Cancel appointment"}
               </ActionButton>
             ) : (
               <div />
-            )}
-          </div>
-          <div className="flex items-center justify-end gap-2">
-            <ActionButton tone="secondary" onClick={onClose}>
-              {isEditing ? "Close" : "Cancel"}
-            </ActionButton>
-            <ActionButton
-              tone="primary"
-              disabled={!composerState.customerId || !composerState.scheduledFor}
-              onClick={onSubmit}
-            >
-              {isEditing ? "Save changes" : "Create appointment"}
-            </ActionButton>
-          </div>
-        </div>
+            )
+          }
+        >
+          <ActionButton tone="secondary" onClick={onClose}>
+            {isEditing ? "Close" : "Cancel"}
+          </ActionButton>
+          <ActionButton
+            tone="primary"
+            disabled={!composerState.customerId || !composerState.scheduledFor}
+            onClick={onSubmit}
+          >
+            {isEditing ? "Save changes" : "Create appointment"}
+          </ActionButton>
+        </ModalFooterActions>
       }
     >
       <div className="grid gap-5">
-        <div className="border-b border-[var(--app-border)]/45 pb-4">
+        <div className="space-y-4 border-b border-[var(--app-border)]/45 pb-4">
           <div className="flex items-start justify-between gap-4">
-            <div className="min-w-0 flex-1">
-              <div className="flex flex-wrap items-center gap-x-3 gap-y-2">
-                <div>
-                  <div className="app-text-overline">Customer</div>
-                  {selectedCustomer ? <div className="app-text-value mt-1">{selectedCustomer.name}</div> : null}
-                </div>
-                <StatusPill
-                  tone={isPickup ? "dark" : "default"}
-                  className={
-                    isPickup
-                      ? "border-[color:rgb(191_219_254_/_0.16)] bg-[color:rgb(191_219_254_/_0.07)] text-[color:rgb(219_234_254)]"
-                      : "border-[color:rgb(125_211_252_/_0.16)] bg-[color:rgb(125_211_252_/_0.06)] text-[color:rgb(224_242_254)]"
-                  }
-                >
-                  {isPickup ? "Pickup" : "Appointment"}
-                </StatusPill>
+            <div className="min-w-0 space-y-1.5">
+              <div className="app-text-overline">Customer</div>
+              <div className="app-text-value">
+                {selectedCustomer ? selectedCustomer.name : "Choose a customer"}
+              </div>
+              <div className={selectedCustomer ? "app-text-body" : "app-text-body-muted"}>
+                {selectedCustomer
+                  ? (isPickup ? "Pickup visit" : "Appointment visit")
+                  : "Select who this visit belongs to before you schedule it."}
               </div>
               {selectedCustomer ? (
-                <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1.5">
-                  {selectedCustomer.phone ? (
-                    <div className="app-text-caption flex items-center gap-2">
-                      <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
-                      <span>{selectedCustomer.phone}</span>
-                    </div>
-                  ) : null}
-                  {selectedCustomer.email ? (
-                    <div className="app-text-caption flex items-center gap-2">
-                      <Mail className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
-                      <span>{selectedCustomer.email}</span>
-                    </div>
-                  ) : null}
-                </div>
+                <ModalMetaRow
+                  className="pt-1"
+                  items={[
+                    ...(selectedCustomer.phone ? [{ icon: Phone, content: selectedCustomer.phone }] : []),
+                    ...(selectedCustomer.email ? [{ icon: Mail, content: selectedCustomer.email }] : []),
+                  ]}
+                />
               ) : null}
             </div>
 
-            {!isPickup && selectedCustomer ? (
-              <button
-                type="button"
-                className="app-text-caption shrink-0 pt-0.5 font-medium text-[var(--app-text-muted)] transition hover:text-[var(--app-text)]"
-                onClick={() => {
-                  setShowCustomerSearch((current) => !current);
-                  onComposerQueryChange("");
-                }}
-              >
-                {showCustomerSearch ? "Keep selected" : "Change customer"}
-              </button>
-            ) : null}
+            <div className="flex shrink-0 flex-col items-end gap-2">
+              {!isPickup && selectedCustomer ? (
+                <button
+                  type="button"
+                  className="app-text-caption font-medium text-[var(--app-text-muted)] transition hover:text-[var(--app-text)]"
+                  onClick={() => {
+                    setShowCustomerSearch((current) => !current);
+                    onComposerQueryChange("");
+                  }}
+                >
+                  {showCustomerSearch ? "Keep selected" : "Change customer"}
+                </button>
+              ) : null}
+            </div>
           </div>
 
           {showResults ? (
             <div className="mt-4 space-y-2">
-              <input
+              <SearchField
+                label="Find customer"
                 value={composerQuery}
-                onChange={(event) => onComposerQueryChange(event.target.value)}
+                onChange={onComposerQueryChange}
                 placeholder="Search for a customer"
-                className="app-input app-text-body py-3"
               />
-              <div className="max-h-[220px] overflow-auto rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/16">
+              <div className="max-h-[220px] space-y-2 overflow-auto rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/22 p-2">
                 {filteredComposerCustomers.length > 0 ? filteredComposerCustomers.map((customer) => (
-                  <button
+                  <EntityRow
                     key={customer.id}
-                    type="button"
                     onClick={() => {
                       onComposerStateChange({ ...composerState, customerId: customer.id });
                       onComposerQueryChange("");
                       setShowCustomerSearch(false);
                     }}
-                    className="app-entity-row w-full text-left"
-                  >
-                    <div className="min-w-0 flex-1">
-                      <div className="app-text-strong">{customer.name}</div>
+                    title={customer.name}
+                    subtitle={
                       <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
                         <div className="app-text-caption flex items-center gap-1.5">
                           <Phone className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
@@ -244,66 +222,69 @@ export function AppointmentComposerModal({
                           </div>
                         ) : null}
                       </div>
-                    </div>
-                  </button>
+                    }
+                    className="w-full rounded-[var(--app-radius-md)] bg-[var(--app-surface)] px-4 py-3"
+                  />
                 )) : (
-                  <div className="app-text-caption px-3 py-3">No active customers match this search.</div>
+                  <InlineEmptyState>No active customers match this search.</InlineEmptyState>
                 )}
               </div>
             </div>
           ) : null}
 
           {isPickup ? (
-            <div className="mt-4 border-t border-[var(--app-border)]/35 pt-3">
-              <div className="app-text-overline">Linked order</div>
-              <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
-                {getLinkedOrderLabel(editingAppointment?.orderId) ? (
-                  <span className="app-text-body font-medium">{getLinkedOrderLabel(editingAppointment?.orderId)}</span>
-                ) : null}
-                {editingAppointment?.pickupSummary ? (
-                  <span className="app-text-body-muted">{editingAppointment.pickupSummary}</span>
-                ) : null}
+            <Callout tone="default">
+              <div className="space-y-1">
+                <div className="app-text-overline">Linked order</div>
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                  {getLinkedOrderLabel(editingAppointment?.orderId) ? (
+                    <span className="app-text-body font-medium">{getLinkedOrderLabel(editingAppointment?.orderId)}</span>
+                  ) : null}
+                  {editingAppointment?.pickupSummary ? (
+                    <span className="app-text-body-muted">{editingAppointment.pickupSummary}</span>
+                  ) : null}
+                </div>
               </div>
-            </div>
+            </Callout>
           ) : null}
         </div>
 
         <div className="grid gap-4 sm:grid-cols-2">
+          <ModalSectionHeading
+            eyebrow="Visit details"
+            title="Set the appointment information"
+            description="Choose the visit type, schedule, and location for the team."
+            className="sm:col-span-2"
+          />
           {!isPickup ? (
-            <label className="block">
-              <div className="app-field-label mb-2">Visit type</div>
-              <select
-                value={composerState.typeKey}
-                onChange={(event) => onComposerStateChange({
-                  ...composerState,
-                  typeKey: event.target.value as ServiceAppointmentType,
-                })}
-                className="app-input app-text-body py-2.5"
-              >
+            <SelectField
+              label="Visit type"
+              value={composerState.typeKey}
+              onChange={(value) => onComposerStateChange({
+                ...composerState,
+                typeKey: value as ServiceAppointmentType,
+              })}
+            >
                 {serviceAppointmentTypeOptions.map((option) => (
                   <option key={option.value} value={option.value}>
                     {option.label}
                   </option>
                 ))}
-              </select>
-            </label>
+            </SelectField>
           ) : null}
 
           {isEditing ? (
-            <label className="block">
-              <div className="app-field-label mb-2">Confirmation</div>
-              <select
-                value={composerState.confirmationStatus}
-                onChange={(event) => onComposerStateChange({
-                  ...composerState,
-                  confirmationStatus: event.target.value as AppointmentConfirmationStatus,
-                })}
-                className="app-input app-text-body py-2.5"
-              >
+            <SelectField
+              label="Confirmation"
+              value={composerState.confirmationStatus}
+              onChange={(value) => onComposerStateChange({
+                ...composerState,
+                confirmationStatus: value as AppointmentConfirmationStatus,
+              })}
+            >
                 <option value="unconfirmed">Unconfirmed</option>
                 <option value="confirmed">Confirmed</option>
-              </select>
-            </label>
+            </SelectField>
           ) : null}
 
           <label className="block">

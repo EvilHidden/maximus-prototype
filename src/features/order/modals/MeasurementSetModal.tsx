@@ -1,5 +1,6 @@
 import type { MeasurementSetOption } from "../../../types";
-import { ActionButton, ModalShell } from "../../../components/ui/primitives";
+import { ActionButton, EntityRow, InlineEmptyState, ModalShell, StatusPill } from "../../../components/ui/primitives";
+import { ModalFooterActions, ModalSectionHeading } from "../../../components/ui/modalPatterns";
 
 type MeasurementSetModalProps = {
   customerName: string;
@@ -19,28 +20,39 @@ export function MeasurementSetModal({
   onClose,
 }: MeasurementSetModalProps) {
   return (
-    <ModalShell title="Choose measurement set" subtitle={customerName} onClose={onClose}>
-      <div className="space-y-2">
-        {options.map((option) => (
-          <button
-            key={option.id}
-            onClick={() => onSelect(option.id)}
-            className="app-entity-row w-full text-left"
-          >
-            <div>
-              <div className="text-sm font-medium text-[var(--app-text)]">{option.label}</div>
-              <div className="mt-1 text-xs text-[var(--app-text-muted)]">{option.note}</div>
-            </div>
-            {currentMeasurementSetId === option.id ? <div className="text-xs font-medium text-[var(--app-text)]">Current</div> : null}
-          </button>
-        ))}
-      </div>
-
-      <div className="mt-4 flex items-center justify-between gap-3 border-t border-[var(--app-border)] pt-4">
-        <div className="text-xs text-[var(--app-text-muted)]">Need a new set instead?</div>
-        <ActionButton tone="primary" className="px-3 py-2 text-xs" onClick={onCreateNew}>
-          New measurements
-        </ActionButton>
+    <ModalShell
+      title="Choose measurement set"
+      subtitle={`Pick the saved measurements for ${customerName}.`}
+      onClose={onClose}
+      widthClassName="max-w-[560px]"
+      footer={
+        <ModalFooterActions leading={<div className="app-text-caption">Need a new set instead?</div>}>
+          <ActionButton tone="secondary" className="px-3 py-2 text-xs" onClick={onCreateNew}>
+            New measurements
+          </ActionButton>
+        </ModalFooterActions>
+      }
+    >
+      <div className="space-y-4">
+          <ModalSectionHeading
+            eyebrow="Saved sets"
+            title={options.length === 1 ? "1 saved set" : `${options.length} saved sets`}
+            description="Choose the measurements to use for this order."
+          />
+          <div className="max-h-[min(320px,calc(100vh-19rem))] space-y-2 overflow-auto rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/22 p-2">
+            {options.length ? options.map((option) => (
+              <EntityRow
+                key={option.id}
+                onClick={() => onSelect(option.id)}
+                title={option.label}
+                subtitle={option.note ? <span className="app-text-caption">{option.note}</span> : undefined}
+                meta={currentMeasurementSetId === option.id ? <StatusPill tone="dark">Current</StatusPill> : null}
+                className="w-full rounded-[var(--app-radius-md)] bg-[var(--app-surface)] px-4 py-3"
+              />
+            )) : (
+              <InlineEmptyState>No saved measurements for this customer yet.</InlineEmptyState>
+            )}
+          </div>
       </div>
     </ModalShell>
   );

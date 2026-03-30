@@ -1,4 +1,5 @@
-import { ActionButton, ModalShell, StatusPill } from "../../../components/ui/primitives";
+import { CalendarClock, MapPin } from "lucide-react";
+import { ActionButton } from "../../../components/ui/primitives";
 import type { Appointment } from "../../../types";
 import { getAppointmentDateLabel, getAppointmentTimeLabel } from "../selectors";
 
@@ -8,56 +9,60 @@ type ConfirmAppointmentCancelModalProps = {
   onClose: () => void;
 };
 
-function getKindLabel(appointment: Appointment) {
-  return appointment.kind === "pickup" ? "Pickup" : "Appointment";
-}
-
 export function ConfirmAppointmentCancelModal({
   appointment,
   onConfirm,
   onClose,
 }: ConfirmAppointmentCancelModalProps) {
   const confirmLabel = appointment.kind === "pickup" ? "Cancel pickup" : "Cancel appointment";
+  const kindLabel = appointment.kind === "pickup" ? "Pickup" : "Appointment";
+  const scheduledAt = `${getAppointmentDateLabel(appointment)} · ${getAppointmentTimeLabel(appointment)}`;
 
   return (
-    <ModalShell
-      title={confirmLabel}
-      subtitle={`Take ${appointment.customer} off the schedule?`}
-      onClose={onClose}
-      showCloseButton={false}
-      widthClassName="max-w-[460px]"
-      footer={
-        <div className="flex items-center justify-end gap-2">
-          <ActionButton tone="secondary" onClick={onClose}>
-            Keep it scheduled
-          </ActionButton>
-          <button
-            onClick={onConfirm}
-            className="flex min-h-11 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
-          >
-            {confirmLabel}
-          </button>
-        </div>
-      }
-    >
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <StatusPill tone={appointment.kind === "pickup" ? "warn" : "default"}>
-            {getKindLabel(appointment)}
-          </StatusPill>
-          <div className="app-text-caption">
-            {getAppointmentDateLabel(appointment)} at {getAppointmentTimeLabel(appointment)}
+    <div className="fixed inset-0 z-50">
+      <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
+      <div className="app-modal absolute left-1/2 top-1/2 w-full max-w-[408px] -translate-x-1/2 -translate-y-1/2">
+        <div className="space-y-5">
+          <div className="space-y-4">
+            <div className="space-y-2.5">
+              <div className="app-text-overline text-[var(--app-danger-text)]">{kindLabel}</div>
+              <div className="app-section-title">Cancel this appointment?</div>
+            </div>
+
+            <div className="space-y-3 border-t border-[var(--app-border)]/35 pt-4">
+              <div className="app-text-value">{appointment.customer}</div>
+              <div className="app-text-body">{appointment.type}</div>
+
+              <div className="space-y-2 pt-1">
+                <div className="flex items-start gap-2.5">
+                  <CalendarClock className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
+                  <div className="min-w-0">
+                    <div className="app-text-overline">When</div>
+                    <div className="app-text-body">{scheduledAt}</div>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-2.5">
+                  <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
+                  <div className="min-w-0">
+                    <div className="app-text-overline">Where</div>
+                    <div className="app-text-body">{appointment.location}</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex gap-2 border-t border-[var(--app-border)]/35 pt-4">
+            <ActionButton tone="secondary" onClick={onClose} className="min-w-0 flex-1 justify-center">
+              Keep it scheduled
+            </ActionButton>
+            <ActionButton tone="danger" onClick={onConfirm} className="min-w-0 flex-1 justify-center">
+              {confirmLabel}
+            </ActionButton>
           </div>
         </div>
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/18 px-3 py-3">
-          <div className="app-text-strong">{appointment.customer}</div>
-          <div className="app-text-caption mt-1">{appointment.type}</div>
-          <div className="app-text-caption mt-1">{appointment.location}</div>
-        </div>
-        <div className="app-text-body">
-          This removes it from the live schedule, but keeps a record of it.
-        </div>
       </div>
-    </ModalShell>
+    </div>
   );
 }

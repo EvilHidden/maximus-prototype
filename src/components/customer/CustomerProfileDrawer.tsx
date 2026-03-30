@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { Archive, ArrowRight, History, MessageSquare, PencilRuler, Ruler, User } from "lucide-react";
 import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../../types";
-import { ActionButton, ModalShell, StatusPill } from "../ui/primitives";
+import { ActionButton, Callout, ModalShell, StatusPill } from "../ui/primitives";
+import { ModalFooterActions, ModalSummaryCard } from "../ui/modalPatterns";
 import { MeasurementStatusPill, OrderStatusPill, VipPill } from "../ui/pills";
 import { formatCustomerOrderDate, formatCustomerOrderTotal } from "../../features/customer/selectors";
 
@@ -297,13 +298,14 @@ export function CustomerProfileDrawer({
                 </ActionButton>
               ) : null}
               {!archived ? (
-                <button
+                <ActionButton
+                  tone="danger"
                   onClick={() => setConfirmDeleteOpen(true)}
-                  className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
+                  className="min-h-12 px-4 py-2.5 text-sm"
                 >
                   <Archive className="h-4 w-4" />
                   Archive
-                </button>
+                </ActionButton>
               ) : null}
             </div>
           </div>
@@ -317,25 +319,35 @@ export function CustomerProfileDrawer({
           showCloseButton={false}
           widthClassName="max-w-[460px]"
           footer={
-            <div className="flex items-center justify-end gap-2">
+            <ModalFooterActions>
               <ActionButton tone="secondary" onClick={() => setConfirmDeleteOpen(false)} className="min-h-12 px-4 py-2.5 text-sm">
                 Cancel
               </ActionButton>
-              <button
+              <ActionButton
+                tone="danger"
                 onClick={() => {
                   setConfirmDeleteOpen(false);
                   onDeleteCustomer();
                 }}
-                className="flex min-h-12 items-center justify-center gap-2 rounded-[var(--app-radius-md)] border border-amber-200 bg-amber-50 px-4 py-2.5 text-sm font-medium text-amber-800 transition hover:border-amber-300 hover:bg-amber-100"
+                className="min-h-12 px-4 py-2.5 text-sm"
               >
                 <Archive className="h-4 w-4" />
                 Archive customer
-              </button>
-            </div>
+              </ActionButton>
+            </ModalFooterActions>
           }
         >
-          <div className="app-text-body">
-            This customer will be removed from new operational workflows, but their past orders, appointments, and measurements will stay attached for lookup.
+          <div className="space-y-3">
+            <ModalSummaryCard
+              eyebrow="Customer record"
+              title={customer?.name ?? "Customer"}
+              description="This profile will leave new operational workflows, but its history stays attached for lookup."
+            />
+            <Callout tone="warn">
+              <div className="app-text-caption">
+                Past orders, appointments, and measurement history will remain available for reference after archiving.
+              </div>
+            </Callout>
           </div>
         </ModalShell>
       ) : null}

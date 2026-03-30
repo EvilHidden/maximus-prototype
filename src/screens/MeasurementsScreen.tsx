@@ -1,7 +1,8 @@
 import { useMemo, useState } from "react";
 import { Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
-import { ModalShell, SectionHeader, ActionButton, Surface } from "../components/ui/primitives";
+import { Callout, ModalShell, SectionHeader, ActionButton, Surface } from "../components/ui/primitives";
+import { ModalFooterActions, ModalSummaryCard } from "../components/ui/modalPatterns";
 import { useToast } from "../components/ui/toast";
 import { CustomerEditorModal } from "../components/customer/CustomerEditorModal";
 import { filterCustomers, getActiveCustomers } from "../features/customer/selectors";
@@ -365,7 +366,15 @@ export function MeasurementsScreen({
           }}
           widthClassName="max-w-[520px]"
           footer={
-            <div className="flex items-center justify-end gap-3">
+            <ModalFooterActions
+              leading={
+                <div className="app-text-caption">
+                  {saveMode === "copy"
+                    ? "This creates a second reusable set from the current measurements."
+                    : "This updates the customer’s active saved set."}
+                </div>
+              }
+            >
               <ActionButton
                 tone="secondary"
                 onClick={() => {
@@ -386,22 +395,26 @@ export function MeasurementsScreen({
               >
                 {saveMode === "copy" ? "Save new set" : "Save set"}
               </ActionButton>
-            </div>
+            </ModalFooterActions>
           }
         >
-          <label className="block">
-            <div className="app-field-label mb-2">Set name</div>
-            <input
-              value={saveTitle}
-              onChange={(event) => setSaveTitle(event.target.value)}
-              placeholder="Measurement set name"
-              className="app-input app-text-body py-3"
+          <div className="space-y-3">
+            <ModalSummaryCard
+              eyebrow="Measurement set"
+              title={saveMode === "copy" ? "Create a new saved set" : "Save over the active set"}
+              description={saveMode === "copy"
+                ? "Use a distinct name so the operator can tell this set apart later."
+                : "This replaces the customer’s current saved measurements with what’s on screen now."}
             />
-          </label>
-          <div className="app-text-body-muted mt-3">
-            {saveMode === "copy"
-              ? "This saves the current measurements as a new reusable set."
-              : "This saves the current measurements as the active set for this customer."}
+            <label className="block">
+              <div className="app-field-label mb-2">Set name</div>
+              <input
+                value={saveTitle}
+                onChange={(event) => setSaveTitle(event.target.value)}
+                placeholder="Measurement set name"
+                className="app-input app-text-body py-3"
+              />
+            </label>
           </div>
         </ModalShell>
       ) : null}
@@ -413,12 +426,12 @@ export function MeasurementsScreen({
           onClose={() => setPendingDeleteSetId(null)}
           widthClassName="max-w-[480px]"
           footer={
-            <div className="flex items-center justify-end gap-3">
+            <ModalFooterActions>
               <ActionButton tone="secondary" onClick={() => setPendingDeleteSetId(null)}>
                 Cancel
               </ActionButton>
               <ActionButton
-                tone="primary"
+                tone="danger"
                 onClick={() => {
                   onDeleteMeasurementSet(pendingDeleteSet.id);
                   setPendingDeleteSetId(null);
@@ -426,11 +439,20 @@ export function MeasurementsScreen({
               >
                 Delete set
               </ActionButton>
-            </div>
+            </ModalFooterActions>
           }
         >
-          <div className="app-text-body-muted">
-            Remove this set from the customer's saved sets. If this order is using it, the measurements will stay here as a draft.
+          <div className="space-y-3">
+            <ModalSummaryCard
+              eyebrow="Saved measurements"
+              title={pendingDeleteSet.label}
+              description="This removes the set from the customer’s saved library."
+            />
+            <Callout tone="warn">
+              <div className="app-text-caption">
+                If the current order is already using this set, the measurements stay in the draft here until you replace them.
+              </div>
+            </Callout>
           </div>
         </ModalShell>
       ) : null}

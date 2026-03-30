@@ -3,6 +3,7 @@ import { CheckSquare2, Square } from "lucide-react";
 import { useState } from "react";
 import type { Customer, PickupLocation } from "../../types";
 import { ActionButton, FieldLabel, ModalShell, StatusPill, cx } from "../ui/primitives";
+import { ModalFooterActions, ModalSummaryCard } from "../ui/modalPatterns";
 import { VipPill } from "../ui/pills";
 
 type CustomerEditorModalProps = {
@@ -195,7 +196,17 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
       showCloseButton={false}
       widthClassName="max-w-[900px]"
       footer={
-        <div className="flex items-center justify-end gap-2">
+        <ModalFooterActions
+          leading={
+            showValidationSummary ? (
+              <div className="app-text-caption text-[var(--app-danger-text)]">{validationMessage}</div>
+            ) : (
+              <div className="app-text-caption">
+                {mode === "add" ? "Customer profiles can be added now and refined later." : "Save when the service details are accurate."}
+              </div>
+            )
+          }
+        >
           <ActionButton tone="secondary" onClick={onClose} className="min-h-12 px-4 py-2.5 text-sm">
             Cancel
           </ActionButton>
@@ -213,15 +224,17 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
           >
             {mode === "add" ? "Add customer" : "Save changes"}
           </ActionButton>
-        </div>
+        </ModalFooterActions>
       }
     >
       <div className="space-y-5">
         <div className="border-b border-[var(--app-border)]/35 pb-4">
-          <div className="flex flex-wrap items-center gap-2">
-            <div className="app-text-value">{formattedName || "Unnamed customer"}</div>
-            {draft.isVip ? <VipPill /> : null}
-          </div>
+          <ModalSummaryCard
+            eyebrow="Customer profile"
+            title={formattedName || "Unnamed customer"}
+            description={draft.email || draft.phone || "Add contact details, service notes, and profile preferences."}
+            aside={<div className="flex flex-wrap items-center gap-2">{draft.isVip ? <VipPill /> : null}</div>}
+          />
           {showValidationSummary ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <StatusPill tone="danger">{mode === "add" ? "Missing required details" : "Complete required details"}</StatusPill>
