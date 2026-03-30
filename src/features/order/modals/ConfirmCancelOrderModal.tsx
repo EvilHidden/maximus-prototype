@@ -1,4 +1,6 @@
+import { ReceiptText } from "lucide-react";
 import { ActionButton, ModalShell, StatusPill } from "../../../components/ui/primitives";
+import { ModalFooterActions, ModalSummaryCard } from "../../../components/ui/modalPatterns";
 import type { OpenOrder } from "../../../types";
 import { getOpenOrderTypeLabel } from "../selectors";
 
@@ -16,19 +18,19 @@ export function ConfirmCancelOrderModal({
   return (
     <ModalShell
       title="Cancel order"
-      subtitle={`Cancel ${openOrder.payerName}'s order?`}
+      subtitle={`Stop working on ${openOrder.payerName}'s order?`}
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[460px]"
       footer={
-        <div className="flex items-center justify-end gap-2">
+        <ModalFooterActions>
           <ActionButton tone="secondary" onClick={onClose}>
             Back
           </ActionButton>
-          <ActionButton tone="primary" onClick={onConfirm}>
+          <ActionButton tone="danger" onClick={onConfirm}>
             Cancel order
           </ActionButton>
-        </div>
+        </ModalFooterActions>
       }
     >
       <div className="space-y-3">
@@ -38,12 +40,18 @@ export function ConfirmCancelOrderModal({
             {getOpenOrderTypeLabel(openOrder.orderType)} • Order #{openOrder.id}
           </div>
         </div>
-        <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/18 px-3 py-3">
-          <div className="app-text-strong">{openOrder.payerName}</div>
-          <div className="app-text-caption mt-1">{openOrder.itemSummary.join(", ")}</div>
-        </div>
-        <div className="app-text-body">
-          This closes the order immediately and removes it from active work. Use this only when the order should be canceled for real.
+        <ModalSummaryCard
+          eyebrow="Paying customer"
+          title={openOrder.payerName}
+          description={openOrder.itemSummary.join(" · ")}
+          aside={
+            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)] px-3 py-2 text-[var(--app-text-soft)]">
+              <ReceiptText className="h-4 w-4" />
+            </div>
+          }
+        />
+        <div className="app-text-body-muted">
+          The order comes out of active work as soon as you confirm. Only do this if the order is really canceled.
         </div>
       </div>
     </ModalShell>

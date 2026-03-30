@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import type { AlterationPickup, CustomOccasion, CustomOrderEventType, PickupLocation } from "../../../types";
-import { ActionButton, FieldLabel, ModalShell } from "../../../components/ui/primitives";
+import { ActionButton, Callout, FieldLabel, ModalShell } from "../../../components/ui/primitives";
+import { ModalFooterActions, ModalSectionHeading } from "../../../components/ui/modalPatterns";
 
 type PickupScheduleModalProps =
   | {
@@ -115,23 +116,31 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
       onClose={onClose}
       widthClassName="max-w-[720px]"
       footer={
-        <div className="flex items-center justify-between gap-3">
-          <div className="text-xs text-[var(--app-text-muted)]">
+        <ModalFooterActions
+          leading={
+            <div className="app-text-caption">
             {isAlterationScope && (hasPastPickupSelection || selectedTimeIsUnavailable)
               ? "Pickup must be scheduled for an available future time."
               : isAlterationScope
                 ? "Required before moving the order forward."
                 : "Wedding, prom, and anniversary dates help with reminders and follow-up."}
-          </div>
+            </div>
+          }
+        >
           <ActionButton tone="primary" onClick={onClose} disabled={pickupInvalid}>
             {isAlterationScope ? "Save pickup" : "Save occasion"}
           </ActionButton>
-        </div>
+        </ModalFooterActions>
       }
     >
       <div className="space-y-5">
         {isAlterationScope ? (
           <>
+            <ModalSectionHeading
+              eyebrow="Pickup timing"
+              title="Set when the customer can collect it"
+              description="Choose a date first, then pick from the available shop times."
+            />
             <label className="block text-sm">
               <FieldLabel>Pickup date</FieldLabel>
               <input
@@ -180,14 +189,19 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                   })}
                 </div>
               ) : (
-                <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
+                <Callout tone="default">
                   <div className="app-text-caption">Choose a pickup date first to see available times.</div>
-                </div>
+                </Callout>
               )}
             </div>
           </>
         ) : (
           <>
+            <ModalSectionHeading
+              eyebrow="Occasion"
+              title="Add an event only when it matters to the garment"
+              description="Occasion dates help with reminders and timing, but they are optional."
+            />
             <div>
               <FieldLabel>Event type</FieldLabel>
               <div className="mt-2 grid grid-cols-3 gap-2">
@@ -229,15 +243,20 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                 />
               </label>
             ) : (
-              <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] px-4 py-3">
+              <Callout tone="default">
                 <div className="app-text-caption">No occasion attached to this garment.</div>
-              </div>
+              </Callout>
             )}
           </>
         )}
 
         {isAlterationScope ? (
           <div>
+            <ModalSectionHeading
+              eyebrow="Pickup location"
+              title="Choose where the handoff happens"
+              description="Keep the pickup location tied to the schedule so the front-of-house team sees the right shop."
+            />
             <FieldLabel>Pickup location</FieldLabel>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
               {pickupLocations.map((location) => (
