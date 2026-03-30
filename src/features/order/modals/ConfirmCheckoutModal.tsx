@@ -2,7 +2,6 @@ import { CircleDollarSign, ReceiptText } from "lucide-react";
 import { ActionButton, Callout, ModalShell, StatusPill } from "../../../components/ui/primitives";
 import {
   ModalFooterActions,
-  ModalSectionHeading,
   ModalSummaryCard,
 } from "../../../components/ui/modalPatterns";
 import type { CheckoutPaymentMode, OpenOrder } from "../../../types";
@@ -69,7 +68,6 @@ export function ConfirmCheckoutModal({
   return (
     <ModalShell
       title="Take payment"
-      subtitle={`Take ${openOrder.payerName}'s payment in Square, then mark it here.`}
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[500px]"
@@ -153,13 +151,13 @@ export function ConfirmCheckoutModal({
           title={openOrder.payerName}
           description={openOrder.itemSummary.join(" · ")}
           aside={
-            <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)] px-3 py-2 text-right">
+            <div className="text-right">
               <div className="app-text-overline">{titleLabel}</div>
               <div className="mt-1 app-text-value">{amountDisplay}</div>
             </div>
           }
         />
-        <Callout tone="default" icon={CircleDollarSign} title={<span className="app-text-strong">What this pays for</span>}>
+        <Callout tone="default" icon={CircleDollarSign} title={<span className="app-text-strong">What this covers</span>}>
           <div className="app-text-caption">{amountExplanation}</div>
         </Callout>
         {branchGuidance ? (
@@ -167,26 +165,10 @@ export function ConfirmCheckoutModal({
             <div className="app-text-caption">{branchGuidance}</div>
           </Callout>
         ) : null}
-        <div className="space-y-2">
-          <ModalSectionHeading
-            eyebrow="Square steps"
-            title="Take the payment in Square first"
-            description="Use this only after the card charge is done."
-          />
-          <div className="space-y-2">
-            {[
-              "Go to the Square terminal and take the customer's payment.",
-              "Come back here only after the terminal payment is complete.",
-              "Then mark the payment collected to keep the order in sync.",
-            ].map((step, index) => (
-              <div key={step} className="flex items-start gap-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] px-3 py-3">
-                <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[var(--app-border)] bg-[var(--app-surface-muted)] app-text-caption font-semibold">
-                  {index + 1}
-                </div>
-                <div className="app-text-body">{step}</div>
-              </div>
-            ))}
-          </div>
+        <div className="space-y-1.5 border-t border-[var(--app-border)]/35 pt-3">
+          <div className="app-text-overline">Before you confirm</div>
+          <div className="app-text-body">Take the payment in Square first.</div>
+          <div className="app-text-caption">Only mark it here after the terminal says the payment went through.</div>
         </div>
       </div>
     </ModalShell>

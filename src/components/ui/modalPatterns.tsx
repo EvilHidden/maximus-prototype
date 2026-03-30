@@ -23,6 +23,7 @@ type ModalSummaryCardProps = {
   meta?: ReactNode;
   aside?: ReactNode;
   className?: string;
+  tone?: "default" | "muted";
 };
 
 type ModalMetaItem = {
@@ -81,19 +82,26 @@ export function ModalSummaryCard({
   meta,
   aside,
   className = "",
+  tone = "default",
 }: ModalSummaryCardProps) {
   return (
-    <ModalPanel className={className}>
+    <div
+      className={cx(
+        "app-modal-summary",
+        tone === "muted" && "app-modal-summary--muted",
+        className,
+      )}
+    >
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 flex-1">
           {eyebrow ? <div className="app-text-overline">{eyebrow}</div> : null}
           <div className={cx(eyebrow ? "mt-1" : "", "app-text-value")}>{title}</div>
-          {description ? <div className="mt-2 app-text-body">{description}</div> : null}
-          {meta ? <div className="mt-3">{meta}</div> : null}
+          {description ? <div className="mt-1.5 app-text-body">{description}</div> : null}
+          {meta ? <div className="mt-2.5">{meta}</div> : null}
         </div>
         {aside ? <div className="shrink-0">{aside}</div> : null}
       </div>
-    </ModalPanel>
+    </div>
   );
 }
 

@@ -22,7 +22,6 @@ export function MeasurementSetModal({
   return (
     <ModalShell
       title="Choose measurement set"
-      subtitle={`Pick the saved measurements for ${customerName}.`}
       onClose={onClose}
       widthClassName="max-w-[560px]"
       footer={
@@ -35,7 +34,6 @@ export function MeasurementSetModal({
     >
       <div className="space-y-4">
           <ModalSectionHeading
-            eyebrow="Saved sets"
             title={options.length === 1 ? "1 saved set" : `${options.length} saved sets`}
             description="Choose the measurements to use for this order."
           />

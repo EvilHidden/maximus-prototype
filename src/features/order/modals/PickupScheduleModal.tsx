@@ -112,7 +112,6 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
   return (
     <ModalShell
       title={scope === "alteration" ? "Set alteration pickup" : "Set occasion"}
-      subtitle={isAlterationScope ? "Set date, time, and location" : "Add the event only if this garment is tied to a timed occasion"}
       onClose={onClose}
       widthClassName="max-w-[720px]"
       footer={
@@ -139,7 +138,7 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
             <ModalSectionHeading
               eyebrow="Pickup timing"
               title="Set when the customer can collect it"
-              description="Choose a date first, then pick from the available shop times."
+              description="Choose a date first, then pick a shop time."
             />
             <label className="block text-sm">
               <FieldLabel>Pickup date</FieldLabel>
@@ -200,7 +199,7 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
             <ModalSectionHeading
               eyebrow="Occasion"
               title="Add an event only when it matters to the garment"
-              description="Occasion dates help with reminders and timing, but they are optional."
+              description="This is optional."
             />
             <div>
               <FieldLabel>Event type</FieldLabel>
@@ -255,7 +254,7 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
             <ModalSectionHeading
               eyebrow="Pickup location"
               title="Choose where the handoff happens"
-              description="Keep the pickup location tied to the schedule so the front-of-house team sees the right shop."
+              description="Pick the shop for this handoff."
             />
             <FieldLabel>Pickup location</FieldLabel>
             <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">

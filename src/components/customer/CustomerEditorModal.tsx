@@ -244,7 +244,7 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
         </div>
 
         <div className="grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.8fr)]">
-          <div className="space-y-6 rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/34 px-4 py-4">
+          <div className="space-y-6">
             <SectionBlock title="Customer">
               <div className="space-y-5">
                 <div className="grid gap-4 md:grid-cols-2">
