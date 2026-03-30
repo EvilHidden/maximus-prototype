@@ -89,7 +89,7 @@ describe("order reducer", () => {
 
     const next = tryReduceOrderAction(
       state,
-      { type: "saveOpenOrder", paymentStatus: "due_later", openCheckout: false },
+      { type: "saveOpenOrder", paymentMode: "none", openCheckout: false },
       { now: new Date(2026, 2, 22, 9, 30, 0, 0), idFactory: () => 9501 },
     );
 
@@ -217,7 +217,7 @@ describe("order reducer", () => {
 
     const saved = tryReduceOrderAction(
       state,
-      { type: "saveOpenOrder", paymentStatus: "due_later", openCheckout: true },
+      { type: "saveOpenOrder", paymentMode: "none", openCheckout: true },
       { now: new Date(2026, 2, 22, 9, 30, 0, 0), idFactory: () => 9502 },
     )!;
 
@@ -235,6 +235,63 @@ describe("order reducer", () => {
     expect(adaptOpenOrders(next!.database).find((order) => order.id === 9502)).toMatchObject({
       operationalStatus: "in_progress",
     });
+  });
+
+  it("reverts a just-accepted save back into checkout when payment is backed out", () => {
+    const state = createReducerState();
+    state.order.activeWorkflow = "custom";
+    state.order.payerCustomerId = "cus_1";
+    state.order.custom.items = [
+      {
+        ...state.order.custom.draft,
+        id: 202,
+        gender: "male",
+        wearerCustomerId: "cus_2",
+        isRush: false,
+        selectedGarment: "Dinner jacket",
+        linkedMeasurementSetId: "SET-2-V1",
+        measurements: { Chest: "40" },
+        fabric: "Midnight navy",
+        buttons: "Horn",
+        lining: "Bemberg",
+        threads: "Tonal",
+        lapel: "Peak",
+        pocketType: "Flap",
+        canvas: "Full",
+        wearerName: "Sam Rivera",
+        linkedMeasurementLabel: "Version 1",
+        measurementSnapshot: { Chest: "40" },
+      },
+    ];
+    state.order.fulfillment.custom = {
+      eventType: "wedding",
+      eventDate: "2026-04-12",
+    };
+
+    const saved = tryReduceOrderAction(
+      state,
+      { type: "saveOpenOrder", paymentMode: "minimum_due", openCheckout: true },
+      { now: new Date(2026, 2, 22, 9, 30, 0, 0), idFactory: () => 9503 },
+    )!;
+
+    expect(saved.checkoutRequestedPaymentMode).toBe("minimum_due");
+    expect(saved.checkoutOpenOrderId).toBe(9503);
+    expect(adaptOpenOrders(saved.database).find((order) => order.id === 9503)).toBeTruthy();
+
+    const reverted = appReducer(saved, { type: "revertAcceptedOrderSave", openOrderId: 9503 });
+
+    expect(reverted.screen).toBe("checkout");
+    expect(reverted.checkoutOpenOrderId).toBeNull();
+    expect(reverted.checkoutJustSavedOpenOrderId).toBeNull();
+    expect(reverted.checkoutRequestedPaymentMode).toBeNull();
+    expect(reverted.order.activeWorkflow).toBe("custom");
+    expect(reverted.order.payerCustomerId).toBe("cus_1");
+    expect(reverted.order.custom.items).toHaveLength(1);
+    expect(reverted.order.custom.items[0]).toMatchObject({
+      selectedGarment: "Dinner jacket",
+      wearerName: "Sam Rivera",
+    });
+    expect(adaptOpenOrders(reverted.database).find((order) => order.id === 9503)).toBeFalsy();
   });
 
   it("reassigns in-house tailoring work from the work queue", () => {
@@ -264,22 +321,19 @@ describe("order reducer", () => {
 
     const next = tryReduceOrderAction(
       state,
-      { type: "completeOpenOrderCheckout", openOrderId: 9005 },
+      { type: "completeOpenOrderCheckout", openOrderId: 9005, paymentMode: "full_balance" },
       { now: new Date("2026-03-22T16:05:00.000Z") },
     );
 
     expect(next?.checkoutOpenOrderId).toBe(9005);
     expect(next?.checkoutJustCompletedOpenOrderId).toBe(9005);
-    expect(next?.database.payments.filter((payment) => payment.orderId === "order-9005")).toMatchObject([
-      {
-        status: "due_later",
-        amount: 0,
-      },
-      {
+    expect(next?.database.payments.filter((payment) => payment.orderId === "order-9005")).toContainEqual(
+      expect.objectContaining({
         status: "captured",
         amount: 40,
-      },
-    ]);
+        allocation: "full_balance",
+      }),
+    );
     expect(adaptOpenOrders(next!.database).find((order) => order.id === 9005)).toMatchObject({
       balanceDue: 0,
       totalCollected: 40,
@@ -301,7 +355,7 @@ describe("order reducer", () => {
 
     const next = tryReduceOrderAction(
       state,
-      { type: "completeOpenOrderCheckout", openOrderId: 9003 },
+      { type: "completeOpenOrderCheckout", openOrderId: 9003, paymentMode: "minimum_due" },
       { now: new Date("2026-03-22T16:10:00.000Z") },
     );
 
@@ -395,7 +449,7 @@ describe("order reducer", () => {
     })!;
     state = tryReduceOrderAction(
       state,
-      { type: "saveOpenOrder", paymentStatus: "ready_to_collect", openCheckout: false },
+      { type: "saveOpenOrder", paymentMode: "none", openCheckout: false },
       { now: new Date("2026-03-22T16:00:00.000Z") },
     )!;
 
@@ -480,7 +534,7 @@ describe("order reducer", () => {
     )!;
     state = tryReduceOrderAction(
       state,
-      { type: "saveOpenOrder", paymentStatus: "due_later", openCheckout: false },
+      { type: "saveOpenOrder", paymentMode: "none", openCheckout: false },
       { now: new Date("2026-03-22T16:00:00.000Z") },
     )!;
 

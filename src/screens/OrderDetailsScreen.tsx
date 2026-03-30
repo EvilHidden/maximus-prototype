@@ -1,9 +1,9 @@
 import { CalendarClock, ChevronDown, ClipboardList, CreditCard, MapPin } from "lucide-react";
-import { useMemo, useState } from "react";
-import type { Customer, OpenOrder, Screen } from "../types";
+import { useEffect, useMemo, useState } from "react";
+import type { CheckoutPaymentMode, Customer, OpenOrder, Screen } from "../types";
 import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import {
-  getOpenOrderPickupBalanceDue,
+  getMixedPaymentAllocation,
   getOpenOrderPickupGroups,
   getOpenOrderTypeLabel,
   hasReadyScopesForPickup,
@@ -22,8 +22,11 @@ type OrderDetailsScreenProps = {
   openOrder: OpenOrder | null;
   showAcceptedConfirmation: boolean;
   showCheckoutCompletion: boolean;
+  requestedCheckoutPaymentMode: Exclude<CheckoutPaymentMode, "none"> | null;
   onScreenChange: (screen: Screen) => void;
-  onCompleteOpenOrderCheckout: (openOrderId: number) => void;
+  onDismissRequestedCheckoutPayment: () => void;
+  onRevertAcceptedOrderSave: (openOrderId: number) => void;
+  onCompleteOpenOrderCheckout: (openOrderId: number, paymentMode: Exclude<CheckoutPaymentMode, "none">) => void;
   onEditOpenOrder: (openOrderId: number) => void;
   onCancelOpenOrder: (openOrderId: number) => void;
   onCompleteOpenOrderPickup: (openOrderId: number) => void;
@@ -160,7 +163,10 @@ export function OrderDetailsScreen({
   openOrder,
   showAcceptedConfirmation,
   showCheckoutCompletion,
+  requestedCheckoutPaymentMode,
   onScreenChange,
+  onDismissRequestedCheckoutPayment,
+  onRevertAcceptedOrderSave,
   onCompleteOpenOrderCheckout,
   onEditOpenOrder,
   onCancelOpenOrder,
@@ -169,6 +175,7 @@ export function OrderDetailsScreen({
   const [checkoutConfirmOpen, setCheckoutConfirmOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [expandedItemIds, setExpandedItemIds] = useState<string[]>([]);
+  const [selectedCheckoutPaymentMode, setSelectedCheckoutPaymentMode] = useState<Exclude<CheckoutPaymentMode, "none">>("minimum_due");
 
   const checkoutCustomer = useMemo(
     () => (openOrder ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null : null),
@@ -182,6 +189,15 @@ export function OrderDetailsScreen({
         : [...current, itemId]
     ));
   };
+
+  useEffect(() => {
+    if (!openOrder || !showAcceptedConfirmation || !requestedCheckoutPaymentMode) {
+      return;
+    }
+
+    setSelectedCheckoutPaymentMode(requestedCheckoutPaymentMode);
+    setCheckoutConfirmOpen(true);
+  }, [openOrder, requestedCheckoutPaymentMode, showAcceptedConfirmation]);
 
   if (!openOrder) {
     return (
@@ -206,16 +222,26 @@ export function OrderDetailsScreen({
   }
 
   const hasReadyScopesToPickup = hasReadyScopesForPickup(openOrder);
-  const readyPickupBalanceDue = getOpenOrderPickupBalanceDue(openOrder);
-  const dueNow = hasReadyScopesToPickup && readyPickupBalanceDue > 0 ? readyPickupBalanceDue : openOrder.balanceDue;
+  const mixedAllocation = openOrder.orderType === "mixed" && !hasReadyScopesToPickup
+    ? getMixedPaymentAllocation(openOrder)
+    : null;
+  const dueNow = openOrder.paymentDueNow;
   const remainingLater = dueNow < openOrder.balanceDue ? openOrder.balanceDue - dueNow : 0;
+  const displayAmountNow = openOrder.balanceDue > 0 && dueNow <= 0 ? openOrder.balanceDue : dueNow;
   const checkoutSubtitle = getDetailsSubtitle(openOrder, dueNow, remainingLater, hasReadyScopesToPickup);
   const pickupGroups = getOpenOrderPickupGroups(openOrder, {
     includePickedUp: openOrder.orderType === "mixed",
   });
   const totalsItems = [
     { label: "Collected", value: formatCheckoutCurrency(openOrder.totalCollected) },
-    { label: hasReadyScopesToPickup && dueNow > 0 ? "Due today" : "Balance due", value: formatCheckoutCurrency(dueNow) },
+    {
+      label: hasReadyScopesToPickup && dueNow > 0
+        ? "Due today"
+        : dueNow <= 0 && openOrder.balanceDue > 0
+          ? "Open balance"
+          : "Balance due",
+      value: formatCheckoutCurrency(displayAmountNow),
+    },
     ...(remainingLater > 0 ? [{ label: "Later after today", value: formatCheckoutCurrency(remainingLater) }] : []),
     { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
   ];
@@ -246,13 +272,21 @@ export function OrderDetailsScreen({
               }).format(new Date(openOrder.createdAt))}`}
               meta={(
                 <div className="text-right">
-                  <div className="app-text-overline">{hasReadyScopesToPickup && dueNow > 0 ? "Due today" : "Balance due"}</div>
+                  <div className="app-text-overline">
+                    {hasReadyScopesToPickup && dueNow > 0
+                      ? "Due today"
+                      : dueNow <= 0 && openOrder.balanceDue > 0
+                        ? "Open balance"
+                        : "Balance due"}
+                  </div>
                   <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-                    {dueNow > 0 ? formatCheckoutCurrency(dueNow) : "Paid"}
+                    {displayAmountNow > 0 ? formatCheckoutCurrency(displayAmountNow) : "Paid"}
                   </div>
                   <div className="app-text-caption mt-1">
                     {remainingLater > 0
                       ? `${formatCheckoutCurrency(remainingLater)} stays with unfinished work`
+                      : dueNow <= 0 && openOrder.balanceDue > 0
+                        ? "Prepay can be taken now or later"
                       : openOrder.balanceDue > 0
                         ? "Still due on this order"
                         : "No balance due"}
@@ -478,8 +512,14 @@ export function OrderDetailsScreen({
             subtitle={remainingLater > 0 ? "Due today and what stays with unfinished work." : "Collected so far and what is still open."}
             totalsItems={totalsItems}
           >
-            {dueNow > 0 ? (
-              <ActionButton tone="primary" onClick={() => setCheckoutConfirmOpen(true)}>
+            {openOrder.balanceDue > 0 ? (
+              <ActionButton
+                tone="primary"
+                onClick={() => {
+                  setSelectedCheckoutPaymentMode(openOrder.paymentDueNow <= 0 ? "full_balance" : "minimum_due");
+                  setCheckoutConfirmOpen(true);
+                }}
+              >
                 <CreditCard className="h-4 w-4" />
                 <span>{hasReadyScopesToPickup ? "Take payment for ready pieces" : "Take payment"}</span>
               </ActionButton>
@@ -489,11 +529,11 @@ export function OrderDetailsScreen({
               </ActionButton>
             ) : (
               <ActionButton tone="primary" onClick={() => onEditOpenOrder(openOrder.id)}>
-                Edit in builder
+                Edit order
               </ActionButton>
             )}
             <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
-              Edit in builder
+              Edit order
             </ActionButton>
             <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
               Back to orders
@@ -508,11 +548,25 @@ export function OrderDetailsScreen({
       {checkoutConfirmOpen ? (
         <ConfirmCheckoutModal
           openOrder={openOrder}
-          amountDue={dueNow}
-          onClose={() => setCheckoutConfirmOpen(false)}
-          onConfirm={() => {
+          minimumAmountDue={dueNow}
+          depositAndAlterationAmount={mixedAllocation
+            ? Math.max(mixedAllocation.depositDue - mixedAllocation.depositPaid, 0) + Math.max(mixedAllocation.alterationDue - mixedAllocation.alterationPaid, 0)
+            : dueNow}
+          fullAmountDue={openOrder.balanceDue}
+          selectedPaymentMode={selectedCheckoutPaymentMode}
+          lockPaymentMode={Boolean(requestedCheckoutPaymentMode)}
+          onClose={() => {
             setCheckoutConfirmOpen(false);
-            onCompleteOpenOrderCheckout(openOrder.id);
+            if (requestedCheckoutPaymentMode && showAcceptedConfirmation) {
+              onRevertAcceptedOrderSave(openOrder.id);
+              return;
+            }
+            onDismissRequestedCheckoutPayment();
+          }}
+          onConfirm={(paymentMode) => {
+            setCheckoutConfirmOpen(false);
+            onDismissRequestedCheckoutPayment();
+            onCompleteOpenOrderCheckout(openOrder.id, paymentMode);
           }}
         />
       ) : null}

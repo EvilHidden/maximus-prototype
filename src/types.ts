@@ -7,6 +7,7 @@ export type MeasurementStatus = "on_file" | "missing";
 export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
 export type OpenOrderPaymentStatus = "due_later" | "ready_to_collect" | "pending" | "captured";
+export type CheckoutPaymentMode = "none" | "minimum_due" | "deposit_and_alterations" | "full_balance";
 export type OpenOrderOperationalStatus = "accepted" | "in_progress" | "partially_ready" | "ready_for_pickup";
 export type CustomOrderEventType = "none" | "wedding" | "prom" | "anniversary";
 export type AppointmentSource = "square" | "manual" | "prototype";

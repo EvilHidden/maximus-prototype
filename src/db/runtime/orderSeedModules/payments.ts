@@ -2,18 +2,6 @@ import type { DbOrder, DbOrderScope, DbOrderScopeLine, DbPaymentRecord, DbSquare
 import { roundCurrency } from "../../pricing";
 import { RuntimeSeedDates, toDateTimeString, withOffset } from "../support";
 
-function dueLater(orderId: string): DbPaymentRecord {
-  return {
-    id: `pay-${orderId.replace("order-", "")}`,
-    orderId,
-    source: "prototype",
-    status: "due_later",
-    amount: 0,
-    collectedAt: null,
-    squarePaymentId: null,
-  };
-}
-
 function customDeposit(orderId: string, amount: number, collectedAt: string, squarePaymentId: string): DbPaymentRecord {
   return {
     id: `pay-${orderId.replace("order-", "")}`,
@@ -135,21 +123,6 @@ export function createPayments(
     customDeposit("order-9015", getOrderPricing(pricingByOrderId, "order-9015").depositDue, toDateTimeString(withOffset(baseDate, -3, 15, 30)), "sq_pay_9015"),
     customDeposit("order-9019", getOrderPricing(pricingByOrderId, "order-9019").depositDue, toDateTimeString(withOffset(baseDate, -2, 16, 35)), "sq_pay_9019"),
     customDeposit("order-9023", getOrderPricing(pricingByOrderId, "order-9023").depositDue, toDateTimeString(withOffset(baseDate, -5, 14, 30)), "sq_pay_9023"),
-
-    // Open orders with no payment captured yet.
-    dueLater("order-9002"),
-    dueLater("order-9004"),
-    dueLater("order-9005"),
-    dueLater("order-9007"),
-    dueLater("order-9009"),
-    dueLater("order-9012"),
-    dueLater("order-8443"),
-    dueLater("order-8904"),
-    dueLater("order-8940"),
-    dueLater("order-9014"),
-    dueLater("order-9016"),
-    dueLater("order-9020"),
-    dueLater("order-9022"),
 
     // Closed orders already fully paid.
     fullBalance("order-9013", getOrderPricing(pricingByOrderId, "order-9013").total, "2026-02-26T15:00:00", "sq_pay_9013"),

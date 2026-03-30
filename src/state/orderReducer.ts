@@ -62,11 +62,12 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
       };
     case "saveOpenOrder":
       {
+        const shouldRequestCheckoutPayment = action.openCheckout && action.paymentMode !== "none";
         const savedOrder = saveOrderWorkflowToDatabase(
           state.database,
           state.order,
           adaptCustomers(state.database),
-          action.paymentStatus,
+          shouldRequestCheckoutPayment ? "none" : action.paymentMode,
           { now: getNow(options), idFactory: options?.idFactory },
           state.editingOpenOrderId,
         );
@@ -81,6 +82,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           checkoutOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           checkoutJustSavedOpenOrderId: action.openCheckout ? savedOrder.openOrderId : null,
           checkoutJustCompletedOpenOrderId: null,
+          checkoutRequestedPaymentMode: shouldRequestCheckoutPayment && action.paymentMode !== "none" ? action.paymentMode : null,
           editingOpenOrderId: null,
           database: savedOrder.database,
           order: createInitialOrderState(),
@@ -92,12 +94,11 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           return state;
         }
 
-        const currentOpenOrder = adaptOpenOrders(state.database).find((candidate) => candidate.id === state.editingOpenOrderId) ?? null;
         const savedOrder = saveOrderWorkflowToDatabase(
           state.database,
           state.order,
           adaptCustomers(state.database),
-          currentOpenOrder?.paymentStatus ?? "due_later",
+          "none",
           { now: getNow(options), idFactory: options?.idFactory },
           state.editingOpenOrderId,
         );
@@ -112,6 +113,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           checkoutOpenOrderId: savedOrder.openOrderId,
           checkoutJustSavedOpenOrderId: null,
           checkoutJustCompletedOpenOrderId: null,
+          checkoutRequestedPaymentMode: null,
           editingOpenOrderId: null,
           database: savedOrder.database,
           order: createInitialOrderState(),
@@ -134,12 +136,14 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         ...state,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: action.openOrderId,
-        database: completeOpenOrderCheckout(state.database, action.openOrderId, getNow(options)),
+        checkoutRequestedPaymentMode: null,
+        database: completeOpenOrderCheckout(state.database, action.openOrderId, action.paymentMode, getNow(options)),
       };
     case "markOpenOrderPickupReady":
       return {
         ...state,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
         database: markOrderScopePickupReady(state.database, action.pickupId, getNow(options)),
       };
     case "completeOpenOrderPickup":
@@ -149,6 +153,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
         editingOpenOrderId: null,
         database: completeOpenOrderPickup(state.database, action.openOrderId, getNow(options)),
       };
@@ -159,6 +164,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         checkoutOpenOrderId: null,
         checkoutJustSavedOpenOrderId: null,
         checkoutJustCompletedOpenOrderId: null,
+        checkoutRequestedPaymentMode: null,
         editingOpenOrderId: null,
         database: cancelOpenOrder(state.database, action.openOrderId, getNow(options)),
       };

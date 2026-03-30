@@ -1,10 +1,10 @@
 import { ClipboardList, CreditCard } from "lucide-react";
-import { useState } from "react";
-import type { Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
+import { useEffect, useState } from "react";
+import type { CheckoutPaymentMode, Customer, OpenOrder, OrderWorkflowState, Screen } from "../types";
 import { ActionButton, EmptyState, SectionHeader, Surface, cx } from "../components/ui/primitives";
 import {
-  getCheckoutCollectionAmount,
-  getOpenOrderPickupBalanceDue,
+  getDraftPaymentPolicy,
+  getMixedPaymentAllocation,
   hasReadyScopesForPickup,
   getOrderBagLineItems,
   getOrderType,
@@ -31,11 +31,14 @@ type ReviewOrderScreenProps = {
   openOrder: OpenOrder | null;
   showAcceptedConfirmation: boolean;
   showCheckoutCompletion: boolean;
+  requestedCheckoutPaymentMode: Exclude<CheckoutPaymentMode, "none"> | null;
   order: OrderWorkflowState;
   onScreenChange: (screen: Screen) => void;
+  onDismissRequestedCheckoutPayment: () => void;
+  onRevertAcceptedOrderSave: (openOrderId: number) => void;
   onBackToOpenOrder: (openOrderId: number) => void;
-  onSaveDraftOrder: (paymentStatus: "due_later" | "ready_to_collect", openCheckout?: boolean) => void;
-  onCompleteOpenOrderCheckout: (openOrderId: number) => void;
+  onSaveDraftOrder: (paymentMode: CheckoutPaymentMode, openCheckout?: boolean) => void;
+  onCompleteOpenOrderCheckout: (openOrderId: number, paymentMode: Exclude<CheckoutPaymentMode, "none">) => void;
   onEditOpenOrder: (openOrderId: number) => void;
   onCancelOpenOrder: (openOrderId: number) => void;
   onCompleteOpenOrderPickup: (openOrderId: number) => void;
@@ -47,8 +50,11 @@ export function ReviewOrderScreen({
   openOrder,
   showAcceptedConfirmation,
   showCheckoutCompletion,
+  requestedCheckoutPaymentMode,
   order,
   onScreenChange,
+  onDismissRequestedCheckoutPayment,
+  onRevertAcceptedOrderSave,
   onBackToOpenOrder,
   onSaveDraftOrder,
   onCompleteOpenOrderCheckout,
@@ -58,16 +64,16 @@ export function ReviewOrderScreen({
 }: ReviewOrderScreenProps) {
   const [checkoutConfirmOpen, setCheckoutConfirmOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [selectedCheckoutPaymentMode, setSelectedCheckoutPaymentMode] = useState<Exclude<CheckoutPaymentMode, "none">>("minimum_due");
   const orderType = getOrderType(order);
-  const hasCustom = orderType === "custom" || orderType === "mixed";
   const pickupRequired = getPickupRequired(order);
   const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
   const draftLineItems = getOrderBagLineItems(order, []);
   const pricing = getPricingSummary(order);
-  const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
+  const draftPaymentPolicy = getDraftPaymentPolicy(order);
   const isDraftAlterationOnly = !openOrder && orderType === "alteration";
   const isAcceptedOpenOrder = openOrder?.operationalStatus === "accepted";
-  const draftShouldCollectNow = hasCustom;
+  const draftShouldCollectNow = draftPaymentPolicy.minimumDueNow > 0;
   const checkoutBlocked = orderType === null || summaryGuardrail.missingCustomer || summaryGuardrail.missingPickup || summaryGuardrail.customIncomplete;
   const pickupSummary = openOrder ? getSavedPickupSummary(openOrder) : getDraftPickupSummary(order);
   const activeLineItems = openOrder ? openOrder.lineItems : draftLineItems;
@@ -77,19 +83,63 @@ export function ReviewOrderScreen({
     : payerCustomer;
   const readyBySummary = getReadyBySummary(openOrder, pickupSummary);
   const acceptedOrderNeedsPayment = Boolean(openOrder && isAcceptedOpenOrder && openOrder.balanceDue > 0);
-  const readyPickupBalanceDue = openOrder ? getOpenOrderPickupBalanceDue(openOrder) : 0;
   const hasReadyScopesToPickup = openOrder ? hasReadyScopesForPickup(openOrder) : false;
-  const dueNow = openOrder
-    ? hasReadyScopesToPickup && readyPickupBalanceDue > 0
-      ? readyPickupBalanceDue
-      : openOrder.balanceDue
-    : checkoutCollectionAmount;
-  const remainingLater = openOrder && dueNow < openOrder.balanceDue ? openOrder.balanceDue - dueNow : 0;
+  const openOrderPaymentPolicy = openOrder
+    ? (() => {
+        const mixedAllocation = openOrder.orderType === "mixed" && !hasReadyScopesToPickup
+          ? getMixedPaymentAllocation(openOrder)
+          : null;
+
+        return {
+        minimumDueNow: openOrder.paymentDueNow,
+        depositAndAlterationAmount: mixedAllocation
+          ? Math.max(mixedAllocation.depositDue - mixedAllocation.depositPaid, 0) + Math.max(mixedAllocation.alterationDue - mixedAllocation.alterationPaid, 0)
+          : openOrder.paymentDueNow,
+        collectibleNow: openOrder.balanceDue,
+        suggestedAmount: openOrder.paymentDueNow,
+        remainingAfterSuggested: Math.max(openOrder.balanceDue - openOrder.paymentDueNow, 0),
+        allowDeferredPayment: openOrder.paymentDueNow <= 0,
+        allowFullPrepay: openOrder.balanceDue > openOrder.paymentDueNow,
+      };
+      })()
+    : null;
+  const dueNow = openOrder ? openOrder.paymentDueNow : draftPaymentPolicy.minimumDueNow;
+  const remainingLater = openOrder
+    ? Math.max(openOrder.balanceDue - dueNow, 0)
+    : Math.max(draftPaymentPolicy.collectibleNow - dueNow, 0);
   const showPaymentCompleteState = Boolean(openOrder && showCheckoutCompletion);
-  const openCheckoutConfirmation = () => setCheckoutConfirmOpen(true);
-  const closeCheckoutConfirmation = () => setCheckoutConfirmOpen(false);
+  const displayAmountNow = openOrder
+    ? openOrder.balanceDue > 0 && dueNow <= 0
+      ? openOrder.balanceDue
+      : dueNow
+    : dueNow;
+  const openCheckoutConfirmation = () => {
+    if (openOrder && openOrder.balanceDue > 0 && openOrder.paymentDueNow <= 0) {
+      setSelectedCheckoutPaymentMode("full_balance");
+    } else {
+      setSelectedCheckoutPaymentMode("minimum_due");
+    }
+    setCheckoutConfirmOpen(true);
+  };
+  const closeCheckoutConfirmation = () => {
+    setCheckoutConfirmOpen(false);
+    if (openOrder && requestedCheckoutPaymentMode && showAcceptedConfirmation) {
+      onRevertAcceptedOrderSave(openOrder.id);
+      return;
+    }
+    onDismissRequestedCheckoutPayment();
+  };
   const openCancelConfirmation = () => setCancelConfirmOpen(true);
   const closeCancelConfirmation = () => setCancelConfirmOpen(false);
+
+  useEffect(() => {
+    if (!openOrder || !showAcceptedConfirmation || !requestedCheckoutPaymentMode) {
+      return;
+    }
+
+    setSelectedCheckoutPaymentMode(requestedCheckoutPaymentMode);
+    setCheckoutConfirmOpen(true);
+  }, [openOrder, requestedCheckoutPaymentMode, showAcceptedConfirmation]);
 
   if (isEmptyDraftCheckout) {
     return <CheckoutEmptyState onAction={() => onScreenChange("order")} actionIcon={CreditCard} />;
@@ -115,7 +165,7 @@ export function ReviewOrderScreen({
               : "This order is paid."
     : isDraftAlterationOnly
       ? "Review the order and accept it."
-    : draftShouldCollectNow
+    : draftPaymentPolicy.minimumDueNow > 0
         ? "Review the order, accept it, and decide whether to take payment now."
         : "Review the order and accept it.";
 
@@ -128,6 +178,8 @@ export function ReviewOrderScreen({
             : "Paid"
           : hasReadyScopesToPickup && dueNow > 0
             ? "Due now"
+            : openOrder.balanceDue > 0 && dueNow <= 0
+              ? "Open balance"
             : isAcceptedOpenOrder
               ? acceptedOrderNeedsPayment
                 ? "Still due"
@@ -137,8 +189,8 @@ export function ReviewOrderScreen({
       <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
         {showPaymentCompleteState
           ? formatCheckoutCurrency(openOrder.balanceDue > 0 ? openOrder.collectedToday || dueNow : openOrder.totalCollected)
-          : dueNow > 0
-            ? formatCheckoutCurrency(dueNow)
+          : displayAmountNow > 0
+            ? formatCheckoutCurrency(displayAmountNow)
             : "Paid"}
       </div>
       <div className="app-text-caption mt-1">
@@ -152,6 +204,8 @@ export function ReviewOrderScreen({
               : isAcceptedOpenOrder
                 ? "Collect later or at pickup"
                 : "Still due at checkout"
+            : openOrder.balanceDue > 0
+              ? "Prepay can be taken now or later"
             : "No balance due"}
       </div>
       {!showPaymentCompleteState && openOrder.totalCollected > 0 && openOrder.balanceDue > 0 ? (
@@ -164,7 +218,7 @@ export function ReviewOrderScreen({
     <div className="text-right">
       <div className="app-text-overline">{draftShouldCollectNow ? "Due today" : "Payment today"}</div>
       <div className="mt-1 text-[1.65rem] font-semibold leading-none tracking-[-0.02em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-        {draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "None due"}
+        {draftShouldCollectNow ? formatCheckoutCurrency(draftPaymentPolicy.minimumDueNow) : "None due"}
       </div>
       <div className="app-text-caption mt-1">
         {checkoutBlocked ? "Finish setup before you save the order." : "Ready to accept."}
@@ -176,7 +230,14 @@ export function ReviewOrderScreen({
     ? [
         ...(isAcceptedOpenOrder ? [{ label: "Status", value: "Accepted" }] : []),
         { label: "Collected", value: formatCheckoutCurrency(openOrder.totalCollected) },
-        { label: hasReadyScopesToPickup && dueNow !== openOrder.balanceDue ? "Due today" : "Due", value: formatCheckoutCurrency(dueNow) },
+        {
+          label: hasReadyScopesToPickup && dueNow !== openOrder.balanceDue
+            ? "Due today"
+            : dueNow <= 0 && openOrder.balanceDue > 0
+              ? "Open balance"
+              : "Due",
+          value: formatCheckoutCurrency(displayAmountNow),
+        },
         ...(remainingLater > 0 ? [{ label: "Later after today", value: formatCheckoutCurrency(remainingLater) }] : []),
         { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
       ]
@@ -184,7 +245,8 @@ export function ReviewOrderScreen({
         { label: "Alterations", value: formatCheckoutCurrency(pricing.alterationsSubtotal) },
         { label: "Custom", value: formatCheckoutCurrency(pricing.customSubtotal) },
         { label: "Tax", value: formatCheckoutCurrency(pricing.taxAmount) },
-        { label: "Due today", value: draftShouldCollectNow ? formatCheckoutCurrency(checkoutCollectionAmount) : "None" },
+        { label: "Due today", value: draftShouldCollectNow ? formatCheckoutCurrency(draftPaymentPolicy.minimumDueNow) : "None" },
+        ...(draftPaymentPolicy.allowFullPrepay ? [{ label: "Prepay in full", value: formatCheckoutCurrency(draftPaymentPolicy.collectibleNow) }] : []),
         { label: "Total", value: formatCheckoutCurrency(pricing.total) },
       ];
 
@@ -393,14 +455,14 @@ export function ReviewOrderScreen({
                         <ActionButton
                           tone="primary"
                           disabled={checkoutBlocked}
-                          onClick={() => onSaveDraftOrder("due_later", true)}
+                          onClick={() => onSaveDraftOrder("none", true)}
                         >
                           Accept order
                         </ActionButton>
                         <ActionButton
                           tone="secondary"
                           disabled={checkoutBlocked}
-                          onClick={() => onSaveDraftOrder("ready_to_collect", true)}
+                          onClick={() => onSaveDraftOrder("full_balance", true)}
                         >
                           Accept and prepay
                         </ActionButton>
@@ -413,10 +475,28 @@ export function ReviewOrderScreen({
                         <ActionButton
                           tone="primary"
                           disabled={checkoutBlocked}
-                          onClick={() => onSaveDraftOrder(draftShouldCollectNow ? "ready_to_collect" : "due_later", true)}
+                          onClick={() => onSaveDraftOrder("minimum_due", true)}
                         >
-                          {draftShouldCollectNow ? "Accept order and take payment" : "Accept order"}
+                          {orderType === "custom" || orderType === "mixed" ? "Accept order and take deposit" : "Accept order and take required payment"}
                         </ActionButton>
+                        {orderType === "mixed" ? (
+                          <ActionButton
+                            tone="secondary"
+                            disabled={checkoutBlocked}
+                            onClick={() => onSaveDraftOrder("deposit_and_alterations", true)}
+                          >
+                            Accept order and prepay alterations
+                          </ActionButton>
+                        ) : null}
+                        {draftPaymentPolicy.allowFullPrepay ? (
+                          <ActionButton
+                            tone="secondary"
+                            disabled={checkoutBlocked}
+                            onClick={() => onSaveDraftOrder("full_balance", true)}
+                          >
+                            Accept order and prepay in full
+                          </ActionButton>
+                        ) : null}
                       </>
                     )}
                   </>
@@ -424,9 +504,9 @@ export function ReviewOrderScreen({
                   <>
                     {isAcceptedOpenOrder && !showPaymentCompleteState ? (
                       <>
-                        {dueNow > 0 ? (
+                        {openOrder.balanceDue > 0 ? (
                           <ActionButton tone="primary" onClick={openCheckoutConfirmation}>
-                            Confirm payment
+                            Take payment
                           </ActionButton>
                         ) : null}
                         <ActionButton tone="secondary" onClick={() => onBackToOpenOrder(openOrder.id)}>
@@ -458,7 +538,7 @@ export function ReviewOrderScreen({
                       )
                     ) : isAcceptedOpenOrder ? null : hasReadyScopesToPickup && dueNow > 0 ? (
                       <ActionButton tone="primary" onClick={openCheckoutConfirmation}>
-                        Confirm payment
+                        Take payment
                       </ActionButton>
                     ) : hasReadyScopesToPickup ? (
                       <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder.id)}>
@@ -466,7 +546,7 @@ export function ReviewOrderScreen({
                       </ActionButton>
                     ) : openOrder.balanceDue > 0 ? (
                       <ActionButton tone="primary" onClick={openCheckoutConfirmation}>
-                        Confirm payment
+                        Take payment
                       </ActionButton>
                     ) : (
                       <ActionButton tone="primary" onClick={() => onBackToOpenOrder(openOrder.id)}>
@@ -484,11 +564,16 @@ export function ReviewOrderScreen({
       {openOrder && checkoutConfirmOpen ? (
         <ConfirmCheckoutModal
           openOrder={openOrder}
-          amountDue={dueNow}
+          minimumAmountDue={openOrderPaymentPolicy?.minimumDueNow ?? dueNow}
+          depositAndAlterationAmount={openOrderPaymentPolicy?.depositAndAlterationAmount ?? dueNow}
+          fullAmountDue={openOrder.balanceDue}
+          selectedPaymentMode={selectedCheckoutPaymentMode}
+          lockPaymentMode={Boolean(requestedCheckoutPaymentMode)}
           onClose={closeCheckoutConfirmation}
-          onConfirm={() => {
+          onConfirm={(paymentMode) => {
             closeCheckoutConfirmation();
-            onCompleteOpenOrderCheckout(openOrder.id);
+            onDismissRequestedCheckoutPayment();
+            onCompleteOpenOrderCheckout(openOrder.id, paymentMode);
           }}
         />
       ) : null}

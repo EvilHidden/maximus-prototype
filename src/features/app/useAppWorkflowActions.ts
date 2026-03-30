@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import type { Appointment, WorkflowMode } from "../../types";
+import type { Appointment, CheckoutPaymentMode, WorkflowMode } from "../../types";
 import type { AppAction } from "../../state/appState";
 
 type UseAppWorkflowActionsArgs = {
@@ -27,8 +27,8 @@ export function useAppWorkflowActions({ dispatch }: UseAppWorkflowActionsArgs) {
     dispatch({ type: "setScreen", screen: "order" });
   }, [dispatch]);
 
-  const saveDraftOrder = useCallback((paymentStatus: "due_later" | "ready_to_collect", openCheckout = false) => {
-    dispatch({ type: "saveOpenOrder", paymentStatus, openCheckout });
+  const saveDraftOrder = useCallback((paymentMode: CheckoutPaymentMode, openCheckout = false) => {
+    dispatch({ type: "saveOpenOrder", paymentMode, openCheckout });
   }, [dispatch]);
 
   const saveEditedOrder = useCallback(() => {
@@ -43,8 +43,8 @@ export function useAppWorkflowActions({ dispatch }: UseAppWorkflowActionsArgs) {
     dispatch({ type: "startOpenOrderWork", openOrderId });
   }, [dispatch]);
 
-  const completeOpenOrderCheckout = useCallback((openOrderId: number) => {
-    dispatch({ type: "completeOpenOrderCheckout", openOrderId });
+  const completeOpenOrderCheckout = useCallback((openOrderId: number, paymentMode: Exclude<CheckoutPaymentMode, "none">) => {
+    dispatch({ type: "completeOpenOrderCheckout", openOrderId, paymentMode });
   }, [dispatch]);
 
   return {
