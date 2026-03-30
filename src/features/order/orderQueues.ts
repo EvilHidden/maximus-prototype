@@ -281,6 +281,79 @@ export function getNeedsAttentionPickupGroups(openOrder: OpenOrder, now = new Da
   return unresolvedPickupGroups.length > 0 ? unresolvedPickupGroups : pickupGroups;
 }
 
+export type NeedsAttentionGroupState = {
+  label: string;
+  tone: StatusTone;
+  actionKind: "start_work" | "mark_ready" | null;
+  actionDisabled: boolean;
+};
+
+export function getNeedsAttentionGroupState(
+  openOrder: OpenOrder,
+  group: OpenOrderPickupGroup,
+  now = new Date(),
+): NeedsAttentionGroupState {
+  const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
+  const isAlterationGroup = group.scope === "alteration";
+  const hasPendingAction = group.actionPickupIds.length > 0;
+  const isAccepted = openOrder.operationalStatus === "accepted";
+  const isOverdue = representativePickup
+    ? isPickupPending(representativePickup) && isPastDue(representativePickup.pickupDate, representativePickup.pickupTime, now)
+    : false;
+
+  if (representativePickup?.readyForPickup) {
+    return {
+      label: "Ready",
+      tone: "success",
+      actionKind: null,
+      actionDisabled: false,
+    };
+  }
+
+  if (isOverdue) {
+    return {
+      label: "Overdue",
+      tone: "danger",
+      actionKind: hasPendingAction ? (isAlterationGroup && isAccepted ? "start_work" : "mark_ready") : null,
+      actionDisabled: Boolean(isAlterationGroup && isAccepted && !openOrder.inHouseAssignee),
+    };
+  }
+
+  if (isAlterationGroup && isAccepted && !openOrder.inHouseAssignee) {
+    return {
+      label: "Awaiting assignment",
+      tone: "warn",
+      actionKind: hasPendingAction ? "start_work" : null,
+      actionDisabled: true,
+    };
+  }
+
+  if (isAlterationGroup && isAccepted) {
+    return {
+      label: "Ready to start",
+      tone: "dark",
+      actionKind: hasPendingAction ? "start_work" : null,
+      actionDisabled: false,
+    };
+  }
+
+  if (isAccepted) {
+    return {
+      label: "Accepted",
+      tone: "dark",
+      actionKind: hasPendingAction ? "mark_ready" : null,
+      actionDisabled: false,
+    };
+  }
+
+  return {
+    label: "In progress",
+    tone: "default",
+    actionKind: hasPendingAction ? "mark_ready" : null,
+    actionDisabled: false,
+  };
+}
+
 export function getOpenOrderStatusPills(openOrder: OpenOrder, now = new Date()) {
   const breakdown = getOpenOrderReadinessBreakdown(openOrder);
 
