@@ -51,7 +51,7 @@ export function OpenOrdersControls({
   const showOperatorControls = activeView === "operator";
 
   return (
-    <div className="app-control-deck px-4 py-4">
+    <div className="app-control-deck px-4 py-4 md:px-5">
       <div className="space-y-4">
         <div className="flex flex-wrap gap-2">
           {([
@@ -84,7 +84,7 @@ export function OpenOrdersControls({
           ))}
         </div>
 
-        <div className="border-t border-[var(--app-border)]/35 pt-4">
+        <div className="border-t border-[var(--app-border)]/40 pt-4">
           <div className="flex flex-wrap items-end gap-3">
             <SearchField
               label="Search orders"
@@ -140,7 +140,7 @@ export function OpenOrdersControls({
         </div>
 
         {activeView === "queues" ? (
-          <div className="border-t border-[var(--app-border)]/35 pt-4">
+          <div className="border-t border-[var(--app-border)]/40 pt-4">
             <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
               <div className="flex min-w-max gap-2 px-1">
                 {queueMeta.map((queue) => (
@@ -171,11 +171,11 @@ export function OpenOrdersControls({
         ) : null}
 
         {activeView === "all" ? (
-          <div className="border-t border-[var(--app-border)]/35 pt-4">
+          <div className="border-t border-[var(--app-border)]/40 pt-4">
             <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
               <div className="flex min-w-max gap-2 px-1">
                 {([
-                  { key: "active", label: "Open orders", count: allOrdersTabCounts.active },
+                  { key: "active", label: "All active orders", count: allOrdersTabCounts.active },
                   { key: "closed", label: "Closed orders", count: allOrdersTabCounts.closed },
                 ] as const).map((tab) => (
                   <SelectionChip

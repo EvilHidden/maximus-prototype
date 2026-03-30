@@ -86,7 +86,8 @@ export function AppointmentsRegistry({
             </div>
 
             <div className="min-w-0">
-              <div className="app-text-strong">{appointment.customer}</div>
+              <div className="app-text-value">{appointment.customer}</div>
+              <div className="app-text-body mt-1 font-medium">{appointment.type}</div>
               <div className="mt-1 space-y-1">
                 {customer?.phone ? (
                   <div className="app-text-caption flex items-center gap-1.5">
@@ -104,7 +105,7 @@ export function AppointmentsRegistry({
             </div>
 
             <div className="min-w-0">
-              <div className="app-text-body font-medium">{appointment.type}</div>
+              <div className="app-text-body-muted">{appointment.typeKey === "alteration_fitting" ? "Alteration" : appointment.typeKey === "custom_consult" ? "Custom garment" : appointment.type}</div>
             </div>
 
             <div className="flex items-center gap-2">
@@ -135,12 +136,12 @@ export function AppointmentsRegistry({
                     aria-label="Open appointment actions"
                     aria-expanded={isMenuOpen}
                     onClick={() => setOpenMenuId((current) => (current === appointment.id ? null : appointment.id))}
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/22 text-[var(--app-text-soft)] transition hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]"
+                    className="inline-flex h-9 w-9 items-center justify-center rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/70 bg-[var(--app-surface)] text-[var(--app-text-soft)] shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-text)]"
                   >
                     <MoreHorizontal className="h-4 w-4" />
                   </button>
                   {isMenuOpen ? (
-                    <div className="absolute right-0 top-[calc(100%+0.4rem)] z-20 min-w-[180px] rounded-[var(--app-radius-md)] border border-[var(--app-border)]/80 bg-[var(--app-surface-elevated)] p-1.5 shadow-lg">
+                    <div className="absolute right-0 top-[calc(100%+0.4rem)] z-20 min-w-[180px] rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-elevated)] p-1.5 shadow-lg">
                       <button
                         type="button"
                         className="flex w-full items-center rounded-[var(--app-radius-sm)] px-3 py-2 text-left text-sm text-[var(--app-text)] transition hover:bg-[var(--app-surface-muted)]/65"

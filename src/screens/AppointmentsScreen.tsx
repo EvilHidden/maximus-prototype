@@ -129,7 +129,7 @@ export function AppointmentsScreen({
         }
       />
 
-      <div className="px-1 py-1">
+      <div className="app-control-deck px-4 py-3.5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <SelectionChip
@@ -216,7 +216,9 @@ export function AppointmentsScreen({
 
             </div>
 
-            <div className="app-text-caption mt-3">{listAppointments.length} {listAppointments.length === 1 ? "result" : "results"}</div>
+            <div className="app-text-caption mt-3 border-t border-[var(--app-border)]/35 pt-3">
+              {listAppointments.length} {listAppointments.length === 1 ? "result" : "results"}
+            </div>
           </div>
         </div>
       ) : null}

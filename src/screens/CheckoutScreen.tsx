@@ -316,12 +316,12 @@ export function ReviewOrderScreen({
           ) : null}
           {showPaymentCompleteState ? (
             <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-              <div className="rounded-[var(--app-radius-md)] border border-sky-200/80 bg-sky-50/85 px-4 py-4 text-sky-950 shadow-[0_14px_34px_-28px_rgba(2,132,199,0.5)]">
-                <div className="app-text-overline text-sky-700">Paid</div>
+              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-info-border)] bg-[var(--app-info-bg)] px-4 py-4 text-[var(--app-text)] shadow-[var(--app-shadow-sm)]">
+                <div className="app-text-overline text-[var(--app-info-text)]">Paid</div>
                 <div className="mt-1 text-[1.05rem] font-semibold tracking-[-0.015em]">
                   {openOrder.payerName}'s checkout is complete.
                 </div>
-                <div className="mt-1 text-sm leading-relaxed text-sky-900/85">
+                <div className="mt-1 text-sm leading-relaxed text-[var(--app-text-muted)]">
                   {hasReadyScopesToPickup
                     ? openOrder.balanceDue > 0
                       ? "Today’s pickup balance is in. The remaining balance stays with the unfinished work."

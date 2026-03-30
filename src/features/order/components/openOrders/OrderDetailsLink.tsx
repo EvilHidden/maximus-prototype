@@ -15,7 +15,7 @@ export function OrderDetailsLink({
       type="button"
       onClick={onClick}
       className={cx(
-        "inline-flex shrink-0 items-center gap-0.5 text-[0.75rem] font-medium leading-[1.35] text-[var(--app-text-muted)] transition-colors hover:text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-accent)]/35",
+        "app-subtle-link inline-flex shrink-0 items-center gap-1 text-[0.75rem] font-medium leading-[1.35] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-accent)]/35",
         className,
       )}
     >
