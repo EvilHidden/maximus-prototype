@@ -16,6 +16,7 @@ import {
   type OrdersQueueKey,
 } from "../../selectors";
 import { formatWorklistTotal, getPhaseTone, getWorklistPaymentLabel, getWorklistPaymentTextClassName, getWorklistPhaseLabel, queueMeta, queueOverviewMeta } from "./meta";
+import { OrderDetailsLink } from "./OrderDetailsLink";
 
 function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
   if (orderType === "mixed") {
@@ -139,18 +140,11 @@ function WorkQueueOrderRow({
     <div className="px-4 py-4">
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.75rem] lg:items-start lg:gap-x-5">
         <div className="min-w-0">
-          <div className="app-text-value">{openOrder.payerName}</div>
+          <div className="app-text-value min-w-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-          <div className="app-text-caption mt-2">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-          <div className="mt-3">
-            <ActionButton
-              type="button"
-              tone="secondary"
-              className="min-h-9 px-3 py-2 text-xs"
-              onClick={() => onOpenOrderDetails(openOrder.id)}
-            >
-              Open details
-            </ActionButton>
+          <div className="app-text-body mt-2 text-[var(--app-text)]/82">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+          <div className="mt-1.5">
+            <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
           </div>
         </div>
 
