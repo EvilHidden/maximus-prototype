@@ -73,6 +73,74 @@ function SectionHeading({
   );
 }
 
+function RailEmptyState({ message }: { message: string }) {
+  return (
+    <div className="rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 px-3 py-4">
+      <div className="app-text-caption">{message}</div>
+    </div>
+  );
+}
+
+function RecentOrderRow({ order }: { order: CustomerOrder }) {
+  return (
+    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3.5">
+      <div className="min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="app-text-body truncate font-medium">{order.label}</div>
+          <OrderStatusPill status={order.status} />
+        </div>
+        <div className="app-text-caption mt-1 truncate">{`${order.id} • ${formatCustomerOrderDate(order.createdAt)}`}</div>
+      </div>
+      <div className="app-text-body self-start shrink-0 text-right font-medium">{formatCustomerOrderTotal(order.total)}</div>
+    </div>
+  );
+}
+
+function getMeasurementHistoryContent(set: MeasurementSet) {
+  if (set.takenAt) {
+    return {
+      date: set.takenAt,
+      detail: set.note,
+    };
+  }
+
+  const [firstSegment, ...rest] = set.note.split(" • ");
+
+  return {
+    date: firstSegment || "Date not recorded",
+    detail: rest.join(" • "),
+  };
+}
+
+function MeasurementHistoryRow({
+  set,
+  isLast,
+}: {
+  set: MeasurementSet;
+  isLast: boolean;
+}) {
+  const { date, detail } = getMeasurementHistoryContent(set);
+
+  return (
+    <div className="grid grid-cols-[18px_minmax(0,1fr)] gap-3 pb-4 last:pb-0">
+      <div className="relative flex justify-center">
+        {!isLast ? <div className="absolute top-3 h-[calc(100%+1rem)] w-px bg-[var(--app-border)]/35" /> : null}
+        <div className="mt-1 h-3 w-3 rounded-full border border-[var(--app-border-strong)]/40 bg-[var(--app-surface)]" />
+      </div>
+      <div className="min-w-0">
+        <div className="min-w-0">
+          <div className="flex items-center justify-between gap-3">
+            <div className="app-text-body truncate font-medium">{set.label}</div>
+            {set.suggested ? <StatusPill tone="success">Suggested</StatusPill> : null}
+          </div>
+          <div className="app-text-body mt-1 font-medium">{date}</div>
+          {detail ? <div className="app-text-caption mt-1">{detail}</div> : null}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function CustomerProfileDrawer({
   customer,
   orders,
@@ -182,49 +250,35 @@ export function CustomerProfileDrawer({
         <div className="mt-6 border-t border-[var(--app-border)]/45 pt-5">
           <SectionHeading
             title="Recent orders"
-            subtitle="Most recent work associated with this profile."
+            subtitle="Current and recent work tied to this customer."
             meta={`${orders.length} orders`}
           />
 
           <div className="mt-3 divide-y divide-[var(--app-border)]/28">
-            {orders.map((order) => (
-              <div
-                key={order.id}
-                className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3.5"
-              >
-                <div className="min-w-0">
-                  <div className="flex min-w-0 items-center gap-2">
-                  <div className="app-text-strong truncate">{order.label}</div>
-                  <OrderStatusPill status={order.status} />
-                  </div>
-                  <div className="app-text-caption mt-1 truncate">{`${order.id} • ${formatCustomerOrderDate(order.createdAt)}`}</div>
-                </div>
-                <div className="app-text-body self-start justify-self-end text-right font-medium">{formatCustomerOrderTotal(order.total)}</div>
-              </div>
-            ))}
+            {orders.length ? orders.map((order) => <RecentOrderRow key={order.id} order={order} />) : <RailEmptyState message="No recent orders for this profile yet." />}
           </div>
         </div>
 
         <div className="mt-6 border-t border-[var(--app-border)]/45 pt-5">
           <SectionHeading
             title="Measurement history"
-            subtitle="Saved sets available for tailoring work."
+            subtitle="Saved versions available for fittings and custom work."
             meta={`${measurementSets.length} saved`}
           />
-          <div className="mt-3 divide-y divide-[var(--app-border)]/28">
-            {measurementSets.map((set) => (
-              <div
-                key={set.id}
-                className="py-3.5"
-              >
-                <div className="flex items-center justify-between gap-3">
-                  <div className="app-text-strong">{set.label}</div>
-                  {set.suggested ? <StatusPill tone="success">Suggested</StatusPill> : null}
-                </div>
-                <div className="app-text-body mt-1 font-medium">{set.takenAt ?? set.note.split(" • ")[0] ?? "Date not recorded"}</div>
-                <div className="app-text-caption mt-1">{set.note}</div>
+          <div className="mt-4">
+            {measurementSets.length ? (
+              <div>
+                {measurementSets.map((set, index) => (
+                  <MeasurementHistoryRow
+                    key={set.id}
+                    set={set}
+                    isLast={index === measurementSets.length - 1}
+                  />
+                ))}
               </div>
-            ))}
+            ) : (
+              <RailEmptyState message="No saved measurement sets on file yet." />
+            )}
           </div>
         </div>
         </div>

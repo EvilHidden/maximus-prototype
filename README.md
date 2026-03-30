@@ -245,8 +245,10 @@ For a semi-private client demo, the easiest setup is:
 This repo includes a lightweight GitHub Actions build check that runs on pushes to `main` and on pull requests. The goal is not enterprise CI, just a simple guardrail so collaborative changes fail fast when the app stops building.
 
 For the local side of the rapid loop, start each new idea with `npm run start-topic -- "short topic name"`. That keeps contributors anchored on fresh `codex/` branches from current `main`.
+If you try to start a second branch in the same subsystem, the script now stops and forces an explicit checkpoint first. Use `--allow-parallel-subsystem` only when that overlap is intentional.
 
 For the rapid branch-to-main loop, use `npm run ship -- "Short PR title"` from a `codex/` branch. It runs `npm run check` locally for a faster preflight, commits and pushes the branch, opens or reuses a PR, enables auto-merge, then returns the local repo to `main` and deletes the local topic branch after the full GitHub build passes.
+In this repo, `ship it` means exactly that full script. Opening a PR manually, pushing a branch, or stopping at “draft PR created” is not considered shipped.
 
 Do not ship after every accepted tweak. Continue iterating locally until the user explicitly says `ship`, then use `npm run ship -- "Short PR title"` for the release pass.
 

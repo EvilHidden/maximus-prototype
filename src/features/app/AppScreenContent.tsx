@@ -45,8 +45,8 @@ export function AppScreenContent({
         onStartWorkflow={startWorkflow}
         onOpenAppointment={openWorkflowAppointment}
         onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
-        onOpenReadyPickupOrder={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
         onCheckoutReadyPickup={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
+        onCompleteReadyPickup={(openOrderId) => dispatch({ type: "completeOpenOrderPickup", openOrderId })}
       />
     );
   }

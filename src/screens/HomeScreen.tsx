@@ -24,8 +24,8 @@ type HomeScreenProps = {
   onStartWorkflow: (workflow: WorkflowMode) => void;
   onOpenAppointment: (appointment: Appointment) => void;
   onCancelAppointment: (appointmentId: string) => void;
-  onOpenReadyPickupOrder: (openOrderId: number) => void;
   onCheckoutReadyPickup: (openOrderId: number) => void;
+  onCompleteReadyPickup: (openOrderId: number) => void;
 };
 
 export function HomeScreen({
@@ -36,8 +36,8 @@ export function HomeScreen({
   onStartWorkflow,
   onOpenAppointment,
   onCancelAppointment,
-  onOpenReadyPickupOrder,
   onCheckoutReadyPickup,
+  onCompleteReadyPickup,
 }: HomeScreenProps) {
   const { showToast } = useToast();
   const [cancelingAppointment, setCancelingAppointment] = useState<Appointment | null>(null);
@@ -166,7 +166,7 @@ export function HomeScreen({
           onCreateOrder={onOpenAppointment}
           onCancelAppointment={setCancelingAppointment}
           onCheckoutPickup={onCheckoutReadyPickup}
-          onOpenPickupOrder={onOpenReadyPickupOrder}
+          onCompletePickup={onCompleteReadyPickup}
         />
       ) : !hasAnyLocationSelected ? (
         <HomeEmptyState
