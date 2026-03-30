@@ -1,4 +1,4 @@
-import { CalendarDays, ChevronDown, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
+import { BadgeDollarSign, CalendarClock, CalendarDays, ChevronDown, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Appointment } from "../../../types";
@@ -415,20 +415,47 @@ function getReadySinceLabel(readyAt: string | null, now = new Date()) {
     return "Ready since yesterday";
   }
 
-  return `Ready for ${daysSinceReady} days`;
+  if (daysSinceReady < 14) {
+    return `Ready since ${daysSinceReady} days ago`;
+  }
+
+  const weeksSinceReady = Math.round(daysSinceReady / 7);
+  return `Ready since ${weeksSinceReady} ${weeksSinceReady === 1 ? "week" : "weeks"} ago`;
 }
 
-function getPreferredPickupLabel(pickup: ReadyPickupQueueItem["pickupSchedule"]) {
+function getScheduledPickupLabel(pickup: ReadyPickupQueueItem["pickupSchedule"]) {
   if (!pickup.pickupDate && !pickup.pickupTime) {
-    return "Pickup details not set";
+    return "Pickup pending";
   }
 
   if (!pickup.pickupDate) {
-    return `Expected pickup ${pickup.pickupTime}`;
+    return pickup.pickupTime || "Pickup pending";
   }
 
-  const dateLabel = formatDateLabel(pickup.pickupDate);
-  return pickup.pickupTime ? `Expected pickup ${dateLabel} at ${pickup.pickupTime}` : `Expected pickup ${dateLabel}`;
+  const parsed = new Date(`${pickup.pickupDate}T12:00:00`);
+  if (Number.isNaN(parsed.getTime())) {
+    const fallbackDateLabel = formatDateLabel(pickup.pickupDate);
+    return pickup.pickupTime ? `${fallbackDateLabel} · ${pickup.pickupTime}` : fallbackDateLabel;
+  }
+
+  const scheduledDateLabel = new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+  }).format(parsed);
+
+  return pickup.pickupTime ? `${scheduledDateLabel} · ${pickup.pickupTime}` : scheduledDateLabel;
+}
+
+function getReadyStatusScopeLabel(scope: ReadyPickupQueueItem["pickupSchedule"]["scope"] | ReadyPickupQueueItem["orderType"]) {
+  if (scope === "custom") {
+    return "Custom garment";
+  }
+
+  if (scope === "alteration") {
+    return "Alterations";
+  }
+
+  return getOpenOrderTypeLabel(scope);
 }
 
 function getHomeReadyStatusLines(pickup: ReadyPickupQueueItem) {
@@ -467,7 +494,7 @@ function getHomeReadyStatusLines(pickup: ReadyPickupQueueItem) {
   if (pickup.orderType !== "mixed") {
     return [
       {
-        label: getOpenOrderTypeLabel(pickup.orderType),
+        label: getReadyStatusScopeLabel(pickup.orderType),
         value: readySinceLabel,
         color: "var(--app-success-text)",
       },
@@ -480,7 +507,7 @@ function getHomeReadyStatusLines(pickup: ReadyPickupQueueItem) {
       ...getScopeStatus(alterationPickup),
     },
     {
-      label: "Custom",
+      label: "Custom garment",
       ...getScopeStatus(customPickup),
     },
   ];
@@ -489,25 +516,34 @@ function getHomeReadyStatusLines(pickup: ReadyPickupQueueItem) {
 function ReadyPickupRow({
   pickup,
   onCheckout,
-  onOpenOrder,
+  onCompletePickup,
 }: {
   pickup: ReadyPickupQueueItem;
   onCheckout: () => void;
-  onOpenOrder: () => void;
+  onCompletePickup: () => void;
 }) {
   const { pickupSchedule } = pickup;
-  const itemSummary = pickup.itemSummary.join(", ");
+  const itemSummary = pickup.itemSummary.filter(Boolean).join(" · ");
   const readyStatusLines = getHomeReadyStatusLines(pickup);
+  const balanceLabel = pickup.pickupBalanceDue > 0 ? `Balance due ${formatCurrency(pickup.pickupBalanceDue)}` : "Prepaid";
+  const pickupLocationLabel = pickupSchedule.pickupLocation || "Location pending";
+  const needsPayment = pickup.pickupBalanceDue > 0;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[156px_minmax(0,1fr)_auto] lg:items-center lg:gap-x-6">
+    <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_auto] lg:items-start lg:gap-x-8">
       <div className="min-w-0 pr-2">
         <div className="space-y-2">
-          {readyStatusLines.map((line) => (
-            <div key={`${pickup.key}-${line.label}`} className="min-w-0">
+          {readyStatusLines.map((line, index) => (
+            <div
+              key={`${pickup.key}-${line.label}`}
+              className={cx(
+                "min-w-0",
+                index > 0 ? "border-t border-[var(--app-border)]/45 pt-2" : "",
+              )}
+            >
               <div className="app-text-overline whitespace-nowrap text-[var(--app-text-soft)]">{line.label}</div>
               <div
-                className="app-text-value mt-1 whitespace-nowrap text-[0.95rem]"
+                className="app-text-strong mt-1 text-[0.9rem] leading-tight"
                 style={{ color: line.color }}
               >
                 {line.value}
@@ -516,27 +552,34 @@ function ReadyPickupRow({
           ))}
         </div>
       </div>
-      <div className="min-w-0 space-y-1.5 pl-1">
+      <div className="min-w-0 space-y-2 pl-3">
         <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-          <div className="app-text-value">{pickup.payerName}</div>
+          <div className="app-text-strong">{pickup.payerName}</div>
           <div className="app-text-caption">Order {pickup.openOrderId}</div>
         </div>
-        <div className="app-text-body font-medium leading-tight">{itemSummary || pickupSchedule.label}</div>
-        <div className="app-text-caption flex flex-wrap items-center gap-x-3 gap-y-1">
-          <span>{getPreferredPickupLabel(pickupSchedule)}</span>
+        <div className="app-text-body leading-tight">{itemSummary || pickupSchedule.label}</div>
+        <div className="app-text-caption flex flex-wrap items-center gap-x-4 gap-y-2">
+          <span className="inline-flex items-center gap-1.5">
+            <CalendarClock className="h-3.5 w-3.5 shrink-0" />
+            <span>{getScheduledPickupLabel(pickupSchedule)}</span>
+          </span>
           <span className="inline-flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span>{pickupSchedule.pickupLocation}</span>
+            <span>{pickupLocationLabel}</span>
           </span>
-          <span>{pickup.pickupBalanceDue > 0 ? `${formatCurrency(pickup.pickupBalanceDue)} due at pickup` : "Prepaid"}</span>
+          <span className="inline-flex items-center gap-1.5">
+            <BadgeDollarSign className="h-3.5 w-3.5 shrink-0" />
+            <span>{balanceLabel}</span>
+          </span>
         </div>
       </div>
-      <div className="flex items-center gap-2">
-        <ActionButton tone="secondary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onOpenOrder}>
-          View order
-        </ActionButton>
-        <ActionButton tone="primary" className="min-h-12 px-4 py-2.5 text-sm" onClick={onCheckout}>
-          Review payment
+      <div className="flex items-center lg:pt-0.5">
+        <ActionButton
+          tone="primary"
+          className="min-h-12 px-4 py-2.5 text-sm"
+          onClick={needsPayment ? onCheckout : onCompletePickup}
+        >
+          {needsPayment ? "Take payment" : "Complete pickup"}
         </ActionButton>
       </div>
     </div>
@@ -555,7 +598,7 @@ type HomeWorkboardsProps = {
   onCreateOrder: (appointment: Appointment) => void;
   onCancelAppointment: (appointment: Appointment) => void;
   onCheckoutPickup: (openOrderId: number) => void;
-  onOpenPickupOrder: (openOrderId: number) => void;
+  onCompletePickup: (openOrderId: number) => void;
 };
 
 function WorkSurfaceHeader({
@@ -609,7 +652,7 @@ export function HomeWorkboards({
   onCreateOrder,
   onCancelAppointment,
   onCheckoutPickup,
-  onOpenPickupOrder,
+  onCompletePickup,
 }: HomeWorkboardsProps) {
   return (
     <>
@@ -675,7 +718,7 @@ export function HomeWorkboards({
                   <ReadyPickupRow
                     pickup={pickup}
                     onCheckout={() => onCheckoutPickup(pickup.openOrderId)}
-                    onOpenOrder={() => onOpenPickupOrder(pickup.openOrderId)}
+                    onCompletePickup={() => onCompletePickup(pickup.openOrderId)}
                   />
                 </div>
               ))
