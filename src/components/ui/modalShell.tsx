@@ -25,7 +25,7 @@ export function ModalShell({
     <div className="fixed inset-0 z-50">
       <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
       <div className={cx("app-modal absolute left-1/2 top-1/2 w-full -translate-x-1/2 -translate-y-1/2", widthClassName)}>
-        <div className="mb-4 flex items-start justify-between gap-4">
+        <div className="mb-3.5 flex items-start justify-between gap-4">
           <div>
             <div className="app-section-title">{title}</div>
             {subtitle ? <div className="app-section-copy">{subtitle}</div> : null}
@@ -37,7 +37,7 @@ export function ModalShell({
           ) : null}
         </div>
         <div>{children}</div>
-        {footer ? <div className="mt-4 border-t border-[var(--app-border)] pt-4">{footer}</div> : null}
+        {footer ? <div className="mt-4 border-t border-[var(--app-border)]/55 pt-3.5">{footer}</div> : null}
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 import { Mail, Phone } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import { ActionButton, Callout, EntityRow, InlineEmptyState, ModalShell, SearchField, SelectField } from "../../../components/ui/primitives";
+import { ActionButton, EntityRow, InlineEmptyState, ModalShell, SearchField, SelectField } from "../../../components/ui/primitives";
 import { filterCustomers, getActiveCustomers } from "../../customer/selectors";
 import { ModalFooterActions, ModalMetaRow, ModalSectionHeading } from "../../../components/ui/modalPatterns";
 import type {
@@ -115,11 +115,6 @@ export function AppointmentComposerModal({
           ? `Edit ${isPickup ? "pickup" : "appointment"}`
           : "New appointment"
       }
-      subtitle={
-        isEditing
-          ? "Update the visit details and schedule."
-          : "Add an appointment by hand."
-      }
       onClose={onClose}
       showCloseButton={false}
       widthClassName="max-w-[720px]"
@@ -161,7 +156,7 @@ export function AppointmentComposerModal({
               </div>
               <div className={selectedCustomer ? "app-text-body" : "app-text-body-muted"}>
                 {selectedCustomer
-                  ? (isPickup ? "Pickup visit" : "Appointment visit")
+                  ? (isPickup ? "Linked pickup" : "Appointment")
                   : "Select who this visit belongs to before you schedule it."}
               </div>
               {selectedCustomer ? (
@@ -233,19 +228,17 @@ export function AppointmentComposerModal({
           ) : null}
 
           {isPickup ? (
-            <Callout tone="default">
-              <div className="space-y-1">
-                <div className="app-text-overline">Linked order</div>
-                <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
-                  {getLinkedOrderLabel(editingAppointment?.orderId) ? (
-                    <span className="app-text-body font-medium">{getLinkedOrderLabel(editingAppointment?.orderId)}</span>
-                  ) : null}
-                  {editingAppointment?.pickupSummary ? (
-                    <span className="app-text-body-muted">{editingAppointment.pickupSummary}</span>
-                  ) : null}
-                </div>
+            <div className="space-y-1 border-t border-[var(--app-border)]/35 pt-3">
+              <div className="app-text-overline">Linked order</div>
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
+                {getLinkedOrderLabel(editingAppointment?.orderId) ? (
+                  <span className="app-text-body font-medium">{getLinkedOrderLabel(editingAppointment?.orderId)}</span>
+                ) : null}
+                {editingAppointment?.pickupSummary ? (
+                  <span className="app-text-body-muted">{editingAppointment.pickupSummary}</span>
+                ) : null}
               </div>
-            </Callout>
+            </div>
           ) : null}
         </div>
 
@@ -253,7 +246,7 @@ export function AppointmentComposerModal({
           <ModalSectionHeading
             eyebrow="Visit details"
             title="Set the appointment information"
-            description="Choose the visit type, schedule, and location for the team."
+            description="Set the visit type, date, time, and location."
             className="sm:col-span-2"
           />
           {!isPickup ? (

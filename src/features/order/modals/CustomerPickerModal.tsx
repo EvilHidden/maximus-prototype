@@ -23,7 +23,6 @@ export function CustomerPickerModal({
   return (
     <ModalShell
       title="Change linked customer"
-      subtitle="Find the right customer, or add a new one."
       onClose={onClose}
       widthClassName="max-w-[560px]"
       footer={
@@ -47,7 +46,6 @@ export function CustomerPickerModal({
 
         <div className="space-y-2">
           <ModalSectionHeading
-            eyebrow="Matches"
             title={customers.length === 1 ? "1 customer" : `${customers.length} customers`}
             description="Choose who this order should stay linked to."
           />

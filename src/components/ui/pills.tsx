@@ -112,11 +112,11 @@ export function AppointmentIssuePill({
   tone = "default",
 }: {
   label: string;
-  tone?: "default" | "warn";
+  tone?: "default" | "warn" | "success";
 }) {
   return (
     <StatusPill
-      tone={tone === "warn" ? "warn" : "default"}
+      tone={tone === "warn" ? "warn" : tone === "success" ? "success" : "default"}
       className="px-2.5 py-1 text-[11px]"
     >
       {label}

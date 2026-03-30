@@ -1,6 +1,6 @@
 import { CalendarClock, MapPin } from "lucide-react";
 import { ActionButton, ModalShell, cx } from "../../../components/ui/primitives";
-import { ModalFooterActions, ModalMetaRow } from "../../../components/ui/modalPatterns";
+import { ModalFooterActions, ModalMetaRow, ModalSummaryCard } from "../../../components/ui/modalPatterns";
 import type { OpenOrder } from "../../../types";
 import {
   getMarkReadyActionLabel,
@@ -65,25 +65,25 @@ export function ConfirmMarkReadyModal({
         {pendingPickups.length ? (
           <div className="space-y-3">
             {pendingPickupCount === 1 ? (
-              <div className="space-y-3">
-                <div className="app-text-overline">{getScopeLabel(pendingPickups[0].scope)} pickup</div>
-                <div className="app-text-value">{getPickupHeadline(pendingPickups[0])}</div>
-                <div className="app-text-body-muted">
-                  {openOrder.payerName} • Order #{openOrder.id}
-                </div>
-                <ModalMetaRow
-                  items={[
-                    {
-                      icon: CalendarClock,
-                      content: `${getOperationalPickupDateLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Date pending"} · ${getOperationalPickupTimeLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Time pending"}`,
-                    },
-                    {
-                      icon: MapPin,
-                      content: pendingPickups[0].pickupLocation || "Location pending",
-                    },
-                  ]}
-                />
-              </div>
+              <ModalSummaryCard
+                eyebrow={`${getScopeLabel(pendingPickups[0].scope)} pickup`}
+                title={getPickupHeadline(pendingPickups[0])}
+                description={`${openOrder.payerName} • Order #${openOrder.id}`}
+                meta={
+                  <ModalMetaRow
+                    items={[
+                      {
+                        icon: CalendarClock,
+                        content: `${getOperationalPickupDateLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Date pending"} · ${getOperationalPickupTimeLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Time pending"}`,
+                      },
+                      {
+                        icon: MapPin,
+                        content: pendingPickups[0].pickupLocation || "Location pending",
+                      },
+                    ]}
+                  />
+                }
+              />
             ) : (
               <div className="space-y-1.5 border-b border-[var(--app-border)]/35 pb-4">
                 <div className="app-text-overline">{pendingPickupCount} pickups</div>

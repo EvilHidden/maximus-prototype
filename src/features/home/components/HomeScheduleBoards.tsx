@@ -26,7 +26,7 @@ function getAppointmentConfirmationPills(appointment: Appointment) {
     .filter((flag) => flag === "confirmed" || flag === "unconfirmed")
     .map((flag) => ({
       label: getAppointmentContextFlagLabel(flag),
-      tone: flag === "unconfirmed" ? ("warn" as const) : ("default" as const),
+      tone: flag === "unconfirmed" ? ("warn" as const) : ("success" as const),
     }));
 }
 
