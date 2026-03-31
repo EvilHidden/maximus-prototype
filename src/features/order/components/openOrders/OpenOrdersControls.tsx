@@ -85,21 +85,21 @@ export function OpenOrdersControls({
         </div>
 
         <div className="border-t border-[var(--app-border)]/40 pt-4">
-          <div className="flex flex-wrap items-end gap-3">
+          <div className="flex flex-wrap items-end gap-3 lg:flex-nowrap">
             <SearchField
               label="Search orders"
               value={query}
               onChange={onQueryChange}
               placeholder="Search by customer, garment, or order ID"
               icon={Search}
-              className="min-w-0 basis-full sm:min-w-[240px] sm:flex-1"
+              className="min-w-0 basis-full sm:min-w-[240px] sm:flex-1 lg:min-w-[280px] lg:flex-[1.35]"
             />
 
             <SelectField
               label="Type"
               value={typeFilter}
               onChange={(value) => onTypeFilterChange(value as OrderType | "all")}
-              className="min-w-0 basis-full sm:min-w-[160px]"
+              className="min-w-0 basis-full sm:min-w-[160px] lg:min-w-[168px] lg:flex-none"
             >
               <option value="all">All order types</option>
               <option value="alteration">Alterations</option>
@@ -112,7 +112,7 @@ export function OpenOrdersControls({
                 label={showOperatorControls ? "Viewing queue" : "Assigned to"}
                 value={assigneeFilter}
                 onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
-                className="min-w-0 basis-full sm:min-w-[176px]"
+                className="min-w-0 basis-full sm:min-w-[176px] lg:min-w-[184px] lg:flex-none"
               >
                 <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
                 <option value="unassigned">Unassigned</option>
@@ -128,7 +128,7 @@ export function OpenOrdersControls({
               label="Location"
               value={locationFilter}
               onChange={(value) => onLocationFilterChange(value as PickupLocation | "all")}
-              className="min-w-0 basis-full sm:min-w-[160px]"
+              className="min-w-0 basis-full sm:min-w-[160px] lg:min-w-[168px] lg:flex-none"
             >
               {locationOptions.map((location) => (
                 <option key={location} value={location}>

@@ -53,7 +53,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
 
   return (
     <div className="app-shell">
-      <div className="app-mobile-topbar md:hidden">
+      <div className="app-mobile-topbar">
         <button
           type="button"
           onClick={() => setMobileNavOpen(true)}
@@ -69,7 +69,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
       </div>
 
       {mobileNavOpen ? (
-        <div className="app-mobile-drawer md:hidden">
+        <div className="app-mobile-drawer">
           <button
             type="button"
             className="app-mobile-drawer__scrim"
