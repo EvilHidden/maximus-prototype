@@ -117,7 +117,7 @@ export function HomeScreen({
             <div className="app-text-overline">View locations</div>
             <div className="app-text-caption mt-1">Choose which locations to show.</div>
           </div>
-          <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
+          <div className="flex min-w-0 basis-full flex-wrap gap-1.5 sm:basis-auto sm:flex-1">
             <SelectionChip
               selected={allLocationsActive}
               onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}

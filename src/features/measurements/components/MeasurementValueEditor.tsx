@@ -37,7 +37,7 @@ export function MeasurementValueEditor({
 
   return (
     <div className="grid gap-3">
-      <div className="grid gap-3 xl:grid-cols-[minmax(0,1fr)_308px] xl:items-stretch">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_288px] lg:items-stretch xl:grid-cols-[minmax(0,1fr)_308px]">
         <div className="flex min-w-0">
           <input
             ref={activeInputRef}
@@ -47,7 +47,7 @@ export function MeasurementValueEditor({
             enterKeyHint="done"
             pattern="[0-9]*[.]?[0-9]*"
             placeholder="Enter inches"
-            className="app-input min-h-[8.5rem] h-full px-4 text-center text-[5.75rem] font-semibold leading-none tracking-[-0.08em] tabular-nums placeholder:text-[1.15rem] placeholder:font-medium placeholder:tracking-normal placeholder:text-[var(--app-text-soft)] xl:min-h-[8.75rem] xl:text-[6.6rem]"
+            className="app-input min-h-[8.5rem] h-full px-4 text-center text-[5rem] font-semibold leading-none tracking-[-0.08em] tabular-nums placeholder:text-[1.15rem] placeholder:font-medium placeholder:tracking-normal placeholder:text-[var(--app-text-soft)] lg:text-[5.75rem] xl:min-h-[8.75rem] xl:text-[6.6rem]"
           />
         </div>
 
