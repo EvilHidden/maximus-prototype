@@ -66,15 +66,15 @@ export function AppointmentsCalendar({
   const dayCells = getMonthDays(anchorDate);
 
   return (
-    <Surface tone="work" className="p-4">
-      <div className="mb-3 flex flex-wrap items-start justify-between gap-3 px-1">
+    <Surface tone="work" className="p-3.5 lg:p-3">
+      <div className="mb-2 flex flex-wrap items-start justify-between gap-2.5 px-1">
         <div>
           <div className="app-text-value">{monthLabel}</div>
         </div>
         <div className="flex items-center gap-2">
           <ActionButton
             tone="secondary"
-            className="h-9 gap-1.5 px-3 py-0 text-xs"
+            className="h-8.5 gap-1.5 px-3 py-0 text-xs"
             onClick={onPreviousMonth}
             aria-label="Previous month"
           >
@@ -83,14 +83,14 @@ export function AppointmentsCalendar({
           </ActionButton>
           <ActionButton
             tone="secondary"
-            className="h-9 px-3 py-0 text-xs"
+            className="h-8.5 px-3 py-0 text-xs"
             onClick={onToday}
           >
             Today
           </ActionButton>
           <ActionButton
             tone="secondary"
-            className="h-9 gap-1.5 px-3 py-0 text-xs"
+            className="h-8.5 gap-1.5 px-3 py-0 text-xs"
             onClick={onNextMonth}
             aria-label="Next month"
           >
@@ -99,12 +99,12 @@ export function AppointmentsCalendar({
           </ActionButton>
         </div>
       </div>
-      <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2.5 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)]">
-        <div className="grid grid-cols-7 gap-2.5">
+      <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)] lg:p-1.5">
+        <div className="grid grid-cols-7 gap-2 lg:gap-1.5">
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (
             <div
               key={dayLabel}
-              className="app-text-overline px-2 py-1.5 text-center"
+              className="app-text-overline px-2 py-1 text-center"
             >
               {dayLabel}
             </div>
@@ -132,7 +132,7 @@ export function AppointmentsCalendar({
                   {dayAppointments.slice(0, 1).map((appointment) => (
                     <div
                       key={appointment.id}
-                      className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22 px-2 py-1.5"
+                      className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22 px-2 py-1"
                     >
                       <div className="text-[12px] font-semibold text-[var(--app-text)]">{getAppointmentTimeLabel(appointment)}</div>
                       <div className="mt-1 truncate text-[12px] font-medium text-[var(--app-text-muted)]">{appointment.customer}</div>
@@ -144,7 +144,7 @@ export function AppointmentsCalendar({
                   {dayAppointments.length > 1 ? (
                     <div className="app-text-caption px-1">+{dayAppointments.length - 1} more</div>
                   ) : hasAppointments ? null : (
-                    <div className="h-[54px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10" />
+                    <div className="h-[42px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10 lg:h-[36px]" />
                   )}
                 </div>
               </CalendarDayCard>

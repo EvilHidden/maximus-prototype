@@ -109,7 +109,7 @@ export function AppointmentsScreen({
     : "Appointments";
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3.5">
       <SectionHeader
         icon={CalendarDays}
         title="Appointments"
@@ -129,7 +129,7 @@ export function AppointmentsScreen({
         }
       />
 
-      <div className="app-control-deck px-4 py-3.5">
+      <div className="app-control-deck px-4 py-3 lg:px-3.5 lg:py-2.5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <SelectionChip
@@ -190,7 +190,7 @@ export function AppointmentsScreen({
       </div>
 
       {viewMode === "list" ? (
-        <div className="app-control-deck px-4 py-3">
+        <div className="app-control-deck px-4 py-3 lg:px-3.5 lg:py-2.5">
           <div className="pt-1">
             <div className="flex flex-wrap items-end gap-3">
               <SearchField

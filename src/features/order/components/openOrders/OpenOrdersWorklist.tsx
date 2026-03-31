@@ -93,13 +93,13 @@ function WorkQueueOrderRow({
   };
 
   return (
-    <div className="px-4 py-4">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.75rem] lg:items-start lg:gap-x-5">
+    <div className="px-4 py-3.5 lg:px-3.5 lg:py-3">
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] lg:items-start lg:gap-x-4">
         <div className="min-w-0">
           <div className="app-text-value min-w-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-          <div className="app-text-body-muted mt-2 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-          <div className="mt-2">
+          <div className="app-text-body-muted mt-1.5 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+          <div className="mt-1.5">
             <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
           </div>
         </div>
@@ -123,7 +123,7 @@ function WorkQueueOrderRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.75rem_5rem] lg:items-center",
+                    "grid min-w-0 gap-2.5 py-2 lg:grid-cols-[minmax(0,1fr)_6.25rem_4.75rem] lg:items-center",
                     index === 0 ? "pt-0" : "",
                   )}
                 >
@@ -145,19 +145,19 @@ function WorkQueueOrderRow({
                   </div>
                   <div className={cx("min-w-0", index > 0 && "pt-2.5")}>
                     {groupState ? (
-                      <div className="flex min-h-14 items-center justify-start">
+                      <div className="flex min-h-12 items-center justify-start">
                         <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
                       </div>
                     ) : null}
                   </div>
                   <div
-                    className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")}
+                    className={cx("flex min-h-12 items-center justify-end", index > 0 && "pt-2.5")}
                   >
                     {groupState.actionKind === "start_work" ? (
                       index === 0 ? (
                         <ActionButton
                           tone="primary"
-                          className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
+                          className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
                           disabled={groupState.actionDisabled}
                           onClick={() => onStartOpenOrderWork(openOrder.id)}
                         >
@@ -169,7 +169,7 @@ function WorkQueueOrderRow({
                     ) : groupState.actionKind === "mark_ready" ? (
                       <ActionButton
                         tone="primary"
-                        className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
+                        className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
                         onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
                       >
                         Ready
@@ -185,7 +185,7 @@ function WorkQueueOrderRow({
         </div>
 
         <div className="min-w-0 text-left sm:text-right lg:min-w-[7.5rem]">
-          <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+          <div className="text-[1.25rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)] lg:text-[1.2rem]">
             {formatWorklistTotal(openOrder.total)}
           </div>
           <div className="mt-1.5">
