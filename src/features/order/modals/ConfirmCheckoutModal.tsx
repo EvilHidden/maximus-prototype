@@ -1,9 +1,5 @@
-import { CircleDollarSign, ReceiptText } from "lucide-react";
-import { ActionButton, Callout, ModalShell, StatusPill } from "../../../components/ui/primitives";
-import {
-  ModalFooterActions,
-  ModalSummaryCard,
-} from "../../../components/ui/modalPatterns";
+import { ActionButton, ModalShell } from "../../../components/ui/primitives";
+import { ModalFooterActions } from "../../../components/ui/modalPatterns";
 import type { CheckoutPaymentMode, OpenOrder } from "../../../types";
 import { formatCheckoutCurrency } from "../checkoutDisplay";
 import { getOpenOrderTypeLabel } from "../selectors";
@@ -75,7 +71,7 @@ export function ConfirmCheckoutModal({
         <ModalFooterActions
           leading={
             <div className="app-text-caption">
-              Only mark this after Square says the payment went through.
+              Mark it here only after Square says paid.
             </div>
           }
         >
@@ -140,36 +136,34 @@ export function ConfirmCheckoutModal({
       }
     >
       <div className="space-y-4">
-        <div className="flex flex-wrap items-center gap-2">
-          <StatusPill tone="warn">Square</StatusPill>
-          <div className="app-text-caption">
-            {getOpenOrderTypeLabel(openOrder.orderType)} • Order #{openOrder.id}
-          </div>
-        </div>
-        <ModalSummaryCard
-          eyebrow="Paying customer"
-          title={openOrder.payerName}
-          description={openOrder.itemSummary.join(" · ")}
-          aside={
-            <div className="text-right">
+        <div className="space-y-3 border-b border-[var(--app-border)]/45 pb-3">
+          <div className="app-text-overline">Square payment</div>
+          <div className="flex items-start justify-between gap-4">
+            <div className="min-w-0">
+              <div className="app-text-value">{openOrder.payerName}</div>
+              <div className="app-text-body mt-1">{openOrder.itemSummary.join(" · ")}</div>
+              <div className="app-text-caption mt-1">
+                {getOpenOrderTypeLabel(openOrder.orderType)} • Order #{openOrder.id}
+              </div>
+            </div>
+            <div className="shrink-0 text-right">
               <div className="app-text-overline">{titleLabel}</div>
               <div className="mt-1 app-text-value">{amountDisplay}</div>
             </div>
-          }
-        />
-        <Callout tone="default" icon={CircleDollarSign} title={<span className="app-text-strong">What this covers</span>}>
-          <div className="app-text-caption">{amountExplanation}</div>
-        </Callout>
-        {branchGuidance ? (
-          <Callout tone="warn" icon={ReceiptText} title={<span className="app-text-strong">Payment choices</span>}>
-            <div className="app-text-caption">{branchGuidance}</div>
-          </Callout>
-        ) : null}
-        <div className="space-y-1.5 border-t border-[var(--app-border)]/35 pt-3">
-          <div className="app-text-overline">Before you confirm</div>
-          <div className="app-text-body">Take the payment in Square first.</div>
-          <div className="app-text-caption">Only mark it here after the terminal says the payment went through.</div>
+          </div>
         </div>
+
+        <div className="space-y-1.5">
+          <div className="app-text-overline">This payment</div>
+          <div className="app-text-body-muted">{amountExplanation}</div>
+        </div>
+
+        {branchGuidance ? (
+          <div className="space-y-1.5 border-t border-[var(--app-border)]/35 pt-3">
+            <div className="app-text-overline">Choices</div>
+            <div className="app-text-body-muted">{branchGuidance}</div>
+          </div>
+        ) : null}
       </div>
     </ModalShell>
   );

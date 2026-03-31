@@ -259,7 +259,7 @@ export function OrderDetailsScreen({
         )}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="app-page-with-support-rail">
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
             <SurfaceHeader
@@ -282,15 +282,6 @@ export function OrderDetailsScreen({
                   <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
                     {displayAmountNow > 0 ? formatCheckoutCurrency(displayAmountNow) : "Paid"}
                   </div>
-                  <div className="app-text-caption mt-1">
-                    {remainingLater > 0
-                      ? `${formatCheckoutCurrency(remainingLater)} stays with unfinished work`
-                      : dueNow <= 0 && openOrder.balanceDue > 0
-                        ? "Prepay can be taken now or later"
-                      : openOrder.balanceDue > 0
-                        ? "Still due on this order"
-                        : "No balance due"}
-                  </div>
                 </div>
               )}
             />
@@ -307,16 +298,16 @@ export function OrderDetailsScreen({
 
           {showCheckoutCompletion ? (
             <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-              <Callout
-                tone="success"
-                title="Payment recorded"
-              >
-                {hasReadyScopesToPickup
-                  ? remainingLater > 0
-                    ? `${formatCheckoutCurrency(dueNow)} is recorded for today's pickup. ${formatCheckoutCurrency(remainingLater)} stays on the unfinished part of the order.`
-                    : "Today's pickup balance is recorded. You can complete the handoff when the customer has everything."
-                  : "This payment is recorded on the order. You can keep working from here without using a separate checkout page."}
-              </Callout>
+              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/22 px-4 py-3">
+                <div className="app-text-overline">Payment recorded</div>
+                <div className="app-text-body-muted mt-1">
+                  {hasReadyScopesToPickup
+                    ? remainingLater > 0
+                      ? `${formatCheckoutCurrency(dueNow)} is recorded for today's pickup. ${formatCheckoutCurrency(remainingLater)} stays on the unfinished part of the order.`
+                      : "Today's pickup balance is recorded. You can complete the handoff when the customer has everything."
+                    : "This payment is recorded on the order."}
+                </div>
+              </div>
             </div>
           ) : null}
 
@@ -346,20 +337,11 @@ export function OrderDetailsScreen({
               <div className="min-w-0">
                 <div className="app-text-overline">Order status</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  <StatusPill tone={openOrder.balanceDue > 0 ? "warn" : "success"}>
-                    {openOrder.balanceDue > 0 ? "Balance due" : "Paid"}
-                  </StatusPill>
-                </div>
-                <div className="app-text-caption mt-2 leading-relaxed">
-                  {hasReadyScopesToPickup
-                    ? remainingLater > 0
-                      ? `${formatCheckoutCurrency(dueNow)} is due for today's handoff. ${formatCheckoutCurrency(remainingLater)} stays on the unfinished work.`
-                      : dueNow > 0
-                        ? `${formatCheckoutCurrency(dueNow)} is due before the handoff is complete.`
-                        : "The ready portion is already paid and can be handed off."
-                    : openOrder.balanceDue > 0
-                      ? `${formatCheckoutCurrency(openOrder.balanceDue)} is still open on this order.`
-                      : "No balance is outstanding on this order."}
+                  {openOrder.balanceDue > 0 ? (
+                    <StatusPill tone="warn">Balance due</StatusPill>
+                  ) : (
+                    <div className="app-text-body font-medium text-[var(--app-text)]">Paid</div>
+                  )}
                 </div>
               </div>
             </div>
@@ -388,11 +370,9 @@ export function OrderDetailsScreen({
                   >
                     <div className="flex flex-wrap items-start justify-between gap-4">
                       <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="app-text-strong">{getScopeLabel(group.scope)}</div>
-                          <StatusPill tone={statusDisplay.tone}>{statusDisplay.label}</StatusPill>
-                        </div>
+                        <div className="app-text-strong">{getScopeLabel(group.scope)}</div>
                         <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.82rem] text-[var(--app-text-soft)]">
+                          <StatusPill tone={statusDisplay.tone}>{statusDisplay.label}</StatusPill>
                           <div className="inline-flex items-center gap-1.5">
                             <CalendarClock className="h-3.5 w-3.5" />
                             <span>{readyByDisplay}</span>
@@ -409,8 +389,8 @@ export function OrderDetailsScreen({
                         </div>
                       </div>
                       <div className="text-left sm:text-right">
-                        <div className="app-text-overline">Subtotal</div>
-                        <div className="mt-1 text-[1.02rem] font-semibold tracking-[-0.015em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                        <div className="app-text-overline">Scope total</div>
+                        <div className="mt-1 app-text-body font-semibold [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
                           {formatCheckoutCurrency(scopeAmount)}
                         </div>
                       </div>
@@ -509,7 +489,7 @@ export function OrderDetailsScreen({
         <div className="space-y-4">
           <CheckoutSummaryRail
             title="Payment summary"
-            subtitle={remainingLater > 0 ? "Due today and what stays with unfinished work." : "Collected so far and what is still open."}
+            subtitle={remainingLater > 0 ? "Due today and still open." : "Collected so far and still open."}
             totalsItems={totalsItems}
           >
             {openOrder.balanceDue > 0 ? (
@@ -532,9 +512,11 @@ export function OrderDetailsScreen({
                 Edit order
               </ActionButton>
             )}
-            <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
-              Edit order
-            </ActionButton>
+            {openOrder.balanceDue > 0 || hasReadyScopesToPickup ? (
+              <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
+                Edit order
+              </ActionButton>
+            ) : null}
             <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
               Back to orders
             </ActionButton>

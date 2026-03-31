@@ -27,7 +27,14 @@ const countToneClasses: Record<NonNullable<CountPillProps["tone"]>, string> = {
 };
 
 export function VipPill() {
-  return <StatusPill tone="dark">VIP</StatusPill>;
+  return (
+    <StatusPill
+      tone="default"
+      className="border-[var(--app-border-strong)]/65 bg-[var(--app-surface-muted)]/75 text-[var(--app-text)]"
+    >
+      VIP
+    </StatusPill>
+  );
 }
 
 export function MeasurementStatusPill({
@@ -104,7 +111,14 @@ export function MeasurementVersionPill({
   version: string;
   isCurrent?: boolean;
 }) {
-  return <StatusPill tone={isCurrent ? "dark" : "default"}>{version}</StatusPill>;
+  return (
+    <StatusPill
+      tone="default"
+      className={isCurrent ? "border-[var(--app-border-strong)]/70 bg-[var(--app-surface-muted)]/72 text-[var(--app-text)]" : undefined}
+    >
+      {version}
+    </StatusPill>
+  );
 }
 
 export function AppointmentIssuePill({

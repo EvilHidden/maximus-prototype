@@ -1,6 +1,6 @@
 import type { MeasurementSetOption } from "../../../types";
 import { ActionButton, EntityRow, InlineEmptyState, ModalShell, StatusPill } from "../../../components/ui/primitives";
-import { ModalFooterActions, ModalSectionHeading } from "../../../components/ui/modalPatterns";
+import { ModalFooterActions } from "../../../components/ui/modalPatterns";
 
 type MeasurementSetModalProps = {
   customerName: string;
@@ -19,38 +19,47 @@ export function MeasurementSetModal({
   onCreateNew,
   onClose,
 }: MeasurementSetModalProps) {
+  const savedSetLabel = options.length === 1 ? "1 saved set" : `${options.length} saved sets`;
+
   return (
     <ModalShell
       title="Choose measurement set"
       onClose={onClose}
       widthClassName="max-w-[560px]"
       footer={
-        <ModalFooterActions leading={<div className="app-text-caption">Need a new set instead?</div>}>
+        <ModalFooterActions>
           <ActionButton tone="secondary" className="px-3 py-2 text-xs" onClick={onCreateNew}>
             New measurements
           </ActionButton>
         </ModalFooterActions>
       }
     >
-      <div className="space-y-4">
-          <ModalSectionHeading
-            title={options.length === 1 ? "1 saved set" : `${options.length} saved sets`}
-            description="Choose the measurements to use for this order."
-          />
-          <div className="max-h-[min(320px,calc(100vh-19rem))] space-y-2 overflow-auto rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/22 p-2">
-            {options.length ? options.map((option) => (
-              <EntityRow
-                key={option.id}
-                onClick={() => onSelect(option.id)}
-                title={option.label}
-                subtitle={option.note ? <span className="app-text-caption">{option.note}</span> : undefined}
-                meta={currentMeasurementSetId === option.id ? <StatusPill tone="dark">Current</StatusPill> : null}
-                className="w-full rounded-[var(--app-radius-md)] bg-[var(--app-surface)] px-4 py-3"
-              />
-            )) : (
-              <InlineEmptyState>No saved measurements for this customer yet.</InlineEmptyState>
-            )}
-          </div>
+      <div className="space-y-3">
+        <div className="space-y-1">
+          <div className="app-text-overline">{customerName}</div>
+          <div className="app-text-body-muted">{savedSetLabel}</div>
+        </div>
+        <div className="max-h-[min(320px,calc(100vh-19rem))] space-y-2 overflow-auto rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/22 p-2">
+          {options.length ? options.map((option) => (
+            <EntityRow
+              key={option.id}
+              onClick={() => onSelect(option.id)}
+              title={option.label}
+              subtitle={option.note ? <span className="app-text-caption">{option.note}</span> : undefined}
+              meta={currentMeasurementSetId === option.id ? (
+                <StatusPill
+                  tone="default"
+                  className="border-[var(--app-border-strong)]/70 bg-[var(--app-surface-muted)]/72 text-[var(--app-text)]"
+                >
+                  Current
+                </StatusPill>
+              ) : null}
+              className="w-full rounded-[var(--app-radius-md)] bg-[var(--app-surface)] px-4 py-3"
+            />
+          )) : (
+            <InlineEmptyState>No saved measurements for this customer yet.</InlineEmptyState>
+          )}
+        </div>
       </div>
     </ModalShell>
   );

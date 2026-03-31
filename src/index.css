@@ -16,6 +16,9 @@
   --app-accent: #0f172a;
   --app-accent-hover: #1e293b;
   --app-accent-contrast: #ffffff;
+  --app-primary-button: #243247;
+  --app-primary-button-hover: #2f3f57;
+  --app-primary-button-contrast: #ffffff;
   --app-focus: #2563eb;
   --app-info-bg: #eff6ff;
   --app-info-border: #bfdbfe;
@@ -37,6 +40,7 @@
   --app-space-4: 1rem;
   --app-space-5: 1.25rem;
   --app-space-6: 1.5rem;
+  --app-support-rail-width: 340px;
   --app-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.06);
   --app-shadow-lg: 0 18px 42px rgba(15, 23, 42, 0.14);
 }
@@ -55,6 +59,9 @@
   --app-accent: #e2e8f0;
   --app-accent-hover: #cbd5e1;
   --app-accent-contrast: #0f172a;
+  --app-primary-button: #d8e1ee;
+  --app-primary-button-hover: #e6edf7;
+  --app-primary-button-contrast: #102033;
   --app-focus: #93c5fd;
   --app-info-bg: rgba(29, 78, 216, 0.18);
   --app-info-border: rgba(96, 165, 250, 0.42);
@@ -173,6 +180,27 @@ textarea:focus-visible {
   border: 1px solid color-mix(in srgb, var(--app-border) 76%, transparent);
   background: color-mix(in srgb, var(--app-surface-muted) 78%, var(--app-surface));
   box-shadow: var(--app-shadow-sm);
+}
+
+.app-page-with-support-rail {
+  display: grid;
+  gap: 1rem;
+}
+
+.app-support-rail-fixed {
+  width: 100%;
+}
+
+@media (min-width: 1280px) {
+  .app-page-with-support-rail {
+    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
+    align-items: start;
+  }
+
+  .app-support-rail-fixed {
+    min-width: var(--app-support-rail-width);
+    max-width: var(--app-support-rail-width);
+  }
 }
 
 .app-input,
@@ -355,13 +383,14 @@ textarea:focus-visible {
 }
 
 .app-btn--primary {
-  border-color: var(--app-accent);
-  background: var(--app-accent);
-  color: var(--app-accent-contrast);
+  border-color: var(--app-primary-button);
+  background: var(--app-primary-button);
+  color: var(--app-primary-button-contrast);
 }
 
 .app-btn--primary:hover:not(:disabled) {
-  background: var(--app-accent-hover);
+  border-color: var(--app-primary-button-hover);
+  background: var(--app-primary-button-hover);
 }
 
 .app-btn--secondary {

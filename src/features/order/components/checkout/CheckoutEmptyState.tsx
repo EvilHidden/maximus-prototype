@@ -20,7 +20,7 @@ export function CheckoutEmptyState({
     <div className="space-y-4">
       <SectionHeader icon={ActionIcon} title={title} subtitle={subtitle} />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="app-page-with-support-rail">
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
             <div className="app-text-overline">Review order</div>
@@ -48,7 +48,7 @@ export function CheckoutEmptyState({
         </Surface>
 
         <div className="space-y-4">
-          <Surface tone="support" className="p-4">
+          <Surface tone="support" className="app-support-rail-fixed p-4">
             <SurfaceHeader title="Next step" subtitle="Start a new order to continue." />
 
             <div className="mt-4 border-t border-[var(--app-border)]/45 pt-4">

@@ -1,5 +1,5 @@
 import { Shirt, TriangleAlert } from "lucide-react";
-import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, Surface, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
 import { getCustomGarmentPrice } from "../selectors";
 
@@ -72,7 +72,7 @@ function GroupLabel({
 }) {
   return (
     <div>
-      <div className="app-text-strong">{title}</div>
+      <div className="app-text-body font-medium text-[var(--app-text)]">{title}</div>
       {subtitle ? <div className="app-text-caption mt-1">{subtitle}</div> : null}
     </div>
   );
@@ -129,11 +129,12 @@ function ChoiceGrid({
               isSelected && "app-workflow-toggle--active",
               !isSelected &&
                 "border-[var(--app-border)]/55 bg-[var(--app-surface)]/34 text-[var(--app-text)] hover:bg-[var(--app-surface)]/48",
+              isSelected && "border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/48 shadow-[var(--app-shadow-xs)]",
             )}
           >
             <div className="flex items-center justify-between gap-3">
               <span className="app-text-body font-medium leading-snug">{option}</span>
-              {isSelected && showSelectedLabel ? <span className="app-text-overline text-[var(--app-text)]">Selected</span> : null}
+              {isSelected && showSelectedLabel ? <span className="app-text-overline text-[var(--app-text-muted)]">Selected</span> : null}
             </div>
           </button>
         );
@@ -163,12 +164,12 @@ function VerticalOptionList({
             className={cx(
               "flex min-h-12 w-full items-center justify-between rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition",
               isSelected
-                ? "border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+                ? "border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/48 text-[var(--app-text)] shadow-[var(--app-shadow-xs)]"
                 : "border-[var(--app-border)] bg-[var(--app-surface)]/85 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
             )}
           >
             <span className="app-text-body font-medium leading-snug">{option}</span>
-            {isSelected ? <span className="app-text-overline text-[var(--app-text)]">Selected</span> : null}
+            {isSelected ? <span className="app-text-overline text-[var(--app-text-muted)]">Selected</span> : null}
           </button>
         );
       })}
@@ -223,7 +224,7 @@ export function CustomGarmentBuilder({
     showValidation &&
     (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
   const stageShellClassName =
-    "rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)]/70 bg-[var(--app-surface-muted)]/28 px-5 py-5";
+    "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/70 bg-[var(--app-surface)]/88 px-5 py-5 shadow-[var(--app-shadow-xs)]";
 
   return (
     <>
@@ -277,11 +278,11 @@ export function CustomGarmentBuilder({
                       className={cx(
                         "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-[background-color,border-color,color,box-shadow]",
                         selectedGender === gender
-                          ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                          : "border border-[var(--app-border)]/55 bg-[var(--app-surface)]/45 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
+                          ? "border border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/48 text-[var(--app-text)] shadow-[var(--app-shadow-xs)]"
+                          : "border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/20 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
                       )}
                     >
-                      <div className="app-text-value">{genderLabels[gender]}</div>
+                      <div className="app-text-body font-semibold text-[var(--app-text)]">{genderLabels[gender]}</div>
                     </button>
                   ))}
                 </div>
@@ -353,9 +354,9 @@ export function CustomGarmentBuilder({
                     </div>
                   </div>
 
-                  <div className="border-t border-[var(--app-border-strong)]/55 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
-                    <div className="app-kicker text-[var(--app-text-muted)]">Monograms</div>
-                    <div className="app-text-caption mt-1">Optional placements</div>
+                    <div className="border-t border-[var(--app-border-strong)]/55 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                      <div className="app-kicker text-[var(--app-text-muted)]">Monograms</div>
+                      <div className="app-text-caption mt-1">Optional placements</div>
                     <div className="mt-4 grid gap-3">
                       {[
                         { key: "Left", value: monogramLeft, setter: (value: string) => onSetConfiguration({ monogramLeft: value }) },
@@ -443,14 +444,14 @@ export function CustomGarmentBuilder({
         </div>
       </section>
 
-      <div className="flex items-center justify-between gap-4 border-t border-[var(--app-border)]/70 pt-4">
+      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-4 p-4 xl:pt-5">
         <div className="min-w-0 flex-1">
-          <div className="app-text-overline">{isEditing ? "Current garment" : "Ready to add"}</div>
+          <div className="app-text-body font-medium">{isEditing ? "Current garment" : "Ready to add"}</div>
           <div className="app-text-caption mt-1">
-            {summaryParts.length > 0 ? summaryParts.join(" • ") : "Choose the wearer, measurements, and construction details."}
+            {summaryParts.length > 0 ? summaryParts.join(" • ") : "Choose the wearer, measurements, and build details."}
           </div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-3">
           <ActionButton
             tone="secondary"
             className={cx(
@@ -487,7 +488,7 @@ export function CustomGarmentBuilder({
             {isEditing ? "Save item" : "Add to Cart"}
           </ActionButton>
         </div>
-      </div>
+      </Surface>
     </>
   );
 }

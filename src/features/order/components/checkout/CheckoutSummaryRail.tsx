@@ -22,7 +22,7 @@ export function CheckoutSummaryRail({
   const detailItems = totalItem ? totalsItems.slice(0, -1) : totalsItems;
 
   return (
-    <Surface tone="support" as="aside" className="overflow-hidden">
+    <Surface tone="support" as="aside" className="app-support-rail-fixed overflow-hidden">
       <div className="px-4 pt-4 pb-3">
         <SurfaceHeader
           title={title}

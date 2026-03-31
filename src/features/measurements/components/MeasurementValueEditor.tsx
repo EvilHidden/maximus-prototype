@@ -47,7 +47,7 @@ export function MeasurementValueEditor({
             enterKeyHint="done"
             pattern="[0-9]*[.]?[0-9]*"
             placeholder="Enter inches"
-            className="app-input min-h-[8.5rem] h-full px-4 text-center text-[5.75rem] font-semibold leading-none tracking-[-0.08em] tabular-nums xl:min-h-[8.75rem] xl:text-[6.6rem]"
+            className="app-input min-h-[8.5rem] h-full px-4 text-center text-[5.75rem] font-semibold leading-none tracking-[-0.08em] tabular-nums placeholder:text-[1.15rem] placeholder:font-medium placeholder:tracking-normal placeholder:text-[var(--app-text-soft)] xl:min-h-[8.75rem] xl:text-[6.6rem]"
           />
         </div>
 

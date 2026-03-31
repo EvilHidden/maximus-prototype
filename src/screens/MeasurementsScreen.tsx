@@ -99,8 +99,6 @@ export function MeasurementsScreen({
   onScreenChange,
 }: MeasurementsScreenProps) {
   const { showToast } = useToast();
-  const formatMeasurementReadout = (value: string) =>
-    value.trim().length > 0 ? `${formatMeasurementDisplayValue(value)} in` : "Tap to enter inches";
   const fieldNames = measurementFields;
   const [activeField, setActiveField] = useState(fieldNames[0] ?? "");
   const [customerModalOpen, setCustomerModalOpen] = useState(false);
@@ -118,6 +116,7 @@ export function MeasurementsScreen({
   const filteredCustomers = useMemo(() => filterCustomers(getActiveCustomers(customers), customerQuery), [customers, customerQuery]);
   const fieldSections = useMemo(() => buildMeasurementFieldSections(measurementFields), [measurementFields]);
   const activeFieldValue = order.custom.draft.measurements[activeField] ?? "";
+  const activeFieldHasValue = activeFieldValue.trim().length > 0;
   const parsedActiveValue = parseMeasurementValue(activeFieldValue);
   const completedMeasurementCount = Object.values(order.custom.draft.measurements).filter((value) => value.trim().length > 0).length;
   const activeFieldIndex = measurementFields.indexOf(activeField);
@@ -196,7 +195,7 @@ export function MeasurementsScreen({
       <div className="space-y-4">
         <SectionHeader icon={Ruler} title="Measurements" subtitle="Review or capture inches for this customer." />
 
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_320px]">
+        <div className="app-page-with-support-rail">
           <Surface tone="work" className="overflow-hidden">
             <div className="grid gap-0 xl:grid-cols-[300px_minmax(0,1fr)]">
               <div className="border-b border-[var(--app-border)]/40 px-4 py-4 xl:border-r xl:border-b-0">
@@ -212,16 +211,28 @@ export function MeasurementsScreen({
                 <div className="flex h-full flex-col">
                 <section className="px-1 py-1">
                   <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div>
-                      <div className="text-[1.625rem] font-semibold tracking-[-0.03em] text-[var(--app-text)]">
+                    <div className="min-w-0">
+                      <div className="app-text-overline">Current field</div>
+                      <div className="mt-1 text-[1.625rem] font-semibold tracking-[-0.03em] text-[var(--app-text)]">
                         {activeField || "Choose a field"}
                       </div>
-                      <div className="app-text-caption mt-1">{status.title}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="text-[2.4rem] font-semibold tracking-[-0.05em] text-[var(--app-text)]">
-                        {formatMeasurementReadout(activeFieldValue)}
+                      <div className="app-text-caption mt-1">
+                        {activeFieldHasValue ? "Adjust the value below if it needs a change." : "Tap below to enter inches."}
                       </div>
+                    </div>
+                    <div className="min-w-[168px] text-right">
+                      <div className="app-text-overline">{activeFieldHasValue ? "Current value" : "Next step"}</div>
+                      {activeFieldHasValue ? (
+                        <div className="mt-1 text-[2.4rem] font-semibold tracking-[-0.05em] text-[var(--app-text)]">
+                          {formatMeasurementDisplayValue(activeFieldValue)} in
+                        </div>
+                      ) : (
+                        <div className="mt-1 text-[1.1rem] font-semibold leading-tight text-[var(--app-text-muted)]">
+                          Tap below
+                          <br />
+                          to enter inches
+                        </div>
+                      )}
                     </div>
                   </div>
                   <div className="mt-5 flex min-h-[420px] items-center justify-center border-b border-[var(--app-border)]/36 pb-6">
@@ -247,27 +258,48 @@ export function MeasurementsScreen({
                     <div className="grid gap-2 sm:grid-cols-3">
                       <ActionButton
                         tone="secondary"
-                        className="min-h-[3.5rem] px-3 py-2 text-left"
+                        className="min-h-[4rem] px-3 py-3 text-left justify-start"
                         onClick={() => previousField && setActiveField(previousField)}
                         disabled={!previousField}
                       >
-                        {previousField ? `Previous: ${previousField}` : "Start of list"}
+                        <span className="flex flex-col items-start leading-tight">
+                          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">
+                            {previousField ? "Previous" : "Start"}
+                          </span>
+                          <span className="text-[0.94rem] font-medium tracking-[-0.01em] text-[var(--app-text)]">
+                            {previousField ?? "Top of list"}
+                          </span>
+                        </span>
                       </ActionButton>
                       <ActionButton
                         tone="secondary"
-                        className="min-h-[3.5rem] px-3 py-2 text-left"
+                        className="min-h-[4rem] px-3 py-3 text-left justify-start"
                         onClick={() => nextField && setActiveField(nextField)}
                         disabled={!nextField}
                       >
-                        {nextField ? `Next: ${nextField}` : "End of list"}
+                        <span className="flex flex-col items-start leading-tight">
+                          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">
+                            {nextField ? "Next" : "End"}
+                          </span>
+                          <span className="text-[0.94rem] font-medium tracking-[-0.01em] text-[var(--app-text)]">
+                            {nextField ?? "Last field"}
+                          </span>
+                        </span>
                       </ActionButton>
                       <ActionButton
                         tone="primary"
-                        className="min-h-[3.5rem] px-3 py-2 text-left"
+                        className="min-h-[4rem] px-3 py-3 text-left justify-start"
                         onClick={() => nextIncompleteField && setActiveField(nextIncompleteField)}
                         disabled={!nextIncompleteField}
                       >
-                        {nextIncompleteField ? `Next missing: ${nextIncompleteField}` : "All measurements entered"}
+                        <span className="flex flex-col items-start leading-tight">
+                          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-current opacity-80">
+                            {nextIncompleteField ? "Next missing" : "Complete"}
+                          </span>
+                          <span className="text-[0.94rem] font-medium tracking-[-0.01em] text-current">
+                            {nextIncompleteField ?? "All entered"}
+                          </span>
+                        </span>
                       </ActionButton>
                     </div>
                   </div>
@@ -277,7 +309,7 @@ export function MeasurementsScreen({
             </div>
           </Surface>
 
-          <Surface tone="support" className="px-4 py-3">
+          <Surface tone="support" className="app-support-rail-fixed px-4 py-3">
             <div className="space-y-5">
               <div className="border-b border-[var(--app-border)]/45 pb-5">
                 <SavedMeasurementsRail
