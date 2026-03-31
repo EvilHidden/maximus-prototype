@@ -47,34 +47,34 @@
 
 [data-theme="dark"] {
   color-scheme: dark;
-  --app-bg: #0a1220;
-  --app-surface: #121c2e;
-  --app-surface-muted: #182337;
-  --app-surface-elevated: #0f1828;
-  --app-border: rgba(95, 112, 138, 0.72);
-  --app-border-strong: rgba(128, 147, 176, 0.9);
-  --app-text: #f8fafc;
-  --app-text-muted: #c2cddb;
-  --app-text-soft: #93a1b4;
-  --app-accent: #e2e8f0;
-  --app-accent-hover: #cbd5e1;
-  --app-accent-contrast: #0f172a;
-  --app-primary-button: #d8e1ee;
-  --app-primary-button-hover: #e6edf7;
-  --app-primary-button-contrast: #102033;
-  --app-focus: #93c5fd;
-  --app-info-bg: rgba(29, 78, 216, 0.18);
-  --app-info-border: rgba(96, 165, 250, 0.42);
-  --app-info-text: #93c5fd;
-  --app-warn-bg: rgba(146, 64, 14, 0.28);
-  --app-warn-border: rgba(245, 158, 11, 0.35);
-  --app-warn-text: #fbbf24;
-  --app-success-bg: rgba(16, 185, 129, 0.18);
-  --app-success-border: rgba(74, 222, 128, 0.34);
-  --app-success-text: #86efac;
-  --app-danger-bg: rgba(220, 38, 38, 0.18);
-  --app-danger-border: rgba(252, 165, 165, 0.34);
-  --app-danger-text: #fca5a5;
+  --app-bg: #141516;
+  --app-surface: #1c1d20;
+  --app-surface-muted: #25272b;
+  --app-surface-elevated: #18191b;
+  --app-border: rgba(126, 128, 132, 0.6);
+  --app-border-strong: rgba(168, 171, 176, 0.82);
+  --app-text: #f3efe8;
+  --app-text-muted: #cbc4b9;
+  --app-text-soft: #928b81;
+  --app-accent: #d8d0c2;
+  --app-accent-hover: #e4dccf;
+  --app-accent-contrast: #17181a;
+  --app-primary-button: #41444c;
+  --app-primary-button-hover: #4b4f58;
+  --app-primary-button-contrast: #f6f2eb;
+  --app-focus: #d8be92;
+  --app-info-bg: rgba(136, 144, 156, 0.2);
+  --app-info-border: rgba(176, 183, 194, 0.34);
+  --app-info-text: #dbe2eb;
+  --app-warn-bg: rgba(148, 87, 24, 0.28);
+  --app-warn-border: rgba(227, 157, 61, 0.36);
+  --app-warn-text: #f1c16f;
+  --app-success-bg: rgba(62, 124, 90, 0.24);
+  --app-success-border: rgba(116, 184, 143, 0.36);
+  --app-success-text: #b9e1c5;
+  --app-danger-bg: rgba(153, 62, 62, 0.22);
+  --app-danger-border: rgba(214, 130, 130, 0.34);
+  --app-danger-text: #f0bbbb;
   --app-shadow-sm: 0 10px 24px rgba(2, 6, 23, 0.3);
   --app-shadow-lg: 0 24px 48px rgba(2, 6, 23, 0.48);
 }
@@ -135,6 +135,36 @@ textarea:focus-visible {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 22%, transparent), transparent 180px),
     var(--app-bg);
+}
+
+[data-theme="dark"] .app-sidebar {
+  background: color-mix(in srgb, var(--app-surface) 94%, transparent);
+}
+
+[data-theme="dark"] .app-main {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 32%, transparent), transparent 180px),
+    var(--app-bg);
+}
+
+[data-theme="dark"] .app-card {
+  background: color-mix(in srgb, var(--app-surface) 96%, black);
+}
+
+[data-theme="dark"] .app-panel-section {
+  background: color-mix(in srgb, var(--app-surface-muted) 84%, var(--app-surface));
+}
+
+[data-theme="dark"] .app-control-deck {
+  background: color-mix(in srgb, var(--app-surface-muted) 86%, var(--app-surface));
+}
+
+[data-theme="dark"] .app-support-rail {
+  background: color-mix(in srgb, var(--app-surface-muted) 80%, var(--app-surface));
+}
+
+[data-theme="dark"] .app-work-surface {
+  background: color-mix(in srgb, var(--app-surface) 98%, black);
 }
 
 .app-card,
@@ -550,7 +580,7 @@ textarea:focus-visible {
 }
 
 .app-modal-scrim {
-  background: rgb(2 6 23 / 0.6);
+  background: rgb(12 12 13 / 0.68);
 }
 
 .app-modal {
