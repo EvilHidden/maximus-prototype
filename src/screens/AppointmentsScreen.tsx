@@ -224,7 +224,7 @@ export function AppointmentsScreen({
       ) : null}
 
       {viewMode === "calendar" ? (
-        <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_360px]">
+        <div className="app-page-with-support-rail">
           <AppointmentsCalendar
             anchorDate={anchorDate}
             monthLabel={monthLabel}

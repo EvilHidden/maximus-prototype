@@ -48,19 +48,22 @@ export function QuickActionTile({
     <button
       onClick={onClick}
       className={cx(
-        "group flex min-h-[116px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] px-4 py-4 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]",
+        "group flex min-h-[124px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] px-5 py-4.5 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]",
         className,
       )}
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="app-icon-chip transition group-hover:border-[var(--app-border-strong)]" style={iconStyle}>
-          <Icon className="h-4 w-4" />
+        <div
+          className="app-icon-chip h-10 w-10 shrink-0 transition group-hover:border-[var(--app-border-strong)] [&_svg]:h-5 [&_svg]:w-5"
+          style={iconStyle}
+        >
+          <Icon className="h-5 w-5" />
         </div>
-        <span className="app-text-overline">{metaLabel}</span>
+        <span className="app-text-overline pt-1 text-[var(--app-text-soft)]">{metaLabel}</span>
       </div>
-      <div>
+      <div className="space-y-1.5">
         <div className="app-text-value">{title}</div>
-        <div className="app-text-caption mt-1">{subtitle}</div>
+        <div className="app-text-caption max-w-[22ch]">{subtitle}</div>
       </div>
     </button>
   );

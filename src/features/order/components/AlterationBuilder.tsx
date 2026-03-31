@@ -162,16 +162,16 @@ export function AlterationBuilder({
                   </div>
                   <div className="mt-auto grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-[var(--app-border)]/45">
                     <div className="app-text-caption min-w-0">Standard charge</div>
-                    <div
+                    <span
                       className={cx(
-                        "inline-flex h-7 min-w-[3.25rem] shrink-0 items-center justify-center gap-1 self-center rounded-full border px-2 text-[0.68rem] font-semibold uppercase tracking-[0.08em]",
+                        "inline-flex h-8 min-w-[3.75rem] shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.72rem] font-medium tracking-[0.01em]",
                         isSelected
-                          ? "border-[var(--app-accent)] bg-[var(--app-surface-muted)] text-[var(--app-accent)]"
-                          : "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]",
+                          ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
+                          : "border-[var(--app-primary-button)] bg-[var(--app-primary-button)] text-[var(--app-primary-button-contrast)]",
                       )}
                     >
-                      {isSelected ? "Added" : "Add"}
-                    </div>
+                      {isSelected ? "Selected" : "Add"}
+                    </span>
                   </div>
                 </button>
               );
@@ -183,7 +183,7 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-3 p-4 xl:pt-5">
+      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-4 p-4 xl:pt-5">
         <div className="shrink-0">
           <div className="app-text-body font-medium">Current item</div>
           <div className="app-text-caption mt-1">

@@ -1,5 +1,6 @@
 import { Ruler, TriangleAlert } from "lucide-react";
 import { ActionButton, Callout, EmptyState, StatusPill } from "../../../components/ui/primitives";
+import { MeasurementVersionPill } from "../../../components/ui/pills";
 import type { CustomMeasurementsCardModel } from "../../measurements/types";
 
 type MeasurementsCardProps = {
@@ -47,7 +48,7 @@ export function MeasurementsCard({
               <div className="app-text-caption mt-1">{model.set.status ?? "Attached to this order."}</div>
               {model.set.subline ? <div className="app-text-caption mt-1">{model.set.subline}</div> : null}
             </div>
-            <StatusPill tone="dark">{model.set.version}</StatusPill>
+            <MeasurementVersionPill version={model.set.version} isCurrent />
           </div>
         </div>
         <div className="flex flex-wrap items-center gap-2">

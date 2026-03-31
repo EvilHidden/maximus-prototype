@@ -3,7 +3,7 @@ import { CheckSquare2, Square } from "lucide-react";
 import { useState } from "react";
 import type { Customer, PickupLocation } from "../../types";
 import { ActionButton, FieldLabel, ModalShell, StatusPill, cx } from "../ui/primitives";
-import { ModalFooterActions, ModalSummaryCard } from "../ui/modalPatterns";
+import { ModalFooterActions } from "../ui/modalPatterns";
 import { VipPill } from "../ui/pills";
 
 type CustomerEditorModalProps = {
@@ -146,9 +146,9 @@ function formatAddress(address: AddressDraft) {
 
 function SectionBlock({ title, children }: { title: string; children: ReactNode }) {
   return (
-    <section>
+    <section className="border-t border-[var(--app-border)]/35 pt-5 first:border-t-0 first:pt-0">
       <div className="app-text-overline">{title}</div>
-      <div className="mt-4">{children}</div>
+      <div className="mt-3">{children}</div>
     </section>
   );
 }
@@ -194,16 +194,14 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
       title={mode === "add" ? "Add customer" : "Edit customer"}
       onClose={onClose}
       showCloseButton={false}
-      widthClassName="max-w-[900px]"
+      widthClassName="max-w-[840px]"
       footer={
         <ModalFooterActions
           leading={
             showValidationSummary ? (
               <div className="app-text-caption text-[var(--app-danger-text)]">{validationMessage}</div>
             ) : (
-              <div className="app-text-caption">
-                {mode === "add" ? "Customer profiles can be added now and refined later." : "Save when the service details are accurate."}
-              </div>
+              <div className="app-text-caption">{mode === "add" ? "Add the basics now. You can fill in the rest later." : "Save when the customer details look right."}</div>
             )
           }
         >
@@ -228,13 +226,13 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
       }
     >
       <div className="space-y-5">
-        <div className="border-b border-[var(--app-border)]/35 pb-4">
-          <ModalSummaryCard
-            eyebrow="Customer profile"
-            title={formattedName || "Unnamed customer"}
-            description={draft.email || draft.phone || "Add contact details, service notes, and profile preferences."}
-            aside={<div className="flex flex-wrap items-center gap-2">{draft.isVip ? <VipPill /> : null}</div>}
-          />
+        <div className="border-b border-[var(--app-border)]/35 pb-3">
+          <div className="flex items-center justify-between gap-4">
+            <div className="min-w-0">
+              {mode === "edit" ? <div className="app-text-strong">{formattedName || "Customer"}</div> : null}
+            </div>
+            {draft.isVip ? <VipPill /> : null}
+          </div>
           {showValidationSummary ? (
             <div className="mt-3 flex flex-wrap items-center gap-2">
               <StatusPill tone="danger">{mode === "add" ? "Missing required details" : "Complete required details"}</StatusPill>
@@ -243,10 +241,43 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
           ) : null}
         </div>
 
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1.25fr)_minmax(300px,0.8fr)]">
-          <div className="space-y-6">
+        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
+          <div className="space-y-5">
             <SectionBlock title="Customer">
               <div className="space-y-5">
+                <div className="grid gap-4 md:grid-cols-[120px_140px]">
+                  <label className="block">
+                    <FieldLabel>Honorific</FieldLabel>
+                    <select
+                      value={nameDraft.honorific}
+                      onChange={(event) => setNameDraft((current) => ({ ...current, honorific: event.target.value }))}
+                      className={compactSelectClassName}
+                      style={selectCaretStyle}
+                    >
+                      {honorificOptions.map((option) => (
+                        <option key={option || "none"} value={option}>
+                          {option || "None"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="block">
+                    <FieldLabel>Suffix</FieldLabel>
+                    <select
+                      value={nameDraft.suffix}
+                      onChange={(event) => setNameDraft((current) => ({ ...current, suffix: event.target.value }))}
+                      className={compactSelectClassName}
+                      style={selectCaretStyle}
+                    >
+                      {suffixOptions.map((option) => (
+                        <option key={option || "none"} value={option}>
+                          {option || "None"}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                </div>
+
                 <div className="grid gap-4 md:grid-cols-2">
                   <label className="block">
                     <FieldLabel>First name</FieldLabel>
@@ -305,124 +336,87 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                   </label>
                 </div>
 
-                <div className="border-t border-[var(--app-border)]/30 pt-5">
-                  <div className="app-text-overline">Address</div>
-                  <div className="mt-4 space-y-4">
-                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_120px]">
-                      <label className="block">
-                        <FieldLabel>Street address</FieldLabel>
-                        <input
-                          value={addressDraft.addressLine1}
-                          onChange={(event) => setAddressDraft((current) => ({ ...current, addressLine1: event.target.value }))}
-                          name="customer-address-line1"
-                          autoComplete="address-line1"
-                          className={inputClassName}
-                        />
-                      </label>
-                      <label className="block">
-                        <FieldLabel>Unit</FieldLabel>
-                        <input
-                          value={addressDraft.unit}
-                          onChange={(event) => setAddressDraft((current) => ({ ...current, unit: event.target.value }))}
-                          name="customer-address-line2"
-                          autoComplete="address-line2"
-                          className={inputClassName}
-                        />
-                      </label>
-                    </div>
-
-                    <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_110px_140px]">
-                      <label className="block">
-                        <FieldLabel>City</FieldLabel>
-                        <input
-                          value={addressDraft.city}
-                          onChange={(event) => setAddressDraft((current) => ({ ...current, city: event.target.value }))}
-                          name="customer-address-city"
-                          autoComplete="address-level2"
-                          className={inputClassName}
-                        />
-                      </label>
-                      <label className="block">
-                        <FieldLabel>State</FieldLabel>
-                        <select
-                          value={addressDraft.state}
-                          onChange={(event) => setAddressDraft((current) => ({ ...current, state: event.target.value }))}
-                          name="customer-address-state"
-                          autoComplete="address-level1"
-                          className={selectClassName}
-                          style={selectCaretStyle}
-                        >
-                          {stateOptions.map((option) => (
-                            <option key={option || "blank"} value={option}>
-                              {option || "Select"}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label className="block">
-                        <FieldLabel>ZIP</FieldLabel>
-                        <input
-                          value={addressDraft.zip}
-                          onChange={(event) => setAddressDraft((current) => ({ ...current, zip: event.target.value }))}
-                          name="customer-address-postal-code"
-                          autoComplete="postal-code"
-                          className={inputClassName}
-                        />
-                      </label>
-                    </div>
-                  </div>
-                </div>
               </div>
             </SectionBlock>
 
-            <div className="border-t border-[var(--app-border)]/35 pt-5">
-              <FieldLabel>Service notes</FieldLabel>
-              <textarea
-                value={draft.notes}
-                onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))}
-                rows={6}
-                className={inputClassName}
-              />
-            </div>
-          </div>
-
-          <div className="space-y-6 rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/62 px-4 py-4 border-t border-[var(--app-border)]/35 pt-5 lg:border-l lg:border-t-0 lg:pl-8 lg:pt-4">
-            <div className="border-b border-[var(--app-border)]/30 pb-5">
-              <div className="app-text-overline">Name details</div>
-              <div className="mt-4 grid gap-3 md:grid-cols-[120px_140px] md:justify-start">
+            <SectionBlock title="Address">
+              <div className="space-y-4">
+                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_120px]">
                   <label className="block">
-                    <FieldLabel>Honorific</FieldLabel>
+                    <FieldLabel>Street address</FieldLabel>
+                    <input
+                      value={addressDraft.addressLine1}
+                      onChange={(event) => setAddressDraft((current) => ({ ...current, addressLine1: event.target.value }))}
+                      name="customer-address-line1"
+                      autoComplete="address-line1"
+                      className={inputClassName}
+                    />
+                  </label>
+                  <label className="block">
+                    <FieldLabel>Unit</FieldLabel>
+                    <input
+                      value={addressDraft.unit}
+                      onChange={(event) => setAddressDraft((current) => ({ ...current, unit: event.target.value }))}
+                      name="customer-address-line2"
+                      autoComplete="address-line2"
+                      className={inputClassName}
+                    />
+                  </label>
+                </div>
+
+                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_110px_140px]">
+                  <label className="block">
+                    <FieldLabel>City</FieldLabel>
+                    <input
+                      value={addressDraft.city}
+                      onChange={(event) => setAddressDraft((current) => ({ ...current, city: event.target.value }))}
+                      name="customer-address-city"
+                      autoComplete="address-level2"
+                      className={inputClassName}
+                    />
+                  </label>
+                  <label className="block">
+                    <FieldLabel>State</FieldLabel>
                     <select
-                      value={nameDraft.honorific}
-                      onChange={(event) => setNameDraft((current) => ({ ...current, honorific: event.target.value }))}
-                      className={compactSelectClassName}
+                      value={addressDraft.state}
+                      onChange={(event) => setAddressDraft((current) => ({ ...current, state: event.target.value }))}
+                      name="customer-address-state"
+                      autoComplete="address-level1"
+                      className={selectClassName}
                       style={selectCaretStyle}
                     >
-                      {honorificOptions.map((option) => (
-                        <option key={option || "none"} value={option}>
-                          {option || "None"}
+                      {stateOptions.map((option) => (
+                        <option key={option || "blank"} value={option}>
+                          {option || "Select"}
                         </option>
                       ))}
                     </select>
                   </label>
                   <label className="block">
-                    <FieldLabel>Suffix</FieldLabel>
-                    <select
-                      value={nameDraft.suffix}
-                      onChange={(event) => setNameDraft((current) => ({ ...current, suffix: event.target.value }))}
-                      className={compactSelectClassName}
-                      style={selectCaretStyle}
-                    >
-                      {suffixOptions.map((option) => (
-                        <option key={option || "none"} value={option}>
-                          {option || "None"}
-                        </option>
-                        ))}
-                      </select>
-                    </label>
+                    <FieldLabel>ZIP</FieldLabel>
+                    <input
+                      value={addressDraft.zip}
+                      onChange={(event) => setAddressDraft((current) => ({ ...current, zip: event.target.value }))}
+                      name="customer-address-postal-code"
+                      autoComplete="postal-code"
+                      className={inputClassName}
+                    />
+                  </label>
+                </div>
               </div>
-            </div>
+            </SectionBlock>
 
+            <SectionBlock title="Service notes">
+              <textarea
+                value={draft.notes}
+                onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))}
+                rows={5}
+                className={inputClassName}
+              />
+            </SectionBlock>
+          </div>
+
+          <div className="space-y-5 border-t border-[var(--app-border)]/35 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
             <SectionBlock title="Profile">
               <div className="space-y-4">
                 <div>

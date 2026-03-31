@@ -1,4 +1,6 @@
-import { ActionButton, EmptyState, Surface, SurfaceHeader, cx } from "../../../components/ui/primitives";
+import { MapPin } from "lucide-react";
+import { ActionButton, EmptyState, Surface, SurfaceHeader } from "../../../components/ui/primitives";
+import { AppointmentIssuePill } from "../../../components/ui/pills";
 import type { Appointment } from "../../../types";
 import {
   getAppointmentConfirmationLabel,
@@ -25,7 +27,7 @@ export function AppointmentsScheduleRail({
   const showDateInRow = !selectedDateKey;
 
   return (
-    <Surface tone="support" as="aside" className="flex h-full w-full min-w-[360px] max-w-[360px] flex-col p-4 md:p-5">
+    <Surface tone="support" as="aside" className="app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-5">
       <SurfaceHeader
         title="Coming up"
         subtitle={railSubtitle}
@@ -52,6 +54,7 @@ export function AppointmentsScheduleRail({
             const confirmation = getAppointmentConfirmationLabel(appointment);
             const isUnconfirmed = confirmation === "Unconfirmed";
             const isActive = appointment.statusKey === "scheduled" || appointment.statusKey === "ready_to_check_in" || appointment.statusKey === "prep_required";
+            const visitLabel = getAppointmentVisitLabel(appointment);
 
             return (
               <div
@@ -66,16 +69,14 @@ export function AppointmentsScheduleRail({
 
                   <div className="min-w-0">
                     <div className="app-text-value text-[0.95rem]">{appointment.customer}</div>
-                    <div className="app-text-caption mt-1">{appointment.location}</div>
-                    <div className="app-text-body mt-2 font-medium">{getAppointmentVisitLabel(appointment)}</div>
+                    <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
+                      <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                      <span>{appointment.location}</span>
+                    </div>
+                    <div className="app-text-body mt-2 font-medium">{visitLabel}</div>
                     {isUnconfirmed ? (
-                      <div
-                        className={cx(
-                          "app-text-caption mt-1 font-medium",
-                          "text-[var(--app-warn-text)]",
-                        )}
-                      >
-                        {confirmation}
+                      <div className="mt-2">
+                        <AppointmentIssuePill label={confirmation} tone="warn" />
                       </div>
                     ) : null}
                   </div>

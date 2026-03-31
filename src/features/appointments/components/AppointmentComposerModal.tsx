@@ -2,7 +2,7 @@ import { Mail, Phone } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
 import { ActionButton, EntityRow, InlineEmptyState, ModalShell, SearchField, SelectField } from "../../../components/ui/primitives";
 import { filterCustomers, getActiveCustomers } from "../../customer/selectors";
-import { ModalFooterActions, ModalMetaRow, ModalSectionHeading } from "../../../components/ui/modalPatterns";
+import { ModalFooterActions, ModalMetaRow } from "../../../components/ui/modalPatterns";
 import type {
   Appointment,
   AppointmentConfirmationStatus,
@@ -117,7 +117,7 @@ export function AppointmentComposerModal({
       }
       onClose={onClose}
       showCloseButton={false}
-      widthClassName="max-w-[720px]"
+      widthClassName="max-w-[680px]"
       footer={
         <ModalFooterActions
           leading={
@@ -146,22 +146,34 @@ export function AppointmentComposerModal({
         </ModalFooterActions>
       }
     >
-      <div className="grid gap-5">
-        <div className="space-y-4 border-b border-[var(--app-border)]/45 pb-4">
+      <div className="grid gap-4">
+        <div className="space-y-3 border-b border-[var(--app-border)]/45 pb-3">
           <div className="flex items-start justify-between gap-4">
             <div className="min-w-0 space-y-1.5">
               <div className="app-text-overline">Customer</div>
-              <div className="app-text-value">
-                {selectedCustomer ? selectedCustomer.name : "Choose a customer"}
+              <div className="flex items-start justify-between gap-4">
+                <div className="app-text-value min-w-0">
+                  {selectedCustomer ? selectedCustomer.name : "Choose a customer"}
+                </div>
+                {!isPickup && selectedCustomer ? (
+                  <button
+                    type="button"
+                    className="app-text-caption shrink-0 font-medium text-[var(--app-text-muted)] transition hover:text-[var(--app-text)]"
+                    onClick={() => {
+                      setShowCustomerSearch((current) => !current);
+                      onComposerQueryChange("");
+                    }}
+                  >
+                    {showCustomerSearch ? "Keep selected" : "Change customer"}
+                  </button>
+                ) : null}
               </div>
-              <div className={selectedCustomer ? "app-text-body" : "app-text-body-muted"}>
-                {selectedCustomer
-                  ? (isPickup ? "Linked pickup" : "Appointment")
-                  : "Select who this visit belongs to before you schedule it."}
-              </div>
+              {!selectedCustomer ? (
+                <div className="app-text-body-muted">Choose a customer to continue.</div>
+              ) : null}
               {selectedCustomer ? (
                 <ModalMetaRow
-                  className="pt-1"
+                  className="pt-0.5"
                   items={[
                     ...(selectedCustomer.phone ? [{ icon: Phone, content: selectedCustomer.phone }] : []),
                     ...(selectedCustomer.email ? [{ icon: Mail, content: selectedCustomer.email }] : []),
@@ -169,25 +181,10 @@ export function AppointmentComposerModal({
                 />
               ) : null}
             </div>
-
-            <div className="flex shrink-0 flex-col items-end gap-2">
-              {!isPickup && selectedCustomer ? (
-                <button
-                  type="button"
-                  className="app-text-caption font-medium text-[var(--app-text-muted)] transition hover:text-[var(--app-text)]"
-                  onClick={() => {
-                    setShowCustomerSearch((current) => !current);
-                    onComposerQueryChange("");
-                  }}
-                >
-                  {showCustomerSearch ? "Keep selected" : "Change customer"}
-                </button>
-              ) : null}
-            </div>
           </div>
 
           {showResults ? (
-            <div className="mt-4 space-y-2">
+            <div className="space-y-2">
               <SearchField
                 label="Find customer"
                 value={composerQuery}
@@ -228,7 +225,7 @@ export function AppointmentComposerModal({
           ) : null}
 
           {isPickup ? (
-            <div className="space-y-1 border-t border-[var(--app-border)]/35 pt-3">
+            <div className="space-y-1 border-t border-[var(--app-border)]/35 pt-2.5">
               <div className="app-text-overline">Linked order</div>
               <div className="flex flex-wrap items-center gap-x-3 gap-y-1">
                 {getLinkedOrderLabel(editingAppointment?.orderId) ? (
@@ -242,13 +239,8 @@ export function AppointmentComposerModal({
           ) : null}
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-2">
-          <ModalSectionHeading
-            eyebrow="Visit details"
-            title="Set the appointment information"
-            description="Set the visit type, date, time, and location."
-            className="sm:col-span-2"
-          />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <div className="app-text-overline sm:col-span-2">Visit details</div>
           {!isPickup ? (
             <SelectField
               label="Visit type"
@@ -286,7 +278,7 @@ export function AppointmentComposerModal({
               type="datetime-local"
               value={composerState.scheduledFor}
               onChange={(event) => onComposerStateChange({ ...composerState, scheduledFor: event.target.value })}
-              className="app-input app-text-body py-3"
+              className="app-input app-text-body py-2.5"
             />
           </label>
 
@@ -301,8 +293,8 @@ export function AppointmentComposerModal({
                     type="button"
                     onClick={() => onComposerStateChange({ ...composerState, location })}
                     className={selected
-                      ? "rounded-[var(--app-radius-sm)] border border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/42 px-3 py-3 text-left app-text-body font-medium text-[var(--app-text)]"
-                      : "rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/14 px-3 py-3 text-left app-text-body-muted transition hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]"
+                      ? "rounded-[var(--app-radius-sm)] border border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/42 px-3 py-2.5 text-left app-text-body font-medium text-[var(--app-text)]"
+                      : "rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/55 bg-[var(--app-surface)]/14 px-3 py-2.5 text-left app-text-body-muted transition hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]"
                     }
                   >
                     {location}

@@ -267,7 +267,7 @@ export function ReviewOrderScreen({
         ) : undefined}
       />
 
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_340px]">
+      <div className="app-page-with-support-rail">
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
             <div className="flex flex-wrap items-end justify-between gap-4">

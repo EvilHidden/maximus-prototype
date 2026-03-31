@@ -25,10 +25,10 @@ export function PricingSummary({ pricing }: PricingSummaryProps) {
           </div>
         </div>
 
-        <div className="rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/32 px-3.5 py-3">
+        <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-warn-border)]/65 bg-[var(--app-warn-bg)]/58 px-3.5 py-3">
           <div className="flex items-center justify-between gap-3">
-            <span className="app-kicker text-[var(--app-text-muted)]">Deposit due</span>
-            <span className="app-text-strong">{formatSummaryCurrency(pricing.depositDue)}</span>
+            <span className="app-kicker text-[var(--app-warn-text)]">Deposit due</span>
+            <span className="app-text-strong text-[var(--app-warn-text)]">{formatSummaryCurrency(pricing.depositDue)}</span>
           </div>
         </div>
 
