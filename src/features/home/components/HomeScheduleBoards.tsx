@@ -284,6 +284,7 @@ function AppointmentLane({
       </div>
       <ScrollableLaneBody
         itemCount={appointments.length}
+        scrollClassName="max-h-[calc(24rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar md:max-h-[calc(20rem+4px)] lg:max-h-[calc(21rem+4px)] 2xl:max-h-[calc(31.5rem+4px)]"
         emptyState={
           <HomeLaneEmptyState
             kind="appointment"
@@ -298,7 +299,7 @@ function AppointmentLane({
               key={appointment.id}
               className={[
                 "app-table-row border-t border-[var(--app-border)]/55 px-4 py-4",
-                hasOverflowRows ? "min-h-[9.75rem] md:min-h-[10.5rem]" : "",
+                hasOverflowRows ? "min-h-[9rem] md:min-h-[9.5rem] 2xl:min-h-[10.5rem]" : "",
               ].join(" ")}
             >
               <ScheduleRow
@@ -318,10 +319,12 @@ function ScrollableLaneBody({
   itemCount,
   emptyState,
   renderRows,
+  scrollClassName,
 }: {
   itemCount: number;
   emptyState: ReactNode;
   renderRows: (hasOverflowRows: boolean) => ReactNode;
+  scrollClassName?: string;
 }) {
   const hasOverflowRows = itemCount > 3;
   const scrollBodyRef = useRef<HTMLDivElement | null>(null);
@@ -360,7 +363,7 @@ function ScrollableLaneBody({
             ref={scrollBodyRef}
             className={
               hasOverflowRows
-                ? "max-h-[calc(29.25rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar md:max-h-[calc(31.5rem+4px)]"
+                ? scrollClassName ?? "max-h-[calc(29.25rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar md:max-h-[calc(31.5rem+4px)]"
                 : ""
             }
           >
@@ -666,7 +669,7 @@ export function HomeWorkboards({
           tone="info"
         />
 
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <div className="mt-4 grid gap-4 lg:grid-cols-2">
           <AppointmentLane
             title="Today"
             dateLabel={todayLabel}
