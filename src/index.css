@@ -41,6 +41,7 @@
   --app-space-5: 1.25rem;
   --app-space-6: 1.5rem;
   --app-support-rail-width: 340px;
+  --app-support-rail-width-tablet: 304px;
   --app-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.06);
   --app-shadow-lg: 0 18px 42px rgba(15, 23, 42, 0.14);
 }
@@ -120,15 +121,72 @@ textarea:focus-visible {
 }
 
 .app-shell {
+  display: flex;
+  flex-direction: column;
   height: 100vh;
   overflow: hidden;
   background: var(--app-bg);
   color: var(--app-text);
 }
 
+.app-shell-grid {
+  display: grid;
+  flex: 1;
+  min-height: 0;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.625rem;
+  padding: 0.625rem;
+}
+
 .app-sidebar {
   background: color-mix(in srgb, var(--app-surface) 90%, transparent);
   box-shadow: var(--app-shadow-sm);
+}
+
+.app-mobile-topbar {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.625rem 0;
+}
+
+.app-mobile-topbar__menu {
+  display: inline-flex;
+  height: 2.75rem;
+  width: 2.75rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
+  border-radius: 12px;
+  background: var(--app-surface);
+  color: var(--app-text);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.app-mobile-drawer {
+  position: fixed;
+  inset: 0;
+  z-index: 70;
+}
+
+.app-mobile-drawer__scrim {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(15 23 42 / 0.44);
+}
+
+.app-mobile-drawer__panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(86vw, 320px);
+  display: flex;
+  flex-direction: column;
+  padding: 0.75rem;
+  border-right: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
+  background: color-mix(in srgb, var(--app-bg) 82%, var(--app-surface));
+  box-shadow: var(--app-shadow-lg);
+  backdrop-filter: blur(10px);
 }
 
 .app-main {
@@ -230,6 +288,34 @@ textarea:focus-visible {
   .app-support-rail-fixed {
     min-width: var(--app-support-rail-width);
     max-width: var(--app-support-rail-width);
+  }
+}
+
+@media (min-width: 768px) {
+  .app-shell-grid {
+    grid-template-columns: 228px minmax(0, 1fr);
+    gap: 0.75rem;
+    padding: 0.75rem;
+  }
+}
+
+@media (min-width: 1100px) and (max-width: 1279px) {
+  .app-page-with-support-rail {
+    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width-tablet);
+    align-items: start;
+  }
+
+  .app-support-rail-fixed {
+    min-width: var(--app-support-rail-width-tablet);
+    max-width: var(--app-support-rail-width-tablet);
+  }
+}
+
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .app-shell-grid {
+    grid-template-columns: 208px minmax(0, 1fr);
+    gap: 0.625rem;
+    padding: 0.625rem;
   }
 }
 

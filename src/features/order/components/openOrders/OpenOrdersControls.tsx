@@ -92,14 +92,14 @@ export function OpenOrdersControls({
               onChange={onQueryChange}
               placeholder="Search by customer, garment, or order ID"
               icon={Search}
-              className="min-w-[280px] flex-1"
+              className="min-w-0 basis-full sm:min-w-[240px] sm:flex-1"
             />
 
             <SelectField
               label="Type"
               value={typeFilter}
               onChange={(value) => onTypeFilterChange(value as OrderType | "all")}
-              className="min-w-[180px]"
+              className="min-w-0 basis-full sm:min-w-[160px]"
             >
               <option value="all">All order types</option>
               <option value="alteration">Alterations</option>
@@ -112,7 +112,7 @@ export function OpenOrdersControls({
                 label={showOperatorControls ? "Viewing queue" : "Assigned to"}
                 value={assigneeFilter}
                 onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
-                className="min-w-[200px]"
+                className="min-w-0 basis-full sm:min-w-[176px]"
               >
                 <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
                 <option value="unassigned">Unassigned</option>
@@ -128,7 +128,7 @@ export function OpenOrdersControls({
               label="Location"
               value={locationFilter}
               onChange={(value) => onLocationFilterChange(value as PickupLocation | "all")}
-              className="min-w-[180px]"
+              className="min-w-0 basis-full sm:min-w-[160px]"
             >
               {locationOptions.map((location) => (
                 <option key={location} value={location}>

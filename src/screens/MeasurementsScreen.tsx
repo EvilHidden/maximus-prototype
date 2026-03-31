@@ -197,8 +197,8 @@ export function MeasurementsScreen({
 
         <div className="app-page-with-support-rail">
           <Surface tone="work" className="overflow-hidden">
-            <div className="grid gap-0 xl:grid-cols-[300px_minmax(0,1fr)]">
-              <div className="border-b border-[var(--app-border)]/40 px-4 py-4 xl:border-r xl:border-b-0">
+            <div className="grid gap-0 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
+              <div className="border-b border-[var(--app-border)]/40 px-4 py-4 lg:border-r lg:border-b-0">
                 <MeasurementFieldGrid
                   fieldSections={fieldSections}
                   activeField={activeField}
@@ -220,7 +220,7 @@ export function MeasurementsScreen({
                         {activeFieldHasValue ? "Adjust the value below if it needs a change." : "Tap below to enter inches."}
                       </div>
                     </div>
-                    <div className="min-w-[168px] text-right">
+                    <div className="min-w-[152px] text-left lg:text-right">
                       <div className="app-text-overline">{activeFieldHasValue ? "Current value" : "Next step"}</div>
                       {activeFieldHasValue ? (
                         <div className="mt-1 text-[2.4rem] font-semibold tracking-[-0.05em] text-[var(--app-text)]">

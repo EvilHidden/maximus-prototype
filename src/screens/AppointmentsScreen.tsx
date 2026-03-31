@@ -153,7 +153,7 @@ export function AppointmentsScreen({
           <div className="shrink-0">
             <div className="app-text-overline">View locations</div>
           </div>
-          <div className="flex min-w-[15rem] flex-1 flex-wrap gap-1.5">
+          <div className="flex min-w-0 basis-full flex-wrap gap-1.5 sm:basis-auto sm:flex-1">
             <SelectionChip
               selected={allLocationsActive}
               onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
@@ -199,14 +199,14 @@ export function AppointmentsScreen({
                 onChange={setQuery}
                 placeholder="Search by customer, visit, or location"
                 icon={Search}
-                className="min-w-[280px] flex-1"
+                className="min-w-0 basis-full sm:min-w-[240px] sm:flex-1"
               />
 
               <SelectField
                 label="Status"
                 value={statusFilter}
                 onChange={(value) => setStatusFilter(value as AppointmentStatusFilter)}
-                className="min-w-[180px]"
+                className="min-w-0 basis-full sm:min-w-[160px]"
               >
                 <option value="active">Active</option>
                 <option value="all">All statuses</option>
