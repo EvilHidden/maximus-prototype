@@ -27,11 +27,11 @@ export function AppointmentsScheduleRail({
   const showDateInRow = !selectedDateKey;
 
   return (
-    <Surface tone="support" as="aside" className="app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-5">
+    <Surface tone="support" as="aside" className="app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 lg:p-3">
       <SurfaceHeader
         title="Coming up"
         subtitle={railSubtitle}
-        className="mb-3 border-b border-[var(--app-border)]/40 pb-3"
+        className="mb-2 border-b border-[var(--app-border)]/40 pb-2"
         meta={
           selectedDateKey ? (
             <div className="w-[96px] shrink-0 text-right">
@@ -59,23 +59,23 @@ export function AppointmentsScheduleRail({
             return (
               <div
                 key={appointment.id}
-                className="border-b border-[var(--app-border)]/50 py-4 last:border-b-0"
+                className="border-b border-[var(--app-border)]/50 py-2.5 last:border-b-0"
               >
-                <div className="grid grid-cols-[84px_minmax(0,1fr)_auto] gap-3">
+                <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] gap-2">
                   <div className="pt-0.5">
                     {showDateInRow ? <div className="app-text-caption">{getAppointmentDateLabel(appointment)}</div> : null}
                     <div className="app-text-strong mt-1">{getAppointmentTimeLabel(appointment)}</div>
                   </div>
 
                   <div className="min-w-0">
-                    <div className="app-text-value text-[0.95rem]">{appointment.customer}</div>
-                    <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
+                    <div className="app-text-value text-[0.9rem]">{appointment.customer}</div>
+                    <div className="app-text-caption mt-0.5 inline-flex items-center gap-1.5">
                       <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
                       <span>{appointment.location}</span>
                     </div>
-                    <div className="app-text-body mt-2 font-medium">{visitLabel}</div>
+                    <div className="app-text-body mt-1 font-medium">{visitLabel}</div>
                     {isUnconfirmed ? (
-                      <div className="mt-2">
+                      <div className="mt-1">
                         <AppointmentIssuePill label={confirmation} tone="warn" />
                       </div>
                     ) : null}
@@ -85,7 +85,7 @@ export function AppointmentsScheduleRail({
                     {isActive ? (
                       <ActionButton
                         tone="quiet"
-                        className="min-h-8 px-2.5 py-1.5 text-xs"
+                        className="min-h-[2rem] px-2.5 py-1 text-xs"
                         onClick={() => onOpenReschedule(appointment)}
                       >
                         Edit

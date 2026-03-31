@@ -54,7 +54,7 @@ export function AppointmentsRegistry({
     <EmptyState>No appointments match this search and filter set.</EmptyState>
   ) : (
     <Surface tone="work" className="overflow-hidden">
-      <div className="app-table-head grid gap-4 px-4 py-3 text-[11px] uppercase tracking-[0.12em] md:grid-cols-[152px_minmax(0,1.35fr)_116px_150px_128px_176px]">
+      <div className="app-table-head grid gap-4 px-4 py-2.5 text-[11px] uppercase tracking-[0.12em] md:grid-cols-[144px_minmax(0,1.35fr)_108px_144px_120px_164px]">
         <div>Date and time</div>
         <div>Customer</div>
         <div>Visit</div>
@@ -76,7 +76,7 @@ export function AppointmentsRegistry({
           <div
             key={appointment.id}
             className={cx(
-              "app-table-row grid gap-4 px-4 py-3.5 md:grid-cols-[152px_minmax(0,1.35fr)_116px_150px_128px_176px] md:items-center",
+              "app-table-row grid gap-4 px-4 py-3 md:grid-cols-[144px_minmax(0,1.35fr)_108px_144px_120px_164px] md:items-center",
               index > 0 && "border-t border-[var(--app-border)]/35",
             )}
           >

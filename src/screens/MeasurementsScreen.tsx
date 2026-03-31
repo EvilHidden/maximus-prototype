@@ -192,13 +192,13 @@ export function MeasurementsScreen({
 
   return (
     <>
-      <div className="space-y-4">
+      <div className="space-y-3">
         <SectionHeader icon={Ruler} title="Measurements" subtitle="Review or capture inches for this customer." />
 
         <div className="app-page-with-support-rail">
           <Surface tone="work" className="overflow-hidden">
-            <div className="grid gap-0 lg:grid-cols-[280px_minmax(0,1fr)] xl:grid-cols-[300px_minmax(0,1fr)]">
-              <div className="border-b border-[var(--app-border)]/40 px-4 py-4 lg:border-r lg:border-b-0">
+            <div className="grid gap-0 lg:grid-cols-[248px_minmax(0,1fr)] xl:grid-cols-[268px_minmax(0,1fr)]">
+              <div className="border-b border-[var(--app-border)]/40 px-4 py-4 lg:border-r lg:border-b-0 lg:px-3 lg:py-2.5">
                 <MeasurementFieldGrid
                   fieldSections={fieldSections}
                   activeField={activeField}
@@ -207,13 +207,13 @@ export function MeasurementsScreen({
                 />
               </div>
 
-              <div className="px-4 py-4">
+              <div className="px-4 py-4 lg:px-3 lg:py-2.5">
                 <div className="flex h-full flex-col">
-                <section className="px-1 py-1">
+                <section className="px-1 py-0.5">
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="app-text-overline">Current field</div>
-                      <div className="mt-1 text-[1.625rem] font-semibold tracking-[-0.03em] text-[var(--app-text)]">
+                      <div className="mt-1 text-[1.45rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] lg:text-[1.35rem] xl:text-[1.5rem]">
                         {activeField || "Choose a field"}
                       </div>
                       <div className="app-text-caption mt-1">
@@ -223,11 +223,11 @@ export function MeasurementsScreen({
                     <div className="min-w-[152px] text-left lg:text-right">
                       <div className="app-text-overline">{activeFieldHasValue ? "Current value" : "Next step"}</div>
                       {activeFieldHasValue ? (
-                        <div className="mt-1 text-[2.4rem] font-semibold tracking-[-0.05em] text-[var(--app-text)]">
+                        <div className="mt-1 text-[2.1rem] font-semibold tracking-[-0.05em] text-[var(--app-text)] lg:text-[1.95rem] xl:text-[2.25rem]">
                           {formatMeasurementDisplayValue(activeFieldValue)} in
                         </div>
                       ) : (
-                        <div className="mt-1 text-[1.1rem] font-semibold leading-tight text-[var(--app-text-muted)]">
+                        <div className="mt-1 text-[1rem] font-semibold leading-tight text-[var(--app-text-muted)]">
                           Tap below
                           <br />
                           to enter inches
@@ -235,12 +235,12 @@ export function MeasurementsScreen({
                       )}
                     </div>
                   </div>
-                  <div className="mt-5 flex min-h-[420px] items-center justify-center border-b border-[var(--app-border)]/36 pb-6">
+                  <div className="mt-3.5 flex min-h-[320px] items-center justify-center border-b border-[var(--app-border)]/36 pb-4 lg:min-h-[268px] xl:min-h-[332px]">
                     <MeasurementBodyMap activeField={activeField} />
                   </div>
                 </section>
 
-                <section className="px-1 pt-5">
+                <section className="px-1 pt-3.5">
                   <MeasurementValueEditor
                     focusKey={activeField}
                     value={activeFieldValue}
@@ -252,13 +252,13 @@ export function MeasurementsScreen({
                     onClear={() => onUpdateMeasurement(activeField, "")}
                   />
                 </section>
-                <section className="mt-auto px-1 pt-5">
-                  <div className="border-t border-[var(--app-border)]/36 pt-4">
-                    <div className="mb-3 app-text-overline">Move through measurements</div>
+                <section className="mt-auto px-1 pt-3.5">
+                  <div className="border-t border-[var(--app-border)]/36 pt-3.5">
+                    <div className="mb-2.5 app-text-overline">Move through measurements</div>
                     <div className="grid gap-2 sm:grid-cols-3">
                       <ActionButton
                         tone="secondary"
-                        className="min-h-[4rem] px-3 py-3 text-left justify-start"
+                        className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"
                         onClick={() => previousField && setActiveField(previousField)}
                         disabled={!previousField}
                       >
@@ -273,7 +273,7 @@ export function MeasurementsScreen({
                       </ActionButton>
                       <ActionButton
                         tone="secondary"
-                        className="min-h-[4rem] px-3 py-3 text-left justify-start"
+                        className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"
                         onClick={() => nextField && setActiveField(nextField)}
                         disabled={!nextField}
                       >
@@ -288,7 +288,7 @@ export function MeasurementsScreen({
                       </ActionButton>
                       <ActionButton
                         tone="primary"
-                        className="min-h-[4rem] px-3 py-3 text-left justify-start"
+                        className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"
                         onClick={() => nextIncompleteField && setActiveField(nextIncompleteField)}
                         disabled={!nextIncompleteField}
                       >
@@ -309,9 +309,9 @@ export function MeasurementsScreen({
             </div>
           </Surface>
 
-          <Surface tone="support" className="app-support-rail-fixed px-4 py-3">
-            <div className="space-y-5">
-              <div className="border-b border-[var(--app-border)]/45 pb-5">
+          <Surface tone="support" className="app-support-rail-fixed px-3.5 py-2.5">
+            <div className="space-y-4">
+              <div className="border-b border-[var(--app-border)]/45 pb-4">
                 <SavedMeasurementsRail
                   customer={selectedCustomer}
                   customerHistory={customerHistory}

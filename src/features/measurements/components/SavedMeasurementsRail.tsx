@@ -25,21 +25,21 @@ export function SavedMeasurementsRail({
 }: SavedMeasurementsRailProps) {
   return (
     <div>
-      <div className="mb-4">
+      <div className="mb-3 lg:mb-2.5">
         <div className="app-text-overline">Measurement sets</div>
-        <div className="mt-2 min-w-0 app-text-value">{customer?.name ?? "No customer selected"}</div>
-        <div className="app-text-caption mt-2">
+        <div className="mt-1 min-w-0 app-text-value">{customer?.name ?? "No customer selected"}</div>
+        <div className="app-text-caption mt-1">
           {customer ? `${customerHistory.length} saved ${customerHistory.length === 1 ? "set" : "sets"}` : "Choose a customer to review saved sets."}
         </div>
-        <div className="mt-3 flex items-center gap-2">
+        <div className="mt-2 flex items-center gap-2">
           {customer ? (
-            <ActionButton tone="secondary" className="min-h-10 flex-1 px-3 text-sm" onClick={onOpenCustomerModal}>
+            <ActionButton tone="secondary" className="min-h-9.5 flex-1 px-3 text-sm" onClick={onOpenCustomerModal}>
               Change customer
             </ActionButton>
           ) : null}
           <ActionButton
             tone="primary"
-            className="inline-flex min-h-10 items-center gap-1.5 px-3 py-2 text-sm"
+            className="inline-flex min-h-9.5 items-center gap-1.5 px-3 py-2 text-sm"
             onClick={customer ? onStartNewSet : onOpenCustomerModal}
           >
             <Plus className="h-3.5 w-3.5" />
@@ -49,7 +49,7 @@ export function SavedMeasurementsRail({
       </div>
 
       {customerHistory.length > 0 ? (
-        <div className="space-y-2 text-sm">
+        <div className="space-y-1.5 text-sm">
           {customerHistory.map((set) => {
             const display = getMeasurementSetDisplay(set);
             const isCurrent = linkedMeasurementSetId === set.id;
@@ -57,7 +57,7 @@ export function SavedMeasurementsRail({
             return (
               <div
                 key={set.id}
-                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--app-radius-sm)] border border-[color:color-mix(in_srgb,var(--app-border)_60%,transparent)] px-3 py-2.5 transition ${
+                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--app-radius-sm)] border border-[color:color-mix(in_srgb,var(--app-border)_60%,transparent)] px-3 py-2 transition ${
                   isCurrent ? "bg-[color:color-mix(in_srgb,var(--app-surface-muted)_34%,transparent)]" : "bg-[var(--app-surface)]"
                 }`}
               >
