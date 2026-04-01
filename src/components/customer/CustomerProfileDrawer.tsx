@@ -1,10 +1,15 @@
 import { useState } from "react";
-import { Archive, ArrowRight, History, MessageSquare, PencilRuler, Ruler, User } from "lucide-react";
-import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../../types";
+import { Archive, ArrowRight, CalendarDays, MessageSquare, PencilRuler, Ruler, User } from "lucide-react";
+import type { Customer, CustomerOrder, MeasurementSet, PickupLocation, Screen, ServiceAppointmentType } from "../../types";
 import { ActionButton, Callout, ModalShell, StatusPill } from "../ui/primitives";
 import { ModalFooterActions, ModalSummaryCard } from "../ui/modalPatterns";
 import { MeasurementStatusPill, OrderStatusPill, VipPill } from "../ui/pills";
 import { formatCustomerOrderDate, formatCustomerOrderTotal } from "../../features/customer/selectors";
+import {
+  AppointmentComposerModal,
+  createEmptyAppointmentComposerState,
+  type AppointmentComposerState,
+} from "../../features/appointments/components/AppointmentComposerModal";
 
 type CustomerProfileDrawerProps = {
   customer: Customer | null;
@@ -14,6 +19,14 @@ type CustomerProfileDrawerProps = {
   onEditCustomer: () => void;
   onDeleteCustomer: () => void;
   onStartOrderForCustomer: (customerId: string) => void;
+  onCreateAppointment: (payload: {
+    customerId: string;
+    typeKey: ServiceAppointmentType;
+    location: PickupLocation;
+    scheduledFor: string;
+  }) => void;
+  pickupLocations: PickupLocation[];
+  customers: Customer[];
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -150,10 +163,16 @@ export function CustomerProfileDrawer({
   onEditCustomer,
   onDeleteCustomer,
   onStartOrderForCustomer,
+  onCreateAppointment,
+  pickupLocations,
+  customers,
   onScreenChange,
 }: CustomerProfileDrawerProps) {
   const hasVisitHistory = Boolean(customer?.lastVisit && customer.lastVisit !== "New");
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [appointmentComposerOpen, setAppointmentComposerOpen] = useState(false);
+  const [appointmentComposerQuery, setAppointmentComposerQuery] = useState("");
+  const [appointmentComposerState, setAppointmentComposerState] = useState<AppointmentComposerState>(() => createEmptyAppointmentComposerState(pickupLocations));
   const archived = customer?.archived ?? false;
 
   return (
@@ -213,7 +232,7 @@ export function CustomerProfileDrawer({
           <div className="mt-3 space-y-2">
             <ToolTile
               icon={User}
-              label="New order"
+              label="New Order"
               subtitle={archived ? "Archived profiles are historical only." : "Start a new order for this customer."}
               disabled={archived}
               onClick={archived ? undefined : () => {
@@ -224,8 +243,24 @@ export function CustomerProfileDrawer({
               }}
             />
             <ToolTile
+              icon={CalendarDays}
+              label="New Appointment"
+              subtitle={archived ? "Archived profiles are view-only." : "Book a new visit for this customer."}
+              disabled={archived}
+              onClick={archived ? undefined : () => {
+                if (customer) {
+                  setAppointmentComposerQuery("");
+                  setAppointmentComposerState({
+                    ...createEmptyAppointmentComposerState(pickupLocations),
+                    customerId: customer.id,
+                  });
+                  setAppointmentComposerOpen(true);
+                }
+              }}
+            />
+            <ToolTile
               icon={Ruler}
-              label="Open measurements"
+              label="Open Measurements"
               subtitle={archived ? "Archived profiles are view-only." : "Review or update saved measurement sets."}
               disabled={archived}
               onClick={archived ? undefined : () => {
@@ -235,7 +270,7 @@ export function CustomerProfileDrawer({
             />
             <ToolTile
               icon={PencilRuler}
-              label="Add new set"
+              label="Add New Measurement Set"
               subtitle={archived ? "Archived profiles are view-only." : "Capture a fresh measurement profile."}
               disabled={archived}
               onClick={archived ? undefined : () => {
@@ -243,8 +278,7 @@ export function CustomerProfileDrawer({
                 onScreenChange("measurements");
               }}
             />
-            <ToolTile icon={MessageSquare} label="Message customer" subtitle="Prepare outreach or follow-up." />
-            <ToolTile icon={History} label="Review history" subtitle="Check previous work and service notes." />
+            <ToolTile icon={MessageSquare} label="Message Customer" subtitle="Prepare outreach or follow-up." />
           </div>
         </div>
 
@@ -351,6 +385,26 @@ export function CustomerProfileDrawer({
           </div>
         </ModalShell>
       ) : null}
+      <AppointmentComposerModal
+        customers={customers}
+        pickupLocations={pickupLocations}
+        composerOpen={appointmentComposerOpen}
+        editingAppointment={null}
+        composerQuery={appointmentComposerQuery}
+        composerState={appointmentComposerState}
+        onComposerQueryChange={setAppointmentComposerQuery}
+        onComposerStateChange={setAppointmentComposerState}
+        onClose={() => setAppointmentComposerOpen(false)}
+        onSubmit={() => {
+          onCreateAppointment({
+            customerId: appointmentComposerState.customerId,
+            typeKey: appointmentComposerState.typeKey as ServiceAppointmentType,
+            location: appointmentComposerState.location,
+            scheduledFor: appointmentComposerState.scheduledFor,
+          });
+          setAppointmentComposerOpen(false);
+        }}
+      />
     </div>
   );
 }

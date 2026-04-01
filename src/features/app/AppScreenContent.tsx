@@ -65,6 +65,8 @@ export function AppScreenContent({
         onUpdateCustomer={(customer) => dispatch({ type: "updateCustomer", customer })}
         onArchiveCustomer={(customerId) => dispatch({ type: "archiveCustomer", customerId })}
         onStartOrderForCustomer={(customerId) => dispatch({ type: "startOrderForCustomer", customerId })}
+        onCreateAppointment={(payload) => dispatch({ type: "createAppointment", payload })}
+        pickupLocations={referenceData.pickupLocations}
         onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
       />
     );
