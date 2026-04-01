@@ -1,6 +1,6 @@
 import { ChevronRight, Mail, MapPin, Phone, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
-import type { Customer, CustomerOrder, MeasurementSet, Screen } from "../types";
+import type { Customer, CustomerOrder, MeasurementSet, PickupLocation, Screen, ServiceAppointmentType } from "../types";
 import { ActionButton, EmptyState, SearchField, SectionHeader, Surface } from "../components/ui/primitives";
 import { MeasurementStatusPill, VipPill } from "../components/ui/pills";
 import { StatusPill } from "../components/ui/primitives";
@@ -24,6 +24,13 @@ type CustomerScreenProps = {
   onUpdateCustomer: (customer: Customer) => void;
   onArchiveCustomer: (customerId: string) => void;
   onStartOrderForCustomer: (customerId: string) => void;
+  onCreateAppointment: (payload: {
+    customerId: string;
+    typeKey: ServiceAppointmentType;
+    location: PickupLocation;
+    scheduledFor: string;
+  }) => void;
+  pickupLocations: PickupLocation[];
   onScreenChange: (screen: Screen) => void;
 };
 
@@ -107,6 +114,8 @@ export function CustomerScreen({
   onUpdateCustomer,
   onArchiveCustomer,
   onStartOrderForCustomer,
+  onCreateAppointment,
+  pickupLocations,
   onScreenChange,
 }: CustomerScreenProps) {
   const { showToast } = useToast();
@@ -218,6 +227,9 @@ export function CustomerScreen({
             setActiveCustomerId(null);
           }}
           onStartOrderForCustomer={onStartOrderForCustomer}
+          onCreateAppointment={onCreateAppointment}
+          pickupLocations={pickupLocations}
+          customers={customers}
           onScreenChange={onScreenChange}
         />
       ) : null}
