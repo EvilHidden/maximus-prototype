@@ -1,6 +1,7 @@
 import {
   CalendarDays,
   ClipboardList,
+  Ellipsis,
   Home,
   Menu,
   Moon,
@@ -35,8 +36,25 @@ const navIcons = {
   orderDetails: Package,
 } satisfies Record<Screen, typeof Home>;
 
+const screenLabels: Record<Screen, string> = {
+  home: "Home",
+  customer: "Customers",
+  openOrders: "Orders",
+  appointments: "Appointments",
+  order: "Order Builder",
+  measurements: "Measurements",
+  checkout: "Checkout",
+  orderDetails: "Order details",
+};
+
 export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, children }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  const primaryNavItems = navItems.filter((item) =>
+    ["home", "customer", "openOrders", "appointments"].includes(item.key),
+  );
+
+  const utilityNavItems = navItems.filter((item) => !primaryNavItems.some((primaryItem) => primaryItem.key === item.key));
 
   const getActiveNavScreen = (value: Screen) => {
     if (value === "orderDetails") {
@@ -45,6 +63,11 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
 
     return value;
   };
+
+  const activeNavScreen = getActiveNavScreen(screen);
+  const activeNavLabel = screenLabels[screen];
+  const mobileMoreActive =
+    utilityNavItems.some((item) => item.key === activeNavScreen) || screen === "checkout" || screen === "orderDetails";
 
   const handleScreenChange = (nextScreen: Screen) => {
     onScreenChange(nextScreen);
@@ -63,9 +86,17 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
           <Menu className="h-4 w-4" />
         </button>
         <div className="min-w-0">
-          <div className="app-text-strong truncate">SAMEpage Tailor OS</div>
-          <div className="app-text-overline mt-0.5">Operations</div>
+          <div className="app-text-overline">Workspace</div>
+          <div className="app-text-strong mt-0.5 truncate">{activeNavLabel}</div>
         </div>
+        <ActionButton
+          tone="secondary"
+          onClick={onToggleTheme}
+          className="ml-auto inline-flex min-h-11 items-center gap-2 rounded-[12px] px-3 py-2 text-sm shadow-none"
+        >
+          {themeLabel === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
+          <span className="sr-only">{themeLabel === "dark" ? "Light mode" : "Dark mode"}</span>
+        </ActionButton>
       </div>
 
       {mobileNavOpen ? (
@@ -80,7 +111,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
             <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[var(--app-border)]/55 bg-[color:color-mix(in_srgb,var(--app-surface-muted)_72%,var(--app-surface))] px-4 py-4">
               <div className="min-w-0">
                 <div className="app-text-strong">SAMEpage Tailor OS</div>
-                <div className="app-text-overline mt-1">Operations</div>
+                <div className="app-text-overline mt-1">Touch workspace</div>
               </div>
               <button
                 type="button"
@@ -93,7 +124,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
             </div>
 
             <div className="mt-3 flex-1 rounded-[12px] bg-[color:color-mix(in_srgb,var(--app-surface-muted)_40%,transparent)] p-2">
-              <div className="app-text-overline px-2 pb-2 pt-1">Workspace</div>
+              <div className="app-text-overline px-2 pb-2 pt-1">All screens</div>
               <div className="space-y-1.5">
                 {navItems.map((item) => {
                   const Icon = navIcons[item.key];
@@ -177,6 +208,37 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
           {children}
         </main>
       </div>
+
+      <nav className="app-mobile-tabbar" aria-label="Primary navigation">
+        {primaryNavItems.map((item) => {
+          const Icon = navIcons[item.key];
+          const isActive = activeNavScreen === item.key;
+
+          return (
+            <button
+              key={item.key}
+              type="button"
+              onClick={() => handleScreenChange(item.key)}
+              className={cx("app-mobile-tabbar__item", isActive ? "app-mobile-tabbar__item--active" : "")}
+              aria-current={isActive ? "page" : undefined}
+            >
+              <Icon className="h-[1.05rem] w-[1.05rem] shrink-0" />
+              <span>{item.label}</span>
+            </button>
+          );
+        })}
+
+        <button
+          type="button"
+          onClick={() => setMobileNavOpen(true)}
+          className={cx("app-mobile-tabbar__item", mobileMoreActive ? "app-mobile-tabbar__item--active" : "")}
+          aria-label="More screens"
+          aria-expanded={mobileNavOpen}
+        >
+          <Ellipsis className="h-[1.05rem] w-[1.05rem] shrink-0" />
+          <span>More</span>
+        </button>
+      </nav>
     </div>
   );
 }

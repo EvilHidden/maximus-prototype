@@ -201,7 +201,7 @@ function ScheduleRow({
   }, [activeAlertIcon]);
 
   return (
-    <div ref={rowRef} className="grid gap-4 md:grid-cols-[88px_minmax(0,1fr)_176px] md:items-start">
+    <div ref={rowRef} className="app-home-schedule-row">
       <div>
         <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
       </div>
@@ -244,14 +244,14 @@ function ScheduleRow({
         ) : null}
       </div>
 
-        <div className="grid gap-2 md:justify-items-stretch">
-          <ActionButton tone="primary" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
-            Start order
-          </ActionButton>
-          <ActionButton tone="quiet" className="min-h-11 px-4 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
-            Cancel appointment
-          </ActionButton>
-        </div>
+      <div className="app-home-schedule-row__actions">
+        <ActionButton tone="primary" className="min-h-10 px-3.5 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
+          Start order
+        </ActionButton>
+        <ActionButton tone="quiet" className="min-h-10 px-3.5 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
+          Cancel appointment
+        </ActionButton>
+      </div>
     </div>
   );
 }
@@ -298,8 +298,8 @@ function AppointmentLane({
             <div
               key={appointment.id}
               className={[
-                "app-table-row border-t border-[var(--app-border)]/55 px-4 py-4",
-                hasOverflowRows ? "min-h-[9rem] md:min-h-[9.5rem] 2xl:min-h-[10.5rem]" : "",
+                "app-table-row border-t border-[var(--app-border)]/55 px-4 py-3.5",
+                hasOverflowRows ? "min-h-[7.6rem] xl:min-h-[8.8rem]" : "",
               ].join(" ")}
             >
               <ScheduleRow
@@ -370,7 +370,7 @@ function ScrollableLaneBody({
             {renderRows(hasOverflowRows)}
           </div>
           {hasOverflowRows && showScrollHint ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 items-end justify-center bg-gradient-to-t from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pb-3">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-20 items-end justify-center bg-gradient-to-t from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pb-3 sm:flex">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--app-border)]/75 bg-[var(--app-surface)]/96 px-3 py-1.5 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm">
                 <span className="app-text-overline text-[var(--app-text-soft)]">More below</span>
                 <ChevronDown className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
@@ -533,7 +533,7 @@ function ReadyPickupRow({
   const needsPayment = pickup.pickupBalanceDue > 0;
 
   return (
-    <div className="grid gap-4 lg:grid-cols-[220px_minmax(0,1fr)_auto] lg:items-start lg:gap-x-8">
+    <div className="app-home-pickup-row">
       <div className="min-w-0 pr-2">
         <div className="space-y-2">
           {readyStatusLines.map((line, index) => (
@@ -576,10 +576,10 @@ function ReadyPickupRow({
           </span>
         </div>
       </div>
-      <div className="flex items-center lg:pt-0.5">
+      <div className="flex items-center md:justify-start lg:pt-0.5">
         <ActionButton
           tone="primary"
-          className="min-h-12 px-4 py-2.5 text-sm"
+          className="min-h-10 px-3.5 py-2 text-sm"
           onClick={needsPayment ? onCheckout : onCompletePickup}
         >
           {needsPayment ? "Take payment" : "Complete pickup"}
@@ -669,7 +669,7 @@ export function HomeWorkboards({
           tone="info"
         />
 
-        <div className="mt-4 grid gap-4 lg:grid-cols-2">
+        <div className="mt-4 grid gap-4 xl:grid-cols-2">
           <AppointmentLane
             title="Today"
             dateLabel={todayLabel}
@@ -714,8 +714,8 @@ export function HomeWorkboards({
                 <div
                   key={pickup.key}
                   className={[
-                    "app-table-row border-t border-[var(--app-border)]/55 px-4 py-4 first:border-t-0",
-                    hasOverflowRows ? "min-h-[8.5rem]" : "",
+                    "app-table-row border-t border-[var(--app-border)]/55 px-4 py-3.5 first:border-t-0",
+                    hasOverflowRows ? "min-h-[7.8rem]" : "",
                   ].join(" ")}
                 >
                   <ReadyPickupRow
