@@ -51,55 +51,59 @@ export function OpenOrdersControls({
   const showOperatorControls = activeView === "operator";
 
   return (
-    <div className="app-control-deck px-4 py-4 md:px-5">
-      <div className="space-y-4">
-        <div className="flex flex-wrap gap-2">
-          {([
-            { key: "queues", label: "Needs attention", count: viewCounts.queues },
-            { key: "ready", label: "Ready", count: viewCounts.ready },
-            { key: "operator", label: "Alterations", count: viewCounts.operator },
-            { key: "factory", label: "Custom Garments", count: viewCounts.factory },
-            { key: "all", label: "All orders", count: viewCounts.all },
-          ] as const).map((view) => (
-            <SelectionChip
-              key={view.key}
-              selected={activeView === view.key}
-              onClick={() => onViewChange(view.key)}
-              className={activeView === view.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
-              trailing={
-                <CountPill
-                  count={view.count}
-                  icon={undefined}
-                  className={cx(
-                    "px-2 py-0.5 text-[11px]",
-                    activeView === view.key
-                      ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                      : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
-                  )}
-                />
-              }
-            >
-              {view.label}
-            </SelectionChip>
-          ))}
+    <div className="app-control-deck px-4 py-4 md:px-4 md:py-3">
+      <div className="space-y-3">
+        <div className="flex flex-wrap gap-1.5 md:gap-2">
+            {([
+              { key: "queues", label: "Needs attention", count: viewCounts.queues },
+              { key: "ready", label: "Ready", count: viewCounts.ready },
+              { key: "operator", label: "Alterations", count: viewCounts.operator },
+              { key: "factory", label: "Custom Garments", count: viewCounts.factory },
+              { key: "all", label: "All orders", count: viewCounts.all },
+            ] as const).map((view) => (
+              <SelectionChip
+                key={view.key}
+                selected={activeView === view.key}
+                onClick={() => onViewChange(view.key)}
+                size="sm"
+                className={cx(
+                  "justify-between",
+                  activeView === view.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30",
+                )}
+                trailing={
+                  <CountPill
+                    count={view.count}
+                    icon={undefined}
+                    className={cx(
+                      "px-2 py-0.5 text-[11px]",
+                      activeView === view.key
+                        ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
+                        : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
+                    )}
+                  />
+                }
+              >
+                {view.label}
+              </SelectionChip>
+            ))}
         </div>
 
-        <div className="border-t border-[var(--app-border)]/40 pt-4">
-          <div className="flex flex-wrap items-end gap-3 lg:flex-nowrap">
+        <div className="border-t border-[var(--app-border)]/40 pt-3">
+          <div className="flex flex-wrap items-end gap-2 md:gap-2.5">
             <SearchField
               label="Search orders"
               value={query}
               onChange={onQueryChange}
               placeholder="Search by customer, garment, or order ID"
               icon={Search}
-              className="min-w-0 basis-full sm:min-w-[240px] sm:flex-1 lg:min-w-[280px] lg:flex-[1.35]"
+              className="min-w-0 basis-full md:min-w-[280px] md:flex-[1.4] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]"
             />
 
             <SelectField
               label="Type"
               value={typeFilter}
               onChange={(value) => onTypeFilterChange(value as OrderType | "all")}
-              className="min-w-0 basis-full sm:min-w-[160px] lg:min-w-[168px] lg:flex-none"
+              className="min-w-0 basis-[calc(50%-0.25rem)] md:min-w-[152px] md:flex-[0.82] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]"
             >
               <option value="all">All order types</option>
               <option value="alteration">Alterations</option>
@@ -112,7 +116,7 @@ export function OpenOrdersControls({
                 label={showOperatorControls ? "Viewing queue" : "Assigned to"}
                 value={assigneeFilter}
                 onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
-                className="min-w-0 basis-full sm:min-w-[176px] lg:min-w-[184px] lg:flex-none"
+                className="min-w-0 basis-[calc(50%-0.25rem)] md:min-w-[164px] md:flex-[0.92] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]"
               >
                 <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
                 <option value="unassigned">Unassigned</option>
@@ -128,7 +132,10 @@ export function OpenOrdersControls({
               label="Location"
               value={locationFilter}
               onChange={(value) => onLocationFilterChange(value as PickupLocation | "all")}
-              className="min-w-0 basis-full sm:min-w-[160px] lg:min-w-[168px] lg:flex-none"
+              className={cx(
+                "min-w-0 basis-full md:min-w-[156px] md:flex-[0.86] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]",
+                activeView === "all" ? "md:basis-[190px]" : "",
+              )}
             >
               {locationOptions.map((location) => (
                 <option key={location} value={location}>
@@ -140,14 +147,15 @@ export function OpenOrdersControls({
         </div>
 
         {activeView === "queues" ? (
-          <div className="border-t border-[var(--app-border)]/40 pt-4">
+          <div className="border-t border-[var(--app-border)]/40 pt-2.5">
             <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
-              <div className="flex min-w-max gap-2 px-1">
+              <div className="flex min-w-max gap-1.5 px-1">
                 {queueMeta.map((queue) => (
                   <SelectionChip
                     key={queue.key}
                     selected={activeQueue === queue.key}
                     onClick={() => onQueueChange(queue.key)}
+                    size="sm"
                     className={activeQueue === queue.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
                     trailing={
                       <CountPill
@@ -171,9 +179,9 @@ export function OpenOrdersControls({
         ) : null}
 
         {activeView === "all" ? (
-          <div className="border-t border-[var(--app-border)]/40 pt-4">
+          <div className="border-t border-[var(--app-border)]/40 pt-2.5">
             <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
-              <div className="flex min-w-max gap-2 px-1">
+              <div className="flex min-w-max gap-1.5 px-1">
                 {([
                   { key: "active", label: "All active orders", count: allOrdersTabCounts.active },
                   { key: "closed", label: "Closed orders", count: allOrdersTabCounts.closed },
@@ -182,6 +190,7 @@ export function OpenOrdersControls({
                     key={tab.key}
                     selected={allOrdersTab === tab.key}
                     onClick={() => onAllOrdersTabChange(tab.key)}
+                    size="sm"
                     className={allOrdersTab === tab.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
                     trailing={
                       <CountPill
