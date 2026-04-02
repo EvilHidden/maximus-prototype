@@ -221,7 +221,7 @@ describe("order reducer", () => {
 
     const openOrder = adaptOpenOrders(next.database).find((order) => order.id === 9504);
     expect(openOrder?.lineItems[0]).toMatchObject({
-      subtitle: "Hem: +1 1/4 in",
+      subtitle: "Hem: +1 ¼ in",
       amount: 30,
     });
     expect(openOrder?.balanceDue).toBe(30);

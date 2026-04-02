@@ -253,11 +253,11 @@ describe("order selectors", () => {
     const lineItems = getOrderBagLineItems(order, customers);
 
     expect(lineItems[0]).toMatchObject({
-      subtitle: "Hem: +1 1/4 in",
-      sourceLabel: "Pants Hem: +1 1/4 in",
+      subtitle: "Hem: +1 ¼ in",
+      sourceLabel: "Pants Hem: +1 ¼ in",
     });
     expect(lineItems[0]?.components[0]).toMatchObject({
-      value: "Hem: +1 1/4 in",
+      value: "Hem: +1 ¼ in",
       numericValue: 1.25,
       referenceId: "alteration_service_pants_hem",
     });
