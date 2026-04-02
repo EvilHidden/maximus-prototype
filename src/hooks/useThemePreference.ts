@@ -1,22 +1,25 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 export function useThemePreference() {
-  const [theme, setTheme] = useState<"light" | "dark">("light");
+  const [themePreference, setThemePreference] = useState<"light" | "dark" | "system">("system");
+  const [systemTheme, setSystemTheme] = useState<"light" | "dark">("light");
 
   useEffect(() => {
     if (typeof window === "undefined") {
       return;
     }
 
+    const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)");
+    const updateSystemTheme = () => setSystemTheme(mediaQuery.matches ? "dark" : "light");
+    updateSystemTheme();
+
     const storedTheme = window.localStorage.getItem("maximus-theme");
-    if (storedTheme === "light" || storedTheme === "dark") {
-      setTheme(storedTheme);
-      return;
+    if (storedTheme === "light" || storedTheme === "dark" || storedTheme === "system") {
+      setThemePreference(storedTheme);
     }
 
-    if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-      setTheme("dark");
-    }
+    mediaQuery.addEventListener("change", updateSystemTheme);
+    return () => mediaQuery.removeEventListener("change", updateSystemTheme);
   }, []);
 
   useEffect(() => {
@@ -24,8 +27,13 @@ export function useThemePreference() {
       return;
     }
 
-    window.localStorage.setItem("maximus-theme", theme);
-  }, [theme]);
+    window.localStorage.setItem("maximus-theme", themePreference);
+  }, [themePreference]);
 
-  return { theme, setTheme };
+  const theme = useMemo(
+    () => (themePreference === "system" ? systemTheme : themePreference),
+    [systemTheme, themePreference],
+  );
+
+  return { theme, themePreference, setThemePreference };
 }

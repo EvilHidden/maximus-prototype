@@ -4,6 +4,7 @@ import {
   Ellipsis,
   Home,
   Menu,
+  Monitor,
   Moon,
   Package,
   Ruler,
@@ -15,13 +16,13 @@ import {
 import { useState, type ReactNode } from "react";
 import { navItems } from "../../data";
 import type { Screen } from "../../types";
-import { ActionButton, cx } from "../ui/primitives";
+import { ActionButton, SelectionChip, cx } from "../ui/primitives";
 
 type AppShellProps = {
   screen: Screen;
   onScreenChange: (screen: Screen) => void;
-  themeLabel: string;
-  onToggleTheme: () => void;
+  themePreference: "light" | "dark" | "system";
+  onThemeChange: (theme: "light" | "dark" | "system") => void;
   children: ReactNode;
 };
 
@@ -47,7 +48,13 @@ const screenLabels: Record<Screen, string> = {
   orderDetails: "Order details",
 };
 
-export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, children }: AppShellProps) {
+const themeOptions = [
+  { key: "light" as const, label: "Light", Icon: Sun },
+  { key: "dark" as const, label: "Dark", Icon: Moon },
+  { key: "system" as const, label: "System", Icon: Monitor },
+];
+
+export function AppShell({ themePreference, onThemeChange, screen, onScreenChange, children }: AppShellProps) {
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   const primaryNavItems = navItems.filter((item) =>
@@ -74,6 +81,22 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
     setMobileNavOpen(false);
   };
 
+  const themeControl = (
+    <div className="flex flex-wrap gap-2">
+      {themeOptions.map(({ key, label, Icon }) => (
+        <SelectionChip
+          key={key}
+          selected={themePreference === key}
+          onClick={() => onThemeChange(key)}
+          leading={<Icon className="h-3.5 w-3.5" />}
+          size="sm"
+        >
+          {label}
+        </SelectionChip>
+      ))}
+    </div>
+  );
+
   return (
     <div className="app-shell">
       <div className="app-mobile-topbar">
@@ -89,14 +112,7 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
           <div className="app-text-overline">Workspace</div>
           <div className="app-text-strong mt-0.5 truncate">{activeNavLabel}</div>
         </div>
-        <ActionButton
-          tone="secondary"
-          onClick={onToggleTheme}
-          className="ml-auto inline-flex min-h-11 items-center gap-2 rounded-[12px] px-3 py-2 text-sm shadow-none"
-        >
-          {themeLabel === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-          <span className="sr-only">{themeLabel === "dark" ? "Light mode" : "Dark mode"}</span>
-        </ActionButton>
+        <div className="ml-auto">{themeControl}</div>
       </div>
 
       {mobileNavOpen ? (
@@ -148,14 +164,10 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
               </div>
             </div>
 
-            <ActionButton
-              tone="secondary"
-              onClick={onToggleTheme}
-              className="mt-3 flex min-h-12 items-center gap-2 rounded-[12px] px-3.5 py-2.5 text-sm shadow-none"
-            >
-              {themeLabel === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-              {themeLabel === "dark" ? "Light mode" : "Dark mode"}
-            </ActionButton>
+            <div className="mt-3">
+              <div className="app-text-overline mb-2 px-1">Theme</div>
+              {themeControl}
+            </div>
           </aside>
         </div>
       ) : null}
@@ -194,14 +206,10 @@ export function AppShell({ themeLabel, onToggleTheme, screen, onScreenChange, ch
             </div>
           </div>
 
-          <ActionButton
-            tone="secondary"
-            onClick={onToggleTheme}
-            className="mt-3 flex min-h-12 items-center gap-2 rounded-[12px] px-3.5 py-2.5 text-sm shadow-none"
-          >
-            {themeLabel === "dark" ? <Sun className="h-3.5 w-3.5" /> : <Moon className="h-3.5 w-3.5" />}
-            {themeLabel === "dark" ? "Light mode" : "Dark mode"}
-          </ActionButton>
+          <div className="mt-3">
+            <div className="app-text-overline mb-2 px-1">Theme</div>
+            {themeControl}
+          </div>
         </aside>
 
         <main className="app-main h-full overflow-x-hidden overflow-y-auto rounded-[14px] border border-[var(--app-border)]/55 p-3 [scrollbar-gutter:stable] sm:p-3.5 md:p-4 xl:p-5">
