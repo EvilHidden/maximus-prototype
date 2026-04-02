@@ -16,6 +16,7 @@ import {
 } from "../selectors";
 import { getCustomMeasurementsCardModel, getMeasurementOptions } from "../../measurements/selectors";
 import { useCustomMeasurementDefaults } from "../../measurements/hooks/useCustomMeasurementDefaults";
+import { hasMissingRequiredAlterationAdjustments } from "../alterationAdjustments";
 
 type UseOrderBuilderControllerArgs = {
   customers: Customer[];
@@ -70,13 +71,17 @@ export function useOrderBuilderController({
     order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId
       ? "Go to measurements"
       : "Review order";
+  const missingAlterationAdjustments = hasMissingRequiredAlterationAdjustments(order.alteration.selectedModifiers);
   const addToCartDisabledReason = !order.alteration.selectedGarment
     ? "Select a garment before adding anything to the cart."
     : order.alteration.selectedModifiers.length === 0
       ? "Choose at least one alteration service before adding this item to the cart."
+      : missingAlterationAdjustments
+        ? "Enter the requested adjustment before adding this alteration to the cart."
       : undefined;
   const missingAlterationGarment = !order.alteration.selectedGarment;
   const missingAlterationServices = Boolean(order.alteration.selectedGarment) && order.alteration.selectedModifiers.length === 0;
+  const missingAlterationAdjustmentValues = Boolean(order.alteration.selectedGarment) && missingAlterationAdjustments;
 
   const garmentOptions = referenceData.alterationCatalog.map((garment) => garment.category);
   const currentServices = referenceData.alterationCatalog.find((garment) => garment.category === order.alteration.selectedGarment)?.services ?? [];
@@ -230,6 +235,7 @@ export function useOrderBuilderController({
     addToCartDisabledReason,
     missingAlterationGarment,
     missingAlterationServices,
+    missingAlterationAdjustmentValues,
     garmentOptions,
     currentServices,
     currentAlterationSubtotal,

@@ -16,6 +16,7 @@ import { getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/refer
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
 import { getDraftPaymentSummary, getOpenOrderPickupBalanceDue } from "./paymentSummary";
+import { formatAlterationServiceLabel } from "./alterationAdjustments";
 
 const seedReferenceData = getSeedReferenceData();
 
@@ -100,9 +101,11 @@ function createAlterationComponents(itemId: number, modifiers: OrderWorkflowStat
     id: `alteration-${itemId}-service-${index + 1}`,
     kind: "alteration_service",
     label: "Service",
-    value: modifier.name,
+    value: formatAlterationServiceLabel(modifier),
     sortOrder: index + 1,
     amount: modifier.price,
+    referenceId: modifier.id,
+    numericValue: modifier.deltaInches,
   }));
 }
 
@@ -313,10 +316,10 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
     id: `alteration-${item.id}`,
     kind: "alteration",
     title: `${index + 1}. ${createLineTitle("alteration", item.garment)}`,
-    subtitle: item.modifiers.map((modifier) => modifier.name).join(", "),
+    subtitle: item.modifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(", "),
     amount: item.subtotal,
     isRush: item.isRush,
-    sourceLabel: `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim(),
+    sourceLabel: `${item.garment} ${item.modifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" + ")}`.trim(),
     garmentLabel: item.garment,
     components: createAlterationComponents(item.id, item.modifiers),
     wearerCustomerId: null,

@@ -17,6 +17,7 @@ import {
   createInitialCustomDraft,
   createInitialOrderState,
 } from "./orderState";
+import { hasMissingRequiredAlterationAdjustments, normalizeAlterationAdjustment } from "../features/order/alterationAdjustments";
 
 export type OrderReducerOptions = {
   now?: Date;
@@ -29,6 +30,10 @@ function getNow(options?: OrderReducerOptions) {
 
 function getNextId(options?: OrderReducerOptions) {
   return options?.idFactory?.() ?? Date.now();
+}
+
+function getAlterationSubtotal(modifiers: AppState["order"]["alteration"]["selectedModifiers"]) {
+  return modifiers.reduce((sum, modifier) => sum + modifier.price, 0);
 }
 
 export function tryReduceOrderAction(state: AppState, action: AppAction, options?: OrderReducerOptions): AppState | null {
@@ -197,7 +202,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         },
       };
     case "toggleAlterationModifier": {
-      const isSelected = state.order.alteration.selectedModifiers.some((modifier) => modifier.name === action.modifier.name);
+      const isSelected = state.order.alteration.selectedModifiers.some((modifier) => modifier.id === action.modifier.id);
       return {
         ...state,
         order: {
@@ -205,12 +210,33 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           alteration: {
             ...state.order.alteration,
             selectedModifiers: isSelected
-              ? state.order.alteration.selectedModifiers.filter((modifier) => modifier.name !== action.modifier.name)
-              : [...state.order.alteration.selectedModifiers, action.modifier],
+              ? state.order.alteration.selectedModifiers.filter((modifier) => modifier.id !== action.modifier.id)
+              : [...state.order.alteration.selectedModifiers, {
+                  ...action.modifier,
+                  deltaInches: null,
+                }],
           },
         },
       };
     }
+    case "setAlterationModifierAdjustment":
+      return {
+        ...state,
+        order: {
+          ...state.order,
+          alteration: {
+            ...state.order.alteration,
+            selectedModifiers: state.order.alteration.selectedModifiers.map((modifier) => (
+              modifier.id !== action.modifierId
+                ? modifier
+                : {
+                    ...modifier,
+                    deltaInches: action.deltaInches === null ? null : normalizeAlterationAdjustment(action.deltaInches),
+                  }
+            )),
+          },
+        },
+      };
     case "toggleAlterationRush":
       return {
         ...state,
@@ -223,11 +249,15 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         },
       };
     case "addAlterationItem": {
-      if (!state.order.alteration.selectedGarment || state.order.alteration.selectedModifiers.length === 0) {
+      if (
+        !state.order.alteration.selectedGarment
+        || state.order.alteration.selectedModifiers.length === 0
+        || hasMissingRequiredAlterationAdjustments(state.order.alteration.selectedModifiers)
+      ) {
         return state;
       }
 
-      const subtotal = state.order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0);
+      const subtotal = getAlterationSubtotal(state.order.alteration.selectedModifiers);
       const itemId = getNextId(options);
       return {
         ...state,
@@ -240,7 +270,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
               {
                 id: itemId,
                 garment: state.order.alteration.selectedGarment,
-                modifiers: [...state.order.alteration.selectedModifiers],
+                modifiers: state.order.alteration.selectedModifiers.map((modifier) => ({ ...modifier })),
                 subtotal,
                 isRush: state.order.alteration.selectedRush,
               },
@@ -265,14 +295,18 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           alteration: {
             ...state.order.alteration,
             selectedGarment: item.garment,
-            selectedModifiers: [...item.modifiers],
+            selectedModifiers: item.modifiers.map((modifier) => ({ ...modifier })),
             selectedRush: item.isRush,
           },
         },
       };
     }
     case "saveAlterationItem": {
-      if (!state.order.alteration.selectedGarment || state.order.alteration.selectedModifiers.length === 0) {
+      if (
+        !state.order.alteration.selectedGarment
+        || state.order.alteration.selectedModifiers.length === 0
+        || hasMissingRequiredAlterationAdjustments(state.order.alteration.selectedModifiers)
+      ) {
         return state;
       }
 
@@ -288,8 +322,8 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
                 : {
                     ...item,
                     garment: state.order.alteration.selectedGarment,
-                    modifiers: [...state.order.alteration.selectedModifiers],
-                    subtotal: state.order.alteration.selectedModifiers.reduce((sum, modifier) => sum + modifier.price, 0),
+                    modifiers: state.order.alteration.selectedModifiers.map((modifier) => ({ ...modifier })),
+                    subtotal: getAlterationSubtotal(state.order.alteration.selectedModifiers),
                     isRush: state.order.alteration.selectedRush,
                   }
             )),
@@ -331,7 +365,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
                 ...item,
                 garment,
                 modifiers,
-                subtotal: modifiers.reduce((sum, modifier) => sum + modifier.price, 0),
+                subtotal: getAlterationSubtotal(modifiers),
                 isRush: action.payload.isRush ?? item.isRush,
               };
             }),

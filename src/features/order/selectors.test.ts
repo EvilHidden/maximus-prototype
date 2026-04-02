@@ -13,6 +13,7 @@ import {
   getOpenOrderOperationalPhase,
   getOpenOrderPickupGroups,
   getOpenOrderReadinessDetails,
+  getOrderBagLineItems,
   getOpenOrderStatusPills,
   isOpenOrderFullyReadyForPickup,
   getOperatorQueueStage,
@@ -26,6 +27,20 @@ import {
   getSummaryGuardrail,
   sortOpenOrdersChronologically,
 } from "./selectors";
+
+function createAlterationSelection(
+  overrides?: Partial<OrderWorkflowState["alteration"]["items"][number]["modifiers"][number]>,
+) {
+  return {
+    id: "alteration_service_test",
+    name: "Hem",
+    price: 20,
+    supportsAdjustment: false,
+    requiresAdjustment: false,
+    deltaInches: null,
+    ...overrides,
+  };
+}
 
 const customers: Customer[] = [
   {
@@ -67,8 +82,8 @@ function createMixedOrderState(): OrderWorkflowState {
           id: 1,
           garment: "Trousers",
           modifiers: [
-            { name: "Hem", price: 20 },
-            { name: "Waist", price: 15 },
+            createAlterationSelection(),
+            createAlterationSelection({ id: "alteration_service_test_waist", name: "Waist", price: 15 }),
           ],
           subtotal: 35,
           isRush: false,
@@ -214,6 +229,38 @@ describe("order selectors", () => {
       total: 1665.7875,
     });
     expect(getCheckoutCollectionAmount(order)).toBe(747.5);
+  });
+
+  it("formats draft alteration line items with signed imperial adjustments", () => {
+    const order = createInitialOrderState();
+    order.alteration.items = [{
+      id: 1,
+      garment: "Pants",
+      modifiers: [
+        createAlterationSelection({
+          id: "alteration_service_pants_hem",
+          name: "Hem",
+          price: 30,
+          supportsAdjustment: true,
+          requiresAdjustment: true,
+          deltaInches: 1.25,
+        }),
+      ],
+      subtotal: 30,
+      isRush: false,
+    }];
+
+    const lineItems = getOrderBagLineItems(order, customers);
+
+    expect(lineItems[0]).toMatchObject({
+      subtitle: "Hem: +1 1/4 in",
+      sourceLabel: "Pants Hem: +1 1/4 in",
+    });
+    expect(lineItems[0]?.components[0]).toMatchObject({
+      value: "Hem: +1 1/4 in",
+      numericValue: 1.25,
+      referenceId: "alteration_service_pants_hem",
+    });
   });
 
   it("keeps custom deposit from offsetting alteration pickup balance on mixed orders", () => {

@@ -4,6 +4,18 @@ import { createPrototypeDatabase } from "../db/runtime";
 import type { Customer } from "../types";
 import { appReducer, createInitialAppState, createInitialOrderState } from "./appState";
 
+function createAlterationSelection(overrides?: Partial<ReturnType<typeof createInitialOrderState>["alteration"]["items"][number]["modifiers"][number]>) {
+  return {
+    id: "alteration_service_test_hem",
+    name: "Hem",
+    price: 20,
+    supportsAdjustment: false,
+    requiresAdjustment: false,
+    deltaInches: null,
+    ...overrides,
+  };
+}
+
 const jordan: Customer = {
   id: "C-1001",
   name: "Jordan Patel",
@@ -208,12 +220,12 @@ describe("app state", () => {
         payerCustomerId: "C-1001",
         alteration: {
           selectedGarment: "Trousers",
-          selectedModifiers: [{ name: "Hem", price: 20 }],
+          selectedModifiers: [createAlterationSelection()],
           selectedRush: false,
           items: [{
             id: 11,
             garment: "Trousers",
-            modifiers: [{ name: "Hem", price: 20 }],
+            modifiers: [createAlterationSelection()],
             subtotal: 20,
             isRush: false,
           }],

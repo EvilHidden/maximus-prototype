@@ -1,4 +1,4 @@
-import type { AlterationCategory, CustomGarmentGender, PickupLocation, StaffMember } from "../types";
+import type { AlterationCategory, AlterationServiceDefinition, CustomGarmentGender, PickupLocation, StaffMember } from "../types";
 import type { PrototypeDatabase } from "./schema";
 import {
   createAlterationServiceDefinitions,
@@ -74,13 +74,25 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
     database.alterationServiceDefinitions.reduce<Map<string, AlterationCategory>>((categories, service) => {
       const existing = categories.get(service.category);
       if (existing) {
-        existing.services.push({ name: service.name, price: service.price });
+        existing.services.push({
+          id: service.id,
+          name: service.name,
+          price: service.price,
+          supportsAdjustment: service.supportsAdjustment,
+          requiresAdjustment: service.requiresAdjustment,
+        });
         return categories;
       }
 
       categories.set(service.category, {
         category: service.category,
-        services: [{ name: service.name, price: service.price }],
+        services: [{
+          id: service.id,
+          name: service.name,
+          price: service.price,
+          supportsAdjustment: service.supportsAdjustment,
+          requiresAdjustment: service.requiresAdjustment,
+        }],
       });
       return categories;
     }, new Map()).values(),
@@ -153,4 +165,27 @@ const seedReferenceData = createReferenceData({
 
 export function getSeedReferenceData() {
   return seedReferenceData;
+}
+
+export function findAlterationServiceDefinition(
+  definitions: Array<Pick<PrototypeDatabase["alterationServiceDefinitions"][number], "id" | "category" | "name" | "price" | "supportsAdjustment" | "requiresAdjustment">>,
+  garmentLabel: string,
+  serviceId: string | null,
+  serviceName: string,
+): AlterationServiceDefinition | null {
+  const match = definitions.find((definition) => (
+    definition.category === garmentLabel && (serviceId ? definition.id === serviceId : definition.name === serviceName)
+  ));
+
+  if (!match) {
+    return null;
+  }
+
+  return {
+    id: match.id,
+    name: match.name,
+    price: match.price,
+    supportsAdjustment: match.supportsAdjustment,
+    requiresAdjustment: match.requiresAdjustment,
+  };
 }

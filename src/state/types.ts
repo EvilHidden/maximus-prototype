@@ -2,7 +2,8 @@ import type {
   AlterationPickup,
   AppointmentConfirmationStatus,
   AppointmentTypeKey,
-  AlterationService,
+  AlterationServiceDefinition,
+  AlterationServiceSelection,
   CheckoutPaymentMode,
   Customer,
   CustomOccasion,
@@ -31,7 +32,7 @@ export type AppState = {
 export type SetAlterationItemPayload = {
   itemId: number;
   garment?: string;
-  modifiers?: AlterationService[];
+  modifiers?: AlterationServiceSelection[];
   isRush?: boolean;
 };
 
@@ -107,7 +108,8 @@ export type AppAction =
   | { type: "saveMeasurementSet"; payload: SaveMeasurementSetPayload }
   | { type: "deleteMeasurementSet"; measurementSetId: string }
   | { type: "selectAlterationGarment"; garment: string }
-  | { type: "toggleAlterationModifier"; modifier: AlterationService }
+  | { type: "toggleAlterationModifier"; modifier: AlterationServiceDefinition }
+  | { type: "setAlterationModifierAdjustment"; modifierId: string; deltaInches: number | null }
   | { type: "toggleAlterationRush" }
   | { type: "addAlterationItem" }
   | { type: "loadAlterationItemForEdit"; itemId: number }

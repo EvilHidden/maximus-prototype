@@ -21,6 +21,7 @@ import type { AppState } from "../state/appState";
 import { useToast } from "../components/ui/toast";
 import { useOrderBuilderController } from "../features/order/hooks/useOrderBuilderController";
 import { createNextCustomerId } from "../features/customer/selectors";
+import { formatAlterationServiceLabel } from "../features/order/alterationAdjustments";
 
 type OrderScreenProps = {
   customers: Customer[];
@@ -175,7 +176,7 @@ export function OrderScreen({
               {controller.isEditingAlterationItem ? (
                 <ItemEditBanner
                   label={controller.editingItem?.garment ?? "Alteration item"}
-                  detail={order.alteration.selectedModifiers.map((modifier) => modifier.name).join(" • ") || null}
+                  detail={order.alteration.selectedModifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" • ") || null}
                 />
               ) : null}
 
@@ -193,8 +194,10 @@ export function OrderScreen({
                 showValidation={controller.alterationValidationVisible}
                 missingGarment={controller.missingAlterationGarment}
                 missingServices={controller.missingAlterationServices}
+                missingAdjustments={controller.missingAlterationAdjustmentValues}
                 onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
                 onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
+                onSetModifierAdjustment={(modifierId, deltaInches) => dispatch({ type: "setAlterationModifierAdjustment", modifierId, deltaInches })}
                 onToggleRush={() => dispatch({ type: "toggleAlterationRush" })}
                 onAddItem={controller.handleAddOrSaveAlterationItem}
                 onCancelEdit={controller.handleCancelAlterationEdit}

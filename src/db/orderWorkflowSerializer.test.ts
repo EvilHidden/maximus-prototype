@@ -8,6 +8,18 @@ import {
 import { createEmptyMeasurements, createInitialOrderState } from "../state/orderState";
 import type { OrderWorkflowState } from "../types";
 
+function createAlterationSelection(overrides?: Partial<OrderWorkflowState["alteration"]["items"][number]["modifiers"][number]>) {
+  return {
+    id: "alteration_service_test_hem",
+    name: "Hem",
+    price: 35,
+    supportsAdjustment: false,
+    requiresAdjustment: false,
+    deltaInches: null,
+    ...overrides,
+  };
+}
+
 function serializeOrder(order: OrderWorkflowState, orderSequence: number) {
   const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
   const serialized = serializeOrderWorkflowToRecords({
@@ -101,7 +113,7 @@ describe("order workflow serializer", () => {
     order.alteration.items = [{
       id: 1,
       garment: "Trousers",
-      modifiers: [{ name: "Hem", price: 35 }],
+      modifiers: [createAlterationSelection()],
       subtotal: 35,
       isRush: false,
     }];
@@ -142,5 +154,41 @@ describe("order workflow serializer", () => {
     expect(restored?.alteration.items[0]?.id).toBe(9601001);
     expect(restored?.custom.items[0]?.id).toBe(9601501);
     expect(restored?.alteration.items[0]?.id).not.toBe(restored?.custom.items[0]?.id);
+  });
+
+  it("round-trips alteration service adjustments through saved records", () => {
+    const order = createInitialOrderState();
+    order.activeWorkflow = "alteration";
+    order.payerCustomerId = "C-1001";
+    order.alteration.items = [{
+      id: 7,
+      garment: "Pants",
+      modifiers: [
+        createAlterationSelection({
+          id: "alteration_service_pants_hem",
+          name: "Hem",
+          price: 30,
+          supportsAdjustment: true,
+          requiresAdjustment: true,
+          deltaInches: -0.375,
+        }),
+      ],
+      subtotal: 30,
+      isRush: false,
+    }];
+
+    const { serialized, restored } = serializeOrder(order, 9602);
+
+    expect(serialized.lineComponents.find((component) => component.kind === "alteration_service")).toMatchObject({
+      value: "Hem",
+      referenceId: "alteration_service_pants_hem",
+      numericValue: -0.375,
+    });
+    expect(restored?.alteration.items[0]?.modifiers[0]).toMatchObject({
+      id: "alteration_service_pants_hem",
+      name: "Hem",
+      supportsAdjustment: true,
+      deltaInches: -0.375,
+    });
   });
 });
