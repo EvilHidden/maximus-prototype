@@ -202,15 +202,20 @@ function ScheduleRow({
 
   return (
     <div ref={rowRef} className="app-home-schedule-row">
-      <div>
-        <div className="app-text-value text-[0.95rem]">{getAppointmentTimeLabel(appointment)}</div>
+      <div className="pt-[0.3125rem]">
+        <div className="app-text-value whitespace-nowrap text-[0.95rem] leading-tight">{getAppointmentTimeLabel(appointment)}</div>
       </div>
 
       <div className="min-w-0 space-y-2.5">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="app-text-value leading-tight">{appointment.customer}</div>
+        <div className="app-text-value leading-tight">{appointment.customer}</div>
+        <div className="space-y-1">
+          <div className="app-text-body font-medium leading-tight">{appointment.type}</div>
+          <div className="app-text-caption flex items-center gap-1.5">
+            <MapPin className="h-3.5 w-3.5 shrink-0" />
+            <span>{appointment.location}</span>
+          </div>
           {alertIcons.length ? (
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
               {alertIcons.map(({ key, label, Icon, tone }) => (
                 <AppointmentAlertIconButton
                   key={key}
@@ -224,31 +229,23 @@ function ScheduleRow({
             </div>
           ) : null}
         </div>
-        <div className="space-y-1">
-          <div className="app-text-body font-medium leading-tight">{appointment.type}</div>
-          <div className="app-text-caption flex items-center gap-1.5">
-            <MapPin className="h-3.5 w-3.5 shrink-0" />
-            <span>{appointment.location}</span>
-          </div>
-        </div>
-        {confirmationPills.length ? (
-          <div className="flex flex-wrap items-center gap-2">
-            {confirmationPills.map((callout) => (
-              <AppointmentIssuePill
-                key={callout.label}
-                tone={callout.tone}
-                label={callout.label}
-              />
-            ))}
-          </div>
-        ) : null}
+      </div>
+
+      <div className="app-home-schedule-row__status">
+        {confirmationPills.map((callout) => (
+          <AppointmentIssuePill
+            key={callout.label}
+            tone={callout.tone}
+            label={callout.label}
+          />
+        ))}
       </div>
 
       <div className="app-home-schedule-row__actions">
         <ActionButton tone="primary" className="min-h-10 px-3.5 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
           Start order
         </ActionButton>
-        <ActionButton tone="quiet" className="min-h-10 px-3.5 py-2 text-sm" onClick={() => onCancelAppointment(appointment)}>
+        <ActionButton tone="quiet" className="min-h-10 whitespace-nowrap px-3 py-2 text-[0.8125rem]" onClick={() => onCancelAppointment(appointment)}>
           Cancel appointment
         </ActionButton>
       </div>
