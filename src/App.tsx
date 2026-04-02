@@ -7,14 +7,14 @@ import { useAppController } from "./features/app/useAppController";
 
 export default function App() {
   const appController = useAppController();
-  const { theme, setTheme } = useThemePreference();
+  const { theme, themePreference, setThemePreference } = useThemePreference();
 
   return (
     <div data-theme={theme}>
       <ToastProvider>
         <AppShell
-          themeLabel={theme}
-          onToggleTheme={() => setTheme((currentTheme) => (currentTheme === "light" ? "dark" : "light"))}
+          themePreference={themePreference}
+          onThemeChange={setThemePreference}
           screen={appController.state.screen}
           onScreenChange={(screen) => appController.dispatch({ type: "setScreen", screen })}
         >
