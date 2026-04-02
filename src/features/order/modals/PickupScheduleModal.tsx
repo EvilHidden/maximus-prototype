@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { MapPin } from "lucide-react";
 import type { AlterationPickup, CustomOccasion, CustomOrderEventType, PickupLocation } from "../../../types";
 import { ActionButton, FieldLabel, ModalShell } from "../../../components/ui/primitives";
 import { ModalFooterActions } from "../../../components/ui/modalPatterns";
@@ -125,7 +126,7 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
     <ModalShell
       title={scope === "alteration" ? "Set alteration pickup" : "Set occasion"}
       onClose={onClose}
-      widthClassName="max-w-[720px]"
+      widthClassName="max-w-[760px]"
       footer={
         <ModalFooterActions
           leading={
@@ -148,8 +149,7 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
         {isAlterationScope ? (
           <>
             <div className="space-y-4">
-              <div className="space-y-1 border-b border-[var(--app-border)] pb-3">
-                <div className="app-text-overline">Pickup</div>
+              <div className="space-y-1 pb-1">
                 <div className="app-text-strong">Choose date, time, and location.</div>
                 <div className="app-text-caption">
                   {schedule.pickupDate && schedule.pickupTime && schedule.pickupLocation
@@ -158,91 +158,104 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                 </div>
               </div>
 
-              <div className="space-y-2">
-                <FieldLabel>Date</FieldLabel>
-                <input
-                  value={schedule.pickupDate}
-                  onChange={(event) =>
-                    onChange({
-                      pickupDate: event.target.value,
-                      pickupTime:
-                        event.target.value === schedule.pickupDate && !selectedTimeIsUnavailable
-                          ? schedule.pickupTime
-                          : "",
-                      pickupLocation: schedule.pickupLocation,
-                    })
-                  }
-                  type="date"
-                  min={minPickupDate}
-                  className="app-input min-h-12 text-base"
-                />
-              </div>
-
-              <div className="space-y-2">
-                <FieldLabel>Time</FieldLabel>
-                {!schedule.pickupDate ? <div className="app-text-caption">Choose a date first.</div> : null}
-                <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 md:grid-cols-5">
-                  {timeOptions.map((timeOption) => {
-                    const isSelected = schedule.pickupTime === timeOption;
-                    return (
-                      <button
-                        key={timeOption}
-                        type="button"
-                        onClick={() => onChange({
-                          pickupDate: schedule.pickupDate,
-                          pickupTime: timeOption,
+              <div className="grid gap-4 md:grid-cols-[220px,minmax(0,1fr)] md:items-start">
+                <div className="space-y-4">
+                  <div className="space-y-2">
+                    <FieldLabel>Date</FieldLabel>
+                    <input
+                      value={schedule.pickupDate}
+                      onChange={(event) =>
+                        onChange({
+                          pickupDate: event.target.value,
+                          pickupTime:
+                            event.target.value === schedule.pickupDate && !selectedTimeIsUnavailable
+                              ? schedule.pickupTime
+                              : "",
                           pickupLocation: schedule.pickupLocation,
-                        })}
-                        disabled={!schedule.pickupDate}
-                        className={[
-                          "min-h-12 rounded-[var(--app-radius-md)] border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-45",
-                          isSelected
-                            ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                            : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
-                        ].join(" ")}
-                      >
-                        {formatTimeLabel(timeOption)}
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
+                        })
+                      }
+                      type="date"
+                      min={minPickupDate}
+                      className="app-input min-h-12 text-base"
+                    />
+                  </div>
 
-              <div className="space-y-2 border-t border-[var(--app-border)] pt-4">
-                <FieldLabel>Location</FieldLabel>
-                <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-                  {pickupLocations.map((location) => (
-                    <button
-                      key={location}
-                      type="button"
-                      onClick={() => onChange({
-                        pickupDate: schedule.pickupDate,
-                        pickupTime: schedule.pickupTime,
-                        pickupLocation: location,
-                      })}
-                      className={[
-                        "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left text-sm font-medium transition",
-                        schedule.pickupLocation === location
-                          ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                          : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
-                      ].join(" ")}
-                    >
-                      {location}
-                    </button>
-                  ))}
+                  <div className="space-y-2">
+                    <FieldLabel>Location</FieldLabel>
+                    <div className="flex items-center gap-2 rounded-[var(--app-radius-lg)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-1.5">
+                      {pickupLocations.map((location) => (
+                        <button
+                          key={location}
+                          type="button"
+                          onClick={() => onChange({
+                            pickupDate: schedule.pickupDate,
+                            pickupTime: schedule.pickupTime,
+                            pickupLocation: location,
+                          })}
+                          className={[
+                            "flex min-h-11 flex-1 items-center justify-center gap-2 rounded-[calc(var(--app-radius-md)-2px)] px-3 py-2.5 text-sm font-medium transition",
+                            schedule.pickupLocation === location
+                              ? "bg-[color-mix(in_srgb,var(--app-accent)_14%,white)] text-[var(--app-text)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--app-accent)_55%,white)]"
+                              : "text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
+                          ].join(" ")}
+                        >
+                          <MapPin className={["h-3.5 w-3.5 shrink-0", schedule.pickupLocation === location ? "text-[var(--app-accent)]" : "text-[var(--app-text-soft)]"].join(" ")} />
+                          {location}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between gap-3">
+                    <FieldLabel>Time</FieldLabel>
+                    {!schedule.pickupDate ? <div className="app-text-caption">Choose a date first.</div> : null}
+                  </div>
+                  <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 xl:grid-cols-5">
+                    {timeOptions.map((timeOption) => {
+                      const isSelected = schedule.pickupTime === timeOption;
+                      return (
+                        <button
+                          key={timeOption}
+                          type="button"
+                          onClick={() => onChange({
+                            pickupDate: schedule.pickupDate,
+                            pickupTime: timeOption,
+                            pickupLocation: schedule.pickupLocation,
+                          })}
+                          disabled={!schedule.pickupDate}
+                          className={[
+                            "min-h-11 rounded-[var(--app-radius-md)] border px-3 py-2 text-sm font-medium transition disabled:cursor-not-allowed disabled:opacity-45",
+                            isSelected
+                              ? "bg-[color-mix(in_srgb,var(--app-accent)_14%,white)] text-[var(--app-text)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--app-accent)_55%,white)]"
+                              : "border-[var(--app-border)] bg-[var(--app-surface-muted)] text-[var(--app-text)] hover:bg-[var(--app-surface)]",
+                          ].join(" ")}
+                        >
+                          {formatTimeLabel(timeOption)}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
               </div>
             </div>
           </>
         ) : (
           <>
-            <div className="space-y-1 border-b border-[var(--app-border)] pb-3">
-              <div className="app-text-overline">Occasion</div>
-              <div className="app-text-strong">Add one only if it helps with timing</div>
+            <div className="space-y-1 pb-1">
+              <div className="app-text-strong">Add one only if it helps with timing.</div>
+              <div className="app-text-caption">
+                {schedule.eventType === "none"
+                  ? "No occasion attached."
+                  : schedule.eventDate
+                    ? `${customEventOptions.find((option) => option.value === schedule.eventType)?.label ?? "Occasion"} • ${formatDateSummary(schedule.eventDate)}`
+                    : customEventOptions.find((option) => option.value === schedule.eventType)?.label ?? "Occasion"}
+              </div>
             </div>
             <div className="space-y-2">
               <FieldLabel>Event type</FieldLabel>
-              <div className="mt-2 grid grid-cols-3 gap-2">
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {customEventOptions.map((option) => (
                   <button
                     key={option.value}
@@ -252,10 +265,10 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                       eventDate: option.value === "none" ? "" : schedule.eventDate,
                     })}
                     className={[
-                      "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-sm font-medium transition",
+                      "min-h-11 rounded-[var(--app-radius-md)] border px-4 py-2.5 text-sm font-medium transition",
                       schedule.eventType === option.value
-                        ? "border-[var(--app-accent)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                        : "border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text)] hover:bg-[var(--app-surface-muted)]",
+                        ? "bg-[color-mix(in_srgb,var(--app-accent)_14%,white)] text-[var(--app-text)] shadow-[inset_0_0_0_1px_color-mix(in_srgb,var(--app-accent)_55%,white)]"
+                        : "border-[var(--app-border)] bg-[var(--app-surface-muted)] text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
                     ].join(" ")}
                   >
                     {option.label}
@@ -280,9 +293,7 @@ export function PickupScheduleModal({ scope, schedule, pickupLocations, onChange
                   className="app-input min-h-12 text-base"
                 />
               </label>
-            ) : (
-              <div className="app-text-caption">No occasion attached.</div>
-            )}
+            ) : null}
           </>
         )}
 

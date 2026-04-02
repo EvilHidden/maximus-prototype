@@ -1,6 +1,6 @@
 import { CalendarClock, MapPin } from "lucide-react";
 import { ActionButton, ModalShell, cx } from "../../../components/ui/primitives";
-import { ModalFooterActions, ModalMetaRow, ModalSummaryCard } from "../../../components/ui/modalPatterns";
+import { ModalFooterActions, ModalMetaRow, ModalPanel } from "../../../components/ui/modalPatterns";
 import type { OpenOrder } from "../../../types";
 import {
   getMarkReadyActionLabel,
@@ -46,10 +46,9 @@ export function ConfirmMarkReadyModal({
   return (
     <ModalShell
       title={confirmLabel}
-      subtitle=""
       onClose={onClose}
       showCloseButton={false}
-      widthClassName="max-w-[500px]"
+      widthClassName="max-w-[560px]"
       footer={
         <ModalFooterActions>
           <ActionButton tone="secondary" onClick={onClose}>
@@ -65,66 +64,64 @@ export function ConfirmMarkReadyModal({
         {pendingPickups.length ? (
           <div className="space-y-3">
             {pendingPickupCount === 1 ? (
-              <ModalSummaryCard
-                eyebrow={`${getScopeLabel(pendingPickups[0].scope)} pickup`}
-                title={getPickupHeadline(pendingPickups[0])}
-                description={`${openOrder.payerName} • Order #${openOrder.id}`}
-                meta={
-                  <ModalMetaRow
-                    items={[
-                      {
-                        icon: CalendarClock,
-                        content: `${getOperationalPickupDateLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Date pending"} · ${getOperationalPickupTimeLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Time pending"}`,
-                      },
-                      {
-                        icon: MapPin,
-                        content: pendingPickups[0].pickupLocation || "Location pending",
-                      },
-                    ]}
-                  />
-                }
-              />
+              <div className="flex items-start gap-4">
+                <div className="min-w-0 flex-1 space-y-1">
+                  <div className="app-text-overline">{getScopeLabel(pendingPickups[0].scope)} pickup</div>
+                  <div className="app-text-value">{getPickupHeadline(pendingPickups[0])}</div>
+                  <div className="app-text-body">{openOrder.payerName} • Order #{openOrder.id}</div>
+                </div>
+                <div className="w-[190px] shrink-0 space-y-2 border-l border-[var(--app-border)]/35 pl-4">
+                  <div className="app-modal-meta-item app-text-caption">
+                    <CalendarClock className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
+                    <span>
+                      {getOperationalPickupDateLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Date pending"} ·{" "}
+                      {getOperationalPickupTimeLabel(pendingPickups[0].pickupDate, pendingPickups[0].pickupTime) ?? "Time pending"}
+                    </span>
+                  </div>
+                  <div className="app-modal-meta-item app-text-caption">
+                    <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
+                    <span>{pendingPickups[0].pickupLocation || "Location pending"}</span>
+                  </div>
+                </div>
+              </div>
             ) : (
-              <div className="space-y-1.5 border-b border-[var(--app-border)]/35 pb-4">
+              <div className="space-y-1">
                 <div className="app-text-overline">{pendingPickupCount} pickups</div>
                 <div className="app-text-value">{openOrder.payerName}</div>
-                <div className="app-text-body-muted">Order #{openOrder.id}</div>
+                <div className="app-text-body">Order #{openOrder.id}</div>
               </div>
             )}
 
-            <div className={cx("space-y-0", pendingPickupCount === 1 && "hidden")}>
+            <div className={cx("space-y-2", pendingPickupCount === 1 && "hidden")}>
               {pendingPickups.map((pickup, index) => {
                 const dateLabel = getOperationalPickupDateLabel(pickup.pickupDate, pickup.pickupTime) ?? "Date pending";
                 const timeLabel = getOperationalPickupTimeLabel(pickup.pickupDate, pickup.pickupTime) ?? "Time pending";
 
                 return (
-                  <div
+                  <ModalPanel
                     key={pickup.id}
-                    className={cx(
-                      "space-y-2 py-3",
-                      index > 0 && "border-t border-[var(--app-border)]/35",
-                    )}
+                    className={cx("flex items-start gap-4", index > 0 && "")}
                   >
-                    <div className="space-y-1">
-                      {pendingPickupCount > 1 ? (
-                        <>
-                          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-                            <div className="app-text-strong">{getPickupHeadline(pickup)}</div>
-                            <div className="app-text-caption">{getScopeLabel(pickup.scope)} pickup</div>
-                          </div>
-                          {pickup.label && pickup.label !== getPickupHeadline(pickup) ? (
-                            <div className="app-text-body-muted">{pickup.label}</div>
-                          ) : null}
-                        </>
+                    <div className="min-w-0 flex-1 space-y-1">
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                        <div className="app-text-strong">{getPickupHeadline(pickup)}</div>
+                        <div className="app-text-caption">{getScopeLabel(pickup.scope)} pickup</div>
+                      </div>
+                      {pickup.label && pickup.label !== getPickupHeadline(pickup) ? (
+                        <div className="app-text-body-muted">{pickup.label}</div>
                       ) : null}
                     </div>
-                    <ModalMetaRow
-                      items={[
-                        { icon: CalendarClock, content: `${dateLabel} · ${timeLabel}` },
-                        { icon: MapPin, content: pickup.pickupLocation || "Location pending" },
-                      ]}
-                    />
-                  </div>
+                    <div className="w-[190px] shrink-0 space-y-2 border-l border-[var(--app-border)]/35 pl-4">
+                      <div className="app-modal-meta-item app-text-caption">
+                        <CalendarClock className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
+                        <span>{dateLabel} · {timeLabel}</span>
+                      </div>
+                      <div className="app-modal-meta-item app-text-caption">
+                        <MapPin className="h-3.5 w-3.5 shrink-0 text-[var(--app-text-soft)]" />
+                        <span>{pickup.pickupLocation || "Location pending"}</span>
+                      </div>
+                    </div>
+                  </ModalPanel>
                 );
               })}
             </div>
