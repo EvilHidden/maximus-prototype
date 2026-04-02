@@ -36,10 +36,10 @@ function createReducerState(): AppState {
   state.order.custom.draft.wearerCustomerId = "cus_2";
   state.order.custom.draft.selectedGarment = "Dinner jacket";
   state.order.custom.draft.linkedMeasurementSetId = "SET-2-V1";
-  state.order.custom.draft.fabric = "Midnight navy";
-  state.order.custom.draft.buttons = "Horn";
-  state.order.custom.draft.lining = "Bemberg";
-  state.order.custom.draft.threads = "Tonal";
+  state.order.custom.draft.fabricSku = "FAB-MID-001";
+  state.order.custom.draft.buttonsSku = "BTN-HORN-001";
+  state.order.custom.draft.liningSku = "LIN-BEMB-001";
+  state.order.custom.draft.threadsSku = "THR-TONAL-001";
   state.order.custom.draft.lapel = "Peak";
   state.order.custom.draft.pocketType = "Flap";
   state.order.custom.draft.canvas = "Full";
@@ -61,6 +61,7 @@ describe("order reducer", () => {
         modifiers: [createAlterationSelection()],
         subtotal: 20,
         isRush: false,
+        photoIds: [],
       },
     ]);
   });
@@ -122,6 +123,7 @@ describe("order reducer", () => {
         }],
         subtotal: 30,
         isRush: false,
+        photoIds: [],
       },
     ]);
   });
@@ -139,6 +141,7 @@ describe("order reducer", () => {
         modifiers: [createAlterationSelection({ price: 35 })],
         subtotal: 35,
         isRush: false,
+        photoIds: [],
       },
     ];
     state.order.fulfillment.alteration = {
@@ -206,6 +209,7 @@ describe("order reducer", () => {
       }],
       subtotal: 30,
       isRush: false,
+      photoIds: [],
     }];
     state.order.fulfillment.alteration = {
       pickupDate: "2026-03-24",
@@ -301,6 +305,7 @@ describe("order reducer", () => {
         modifiers: [createAlterationSelection({ price: 35 })],
         subtotal: 35,
         isRush: false,
+        photoIds: [],
       },
     ];
     state.order.fulfillment.alteration = {
@@ -345,10 +350,10 @@ describe("order reducer", () => {
         selectedGarment: "Dinner jacket",
         linkedMeasurementSetId: "SET-2-V1",
         measurements: { Chest: "40" },
-        fabric: "Midnight navy",
-        buttons: "Horn",
-        lining: "Bemberg",
-        threads: "Tonal",
+        fabricSku: "FAB-MID-001",
+        buttonsSku: "BTN-HORN-001",
+        liningSku: "LIN-BEMB-001",
+        threadsSku: "THR-TONAL-001",
         lapel: "Peak",
         pocketType: "Flap",
         canvas: "Full",
@@ -532,7 +537,7 @@ describe("order reducer", () => {
     expect(customItemId).toBeTruthy();
 
     state = tryReduceOrderAction(state, { type: "loadCustomItemForEdit", itemId: customItemId! })!;
-    state = tryReduceOrderAction(state, { type: "setCustomConfiguration", patch: { fabric: "Ivory Barathea" } })!;
+    state = tryReduceOrderAction(state, { type: "setCustomConfiguration", patch: { fabricSku: "FAB-IVR-001" } })!;
     state = tryReduceOrderAction(state, {
       type: "saveCustomItem",
       payload: {
@@ -576,8 +581,8 @@ describe("order reducer", () => {
 
     const updatedLine = state.database.orderScopeLines.find((line) => line.scopeId === "order-9003-custom" && line.garmentLabel === "Tuxedo jacket");
     expect(updatedLine).toBeTruthy();
-    const updatedFabric = state.database.orderScopeLineComponents.find((component) => component.lineId === updatedLine!.id && component.kind === "fabric");
-    expect(updatedFabric?.value).toBe("Ivory Barathea");
+    const updatedFabric = state.database.orderScopeLineComponents.find((component) => component.lineId === updatedLine!.id && component.kind === "fabric_sku");
+    expect(updatedFabric?.value).toBe("FAB-IVR-001");
 
     expect(state.database.pickupAppointments.filter((appointment) => appointment.orderId === "order-9003")).toHaveLength(1);
     expect(state.database.pickupAppointments.find((appointment) => appointment.orderId === "order-9003")).toMatchObject({

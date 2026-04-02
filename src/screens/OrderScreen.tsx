@@ -241,6 +241,7 @@ export function OrderScreen({
                   <div className="border-t border-[var(--app-border)]/70 pt-6">
                     <CustomGarmentBuilder
                       garmentOptionsByGender={referenceData.customGarmentOptionsByGender}
+                      customMaterialOptionsByKind={referenceData.customMaterialOptionsByKind}
                       jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
                       pocketTypeOptions={referenceData.pocketTypeOptions}
                       lapelOptions={referenceData.lapelOptions}
@@ -248,10 +249,10 @@ export function OrderScreen({
                       selectedGender={order.custom.draft.gender}
                       selectedGarment={order.custom.draft.selectedGarment}
                       isRush={order.custom.draft.isRush}
-                      fabric={order.custom.draft.fabric}
-                      buttons={order.custom.draft.buttons}
-                      lining={order.custom.draft.lining}
-                      threads={order.custom.draft.threads}
+                      fabricSku={order.custom.draft.fabricSku}
+                      buttonsSku={order.custom.draft.buttonsSku}
+                      liningSku={order.custom.draft.liningSku}
+                      threadsSku={order.custom.draft.threadsSku}
                       monogramLeft={order.custom.draft.monogramLeft}
                       monogramCenter={order.custom.draft.monogramCenter}
                       monogramRight={order.custom.draft.monogramRight}

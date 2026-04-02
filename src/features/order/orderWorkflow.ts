@@ -34,7 +34,16 @@ function getCustomDraftStarted(draft: CustomGarmentDraft) {
 
 function getCustomDraftReady(order: OrderWorkflowState) {
   const draft = order.custom.draft;
-  if (!draft.selectedGarment || !draft.linkedMeasurementSetId || !draft.wearerCustomerId || !draft.gender || !draft.fabric || !draft.buttons || !draft.lining || !draft.threads) {
+  if (
+    !draft.selectedGarment ||
+    !draft.linkedMeasurementSetId ||
+    !draft.wearerCustomerId ||
+    !draft.gender ||
+    !draft.fabricSku ||
+    !draft.buttonsSku ||
+    !draft.liningSku ||
+    !draft.threadsSku
+  ) {
     return false;
   }
 
@@ -59,10 +68,10 @@ function getStyleSummary(garment: string | null, lapel: string | null, pocketTyp
 
 function getCustomBuildSummary(item: OrderWorkflowState["custom"]["items"][number]) {
   return [
-    item.fabric ? `Fab ${item.fabric}` : null,
-    item.buttons ? `Btn ${item.buttons}` : null,
-    item.lining ? `Lin ${item.lining}` : null,
-    item.threads ? `Thr ${item.threads}` : null,
+    item.fabricSku ? `Fab ${item.fabricSku}` : null,
+    item.buttonsSku ? `Btn ${item.buttonsSku}` : null,
+    item.liningSku ? `Lin ${item.liningSku}` : null,
+    item.threadsSku ? `Thr ${item.threadsSku}` : null,
   ].filter(Boolean) as string[];
 }
 
@@ -131,43 +140,43 @@ function createCustomComponents(item: OrderWorkflowState["custom"]["items"][numb
     });
   }
 
-  if (item.fabric) {
+  if (item.fabricSku) {
     components.push({
-      id: `custom-${item.id}-fabric`,
-      kind: "fabric",
-      label: "Fabric",
-      value: item.fabric,
+      id: `custom-${item.id}-fabric-sku`,
+      kind: "fabric_sku",
+      label: "Fabric SKU",
+      value: item.fabricSku,
       sortOrder: 3,
     });
   }
 
-  if (item.buttons) {
+  if (item.buttonsSku) {
     components.push({
-      id: `custom-${item.id}-buttons`,
-      kind: "buttons",
-      label: "Buttons",
-      value: item.buttons,
-      sortOrder: 4,
-    });
-  }
-
-  if (item.lining) {
-    components.push({
-      id: `custom-${item.id}-lining`,
-      kind: "lining",
-      label: "Lining",
-      value: item.lining,
+      id: `custom-${item.id}-buttons-sku`,
+      kind: "buttons_sku",
+      label: "Buttons SKU",
+      value: item.buttonsSku,
       sortOrder: 5,
     });
   }
 
-  if (item.threads) {
+  if (item.liningSku) {
     components.push({
-      id: `custom-${item.id}-threads`,
-      kind: "threads",
-      label: "Threads",
-      value: item.threads,
-      sortOrder: 6,
+      id: `custom-${item.id}-lining-sku`,
+      kind: "lining_sku",
+      label: "Lining SKU",
+      value: item.liningSku,
+      sortOrder: 7,
+    });
+  }
+
+  if (item.threadsSku) {
+    components.push({
+      id: `custom-${item.id}-threads-sku`,
+      kind: "threads_sku",
+      label: "Threads SKU",
+      value: item.threadsSku,
+      sortOrder: 9,
     });
   }
 
@@ -212,6 +221,16 @@ function createCustomComponents(item: OrderWorkflowState["custom"]["items"][numb
       label: entry!.label,
       value: entry!.value,
       sortOrder: 10 + index,
+    });
+  });
+
+  item.referencePhotoIds.forEach((photoId, index) => {
+    components.push({
+      id: `custom-${item.id}-reference-photo-${index + 1}`,
+      kind: "reference_photo",
+      label: "Reference photo",
+      value: photoId,
+      sortOrder: 13 + index,
     });
   });
 
@@ -358,7 +377,7 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
       kind: "custom",
       title: `${order.alteration.items.length + index + 1}. ${createLineTitle("custom", selectedGarment)}`,
       subtitle,
-      amount: getCustomGarmentPrice(selectedGarment),
+      amount: getCustomGarmentPrice(item.selectedGarment),
       isRush: item.isRush,
       sourceLabel: selectedGarment,
       garmentLabel: selectedGarment,

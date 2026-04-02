@@ -10,6 +10,7 @@ import {
 export type AppReferenceData = {
   alterationCatalog: AlterationCategory[];
   customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
+  customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
   inHouseTailors: StaffMember[];
   jacketBasedCustomGarments: Set<string>;
   lapelOptions: string[];
@@ -17,6 +18,16 @@ export type AppReferenceData = {
   canvasOptions: string[];
   measurementFields: string[];
   pickupLocations: PickupLocation[];
+};
+
+export type MaterialOption = {
+  sku: string;
+  label: string;
+  composition?: string;
+  yarn?: string;
+  weight?: string;
+  swatch: string;
+  swatchImage?: string;
 };
 
 const seedLocations: PrototypeDatabase["locations"] = [
@@ -29,6 +40,87 @@ const seedAlterationServiceDefinitions = createAlterationServiceDefinitions();
 const seedCustomGarmentDefinitions = createCustomGarmentDefinitions();
 const seedStyleOptionDefinitions = createStyleOptionDefinitions();
 const seedMeasurementFieldDefinitions = createMeasurementFieldDefinitions();
+const seedMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]> = {
+  fabric: [
+    {
+      sku: "DBM562A",
+      label: "No. 11",
+      composition: "100%Wool",
+      yarn: "super110s",
+      weight: "240g/m",
+      swatch: "#556070",
+      swatchImage: "/material-swatches/dbm562a.webp",
+    },
+    {
+      sku: "FAB-MID-001",
+      label: "Midnight Navy Stretch Wool",
+      composition: "98% wool, 2% elastane",
+      yarn: "Super 130s",
+      weight: "280 g/m",
+      swatch: "#1f3657",
+    },
+    {
+      sku: "FAB-IVR-001",
+      label: "Ivory Stretch Wool",
+      composition: "96% wool, 4% elastane",
+      yarn: "Super 120s",
+      weight: "270 g/m",
+      swatch: "#e9dfcb",
+    },
+  ],
+  buttons: [
+    {
+      sku: "BTN-HORN-001",
+      label: "Dark Horn",
+      composition: "Natural horn",
+      weight: "24L",
+      swatch: "#4d392d",
+    },
+    {
+      sku: "BTN-SATIN-001",
+      label: "Black Satin",
+      composition: "Wrapped satin finish",
+      weight: "24L",
+      swatch: "#1c1c1c",
+    },
+  ],
+  lining: [
+    {
+      sku: "LIN-BEMB-001",
+      label: "Bemberg Twill",
+      composition: "100% cupro",
+      yarn: "Fine twill",
+      weight: "85 g/m",
+      swatch: "#566d93",
+    },
+    {
+      sku: "LIN-CHM-001",
+      label: "Champagne Paisley",
+      composition: "100% viscose",
+      yarn: "Jacquard",
+      weight: "95 g/m",
+      swatch: "#c8ac73",
+    },
+  ],
+  threads: [
+    {
+      sku: "THR-TONAL-001",
+      label: "Tone-on-Tone Navy",
+      composition: "Poly-wrapped core thread",
+      yarn: "Tex 40",
+      weight: "Medium",
+      swatch: "#314868",
+    },
+    {
+      sku: "THR-BLK-001",
+      label: "Black Construction Thread",
+      composition: "Poly-wrapped core thread",
+      yarn: "Tex 40",
+      weight: "Medium",
+      swatch: "#202124",
+    },
+  ],
+};
 
 export function getMeasurementFieldLabels(database: Pick<PrototypeDatabase, "measurementFieldDefinitions">) {
   return database.measurementFieldDefinitions
@@ -109,6 +201,7 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
   return {
     alterationCatalog,
     customGarmentOptionsByGender,
+    customMaterialOptionsByKind: seedMaterialOptionsByKind,
     inHouseTailors: database.staffMembers
       .filter((staffMember) => staffMember.role === "tailor")
       .map((staffMember) => ({

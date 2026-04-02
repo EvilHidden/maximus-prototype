@@ -17,16 +17,17 @@ export function createInitialCustomDraft(): CustomGarmentDraft {
     selectedGarment: null,
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(),
-    fabric: null,
-    buttons: null,
-    lining: null,
-    threads: null,
+    fabricSku: null,
+    buttonsSku: null,
+    liningSku: null,
+    threadsSku: null,
     monogramLeft: "",
     monogramCenter: "",
     monogramRight: "",
     pocketType: null,
     lapel: null,
     canvas: null,
+    referencePhotoIds: [],
   };
 }
 

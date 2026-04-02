@@ -400,6 +400,12 @@ export function serializeOrderWorkflowToRecords({
           }),
         );
       });
+
+      (item.photoIds ?? []).forEach((photoId, photoIndex) => {
+        lineComponents.push(
+          createLineComponent(lineId, "reference_photo", "Reference photo", photoId, item.modifiers.length + photoIndex + 1),
+        );
+      });
     });
 
     matchingCustomItems.forEach((item, itemIndex) => {
@@ -425,17 +431,21 @@ export function serializeOrderWorkflowToRecords({
         item.linkedMeasurementLabel
           ? createLineComponent(lineId, "measurement_set", "Measurements", item.linkedMeasurementLabel, 2)
           : null,
-        item.fabric ? createLineComponent(lineId, "fabric", "Fabric", item.fabric, 3) : null,
-        item.buttons ? createLineComponent(lineId, "buttons", "Buttons", item.buttons, 4) : null,
-        item.lining ? createLineComponent(lineId, "lining", "Lining", item.lining, 5) : null,
-        item.threads ? createLineComponent(lineId, "threads", "Threads", item.threads, 6) : null,
-        item.canvas ? createLineComponent(lineId, "canvas", "Canvas", item.canvas, 7) : null,
-        item.lapel ? createLineComponent(lineId, "lapel", "Lapel", item.lapel, 8) : null,
-        item.pocketType ? createLineComponent(lineId, "pocket_type", "Pockets", item.pocketType, 9) : null,
-        item.monogramLeft ? createLineComponent(lineId, "monogram", "Monogram left", item.monogramLeft, 10) : null,
-        item.monogramCenter ? createLineComponent(lineId, "monogram", "Monogram center", item.monogramCenter, 11) : null,
-        item.monogramRight ? createLineComponent(lineId, "monogram", "Monogram right", item.monogramRight, 12) : null,
+        item.fabricSku ? createLineComponent(lineId, "fabric_sku", "Fabric SKU", item.fabricSku, 3) : null,
+        item.buttonsSku ? createLineComponent(lineId, "buttons_sku", "Buttons SKU", item.buttonsSku, 5) : null,
+        item.liningSku ? createLineComponent(lineId, "lining_sku", "Lining SKU", item.liningSku, 7) : null,
+        item.threadsSku ? createLineComponent(lineId, "threads_sku", "Threads SKU", item.threadsSku, 9) : null,
+        item.canvas ? createLineComponent(lineId, "canvas", "Canvas", item.canvas, 10) : null,
+        item.lapel ? createLineComponent(lineId, "lapel", "Lapel", item.lapel, 11) : null,
+        item.pocketType ? createLineComponent(lineId, "pocket_type", "Pockets", item.pocketType, 12) : null,
+        item.monogramLeft ? createLineComponent(lineId, "monogram", "Monogram left", item.monogramLeft, 13) : null,
+        item.monogramCenter ? createLineComponent(lineId, "monogram", "Monogram center", item.monogramCenter, 14) : null,
+        item.monogramRight ? createLineComponent(lineId, "monogram", "Monogram right", item.monogramRight, 15) : null,
       ].filter(Boolean) as DbOrderScopeLineComponent[];
+
+      item.referencePhotoIds.forEach((photoId, photoIndex) => {
+        components.push(createLineComponent(lineId, "reference_photo", "Reference photo", photoId, 16 + photoIndex));
+      });
 
       lineComponents.push(...components);
     });
@@ -485,7 +495,7 @@ export function serializeOrderWorkflowToRecords({
         ? pricingSummary.depositDue + pricingSummary.alterationsSubtotal + pricingSummary.taxAmount
         : checkoutCollectionAmount,
       pricingSummary.total,
-      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item.selectedGarment), 0),
+      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item), 0),
       now,
     ),
   };
@@ -503,16 +513,17 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
     selectedGarment: null,
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(),
-    fabric: null,
-    buttons: null,
-    lining: null,
-    threads: null,
+    fabricSku: null,
+    buttonsSku: null,
+    liningSku: null,
+    threadsSku: null,
     monogramLeft: "",
     monogramCenter: "",
     monogramRight: "",
     pocketType: null,
     lapel: null,
     canvas: null,
+    referencePhotoIds: [],
   };
 }
 
@@ -531,6 +542,13 @@ function getComponentValue(
   fallback: string,
 ) {
   return components.find((component) => component.kind === kind)?.value ?? fallback;
+}
+
+function getComponentValues(
+  components: DbOrderScopeLineComponent[],
+  kind: OrderLineComponentKind,
+) {
+  return components.filter((component) => component.kind === kind).map((component) => component.value);
 }
 
 export function deserializeOrderWorkflowFromRecords(
@@ -602,6 +620,7 @@ export function deserializeOrderWorkflowFromRecords(
           modifiers,
           subtotal: line.unitPrice * line.quantity,
           isRush: line.isRush,
+          photoIds: getComponentValues(components, "reference_photo"),
         };
       })
     : [];
@@ -625,16 +644,17 @@ export function deserializeOrderWorkflowFromRecords(
             ...createEmptyMeasurements(),
             ...(line.measurementSnapshot ?? {}),
           },
-          fabric: getComponentValue(components, "fabric", "") || null,
-          buttons: getComponentValue(components, "buttons", "") || null,
-          lining: getComponentValue(components, "lining", "") || null,
-          threads: getComponentValue(components, "threads", "") || null,
+          fabricSku: getComponentValue(components, "fabric_sku", "") || null,
+          buttonsSku: getComponentValue(components, "buttons_sku", "") || null,
+          liningSku: getComponentValue(components, "lining_sku", "") || null,
+          threadsSku: getComponentValue(components, "threads_sku", "") || null,
           monogramLeft: getMonogramValue(components, "left"),
           monogramCenter: getMonogramValue(components, "center"),
           monogramRight: getMonogramValue(components, "right"),
           pocketType: getComponentValue(components, "pocket_type", "") || null,
           lapel: getComponentValue(components, "lapel", "") || null,
           canvas: getComponentValue(components, "canvas", "") || null,
+          referencePhotoIds: getComponentValues(components, "reference_photo"),
           wearerName: line.wearerName,
           linkedMeasurementLabel: line.measurementSetLabel,
           measurementSnapshot: {

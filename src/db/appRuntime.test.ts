@@ -56,6 +56,7 @@ describe("app runtime", () => {
           kind: "custom",
           components: expect.arrayContaining([
             expect.objectContaining({ kind: "measurement_set", value: "Version 1" }),
+            expect.objectContaining({ kind: "fabric_sku", value: "FAB-IVORY-030" }),
             expect.objectContaining({ kind: "fabric", value: "Ivory stretch wool" }),
           ]),
         }),
