@@ -110,7 +110,6 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
         </button>
         <div className="min-w-0">
           <div className="app-text-overline">Workspace</div>
-          <div className="app-text-strong mt-0.5 truncate">{activeNavLabel}</div>
         </div>
         <div className="ml-auto">{themeControl}</div>
       </div>
