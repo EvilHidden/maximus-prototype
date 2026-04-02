@@ -181,12 +181,39 @@ Do not invent local text stacks unless there is a strong reason.
 - Keep callouts short and operational:
   - what is blocked or changing
   - what the operator needs to do next
+- Do not use a callout when the state itself can be made obvious in the primary layout.
+- If the user must take an action, prefer making the action explicit in the surface instead of surrounding it with explanatory copy.
+
+## Modals
+
+- Modals should read as one decision surface, not a stack of mini-cards.
+- Prefer one strong title, one short instruction, and then the actual controls.
+- Do not repeat the same noun in the title, section heading, field labels, and helper copy.
+- In modals, avoid explanatory narration that restates what the fields already make obvious.
+- If metadata supports a decision, keep it visually secondary but clearly grouped.
+- When a modal has both primary content and supporting metadata, prefer:
+  - left: subject or item being acted on
+  - right: date, time, location, or other supporting logistics
+- Avoid double separators. One structural divider is usually enough.
+- If the modal is for confirmation, make the consequence legible through hierarchy, not extra warning text.
+
+## Selection states
+
+- Selected states should feel deliberate but not harsh.
+- Default bias:
+  - use accent-tinted fills and inset outlines for selected chips, segmented controls, and option tiles
+  - reserve the darkest/highest-contrast treatment for primary CTA buttons
+- Do not let one control family use a much heavier selected state than its siblings in the same modal or surface.
+- If an option group has only a few equal choices, a segmented strip is preferred.
+- If options are discrete and label-driven, use a compact button grid instead of stretching them into a strip that feels forced.
+- Location, timing, and type selectors should all share the same selection language unless there is a strong workflow reason not to.
 
 ## Cards
 
 - Cards are for grouped workflows, not for every small piece of data.
 - If a section only contains one label and one value, it probably does not need to be a card.
 - Right-rail modules should feel like one system, not unrelated stacked boxes.
+- Avoid cards inside cards inside modals. In most modal flows, use spacing, alignment, and one light divider before reaching for another bordered box.
 
 ## Measurements-specific rules
 
@@ -230,6 +257,8 @@ Do not invent local text stacks unless there is a strong reason.
   - use the existing border rhythm
   - avoid introducing a second floating card language
   - add filter context only when it explains why the lane is empty
+- If the empty state requires a next action, the action must be explicit and inside the state itself.
+- Do not rely on nearby header actions when the user may mistake the empty-state body for the clickable target.
 
 ## Pills and badges
 
