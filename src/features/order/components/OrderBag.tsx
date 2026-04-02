@@ -256,13 +256,15 @@ export function OrderBag({
               title={pickupSectionTitles[scope]}
               className="border-0 bg-transparent p-0"
               action={
-                <ActionButton
-                  tone="quiet"
-                  onClick={() => onOpenPickupModal(scope)}
-                  className="min-h-8 px-3 py-1.5 text-xs"
-                >
-                  {hasPickup ? "Edit" : "Set pickup"}
-                </ActionButton>
+                hasPickup ? (
+                  <ActionButton
+                    tone="quiet"
+                    onClick={() => onOpenPickupModal(scope)}
+                    className="min-h-8 px-3 py-1.5 text-xs"
+                  >
+                    Edit
+                  </ActionButton>
+                ) : null
               }
             >
               {hasPickup ? (
@@ -288,10 +290,29 @@ export function OrderBag({
                   </div>
                 </div>
               ) : (
-                <InlineEmptyState className="border-[var(--app-border-strong)]/70 bg-[var(--app-surface)]/26 px-3.5 py-3.5">
-                  <div className="app-text-body font-medium">Pickup details needed</div>
-                  <div className="app-text-caption mt-1">Set the pickup date, time, and location before you continue.</div>
-                </InlineEmptyState>
+                <div className="rounded-[var(--app-radius-md)] border border-[var(--app-warn-border)]/65 bg-[var(--app-warn-bg)]/18 px-3.5 py-3.5">
+                  <div className="flex items-start gap-3">
+                    <div className="mt-0.5 rounded-[var(--app-radius-sm)] bg-[var(--app-warn-bg)]/72 p-2">
+                      <CalendarClock className="h-4 w-4 text-[var(--app-warn-text)]" />
+                    </div>
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2">
+                        <div className="app-text-body font-medium">Pickup required</div>
+                        <StatusPill tone="warn">Required</StatusPill>
+                      </div>
+                      <div className="app-text-caption mt-1">Set the pickup date, time, and location before reviewing the order.</div>
+                      <div className="mt-3">
+                        <ActionButton
+                          tone="secondary"
+                          onClick={() => onOpenPickupModal(scope)}
+                          className="min-h-9 px-3 py-2 text-xs"
+                        >
+                          Set pickup details
+                        </ActionButton>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               )}
             </PanelSection>
           );
