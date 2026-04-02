@@ -117,7 +117,10 @@ export function OrderScreen({
       dispatch({ type: "setCustomer", customerId: nextCustomer.id });
     }
 
-    showToast(`${nextCustomer.name} added.`);
+    showToast(`${nextCustomer.name} is now available for this order.`, {
+      title: "Customer added",
+      tone: "success",
+    });
     setCustomerCreateTarget(null);
   };
 

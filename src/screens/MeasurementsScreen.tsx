@@ -382,7 +382,10 @@ export function MeasurementsScreen({
 
             onAddCustomer(nextCustomer);
             onSelectCustomer(nextCustomer.id);
-            showToast(`${nextCustomer.name} added.`);
+            showToast(`${nextCustomer.name} is ready to use in measurements.`, {
+              title: "Customer added",
+              tone: "success",
+            });
             setCustomerCreateOpen(false);
           }}
         />
