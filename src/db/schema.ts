@@ -31,6 +31,8 @@ export type DbAlterationServiceDefinition = {
   category: string;
   name: string;
   price: number;
+  supportsAdjustment: boolean;
+  requiresAdjustment: boolean;
 };
 
 export type DbCustomGarmentDefinition = {
@@ -141,6 +143,8 @@ export type DbOrderScopeLineComponent = {
   label: string;
   value: string;
   sortOrder: number;
+  referenceId?: string | null;
+  numericValue?: number | null;
 };
 
 export type DbPickupNotification = {

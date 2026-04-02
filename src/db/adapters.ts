@@ -24,6 +24,7 @@ import type {
   PrototypeDatabase,
 } from "./schema";
 import { getOpenOrderPickupBalanceDueFromPayments, getRecordedPaymentSummary } from "../features/order/paymentSummary";
+import { formatAlterationAdjustment } from "../features/order/alterationAdjustments";
 
 function findLocationName(locations: DbLocation[], locationId: string) {
   return locations.find((location) => location.id === locationId)?.name ?? "Fifth Avenue";
@@ -121,6 +122,14 @@ function getOrderTotal(database: PrototypeDatabase, orderId: string) {
   return getOrderLines(database, orderId).reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
 }
 
+function getAlterationComponentDisplayValue(component: Pick<DbOrderScopeLineComponent, "value" | "numericValue">) {
+  if (component.numericValue === null || component.numericValue === undefined) {
+    return component.value;
+  }
+
+  return `${component.value}: ${formatAlterationAdjustment(component.numericValue)}`;
+}
+
 function adaptStaffMember(database: PrototypeDatabase, staffMember: PrototypeDatabase["staffMembers"][number]): StaffMember {
   return {
     id: staffMember.id,
@@ -198,7 +207,7 @@ function createOpenOrderLineSubtitle(
 
   return components
     .filter((component) => component.kind === "alteration_service")
-    .map((component) => component.value)
+    .map((component) => getAlterationComponentDisplayValue(component))
     .join(", ");
 }
 
@@ -206,7 +215,10 @@ function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): Op
   return getOrderLines(database, orderId).map((line, index) => {
     const scope = database.orderScopes.find((candidate) => candidate.id === line.scopeId);
     const components = getScopeLineComponents(database, line.id);
-    const componentAmounts = new Map(
+    const componentAmountsById = new Map(
+      database.alterationServiceDefinitions.map((definition) => [`${definition.category}::${definition.id}`, definition.price]),
+    );
+    const componentAmountsByName = new Map(
       database.alterationServiceDefinitions.map((definition) => [`${definition.category}::${definition.name}`, definition.price]),
     );
 
@@ -228,11 +240,13 @@ function getOpenOrderLineItems(database: PrototypeDatabase, orderId: string): Op
         id: component.id,
         kind: component.kind,
         label: component.label,
-        value: component.value,
+        value: component.kind === "alteration_service" ? getAlterationComponentDisplayValue(component) : component.value,
         sortOrder: component.sortOrder,
         amount: component.kind === "alteration_service"
-          ? componentAmounts.get(`${line.garmentLabel}::${component.value}`)
+          ? componentAmountsById.get(`${line.garmentLabel}::${component.referenceId ?? ""}`) ?? componentAmountsByName.get(`${line.garmentLabel}::${component.value}`)
           : undefined,
+        referenceId: component.referenceId,
+        numericValue: component.numericValue,
       })),
     };
   });

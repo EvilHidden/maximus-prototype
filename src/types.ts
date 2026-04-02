@@ -101,9 +101,16 @@ export type Appointment = {
   route: WorkflowMode | "pickup";
 };
 
-export type AlterationService = {
+export type AlterationServiceDefinition = {
+  id: string;
   name: string;
   price: number;
+  supportsAdjustment: boolean;
+  requiresAdjustment: boolean;
+};
+
+export type AlterationServiceSelection = AlterationServiceDefinition & {
+  deltaInches: number | null;
 };
 
 export type OrderLineComponentKind =
@@ -126,17 +133,19 @@ export type OrderLineComponent = {
   value: string;
   sortOrder: number;
   amount?: number;
+  referenceId?: string | null;
+  numericValue?: number | null;
 };
 
 export type AlterationCategory = {
   category: string;
-  services: AlterationService[];
+  services: AlterationServiceDefinition[];
 };
 
 export type AlterationItem = {
   id: number;
   garment: string;
-  modifiers: AlterationService[];
+  modifiers: AlterationServiceSelection[];
   subtotal: number;
   isRush: boolean;
 };
@@ -186,7 +195,7 @@ export type PricingSummary = {
 
 export type AlterationBuilderState = {
   selectedGarment: string;
-  selectedModifiers: AlterationService[];
+  selectedModifiers: AlterationServiceSelection[];
   selectedRush: boolean;
   items: AlterationItem[];
 };

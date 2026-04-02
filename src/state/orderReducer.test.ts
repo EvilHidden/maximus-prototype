@@ -5,10 +5,33 @@ import { appReducer, createInitialAppState } from "./appState";
 import { tryReduceOrderAction } from "./orderReducer";
 import type { AppState } from "./types";
 
+function createAlterationSelection(overrides?: Partial<AppState["order"]["alteration"]["selectedModifiers"][number]>) {
+  return {
+    id: "alteration_service_test_hem",
+    name: "Hem",
+    price: 20,
+    supportsAdjustment: false,
+    requiresAdjustment: false,
+    deltaInches: null,
+    ...overrides,
+  };
+}
+
+function createAdjustableAlterationDefinition(overrides?: Partial<Pick<AppState["order"]["alteration"]["selectedModifiers"][number], "id" | "name" | "price" | "supportsAdjustment" | "requiresAdjustment">>) {
+  return {
+    id: "alteration_service_pants_hem",
+    name: "Hem",
+    price: 30,
+    supportsAdjustment: true,
+    requiresAdjustment: true,
+    ...overrides,
+  };
+}
+
 function createReducerState(): AppState {
   const state = createInitialAppState();
   state.order.alteration.selectedGarment = "Trousers";
-  state.order.alteration.selectedModifiers = [{ name: "Hem", price: 20 }];
+  state.order.alteration.selectedModifiers = [createAlterationSelection()];
   state.order.custom.draft.gender = "male";
   state.order.custom.draft.wearerCustomerId = "cus_2";
   state.order.custom.draft.selectedGarment = "Dinner jacket";
@@ -35,7 +58,7 @@ describe("order reducer", () => {
       {
         id: 101,
         garment: "Trousers",
-        modifiers: [{ name: "Hem", price: 20 }],
+        modifiers: [createAlterationSelection()],
         subtotal: 20,
         isRush: false,
       },
@@ -66,17 +89,54 @@ describe("order reducer", () => {
     });
   });
 
+  it("requires an adjustment for flagged alteration services before adding the item", () => {
+    const state = createInitialAppState();
+    state.order.alteration.selectedGarment = "Pants";
+
+    const selected = tryReduceOrderAction(
+      state,
+      { type: "toggleAlterationModifier", modifier: createAdjustableAlterationDefinition() },
+    )!;
+
+    expect(selected.order.alteration.selectedModifiers[0]).toMatchObject({
+      id: "alteration_service_pants_hem",
+      deltaInches: null,
+    });
+
+    const blocked = tryReduceOrderAction(selected, { type: "addAlterationItem" }, { idFactory: () => 333 });
+    expect(blocked?.order.alteration.items).toEqual([]);
+
+    const withAdjustment = tryReduceOrderAction(
+      selected,
+      { type: "setAlterationModifierAdjustment", modifierId: "alteration_service_pants_hem", deltaInches: -1.25 },
+    )!;
+
+    const next = tryReduceOrderAction(withAdjustment, { type: "addAlterationItem" }, { idFactory: () => 333 });
+    expect(next?.order.alteration.items).toEqual([
+      {
+        id: 333,
+        garment: "Pants",
+        modifiers: [{
+          ...createAdjustableAlterationDefinition(),
+          deltaInches: -1.25,
+        }],
+        subtotal: 30,
+        isRush: false,
+      },
+    ]);
+  });
+
   it("saves a draft order into canonical database records", () => {
     const state = createInitialAppState();
     state.order.activeWorkflow = "alteration";
     state.order.payerCustomerId = "C-1042";
     state.order.alteration.selectedGarment = "Trousers";
-    state.order.alteration.selectedModifiers = [{ name: "Hem", price: 35 }];
+    state.order.alteration.selectedModifiers = [createAlterationSelection({ price: 35 })];
     state.order.alteration.items = [
       {
         id: 101,
         garment: "Trousers",
-        modifiers: [{ name: "Hem", price: 35 }],
+        modifiers: [createAlterationSelection({ price: 35 })],
         subtotal: 35,
         isRush: false,
       },
@@ -131,6 +191,40 @@ describe("order reducer", () => {
       balanceDue: 35,
       payerCustomerId: "C-1042",
     });
+  });
+
+  it("shows saved alteration adjustments in open-order subtitles without changing pricing", () => {
+    const state = createInitialAppState();
+    state.order.activeWorkflow = "alteration";
+    state.order.payerCustomerId = "C-1042";
+    state.order.alteration.items = [{
+      id: 10,
+      garment: "Pants",
+      modifiers: [{
+        ...createAdjustableAlterationDefinition(),
+        deltaInches: 1.25,
+      }],
+      subtotal: 30,
+      isRush: false,
+    }];
+    state.order.fulfillment.alteration = {
+      pickupDate: "2026-03-24",
+      pickupTime: "15:30",
+      pickupLocation: "Queens",
+    };
+
+    const next = tryReduceOrderAction(
+      state,
+      { type: "saveOpenOrder", paymentMode: "none", openCheckout: false },
+      { now: new Date(2026, 2, 22, 9, 30, 0, 0), idFactory: () => 9504 },
+    )!;
+
+    const openOrder = adaptOpenOrders(next.database).find((order) => order.id === 9504);
+    expect(openOrder?.lineItems[0]).toMatchObject({
+      subtitle: "Hem: +1 ¼ in",
+      amount: 30,
+    });
+    expect(openOrder?.balanceDue).toBe(30);
   });
 
   it("marks pickup ready using the injected clock when schedule values are empty", () => {
@@ -204,7 +298,7 @@ describe("order reducer", () => {
       {
         id: 101,
         garment: "Trousers",
-        modifiers: [{ name: "Hem", price: 35 }],
+        modifiers: [createAlterationSelection({ price: 35 })],
         subtotal: 35,
         isRush: false,
       },
@@ -504,7 +598,7 @@ describe("order reducer", () => {
     state = appReducer(state, { type: "openOrderForEdit", openOrderId: 9004 });
     state = tryReduceOrderAction(
       state,
-      { type: "setAlterationItem", payload: { itemId: state.order.alteration.items[0]!.id, modifiers: [{ name: "Hem", price: 60 }] } },
+      { type: "setAlterationItem", payload: { itemId: state.order.alteration.items[0]!.id, modifiers: [createAlterationSelection({ price: 60 })] } },
     )!;
 
     state = tryReduceOrderAction(
@@ -530,7 +624,7 @@ describe("order reducer", () => {
     state = appReducer(state, { type: "openOrderForEdit", openOrderId: 9004 });
     state = tryReduceOrderAction(
       state,
-      { type: "setAlterationItem", payload: { itemId: state.order.alteration.items[0]!.id, modifiers: [{ name: "Hem", price: 60 }] } },
+      { type: "setAlterationItem", payload: { itemId: state.order.alteration.items[0]!.id, modifiers: [createAlterationSelection({ price: 60 })] } },
     )!;
     state = tryReduceOrderAction(
       state,

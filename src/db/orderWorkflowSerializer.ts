@@ -27,9 +27,11 @@ import type {
 import { createLocationId, toDateTimeString } from "./runtime/support";
 import {
   createSeedMeasurementValueMap,
+  findAlterationServiceDefinition,
   getPickupLocationNameById,
   getSeedReferenceData,
 } from "./referenceData";
+import { formatAlterationServiceLabel } from "../features/order/alterationAdjustments";
 
 type SerializedOrderWorkflow = {
   openOrderId: number;
@@ -121,6 +123,7 @@ function createLineComponent(
   label: string,
   value: string,
   sortOrder: number,
+  options?: { referenceId?: string | null; numericValue?: number | null },
 ) {
   return {
     id: `${lineId}-${kind}-${sortOrder}`,
@@ -129,6 +132,8 @@ function createLineComponent(
     label,
     value,
     sortOrder,
+    referenceId: options?.referenceId ?? null,
+    numericValue: options?.numericValue ?? null,
   } satisfies DbOrderScopeLineComponent;
 }
 
@@ -223,7 +228,7 @@ function getDefaultAlterationAssigneeStaffId(
 }
 
 function getAlterationPickupSummary(items: OrderWorkflowState["alteration"]["items"]) {
-  return items.map((item) => `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim());
+  return items.map((item) => `${item.garment} ${item.modifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" + ")}`.trim());
 }
 
 function getCustomPickupSummary(items: OrderWorkflowState["custom"]["items"]) {
@@ -375,7 +380,7 @@ export function serializeOrderWorkflowToRecords({
       scopeLines.push({
         id: lineId,
         scopeId,
-        label: `${item.garment} ${item.modifiers.map((modifier) => modifier.name).join(" + ")}`.trim(),
+        label: `${item.garment} ${item.modifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" + ")}`.trim(),
         garmentLabel: item.garment,
         quantity: 1,
         unitPrice: item.subtotal,
@@ -389,7 +394,10 @@ export function serializeOrderWorkflowToRecords({
 
       item.modifiers.forEach((modifier, modifierIndex) => {
         lineComponents.push(
-          createLineComponent(lineId, "alteration_service", "Service", modifier.name, modifierIndex + 1),
+          createLineComponent(lineId, "alteration_service", "Service", modifier.name, modifierIndex + 1, {
+            referenceId: modifier.id,
+            numericValue: modifier.deltaInches,
+          }),
         );
       });
     });
@@ -527,7 +535,14 @@ function getComponentValue(
 
 export function deserializeOrderWorkflowFromRecords(
   database: {
-    alterationServiceDefinitions: Array<{ category: string; name: string; price: number }>;
+    alterationServiceDefinitions: Array<{
+      id: string;
+      category: string;
+      name: string;
+      price: number;
+      supportsAdjustment: boolean;
+      requiresAdjustment: boolean;
+    }>;
     customGarmentDefinitions: Array<{ label: string; gender: "male" | "female" }>;
     customerEvents: DbCustomerEvent[];
     orders: DbOrder[];
@@ -556,10 +571,30 @@ export function deserializeOrderWorkflowFromRecords(
           .sort((left, right) => left.sortOrder - right.sortOrder);
         const modifiers = components
           .filter((component) => component.kind === "alteration_service")
-          .map((component) => ({
-            name: component.value,
-            price: getAlterationServicePrice(database.alterationServiceDefinitions, line.garmentLabel, component.value),
-          }));
+          .map((component) => {
+            const definition = findAlterationServiceDefinition(
+              database.alterationServiceDefinitions,
+              line.garmentLabel,
+              component.referenceId ?? null,
+              component.value,
+            );
+
+            if (definition) {
+              return {
+                ...definition,
+                deltaInches: definition.supportsAdjustment ? component.numericValue ?? null : null,
+              };
+            }
+
+            return {
+              id: `${line.garmentLabel}-${component.value}`.toLowerCase().replace(/[^a-z0-9]+/g, "_"),
+              name: component.value,
+              price: getAlterationServicePrice(database.alterationServiceDefinitions, line.garmentLabel, component.value),
+              supportsAdjustment: component.numericValue !== null && component.numericValue !== undefined,
+              requiresAdjustment: component.numericValue !== null && component.numericValue !== undefined,
+              deltaInches: component.numericValue ?? null,
+            };
+          });
 
         return {
           id: getEditableItemId(order.id, "alteration", line.id),

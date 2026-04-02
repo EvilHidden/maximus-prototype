@@ -1,13 +1,24 @@
 import { Scissors, TriangleAlert } from "lucide-react";
-import type { AlterationService } from "../../../types";
-import { ActionButton, Callout, FieldLabel, InlineEmptyState, SelectionChip, StatusPill, Surface, cx } from "../../../components/ui/primitives";
+import { useState } from "react";
+import type { AlterationServiceDefinition, AlterationServiceSelection } from "../../../types";
+import { ActionButton, Callout, FieldLabel, InlineEmptyState, ModalShell, SelectionChip, StatusPill, Surface, cx } from "../../../components/ui/primitives";
+import { ModalFooterActions } from "../../../components/ui/modalPatterns";
 import { getAlterationGarmentVisual } from "../alterationGarmentVisuals";
+import {
+  ALTERATION_FRACTION_OPTIONS,
+  ALTERATION_WHOLE_INCH_OPTIONS,
+  composeAlterationAdjustment,
+  formatAlterationAdjustment,
+  formatAlterationFraction,
+  formatAlterationServiceLabel,
+  getAlterationAdjustmentParts,
+} from "../alterationAdjustments";
 
 type AlterationBuilderProps = {
   garmentOptions: string[];
   selectedGarment: string;
-  currentServices: AlterationService[];
-  selectedModifiers: AlterationService[];
+  currentServices: AlterationServiceDefinition[];
+  selectedModifiers: AlterationServiceSelection[];
   selectedRush: boolean;
   currentSubtotal: number;
   isEditing: boolean;
@@ -17,12 +28,125 @@ type AlterationBuilderProps = {
   showValidation?: boolean;
   missingGarment?: boolean;
   missingServices?: boolean;
+  missingAdjustments?: boolean;
   onSelectGarment: (garment: string) => void;
-  onToggleModifier: (modifier: AlterationService) => void;
+  onToggleModifier: (modifier: AlterationServiceDefinition) => void;
+  onSetModifierAdjustment: (modifierId: string, deltaInches: number | null) => void;
   onToggleRush: () => void;
   onAddItem: () => void;
   onCancelEdit: () => void;
 };
+
+type AdjustmentComposerProps = {
+  service: AlterationServiceSelection;
+  showValidation: boolean;
+  missingAdjustments: boolean;
+  onSetModifierAdjustment: (modifierId: string, deltaInches: number | null) => void;
+};
+
+function adjustmentButtonClass(isActive: boolean) {
+  return cx(
+    "inline-flex h-9 min-w-[2.75rem] items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.78rem] font-semibold transition",
+    isActive
+      ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
+      : "border-[var(--app-border)]/70 bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]",
+  );
+}
+
+function AdjustmentComposer({
+  service,
+  showValidation,
+  missingAdjustments,
+  onSetModifierAdjustment,
+}: AdjustmentComposerProps) {
+  const { sign, wholeInches, fraction } = getAlterationAdjustmentParts(service.deltaInches);
+  const currentValue = service.deltaInches === null ? "Not set yet" : formatAlterationAdjustment(service.deltaInches);
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-end justify-between gap-4 rounded-[var(--app-radius-sm)] bg-[var(--app-surface)]/38 px-1 py-1">
+        <div className="min-w-0">
+          <div className="app-text-overline text-[var(--app-text-soft)]">{service.name}</div>
+        </div>
+        <div className="shrink-0 text-right text-[1.45rem] font-semibold tracking-[-0.02em] text-[var(--app-text)]">
+          {currentValue}
+        </div>
+      </div>
+
+      <div
+        className={cx(
+          "space-y-3 rounded-[var(--app-radius-md)] border bg-[var(--app-surface-muted)]/22 px-3.5 py-3.5",
+          showValidation && missingAdjustments && service.deltaInches === null
+            ? "border-[var(--app-danger-border)]"
+            : "border-[var(--app-border)]/55",
+        )}
+      >
+        <div className="grid gap-2 sm:grid-cols-[78px_minmax(0,1fr)] sm:items-center">
+          <div className="app-text-overline text-[var(--app-text-soft)]">Direction</div>
+          <div className="flex gap-2">
+            {([
+              { value: -1 as const, label: "-" },
+              { value: 1 as const, label: "+" },
+            ]).map((option) => (
+              <button
+                key={`${service.id}-sign-${option.label}`}
+                type="button"
+                onClick={(event) => {
+                  event.stopPropagation();
+                  onSetModifierAdjustment(service.id, composeAlterationAdjustment(option.value, wholeInches, fraction));
+                }}
+                className={cx(adjustmentButtonClass(sign === option.value && service.deltaInches !== null), "min-w-[3rem]")}
+              >
+                {option.label}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="grid gap-2 sm:grid-cols-[78px_minmax(0,1fr)] sm:items-start">
+          <div className="app-text-overline text-[var(--app-text-soft)]">Length</div>
+          <div className="space-y-2">
+            <div className="flex flex-wrap gap-2">
+              {ALTERATION_WHOLE_INCH_OPTIONS.map((option) => (
+                <button
+                  key={`${service.id}-whole-${option}`}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSetModifierAdjustment(service.id, composeAlterationAdjustment(sign, option, fraction));
+                  }}
+                  className={adjustmentButtonClass(wholeInches === option && service.deltaInches !== null)}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            <div className="flex flex-wrap gap-2">
+              {ALTERATION_FRACTION_OPTIONS.map((option) => (
+                <button
+                  key={`${service.id}-fraction-${option}`}
+                  type="button"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onSetModifierAdjustment(service.id, composeAlterationAdjustment(sign, wholeInches, option));
+                  }}
+                  className={adjustmentButtonClass(Math.abs(fraction - option) < 0.0001 && service.deltaInches !== null)}
+                >
+                  {formatAlterationFraction(option)}
+                </button>
+              ))}
+            </div>
+          </div>
+        </div>
+        {showValidation && missingAdjustments && service.deltaInches === null ? (
+          <Callout tone="danger">
+            <div className="app-text-caption">Set the requested adjustment before saving this item.</div>
+          </Callout>
+        ) : null}
+      </div>
+    </div>
+  );
+}
 
 export function AlterationBuilder({
   garmentOptions,
@@ -38,14 +162,21 @@ export function AlterationBuilder({
   showValidation = false,
   missingGarment = false,
   missingServices = false,
+  missingAdjustments = false,
   onSelectGarment,
   onToggleModifier,
+  onSetModifierAdjustment,
   onToggleRush,
   onAddItem,
   onCancelEdit,
 }: AlterationBuilderProps) {
-  const selectedServiceSummary = selectedModifiers.map((modifier) => modifier.name).join(", ");
-  const showValidationBanner = showValidation && (missingGarment || missingServices);
+  const [activeAdjustmentModifierId, setActiveAdjustmentModifierId] = useState<string | null>(null);
+  const selectedServiceSummary = selectedModifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(", ");
+  const showValidationBanner = showValidation && (missingGarment || missingServices || missingAdjustments);
+  const activeAdjustmentService =
+    activeAdjustmentModifierId === null
+      ? null
+      : selectedModifiers.find((modifier) => modifier.id === activeAdjustmentModifierId) ?? null;
 
   return (
     <Surface tone="work" className="flex flex-col p-4">
@@ -69,7 +200,9 @@ export function AlterationBuilder({
               ? "Choose a garment and at least one alteration service to build this line item."
               : missingGarment
                 ? "Choose the garment first."
-                : "Pick at least one alteration service for this garment."}
+                : missingServices
+                  ? "Pick at least one alteration service for this garment."
+                  : "Choose the requested adjustment before saving this item."}
           </div>
         </Callout>
       ) : null}
@@ -127,7 +260,7 @@ export function AlterationBuilder({
         <div
           className={cx(
             "mb-3.5 flex flex-col rounded-[var(--app-radius-md)] border border-[var(--app-border)]/65 bg-[var(--app-surface-muted)]/18 p-3.5",
-            showValidation && missingServices && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/26",
+            showValidation && (missingServices || missingAdjustments) && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/26",
           )}
         >
           <div className="mb-3 flex items-end justify-between gap-3 border-b border-[var(--app-border-strong)]/45 pb-3">
@@ -137,21 +270,34 @@ export function AlterationBuilder({
             </div>
             <div className="app-text-overline text-[var(--app-text)]">{selectedModifiers.length} selected</div>
           </div>
-          <div className="grid auto-rows-[6.25rem] content-start gap-2 md:grid-cols-2 xl:grid-cols-3">
+          <div className="grid gap-2 md:grid-cols-2 xl:grid-cols-3">
             {currentServices.map((service) => {
-              const isSelected = selectedModifiers.some((modifier) => modifier.name === service.name);
+              const selectedModifier = selectedModifiers.find((modifier) => modifier.id === service.id) ?? null;
+              const isSelected = Boolean(selectedModifier);
+
               return (
-                <button
+                <div
                   key={`${selectedGarment}-${service.name}`}
-                  onClick={() => onToggleModifier(service)}
                   className={cx(
-                    "flex h-full min-h-[6.25rem] flex-col rounded-[var(--app-radius-sm)] border px-3 pt-2.5 pb-0 text-left transition-colors",
+                    "flex min-h-[6.25rem] flex-col rounded-[var(--app-radius-sm)] border px-3 pt-2.5 pb-0 transition-colors",
                     isSelected
                       ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]"
-                      : "border-[var(--app-border)]/65 bg-[var(--app-surface)]/88 hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface)]",
+                      : "border-[var(--app-border)]/65 bg-[var(--app-surface)]/88",
                   )}
                 >
-                  <div className="mb-2 flex items-start justify-between gap-3">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      onToggleModifier(service);
+                      if (!isSelected && service.supportsAdjustment) {
+                        setActiveAdjustmentModifierId(service.id);
+                      }
+                      if (isSelected && activeAdjustmentModifierId === service.id) {
+                        setActiveAdjustmentModifierId(null);
+                      }
+                    }}
+                    className="mb-2 flex items-start justify-between gap-3 text-left"
+                  >
                     <div className="min-w-0 pr-2">
                       <div className="app-text-body text-[0.95rem] font-semibold leading-snug text-[var(--app-text)]">{service.name}</div>
                     </div>
@@ -159,26 +305,66 @@ export function AlterationBuilder({
                       <div className="app-text-overline text-[var(--app-text-soft)]">Price</div>
                       <div className="app-text-strong mt-1">${service.price.toFixed(2)}</div>
                     </div>
-                  </div>
+                  </button>
+
+                  {isSelected && service.supportsAdjustment && selectedModifier ? (
+                    <>
+                      <div className="mb-2 flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/28 px-2.5 py-2">
+                        <div className="min-w-0">
+                          <div className="app-text-overline text-[var(--app-text-soft)]">Adjustment</div>
+                          <div className="app-text-caption mt-0.5 text-[var(--app-text)]">
+                            {selectedModifier.deltaInches === null ? "Not set yet" : formatAlterationAdjustment(selectedModifier.deltaInches)}
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            setActiveAdjustmentModifierId(service.id);
+                          }}
+                          className={cx(
+                            "inline-flex h-8 shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.72rem] font-medium transition",
+                            activeAdjustmentModifierId === service.id
+                              ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
+                              : "border-[var(--app-border)]/70 bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]",
+                          )}
+                        >
+                          Adjust
+                        </button>
+                      </div>
+                    </>
+                  ) : null}
+
                   <div className="mt-auto grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-[var(--app-border)]/45">
-                    <div className="app-text-caption min-w-0">Standard charge</div>
-                    <span
+                    <div className="app-text-caption min-w-0">
+                      {isSelected && selectedModifier?.deltaInches !== null && service.supportsAdjustment
+                        ? formatAlterationAdjustment(selectedModifier.deltaInches)
+                        : service.supportsAdjustment
+                          ? "Set length"
+                          : "Standard charge"}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => onToggleModifier(service)}
                       className={cx(
-                        "inline-flex h-8 min-w-[3.75rem] shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.72rem] font-medium tracking-[0.01em]",
+                        "inline-flex h-8 min-w-[3.75rem] shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.72rem] font-medium tracking-[0.01em] transition",
                         isSelected
                           ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
                           : "border-[var(--app-primary-button)] bg-[var(--app-primary-button)] text-[var(--app-primary-button-contrast)]",
                       )}
                     >
                       {isSelected ? "Selected" : "Add"}
-                    </span>
+                    </button>
                   </div>
-                </button>
+                </div>
               );
             })}
           </div>
           {showValidation && missingServices ? (
             <div className="mt-3 app-text-caption text-[var(--app-danger-text)]">Choose at least one service before adding this alteration to the cart.</div>
+          ) : null}
+          {showValidation && missingAdjustments ? (
+            <div className="mt-3 app-text-caption text-[var(--app-danger-text)]">Choose an adjustment for each selected service that requires one.</div>
           ) : null}
         </div>
       ) : null}
@@ -224,7 +410,7 @@ export function AlterationBuilder({
           <ActionButton
             tone="primary"
             onClick={() => {
-              if (!selectedGarment || selectedModifiers.length === 0) {
+              if (!selectedGarment || selectedModifiers.length === 0 || missingAdjustments) {
                 if (addDisabledReason && onShowDisabledReason) {
                   onShowDisabledReason(addDisabledReason);
                 }
@@ -238,6 +424,39 @@ export function AlterationBuilder({
           </ActionButton>
         </div>
       </Surface>
+
+      {activeAdjustmentService ? (
+        <ModalShell
+          title={`Adjust ${activeAdjustmentService.name}`}
+          subtitle={undefined}
+          onClose={() => setActiveAdjustmentModifierId(null)}
+          widthClassName="max-w-[500px]"
+          footer={
+            <ModalFooterActions
+              leading={<div className="app-text-caption">Base price ${activeAdjustmentService.price.toFixed(2)}</div>}
+            >
+              {activeAdjustmentService.deltaInches !== null ? (
+                <ActionButton
+                  tone="secondary"
+                  onClick={() => onSetModifierAdjustment(activeAdjustmentService.id, null)}
+                >
+                  Clear
+                </ActionButton>
+              ) : null}
+              <ActionButton tone="primary" onClick={() => setActiveAdjustmentModifierId(null)}>
+                Done
+              </ActionButton>
+            </ModalFooterActions>
+          }
+        >
+          <AdjustmentComposer
+            service={activeAdjustmentService}
+            showValidation={showValidation}
+            missingAdjustments={missingAdjustments}
+            onSetModifierAdjustment={onSetModifierAdjustment}
+          />
+        </ModalShell>
+      ) : null}
     </Surface>
   );
 }
