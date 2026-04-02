@@ -67,16 +67,17 @@ function createCustomOnlyOrder(monogram: { left: string; center: string; right: 
     selectedGarment: "Dinner jacket",
     linkedMeasurementSetId: "SET-C-1001-V1",
     measurements,
-    fabric: "Midnight navy",
-    buttons: "Horn",
-    lining: "Bemberg",
-    threads: "Tonal",
+    fabricSku: "FAB-MID-001",
+    buttonsSku: "BTN-HORN-001",
+    liningSku: "LIN-BEMB-001",
+    threadsSku: "THR-TONAL-001",
     monogramLeft: monogram.left,
     monogramCenter: monogram.center,
     monogramRight: monogram.right,
     pocketType: "Flap",
     lapel: "Peak",
     canvas: "Full",
+    referencePhotoIds: ["photo-custom-1"],
     wearerName: "Jordan Patel",
     linkedMeasurementLabel: "Version 1",
     measurementSnapshot: measurements,
@@ -98,6 +99,11 @@ describe("order workflow serializer", () => {
       monogramLeft: monogram.left,
       monogramCenter: monogram.center,
       monogramRight: monogram.right,
+      fabricSku: "FAB-MID-001",
+      buttonsSku: "BTN-HORN-001",
+      liningSku: "LIN-BEMB-001",
+      threadsSku: "THR-TONAL-001",
+      referencePhotoIds: ["photo-custom-1"],
     });
   });
 
@@ -116,6 +122,7 @@ describe("order workflow serializer", () => {
       modifiers: [createAlterationSelection()],
       subtotal: 35,
       isRush: false,
+      photoIds: ["photo-alt-1"],
     }];
     order.custom.items = [{
       id: 1,
@@ -125,16 +132,17 @@ describe("order workflow serializer", () => {
       selectedGarment: "Dinner jacket",
       linkedMeasurementSetId: "SET-C-1001-V1",
       measurements,
-      fabric: "Midnight navy",
-      buttons: "Horn",
-      lining: "Bemberg",
-      threads: "Tonal",
+      fabricSku: "FAB-MID-001",
+      buttonsSku: "BTN-HORN-001",
+      liningSku: "LIN-BEMB-001",
+      threadsSku: "THR-TONAL-001",
       monogramLeft: "",
       monogramCenter: "",
       monogramRight: "",
       pocketType: "Flap",
       lapel: "Peak",
       canvas: "Full",
+      referencePhotoIds: [],
       wearerName: "Jordan Patel",
       linkedMeasurementLabel: "Version 1",
       measurementSnapshot: measurements,
@@ -175,6 +183,7 @@ describe("order workflow serializer", () => {
       ],
       subtotal: 30,
       isRush: false,
+      photoIds: ["photo-alt-2"],
     }];
 
     const { serialized, restored } = serializeOrder(order, 9602);
@@ -190,5 +199,6 @@ describe("order workflow serializer", () => {
       supportsAdjustment: true,
       deltaInches: -0.375,
     });
+    expect(restored?.alteration.items[0]?.photoIds).toEqual(["photo-alt-2"]);
   });
 });

@@ -6,6 +6,8 @@ export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
 export type MeasurementStatus = "on_file" | "missing";
 export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
 export type CustomGarmentGender = "male" | "female";
+export type CustomSkuSource = "qr" | "photo_extract" | "manual";
+export type CustomPricingMatchStatus = "matched" | "suggested" | "unmatched";
 export type OpenOrderPaymentStatus = "due_later" | "ready_to_collect" | "pending" | "captured";
 export type CheckoutPaymentMode = "none" | "minimum_due" | "deposit_and_alterations" | "full_balance";
 export type OpenOrderOperationalStatus = "accepted" | "in_progress" | "partially_ready" | "ready_for_pickup";
@@ -117,14 +119,19 @@ export type OrderLineComponentKind =
   | "alteration_service"
   | "wearer"
   | "measurement_set"
+  | "fabric_sku"
   | "fabric"
+  | "buttons_sku"
   | "buttons"
+  | "lining_sku"
   | "lining"
+  | "threads_sku"
   | "threads"
   | "canvas"
   | "lapel"
   | "pocket_type"
-  | "monogram";
+  | "monogram"
+  | "reference_photo";
 
 export type OrderLineComponent = {
   id: string;
@@ -148,6 +155,7 @@ export type AlterationItem = {
   modifiers: AlterationServiceSelection[];
   subtotal: number;
   isRush: boolean;
+  photoIds: string[];
 };
 
 export type MeasurementSet = {
@@ -207,16 +215,17 @@ export type CustomGarmentDraft = {
   selectedGarment: string | null;
   linkedMeasurementSetId: string | null;
   measurements: Record<string, string>;
-  fabric: string | null;
-  buttons: string | null;
-  lining: string | null;
-  threads: string | null;
+  fabricSku: string | null;
+  buttonsSku: string | null;
+  liningSku: string | null;
+  threadsSku: string | null;
   monogramLeft: string;
   monogramCenter: string;
   monogramRight: string;
   pocketType: string | null;
   lapel: string | null;
   canvas: string | null;
+  referencePhotoIds: string[];
 };
 
 export type CustomGarmentItem = CustomGarmentDraft & {

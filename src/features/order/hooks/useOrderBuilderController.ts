@@ -124,8 +124,8 @@ export function useOrderBuilderController({
         ? "Assign a wearer before adding the custom garment to the cart."
         : !order.custom.draft.linkedMeasurementSetId
           ? "Choose or create a measurement set before adding the custom garment to the cart."
-          : !order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads
-            ? "Complete fabric, buttons, lining, and thread details before adding this garment to the cart."
+          : !order.custom.draft.fabricSku || !order.custom.draft.buttonsSku || !order.custom.draft.liningSku || !order.custom.draft.threadsSku
+            ? "Complete the fabric, buttons, lining, and thread SKUs before adding this garment to the cart."
             : order.custom.draft.selectedGarment &&
                 referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
                 (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
@@ -137,7 +137,7 @@ export function useOrderBuilderController({
   const missingCustomMeasurements = Boolean(order.custom.draft.wearerCustomerId) && !order.custom.draft.linkedMeasurementSetId;
   const missingCustomBuildDetails =
     Boolean(order.custom.draft.linkedMeasurementSetId) &&
-    (!order.custom.draft.fabric || !order.custom.draft.buttons || !order.custom.draft.lining || !order.custom.draft.threads);
+    (!order.custom.draft.fabricSku || !order.custom.draft.buttonsSku || !order.custom.draft.liningSku || !order.custom.draft.threadsSku);
   const missingCustomStyleDetails =
     Boolean(order.custom.draft.selectedGarment) &&
     referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&

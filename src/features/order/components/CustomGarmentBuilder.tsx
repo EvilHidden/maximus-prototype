@@ -1,10 +1,12 @@
 import { Shirt, TriangleAlert } from "lucide-react";
 import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, Surface, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
+import type { MaterialOption } from "../../../db/referenceData";
 import { getCustomGarmentPrice } from "../selectors";
 
 type CustomGarmentBuilderProps = {
   garmentOptionsByGender: Record<CustomGarmentGender, string[]>;
+  customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
   jacketBasedCustomGarments: Set<string>;
   lapelOptions: string[];
   pocketTypeOptions: string[];
@@ -12,10 +14,10 @@ type CustomGarmentBuilderProps = {
   selectedGender: CustomGarmentGender | null;
   selectedGarment: string | null;
   isRush: boolean;
-  fabric: string | null;
-  buttons: string | null;
-  lining: string | null;
-  threads: string | null;
+  fabricSku: string | null;
+  buttonsSku: string | null;
+  liningSku: string | null;
+  threadsSku: string | null;
   monogramLeft: string;
   monogramCenter: string;
   monogramRight: string;
@@ -40,10 +42,10 @@ type CustomGarmentBuilderProps = {
   onAddToOrder: () => void;
   onCancelEdit: () => void;
   onSetConfiguration: (patch: {
-    fabric?: string | null;
-    buttons?: string | null;
-    lining?: string | null;
-    threads?: string | null;
+    fabricSku?: string | null;
+    buttonsSku?: string | null;
+    liningSku?: string | null;
+    threadsSku?: string | null;
     monogramLeft?: string;
     monogramCenter?: string;
     monogramRight?: string;
@@ -78,27 +80,81 @@ function GroupLabel({
   );
 }
 
-function TextSkuField({
+function MaterialField({
   label,
-  value,
-  placeholder,
-  onChange,
+  skuValue,
+  match,
+  onSkuChange,
 }: {
   label: string;
-  value: string | null;
-  placeholder: string;
-  onChange: (value: string | null) => void;
+  skuValue: string | null;
+  match: MaterialOption | null;
+  onSkuChange: (value: string | null) => void;
 }) {
   return (
-    <label className="block text-sm">
-      <FieldLabel>{label}</FieldLabel>
-      <input
-        value={value ?? ""}
-        onChange={(event) => onChange(event.target.value.trim() ? event.target.value : null)}
-        placeholder={placeholder}
-        className="app-input min-h-12 bg-[var(--app-surface)]"
-      />
-    </label>
+    <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)]/58 p-3.5">
+      <div className="flex items-baseline justify-between gap-3">
+        <FieldLabel>{label}</FieldLabel>
+        <span className="app-text-caption text-[var(--app-text-muted)]">SKU required</span>
+      </div>
+      <div className="mt-3 space-y-2.5">
+        <input
+          value={skuValue ?? ""}
+          onChange={(event) => onSkuChange(event.target.value.trim() ? event.target.value : null)}
+          placeholder={`Enter ${label.toLowerCase()} SKU`}
+          className="app-input min-h-12 bg-[var(--app-surface)]"
+        />
+        {match ? (
+          <div className="rounded-[var(--app-radius-md)] bg-[var(--app-surface-muted)]/26 px-1 py-1">
+            <div className="flex items-start gap-3.5">
+              <div
+                className="h-12 w-12 shrink-0 rounded-[var(--app-radius-sm)] border border-[var(--app-border)] shadow-[var(--app-shadow-xs)]"
+                style={match.swatchImage
+                  ? {
+                    backgroundColor: match.swatch,
+                    backgroundImage: `url(${match.swatchImage})`,
+                    backgroundPosition: "center",
+                    backgroundRepeat: "no-repeat",
+                    backgroundSize: "cover",
+                  }
+                  : { backgroundColor: match.swatch }}
+                aria-hidden="true"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="app-text-body font-medium text-[var(--app-text)]">{match.label}</div>
+                <div className="app-text-caption mt-1">{match.sku}</div>
+              </div>
+            </div>
+            {match.composition || match.yarn || match.weight ? (
+              <div className="mt-4 grid gap-3 sm:grid-cols-3">
+                {match.composition ? (
+                  <div className="min-w-0">
+                    <div className="app-text-overline">Composition</div>
+                    <div className="app-text-caption mt-1">{match.composition}</div>
+                  </div>
+                ) : null}
+                {match.yarn ? (
+                  <div className="min-w-0">
+                    <div className="app-text-overline">Yarn</div>
+                    <div className="app-text-caption mt-1">{match.yarn}</div>
+                  </div>
+                ) : null}
+                {match.weight ? (
+                  <div className="min-w-0">
+                    <div className="app-text-overline">Weight</div>
+                    <div className="app-text-caption mt-1">{match.weight}</div>
+                  </div>
+                ) : null}
+              </div>
+            ) : null}
+          </div>
+        ) : skuValue ? (
+          <div className="app-text-caption rounded-[var(--app-radius-md)] border border-dashed border-[var(--app-border)] px-3 py-2.5 text-[var(--app-text-muted)]">
+            No catalog metadata found for this SKU yet.
+          </div>
+        ) : null}
+      </div>
+    </div>
   );
 }
 
@@ -179,6 +235,7 @@ function VerticalOptionList({
 
 export function CustomGarmentBuilder({
   garmentOptionsByGender,
+  customMaterialOptionsByKind,
   jacketBasedCustomGarments,
   lapelOptions,
   pocketTypeOptions,
@@ -186,10 +243,10 @@ export function CustomGarmentBuilder({
   selectedGender,
   selectedGarment,
   isRush,
-  fabric,
-  buttons,
-  lining,
-  threads,
+  fabricSku,
+  buttonsSku,
+  liningSku,
+  threadsSku,
   monogramLeft,
   monogramCenter,
   monogramRight,
@@ -225,6 +282,13 @@ export function CustomGarmentBuilder({
     (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
   const stageShellClassName =
     "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/70 bg-[var(--app-surface)]/88 px-5 py-5 shadow-[var(--app-shadow-xs)]";
+  const getMaterialMatch = (kind: "fabric" | "buttons" | "lining" | "threads", sku: string | null) => {
+    if (!sku) {
+      return null;
+    }
+
+    return customMaterialOptionsByKind[kind].find((option) => option.sku.toLowerCase() === sku.toLowerCase()) ?? null;
+  };
 
   return (
     <>
@@ -316,63 +380,116 @@ export function CustomGarmentBuilder({
           <div
             className={cx(
               stageShellClassName,
-              showValidation && missingBuildDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/14",
+              showValidation &&
+                (missingBuildDetails || missingStyleDetails) &&
+                "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/14",
             )}
           >
             <div className="space-y-5">
               <StageLabel>2. Build details</StageLabel>
 
               {showConfiguration ? (
-                <div className="grid gap-5 xl:grid-cols-[1.15fr_0.85fr]">
+                <div className="space-y-6">
                   <div>
-                    <div className="app-kicker text-[var(--app-text-muted)]">Information</div>
-                    <div className="mt-4 space-y-3.5">
-                      <TextSkuField
+                    <GroupLabel title="Materials" subtitle="Enter each material SKU to pull its catalog metadata." />
+                    <div className="mt-3 grid gap-4 lg:grid-cols-2">
+                      <MaterialField
                         label="Fabric"
-                        value={fabric}
-                        placeholder="Enter fabric SKU or note"
-                        onChange={(value) => onSetConfiguration({ fabric: value })}
+                        skuValue={fabricSku}
+                        match={getMaterialMatch("fabric", fabricSku)}
+                        onSkuChange={(value) => onSetConfiguration({ fabricSku: value })}
                       />
-                      <TextSkuField
+                      <MaterialField
                         label="Buttons"
-                        value={buttons}
-                        placeholder="Enter button SKU or note"
-                        onChange={(value) => onSetConfiguration({ buttons: value })}
+                        skuValue={buttonsSku}
+                        match={getMaterialMatch("buttons", buttonsSku)}
+                        onSkuChange={(value) => onSetConfiguration({ buttonsSku: value })}
                       />
-                      <TextSkuField
+                      <MaterialField
                         label="Lining"
-                        value={lining}
-                        placeholder="Enter lining SKU or note"
-                        onChange={(value) => onSetConfiguration({ lining: value })}
+                        skuValue={liningSku}
+                        match={getMaterialMatch("lining", liningSku)}
+                        onSkuChange={(value) => onSetConfiguration({ liningSku: value })}
                       />
-                      <TextSkuField
+                      <MaterialField
                         label="Threads"
-                        value={threads}
-                        placeholder="Enter thread SKU or note"
-                        onChange={(value) => onSetConfiguration({ threads: value })}
+                        skuValue={threadsSku}
+                        match={getMaterialMatch("threads", threadsSku)}
+                        onSkuChange={(value) => onSetConfiguration({ threadsSku: value })}
                       />
                     </div>
                   </div>
 
-                    <div className="border-t border-[var(--app-border-strong)]/55 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
-                      <div className="app-kicker text-[var(--app-text-muted)]">Monograms</div>
-                      <div className="app-text-caption mt-1">Optional placements</div>
-                    <div className="mt-4 grid gap-3">
-                      {[
-                        { key: "Left", value: monogramLeft, setter: (value: string) => onSetConfiguration({ monogramLeft: value }) },
-                        { key: "Center", value: monogramCenter, setter: (value: string) => onSetConfiguration({ monogramCenter: value }) },
-                        { key: "Right", value: monogramRight, setter: (value: string) => onSetConfiguration({ monogramRight: value }) },
-                      ].map((field) => (
-                        <label key={field.key} className="block text-sm">
-                          <FieldLabel>{field.key}</FieldLabel>
-                          <input
-                            value={field.value}
-                            onChange={(event) => field.setter(event.target.value)}
-                            placeholder="Optional"
-                            className="app-input min-h-12 bg-[var(--app-surface)]"
-                          />
-                        </label>
-                      ))}
+                  <div className="border-t border-[var(--app-border-strong)]/55 pt-6">
+                    <div className="grid gap-6 xl:grid-cols-[0.76fr_1fr]">
+                      <div className="space-y-6">
+                        {showJacketStyleOptions ? (
+                          <>
+                            <div>
+                              <GroupLabel title="Construction" subtitle="Pick the internal structure first." />
+                              <div className="mt-3">
+                                <VerticalOptionList
+                                  options={canvasOptions}
+                                  selectedValue={canvas}
+                                  onSelect={(value) => onSetConfiguration({ canvas: value })}
+                                />
+                              </div>
+                            </div>
+
+                            <div>
+                              <GroupLabel title="Lapel" subtitle="Choose the front shape." />
+                              <div className="mt-3">
+                                <ChoiceGrid
+                                  options={lapelOptions}
+                                  selectedValue={lapel}
+                                  onSelect={(value) => onSetConfiguration({ lapel: value })}
+                                  columnsClassName="grid-cols-1 sm:grid-cols-3"
+                                />
+                              </div>
+                            </div>
+                          </>
+                        ) : (
+                          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface)]/58 p-4">
+                            <GroupLabel title="Style details" subtitle="No additional jacket styling is needed for this garment." />
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-6 border-t border-[var(--app-border-strong)]/55 pt-6 xl:border-l xl:border-t-0 xl:pl-6 xl:pt-0">
+                        {showJacketStyleOptions ? (
+                          <div>
+                            <GroupLabel title="Pockets" subtitle="Choose the exterior pocket treatment." />
+                            <div className="mt-3">
+                              <VerticalOptionList
+                                options={pocketTypeOptions}
+                                selectedValue={pocketType}
+                                onSelect={(value) => onSetConfiguration({ pocketType: value })}
+                              />
+                            </div>
+                          </div>
+                        ) : null}
+
+                        <div className={cx(showJacketStyleOptions && "border-t border-[var(--app-border-strong)]/55 pt-6 xl:border-t-0 xl:pt-0")}>
+                          <GroupLabel title="Monograms" subtitle="Optional placements" />
+                          <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                            {[
+                              { key: "Left", value: monogramLeft, setter: (value: string) => onSetConfiguration({ monogramLeft: value }) },
+                              { key: "Center", value: monogramCenter, setter: (value: string) => onSetConfiguration({ monogramCenter: value }) },
+                              { key: "Right", value: monogramRight, setter: (value: string) => onSetConfiguration({ monogramRight: value }) },
+                            ].map((field) => (
+                              <label key={field.key} className="block text-sm">
+                                <FieldLabel>{field.key}</FieldLabel>
+                                <input
+                                  value={field.value}
+                                  onChange={(event) => field.setter(event.target.value)}
+                                  placeholder="Optional"
+                                  className="app-input min-h-12 bg-[var(--app-surface)]"
+                                />
+                              </label>
+                            ))}
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -380,64 +497,6 @@ export function CustomGarmentBuilder({
                 <InlineEmptyState className={cx(showValidation && missingGarment && "border-[var(--app-danger-border)] text-[var(--app-danger-text)]")}>
                   Select a garment first.
                 </InlineEmptyState>
-              )}
-            </div>
-          </div>
-
-          <div
-            className={cx(
-              stageShellClassName,
-              showValidation && missingStyleDetails && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/14",
-            )}
-          >
-            <div className="space-y-5">
-              <StageLabel>3. Style details</StageLabel>
-
-              {showConfiguration && showJacketStyleOptions ? (
-                <div className="grid gap-6 xl:grid-cols-[0.76fr_1fr]">
-                  <div className="space-y-6">
-                    <div className="border-b border-[var(--app-border-strong)]/55 pb-5">
-                      <GroupLabel title="Construction" subtitle="Pick the internal structure first." />
-                      <div className="mt-3">
-                        <VerticalOptionList
-                          options={canvasOptions}
-                          selectedValue={canvas}
-                          onSelect={(value) => onSetConfiguration({ canvas: value })}
-                        />
-                      </div>
-                    </div>
-
-                    <div>
-                      <GroupLabel title="Lapel" subtitle="Choose the front shape." />
-                      <div className="mt-3">
-                        <ChoiceGrid
-                          options={lapelOptions}
-                          selectedValue={lapel}
-                          onSelect={(value) => onSetConfiguration({ lapel: value })}
-                          columnsClassName="grid-cols-1 sm:grid-cols-3"
-                        />
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="border-t border-[var(--app-border-strong)]/55 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
-                    <GroupLabel title="Pockets" subtitle="Choose the exterior pocket treatment." />
-                    <div className="mt-3">
-                      <VerticalOptionList
-                        options={pocketTypeOptions}
-                        selectedValue={pocketType}
-                        onSelect={(value) => onSetConfiguration({ pocketType: value })}
-                      />
-                    </div>
-                  </div>
-                </div>
-              ) : showConfiguration ? (
-                <div>
-                  <div className="app-text-body mt-1 font-medium">Not needed for this garment</div>
-                  <div className="app-text-caption mt-1">Canvas, lapel, and pocket selections only appear for jacket-based garments.</div>
-                </div>
-              ) : (
-                <InlineEmptyState>Select a garment first.</InlineEmptyState>
               )}
             </div>
           </div>

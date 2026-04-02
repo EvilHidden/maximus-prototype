@@ -104,21 +104,41 @@ function getSeedLineUnitPrice(input: SeedScopeLineInput, scopeWorkflow: DbOrderS
 }
 
 function buildCustomSeedComponents(input: {
-  fabric: string;
-  buttons: string;
-  lining: string;
-  threads: string;
+  fabricSku: string;
+  fabric?: string;
+  buttonsSku: string;
+  buttons?: string;
+  liningSku: string;
+  lining?: string;
+  threadsSku: string;
+  threads?: string;
   lapel?: string;
   pocketType?: string;
   canvas?: string;
   monogram?: string;
 }) {
   const components: SeedCustomComponent[] = [
-    { kind: "fabric", label: "Fabric", value: input.fabric },
-    { kind: "buttons", label: "Buttons", value: input.buttons },
-    { kind: "lining", label: "Lining", value: input.lining },
-    { kind: "threads", label: "Threads", value: input.threads },
+    { kind: "fabric_sku", label: "Fabric SKU", value: input.fabricSku },
+    { kind: "buttons_sku", label: "Buttons SKU", value: input.buttonsSku },
+    { kind: "lining_sku", label: "Lining SKU", value: input.liningSku },
+    { kind: "threads_sku", label: "Threads SKU", value: input.threadsSku },
   ];
+
+  if (input.fabric) {
+    components.push({ kind: "fabric", label: "Fabric", value: input.fabric });
+  }
+
+  if (input.buttons) {
+    components.push({ kind: "buttons", label: "Buttons", value: input.buttons });
+  }
+
+  if (input.lining) {
+    components.push({ kind: "lining", label: "Lining", value: input.lining });
+  }
+
+  if (input.threads) {
+    components.push({ kind: "threads", label: "Threads", value: input.threads });
+  }
 
   if (input.lapel) {
     components.push({ kind: "lapel", label: "Lapel", value: input.lapel });
@@ -140,9 +160,13 @@ function buildCustomSeedComponents(input: {
 }
 
 const classicNavySuit = buildCustomSeedComponents({
+  fabricSku: "FAB-NAVY-001",
   fabric: "Navy stretch wool",
+  buttonsSku: "BTN-HORN-101",
   buttons: "Dark horn",
+  liningSku: "LIN-PAISLEY-201",
   lining: "Blue paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Notch",
   pocketType: "Regular",
@@ -150,9 +174,13 @@ const classicNavySuit = buildCustomSeedComponents({
 });
 
 const blackTieTuxedo = buildCustomSeedComponents({
+  fabricSku: "FAB-BLK-010",
   fabric: "Black barathea",
+  buttonsSku: "BTN-SATIN-110",
   buttons: "Black satin",
+  liningSku: "LIN-BURG-210",
   lining: "Burgundy paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Peak",
   pocketType: "Regular without flap",
@@ -160,9 +188,13 @@ const blackTieTuxedo = buildCustomSeedComponents({
 });
 
 const midnightTuxedo = buildCustomSeedComponents({
+  fabricSku: "FAB-MID-020",
   fabric: "Midnight wool mohair",
+  buttonsSku: "BTN-SATIN-110",
   buttons: "Black satin",
+  liningSku: "LIN-MID-220",
   lining: "Midnight jacquard",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Peak",
   pocketType: "Regular without flap",
@@ -170,9 +202,13 @@ const midnightTuxedo = buildCustomSeedComponents({
 });
 
 const weddingJacketDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-IVORY-030",
   fabric: "Ivory stretch wool",
+  buttonsSku: "BTN-IVORY-120",
   buttons: "Ivory horn",
+  liningSku: "LIN-CHAMP-230",
   lining: "Champagne paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Peak",
   pocketType: "Regular",
@@ -180,9 +216,13 @@ const weddingJacketDetails = buildCustomSeedComponents({
 });
 
 const receptionJacketDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-FRST-040",
   fabric: "Forest stretch wool",
+  buttonsSku: "BTN-HORN-101",
   buttons: "Dark horn",
+  liningSku: "LIN-COPPER-240",
   lining: "Copper paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Notch",
   pocketType: "Slanted",
@@ -190,9 +230,13 @@ const receptionJacketDetails = buildCustomSeedComponents({
 });
 
 const motherBrideSuitDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-DOVE-050",
   fabric: "Soft dove wool",
+  buttonsSku: "BTN-PEARL-130",
   buttons: "Pearl horn",
+  liningSku: "LIN-SILVER-250",
   lining: "Silver paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Notch",
   pocketType: "Regular",
@@ -200,9 +244,13 @@ const motherBrideSuitDetails = buildCustomSeedComponents({
 });
 
 const promTuxedoDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-BLK-011",
   fabric: "Black stretch wool",
+  buttonsSku: "BTN-SATIN-110",
   buttons: "Black satin",
+  liningSku: "LIN-ROYAL-260",
   lining: "Royal blue paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Peak",
   pocketType: "Regular without flap",
@@ -210,9 +258,13 @@ const promTuxedoDetails = buildCustomSeedComponents({
 });
 
 const galaSuitDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-ONYX-060",
   fabric: "Onyx wool blend",
+  buttonsSku: "BTN-HORN-101",
   buttons: "Dark horn",
+  liningSku: "LIN-BLK-270",
   lining: "Black paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Peak",
   pocketType: "Slanted",
@@ -220,9 +272,13 @@ const galaSuitDetails = buildCustomSeedComponents({
 });
 
 const weddingSuitDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-MID-070",
   fabric: "Midnight navy wool",
+  buttonsSku: "BTN-HORN-101",
   buttons: "Dark horn",
+  liningSku: "LIN-SILVER-250",
   lining: "Silver paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Peak",
   pocketType: "Regular",
@@ -230,9 +286,13 @@ const weddingSuitDetails = buildCustomSeedComponents({
 });
 
 const charcoalSuitDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-CHAR-080",
   fabric: "Charcoal stretch wool",
+  buttonsSku: "BTN-HORN-101",
   buttons: "Dark horn",
+  liningSku: "LIN-GRAPH-280",
   lining: "Graphite paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Notch",
   pocketType: "Regular",
@@ -240,9 +300,13 @@ const charcoalSuitDetails = buildCustomSeedComponents({
 });
 
 const editorialSuitDetails = buildCustomSeedComponents({
+  fabricSku: "FAB-STONE-090",
   fabric: "Stone wool silk blend",
+  buttonsSku: "BTN-MOP-140",
   buttons: "Mother-of-pearl",
+  liningSku: "LIN-BLUSH-290",
   lining: "Soft blush paisley",
+  threadsSku: "THR-TONAL-301",
   threads: "Tone on tone",
   lapel: "Shawl",
   pocketType: "Regular pockets, no flap",
@@ -255,7 +319,23 @@ const seedScopeLines: SeedScopeLineInput[] = [
   { id: "line-9002-2", scopeId: "scope-9002-alteration", label: "Vest waist suppression", quantity: 1, garmentLabel: "Vest", alterationServices: ["Stomach", "Seat"] },
   { id: "line-9003-1", scopeId: "scope-9003-alteration", label: "Trouser taper", quantity: 1, garmentLabel: "Pants", alterationServices: ["Thigh", "Bottom"] },
   { id: "line-9003-2", scopeId: "scope-9003-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
-  { id: "line-9003-3", scopeId: "scope-9003-custom", label: "Vest", quantity: 1, garmentLabel: "Vest", customComponents: buildCustomSeedComponents({ fabric: "Black barathea", buttons: "Black satin", lining: "Burgundy paisley", threads: "Tone on tone" }) },
+  {
+    id: "line-9003-3",
+    scopeId: "scope-9003-custom",
+    label: "Vest",
+    quantity: 1,
+    garmentLabel: "Vest",
+    customComponents: buildCustomSeedComponents({
+      fabricSku: "FAB-BLK-010",
+      fabric: "Black barathea",
+      buttonsSku: "BTN-SATIN-110",
+      buttons: "Black satin",
+      liningSku: "LIN-BURG-210",
+      lining: "Burgundy paisley",
+      threadsSku: "THR-TONAL-301",
+      threads: "Tone on tone",
+    }),
+  },
   { id: "line-9004-1", scopeId: "scope-9004-alteration", label: "Pant hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Length"] },
   { id: "line-9005-1", scopeId: "scope-9005-alteration", label: "Rush sleeve adjustment", quantity: 1, isRush: true, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
   { id: "line-9006-1", scopeId: "scope-9006-custom", label: "Dinner jacket", quantity: 1, garmentLabel: "Tuxedo jacket", customComponents: blackTieTuxedo },
