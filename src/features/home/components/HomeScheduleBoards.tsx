@@ -206,7 +206,7 @@ function ScheduleRow({
         <div className="app-text-value whitespace-nowrap text-[0.95rem] leading-tight">{getAppointmentTimeLabel(appointment)}</div>
       </div>
 
-      <div className="min-w-0 space-y-2.5">
+      <div className="min-w-0 space-y-1.5 sm:space-y-2">
         <div className="app-text-value leading-tight">{appointment.customer}</div>
         <div className="space-y-1">
           <div className="app-text-body font-medium leading-tight">{appointment.type}</div>
@@ -242,10 +242,10 @@ function ScheduleRow({
       </div>
 
       <div className="app-home-schedule-row__actions">
-        <ActionButton tone="primary" className="min-h-10 px-3.5 py-2 text-sm" onClick={() => onCreateOrder(appointment)}>
+        <ActionButton tone="primary" className="min-h-9 whitespace-nowrap px-3 py-1.5 text-[0.76rem] sm:min-h-9.5 sm:px-3.25 sm:text-[0.8rem]" onClick={() => onCreateOrder(appointment)}>
           Start order
         </ActionButton>
-        <ActionButton tone="quiet" className="min-h-10 whitespace-nowrap px-3 py-2 text-[0.8125rem]" onClick={() => onCancelAppointment(appointment)}>
+        <ActionButton tone="quiet" className="min-h-9 whitespace-nowrap px-3 py-1.5 text-[0.74rem] sm:min-h-9.5 sm:px-3.25 sm:text-[0.79rem]" onClick={() => onCancelAppointment(appointment)}>
           Cancel appointment
         </ActionButton>
       </div>
@@ -295,7 +295,7 @@ function AppointmentLane({
             <div
               key={appointment.id}
               className={[
-                "app-table-row border-t border-[var(--app-border)]/55 px-4 py-3.5",
+                "app-table-row border-t border-[var(--app-border)]/55 px-3 py-2.5 sm:px-4 sm:py-3",
                 hasOverflowRows ? "min-h-[7.6rem] xl:min-h-[8.8rem]" : "",
               ].join(" ")}
             >
