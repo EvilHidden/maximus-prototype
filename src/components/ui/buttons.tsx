@@ -48,22 +48,22 @@ export function QuickActionTile({
     <button
       onClick={onClick}
       className={cx(
-        "group flex min-h-[124px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] px-5 py-4.5 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]",
+        "group flex min-h-[92px] flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] px-3.5 py-3.5 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] sm:min-h-[104px] sm:px-4 sm:py-4 lg:min-h-[112px] lg:px-5 lg:py-4.5",
         className,
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div
-          className="app-icon-chip h-10 w-10 shrink-0 transition group-hover:border-[var(--app-border-strong)] [&_svg]:h-5 [&_svg]:w-5"
+          className="app-icon-chip h-9 w-9 shrink-0 transition group-hover:border-[var(--app-border-strong)] [&_svg]:h-4.5 [&_svg]:w-4.5 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5"
           style={iconStyle}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <span className="app-text-overline pt-1 text-[var(--app-text-soft)]">{metaLabel}</span>
+        <span className="app-text-overline hidden pt-1 text-[var(--app-text-soft)] sm:block">{metaLabel}</span>
       </div>
-      <div className="space-y-1.5">
-        <div className="app-text-value">{title}</div>
-        <div className="app-text-caption max-w-[22ch]">{subtitle}</div>
+      <div className="space-y-1">
+        <div className="app-text-value text-[0.98rem] leading-tight sm:text-[1.02rem]">{title}</div>
+        <div className="app-text-caption max-w-[22ch] text-[0.73rem] sm:text-[0.76rem]">{subtitle}</div>
       </div>
     </button>
   );
@@ -80,7 +80,7 @@ export function SelectionChip({
 }: SelectionChipProps) {
   const sizeClassName =
     size === "sm"
-      ? "min-h-10 rounded-[var(--app-radius-sm)] px-3 py-2 text-[0.75rem] font-semibold tracking-[0.02em]"
+      ? "min-h-9 rounded-[var(--app-radius-sm)] px-2.75 py-1.75 text-[0.72rem] font-semibold tracking-[0.02em]"
       : "min-h-10 rounded-[var(--app-radius-md)] px-3.5 py-2 text-sm font-medium";
 
   return (

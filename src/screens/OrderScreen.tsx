@@ -161,7 +161,7 @@ export function OrderScreen({
         />
       )}
 
-      <div className="app-page-with-support-rail gap-3.5">
+      <div className="app-page-with-support-rail app-order-builder-layout gap-3.5">
         <div className="space-y-3.5">
           <WorkflowSelector
             activeWorkflow={order.activeWorkflow}

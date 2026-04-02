@@ -267,10 +267,10 @@ export function ReviewOrderScreen({
         ) : undefined}
       />
 
-      <div className="app-page-with-support-rail">
+      <div className="app-page-with-support-rail app-review-layout">
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
-            <div className="flex flex-wrap items-end justify-between gap-4">
+            <div className="app-detail-hero">
               <div>
                 <div className="app-text-overline">
                   {openOrder
@@ -302,7 +302,7 @@ export function ReviewOrderScreen({
                     : "Review the order, confirm the pickup timing, and then accept it."}
                 </div>
               </div>
-              {pageMeta}
+              <div className="app-detail-hero__meta">{pageMeta}</div>
             </div>
           </div>
 
@@ -366,7 +366,7 @@ export function ReviewOrderScreen({
           ) : (
             <>
               <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-                <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_220px]">
+                <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_220px]">
                   <div className="min-w-0">
                     <div className="app-text-overline">Customer details</div>
                     <div className="mt-2 space-y-1.5">

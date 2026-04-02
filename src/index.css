@@ -42,6 +42,13 @@
   --app-space-6: 1.5rem;
   --app-support-rail-width: 340px;
   --app-support-rail-width-tablet: 304px;
+  --app-shell-gutter: 0.75rem;
+  --app-mobile-topbar-height: 4.25rem;
+  --app-bottom-nav-height: 5.25rem;
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
   --app-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.06);
   --app-shadow-lg: 0 18px 42px rgba(15, 23, 42, 0.14);
 }
@@ -95,6 +102,7 @@ body {
   min-width: 320px;
   background: var(--app-bg);
   color: var(--app-text);
+  overscroll-behavior-y: none;
 }
 
 button,
@@ -123,10 +131,15 @@ textarea:focus-visible {
 .app-shell {
   display: flex;
   flex-direction: column;
-  height: 100vh;
-  overflow: hidden;
+  min-height: 100vh;
+  min-height: 100dvh;
   background: var(--app-bg);
   color: var(--app-text);
+  padding:
+    max(var(--app-shell-gutter), calc(var(--app-safe-top) + 0.35rem))
+    max(var(--app-shell-gutter), calc(var(--app-safe-right) + 0.35rem))
+    max(calc(var(--app-shell-gutter) + var(--app-bottom-nav-height)), calc(var(--app-safe-bottom) + var(--app-bottom-nav-height)))
+    max(var(--app-shell-gutter), calc(var(--app-safe-left) + 0.35rem));
 }
 
 .app-shell-grid {
@@ -135,7 +148,6 @@ textarea:focus-visible {
   min-height: 0;
   grid-template-columns: minmax(0, 1fr);
   gap: 0.625rem;
-  padding: 0.625rem;
 }
 
 .app-sidebar {
@@ -147,7 +159,9 @@ textarea:focus-visible {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.625rem 0.625rem 0;
+  min-height: var(--app-mobile-topbar-height);
+  margin-bottom: 0.625rem;
+  padding: 0 0.125rem;
 }
 
 .app-mobile-topbar__menu {
@@ -158,9 +172,10 @@ textarea:focus-visible {
   justify-content: center;
   border: 1px solid color-mix(in srgb, var(--app-border) 82%, transparent);
   border-radius: 12px;
-  background: var(--app-surface);
+  background: color-mix(in srgb, var(--app-surface) 86%, transparent);
   color: var(--app-text);
   box-shadow: var(--app-shadow-sm);
+  backdrop-filter: blur(18px);
 }
 
 .app-mobile-drawer {
@@ -187,6 +202,50 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--app-bg) 82%, var(--app-surface));
   box-shadow: var(--app-shadow-lg);
   backdrop-filter: blur(10px);
+}
+
+.app-mobile-tabbar {
+  position: fixed;
+  left: max(0.75rem, calc(var(--app-safe-left) + 0.5rem));
+  right: max(0.75rem, calc(var(--app-safe-right) + 0.5rem));
+  bottom: max(0.75rem, calc(var(--app-safe-bottom) + 0.35rem));
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, var(--app-surface) 84%, transparent);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.app-mobile-tabbar__item {
+  display: flex;
+  min-height: 4rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 0.95rem;
+  color: var(--app-text-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.app-mobile-tabbar__item--active {
+  border-color: color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 65%, var(--app-surface));
+  color: var(--app-text);
 }
 
 .app-main {
@@ -279,32 +338,56 @@ textarea:focus-visible {
   width: 100%;
 }
 
-@media (min-width: 1280px) {
-  .app-page-with-support-rail {
-    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
-    align-items: start;
-  }
-
-  .app-support-rail-fixed {
-    min-width: var(--app-support-rail-width);
-    max-width: var(--app-support-rail-width);
-  }
+.app-home-location-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 1rem;
 }
 
-@media (min-width: 768px) {
-  .app-mobile-topbar,
-  .app-mobile-drawer {
-    display: none !important;
-  }
-
-  .app-shell-grid {
-    grid-template-columns: 228px minmax(0, 1fr);
-    gap: 0.75rem;
-    padding: 0.75rem;
-  }
+.app-home-schedule-row {
+  display: grid;
+  gap: 0.75rem;
 }
 
-@media (min-width: 1100px) and (max-width: 1279px) {
+.app-home-schedule-row__actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
+}
+
+.app-home-pickup-row {
+  display: grid;
+  gap: 1rem;
+}
+
+.app-order-builder-layout,
+.app-review-layout,
+.app-measurements-layout {
+  align-items: start;
+}
+
+.app-detail-hero {
+  display: grid;
+  gap: 1rem;
+}
+
+.app-detail-hero__meta {
+  min-width: 0;
+}
+
+.app-measurements-workspace {
+  display: grid;
+  gap: 0;
+}
+
+.app-order-bag,
+.app-checkout-rail,
+.app-measurements-rail {
+  overflow: hidden;
+}
+
+@media (min-width: 980px) {
   .app-page-with-support-rail {
     grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width-tablet);
     align-items: start;
@@ -314,13 +397,142 @@ textarea:focus-visible {
     min-width: var(--app-support-rail-width-tablet);
     max-width: var(--app-support-rail-width-tablet);
   }
+
+  .app-detail-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(14rem, 17rem);
+    align-items: end;
+  }
+
+  .app-detail-hero__meta {
+    text-align: right;
+  }
+
+  .app-measurements-workspace {
+    grid-template-columns: 220px minmax(0, 1fr);
+  }
+
+  .app-measurements-workspace__fields {
+    border-right: 1px solid color-mix(in srgb, var(--app-border) 40%, transparent);
+    border-bottom: 0;
+    padding: 0.85rem 0.8rem;
+  }
+
+  .app-measurements-workspace__editor {
+    padding: 0.85rem 0.8rem;
+  }
 }
 
-@media (min-width: 1024px) and (max-width: 1279px) {
+@media (min-width: 768px) {
+  .app-home-schedule-row {
+    grid-template-columns: 72px minmax(0, 1fr) 152px;
+    align-items: start;
+    gap: 0.85rem 1rem;
+  }
+
+  .app-home-schedule-row__actions {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.45rem;
+  }
+
+  .app-home-pickup-row {
+    grid-template-columns: 180px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1rem 1.5rem;
+  }
+}
+
+@media (min-width: 1380px) {
+  .app-page-with-support-rail {
+    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
+  }
+
+  .app-support-rail-fixed {
+    min-width: var(--app-support-rail-width);
+    max-width: var(--app-support-rail-width);
+  }
+
+  .app-measurements-workspace {
+    grid-template-columns: 260px minmax(0, 1fr);
+  }
+}
+
+@media (min-width: 1180px) {
+  .app-mobile-topbar,
+  .app-mobile-drawer,
+  .app-mobile-tabbar {
+    display: none !important;
+  }
+
+  .app-shell {
+    height: 100vh;
+    height: 100dvh;
+    overflow: hidden;
+    padding:
+      max(var(--app-shell-gutter), calc(var(--app-safe-top) + 0.4rem))
+      max(var(--app-shell-gutter), calc(var(--app-safe-right) + 0.4rem))
+      max(var(--app-shell-gutter), calc(var(--app-safe-bottom) + 0.4rem))
+      max(var(--app-shell-gutter), calc(var(--app-safe-left) + 0.4rem));
+  }
+
+  .app-shell-grid {
+    grid-template-columns: 228px minmax(0, 1fr);
+    gap: 0.75rem;
+  }
+}
+
+@media (min-width: 1180px) and (max-width: 1379px) {
   .app-shell-grid {
     grid-template-columns: 208px minmax(0, 1fr);
     gap: 0.625rem;
-    padding: 0.625rem;
+  }
+}
+
+@media (max-width: 1179px) {
+  .app-sidebar {
+    display: none !important;
+  }
+
+  .app-main {
+    min-height: 0;
+    border-radius: 1rem;
+    padding-bottom: 1rem;
+  }
+}
+
+@media (max-width: 979px) {
+  .app-order-builder-layout,
+  .app-review-layout,
+  .app-measurements-layout {
+    gap: 0.85rem;
+  }
+
+  .app-detail-hero__meta {
+    text-align: left;
+  }
+}
+
+@media (min-width: 980px) and (max-width: 1179px) {
+  .app-order-bag,
+  .app-checkout-rail,
+  .app-measurements-rail {
+    position: sticky;
+    top: 0;
+  }
+}
+
+@media (max-width: 639px) {
+  .app-home-location-bar {
+    align-items: flex-start;
+  }
+}
+
+@media (display-mode: standalone) {
+  .app-shell {
+    padding-top: max(var(--app-shell-gutter), calc(var(--app-safe-top) + 0.55rem));
+  }
+
+  .app-mobile-topbar {
+    min-height: calc(var(--app-mobile-topbar-height) + 0.35rem);
   }
 }
 

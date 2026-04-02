@@ -112,12 +112,12 @@ export function HomeScreen({
       <HomeQuickActionsDeck actions={actions} />
 
       <div className="px-1 py-1">
-        <div className="flex flex-wrap items-center gap-4">
+        <div className="app-home-location-bar">
           <div className="shrink-0 pt-0.5">
             <div className="app-text-overline">View locations</div>
             <div className="app-text-caption mt-1">Choose which locations to show.</div>
           </div>
-          <div className="flex min-w-0 basis-full flex-wrap gap-1.5 sm:basis-auto sm:flex-1">
+          <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
             <SelectionChip
               selected={allLocationsActive}
               onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
