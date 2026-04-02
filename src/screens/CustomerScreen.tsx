@@ -222,7 +222,10 @@ export function CustomerScreen({
             }
 
             onArchiveCustomer(activeCustomer.id);
-            showToast(`${activeCustomer.name} archived.`);
+            showToast(`${activeCustomer.name} moved out of the active customer list.`, {
+              title: "Customer archived",
+              tone: "warning",
+            });
             setDrawerOpen(false);
             setActiveCustomerId(null);
           }}
@@ -250,7 +253,10 @@ export function CustomerScreen({
               onAddCustomer(nextCustomer);
               setActiveCustomerId(nextCustomer.id);
               onSelectCustomer(nextCustomer);
-              showToast(`${nextCustomer.name} added.`);
+              showToast(`${nextCustomer.name} is now in the customer directory.`, {
+                title: "Customer added",
+                tone: "success",
+              });
             } else if (activeCustomer) {
               const updatedCustomer: Customer = {
                 ...activeCustomer,
@@ -259,7 +265,10 @@ export function CustomerScreen({
               onUpdateCustomer(updatedCustomer);
               setActiveCustomerId(updatedCustomer.id);
               onSelectCustomer(updatedCustomer);
-              showToast(`${updatedCustomer.name} updated.`);
+              showToast(`${updatedCustomer.name} has been updated.`, {
+                title: "Customer updated",
+                tone: "success",
+              });
             }
 
             setEditorMode(null);

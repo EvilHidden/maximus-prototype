@@ -196,7 +196,10 @@ export function HomeScreen({
           onClose={() => setCancelingAppointment(null)}
           onConfirm={() => {
             onCancelAppointment(cancelingAppointment.id);
-            showToast(`${cancelingAppointment.customer} canceled.`);
+            showToast(`${cancelingAppointment.customer} canceled.`, {
+              title: "Appointment canceled",
+              tone: "warning",
+            });
             setCancelingAppointment(null);
           }}
         />

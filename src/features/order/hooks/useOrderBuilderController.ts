@@ -28,7 +28,14 @@ type UseOrderBuilderControllerArgs = {
   onScreenChange: (screen: Screen) => void;
   onOpenDraftCheckout: () => void;
   onSaveDraftOrder: (paymentMode: CheckoutPaymentMode, openCheckout?: boolean) => void;
-  showToast: (message: string) => void;
+  showToast: (
+    message: string,
+    options?: {
+      duration?: number;
+      title?: string;
+      tone?: "default" | "success" | "warning" | "danger";
+    },
+  ) => void;
 };
 
 export function useOrderBuilderController({
@@ -146,12 +153,18 @@ export function useOrderBuilderController({
 
   const handleShowAlterationDisabledReason = (reason: string) => {
     setAlterationValidationVisible(true);
-    showToast(reason);
+    showToast(reason, {
+      title: "Alteration item incomplete",
+      tone: "warning",
+    });
   };
 
   const handleShowCustomDisabledReason = (reason: string) => {
     setCustomValidationVisible(true);
-    showToast(reason);
+    showToast(reason, {
+      title: "Custom item incomplete",
+      tone: "warning",
+    });
   };
 
   const handleAddOrSaveCustomItem = () => {
