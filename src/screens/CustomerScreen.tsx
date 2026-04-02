@@ -50,7 +50,7 @@ function CustomerRow({
   return (
     <button
       onClick={onOpen}
-      className="grid w-full gap-3 border-b border-[var(--app-border)]/45 px-4 py-3 text-left transition hover:bg-[var(--app-surface-muted)]/65 sm:grid-cols-[minmax(0,1.4fr)_minmax(0,1fr)] xl:grid-cols-[minmax(0,1.7fr)_180px_140px_180px_24px] xl:items-center"
+      className="group relative grid w-full gap-3 border-b border-[var(--app-border)]/45 px-4 py-3 pr-12 text-left transition hover:bg-[var(--app-surface-muted)]/65 md:grid-cols-[minmax(0,1.8fr)_140px_140px_180px] md:items-center md:gap-4 md:pr-14 xl:grid-cols-[minmax(0,1.8fr)_140px_140px_180px_24px] xl:items-center xl:pr-4"
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">
@@ -70,35 +70,42 @@ function CustomerRow({
         </div>
       </div>
 
-      <div className="min-w-0">
-        <div className="app-text-overline xl:hidden">Measurements</div>
-        <div className="mt-1">
-          <MeasurementStatusPill status={customer.measurementsStatus} showIcon />
-        </div>
-      </div>
-
-      <div className="min-w-0">
-        <div className="app-text-overline xl:hidden">Location</div>
-        <div className="app-text-body mt-1 inline-flex items-center gap-1.5 font-medium">
+      <div className="min-w-0 md:flex md:min-h-full md:items-center">
+        <div className="app-text-overline md:hidden">Location</div>
+        <div className="app-text-body mt-1 inline-flex items-center gap-1.5 font-medium md:mt-0">
           <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
           <span>{customer.preferredLocation}</span>
         </div>
       </div>
 
-      <div className="min-w-0">
-        <div className="app-text-overline xl:hidden">Last order</div>
+      <div className="min-w-0 md:flex md:min-h-full md:items-center">
+        <div className="app-text-overline md:hidden">Measurements</div>
+        <div className="mt-1 md:mt-0">
+          <MeasurementStatusPill status={customer.measurementsStatus} showIcon />
+        </div>
+      </div>
+
+      <div className="min-w-0 md:flex md:min-h-full md:items-center">
+        <div className="app-text-overline md:hidden">Last order</div>
         {lastOrderSummary ? (
-          <>
-            <div className="app-text-body mt-1 font-medium">{lastOrderDate ?? "Recent"}</div>
-            <div className="app-text-caption mt-1 truncate">{lastOrderLabel}</div>
-          </>
+          <div className="min-w-0 w-full">
+            <div className="app-text-body mt-1 truncate font-medium md:mt-0">{lastOrderDate ?? "Recent"}</div>
+            <div className="app-text-caption mt-1 line-clamp-2 break-words">{lastOrderLabel}</div>
+          </div>
         ) : (
-          <div className="app-text-caption mt-1">No order history</div>
+          <div className="app-text-caption mt-1 md:mt-0">No order history</div>
         )}
       </div>
 
       <div className="hidden justify-self-end xl:block">
         <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)]" />
+      </div>
+
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 xl:hidden">
+        <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
+          <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
+          <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
+        </div>
       </div>
     </button>
   );
@@ -172,12 +179,12 @@ export function CustomerScreen({
           </div>
 
           <div className="mt-4 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
-            <div className="hidden gap-3 border-b border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/85 px-4 py-2 xl:grid xl:grid-cols-[minmax(0,1.7fr)_180px_140px_180px_24px]">
+            <div className="hidden gap-4 border-b border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/85 px-4 py-2 md:grid md:grid-cols-[minmax(0,1.8fr)_140px_140px_180px] md:pr-14 xl:grid-cols-[minmax(0,1.8fr)_140px_140px_180px_24px] xl:pr-4">
               <div className="app-text-overline">Customer</div>
-              <div className="app-text-overline">Measurements</div>
               <div className="app-text-overline">Location</div>
+              <div className="app-text-overline">Measurements</div>
               <div className="app-text-overline">Last order</div>
-              <div />
+              <div className="hidden xl:block" />
             </div>
 
             {filteredCustomers.length ? (
