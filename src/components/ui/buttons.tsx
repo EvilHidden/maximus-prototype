@@ -55,7 +55,7 @@ export function QuickActionTile({
     <button
       onClick={onClick}
       className={cx(
-        "group flex flex-col justify-between rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]",
+        "group flex flex-col justify-between gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] sm:gap-2.5",
         sizeClassName,
         className,
       )}
@@ -69,7 +69,7 @@ export function QuickActionTile({
         </div>
         <span className="app-text-overline hidden pt-1 text-[var(--app-text-soft)] sm:block">{metaLabel}</span>
       </div>
-      <div className="space-y-1">
+      <div className="space-y-1 pt-0.5">
         <div className="app-text-value text-[0.98rem] leading-tight sm:text-[1.02rem]">{title}</div>
         <div className="app-text-caption max-w-[22ch] text-[0.73rem] sm:text-[0.76rem]">{subtitle}</div>
       </div>
