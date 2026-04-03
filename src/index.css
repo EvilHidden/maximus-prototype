@@ -440,6 +440,8 @@ textarea:focus-visible {
 
 @media (min-width: 768px) {
   .app-main {
+    border: 1px solid color-mix(in srgb, var(--app-border) 55%, transparent);
+    border-radius: 14px;
     padding: 1rem;
   }
 
