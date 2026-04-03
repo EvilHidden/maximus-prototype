@@ -3,6 +3,7 @@ import {
   ClipboardList,
   Ellipsis,
   Home,
+  Menu,
   Monitor,
   Moon,
   Package,
@@ -86,6 +87,18 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
 
   return (
     <div className="app-shell">
+      <div className="app-tablet-topbar">
+        <button
+          type="button"
+          onClick={() => setMobileNavOpen(true)}
+          className="app-tablet-topbar__trigger"
+          aria-label="Open navigation"
+          aria-expanded={mobileNavOpen}
+        >
+          <Menu className="h-4 w-4" />
+        </button>
+      </div>
+
       {mobileNavOpen ? (
         <div className="app-mobile-drawer">
           <button
