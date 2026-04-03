@@ -139,30 +139,26 @@ export function AppointmentsCalendar({
                 itemCount={dayAppointments.length}
                 onClick={() => onSelectDate(dayKey)}
               >
-                <div className="space-y-1">
-                  {hasAppointments ? (
-                    <div className="px-0.5 py-1">
-                      <div className="flex flex-wrap items-center gap-1.5">
-                        {dayAppointmentGroups.slice(0, 4).map(({ typeKey, count, icon: Icon, label }) => (
-                          <div
-                            key={typeKey}
-                            className="inline-flex h-5 w-5 items-center justify-center text-[var(--app-text-soft)]"
-                            title={`${count} ${label}${count === 1 ? "" : "s"}`}
-                          >
-                            <Icon className="h-3.5 w-3.5" />
-                          </div>
-                        ))}
-                        {dayAppointmentGroups.length > 4 ? (
-                          <div className="inline-flex h-5 min-w-5 items-center justify-center text-[10px] font-semibold text-[var(--app-text-soft)]">
-                            +{dayAppointmentGroups.length - 4}
-                          </div>
-                        ) : null}
-                      </div>
+                {hasAppointments ? (
+                  <div className="px-0.5 py-1">
+                    <div className="flex flex-wrap items-center gap-1.5">
+                      {dayAppointmentGroups.slice(0, 4).map(({ typeKey, count, icon: Icon, label }) => (
+                        <div
+                          key={typeKey}
+                          className="inline-flex h-5 w-5 items-center justify-center text-[var(--app-text-soft)]"
+                          title={`${count} ${label}${count === 1 ? "" : "s"}`}
+                        >
+                          <Icon className="h-3.5 w-3.5" />
+                        </div>
+                      ))}
+                      {dayAppointmentGroups.length > 4 ? (
+                        <div className="inline-flex h-5 min-w-5 items-center justify-center text-[10px] font-semibold text-[var(--app-text-soft)]">
+                          +{dayAppointmentGroups.length - 4}
+                        </div>
+                      ) : null}
                     </div>
-                  ) : (
-                    <div className="h-[42px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10 lg:h-[36px]" />
-                  )}
-                </div>
+                  </div>
+                ) : null}
               </CalendarDayCard>
             );
           })}
