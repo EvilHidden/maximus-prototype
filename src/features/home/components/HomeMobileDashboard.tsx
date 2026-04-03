@@ -258,10 +258,10 @@ export function HomeMobileDashboard({
       <div className="pb-3.5">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="app-text-overline text-[var(--app-text-soft)]">Today at a glance</div>
-            <div className="app-text-value mt-0.5 text-[0.98rem]">Home</div>
+            <div className="app-text-overline text-[var(--app-text-soft)]/70">Today at a glance</div>
+            <div className="app-text-strong mt-1 text-[0.92rem]">Home</div>
           </div>
-          <CountPill count={visibleAppointmentCount + visiblePickupCount} label="items" icon={CalendarDays} tone="default" className="px-2 py-1" />
+          <CountPill count={visibleAppointmentCount + visiblePickupCount} label="items" icon={CalendarDays} tone="default" className="px-2 py-1 opacity-75" />
         </div>
 
         <div className="mt-3.5 grid grid-cols-3 gap-3.5">
@@ -272,7 +272,7 @@ export function HomeMobileDashboard({
       </div>
 
       <div className="space-y-1.5">
-        <div className="app-text-overline px-1 text-[var(--app-text-soft)]">Shortcuts</div>
+        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/68">Shortcuts</div>
         <div className="flex gap-2 overflow-x-auto pb-1 app-no-scrollbar">
           {mobileQuickActions.map((action) => (
             <MobileShortcutButton
@@ -287,7 +287,7 @@ export function HomeMobileDashboard({
       </div>
 
       <div className="space-y-2">
-        <div className="app-text-overline px-1 text-[var(--app-text-soft)]">Locations</div>
+        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/68">Locations</div>
         <div className="flex gap-1.5 overflow-x-auto pb-1 app-no-scrollbar">
           <SelectionChip
             selected={allLocationsActive}
