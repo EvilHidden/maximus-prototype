@@ -608,6 +608,7 @@ function WorkSurfaceHeader({
   count,
   countLabel,
   tone,
+  flatIcon = false,
 }: {
   icon: LucideIcon;
   title: string;
@@ -615,9 +616,16 @@ function WorkSurfaceHeader({
   count: number;
   countLabel: string;
   tone: "info" | "success";
+  flatIcon?: boolean;
 }) {
   const iconStyle =
-    tone === "info"
+    flatIcon
+      ? {
+          borderColor: "transparent",
+          backgroundColor: "transparent",
+          color: tone === "info" ? "var(--app-info-text)" : "var(--app-success-text)",
+        }
+      : tone === "info"
       ? {
           borderColor: "var(--app-info-border)",
           backgroundColor: "var(--app-info-bg)",
@@ -635,7 +643,7 @@ function WorkSurfaceHeader({
       iconStyle={iconStyle}
       title={title}
       subtitle={subtitle}
-      meta={<CountPill count={count} label={countLabel} icon={icon} tone={tone} />}
+      meta={<span className="app-text-overline whitespace-nowrap text-[var(--app-text-soft)]">{count} {countLabel}</span>}
     />
   );
 }
@@ -656,7 +664,7 @@ export function HomeWorkboards({
 }: HomeWorkboardsProps) {
   return (
     <div className="app-home-workboards">
-      <Surface tone="work" className="app-home-workboard app-home-workboard--appointments p-4">
+      <div className="app-home-workboard app-home-workboard--appointments p-4">
         <WorkSurfaceHeader
           icon={CalendarDays}
           title="Appointments"
@@ -664,6 +672,7 @@ export function HomeWorkboards({
           count={visibleAppointmentCount}
           countLabel="appointments"
           tone="info"
+          flatIcon
         />
 
         <div className="mt-4 grid gap-4 xl:grid-cols-2">
@@ -684,19 +693,22 @@ export function HomeWorkboards({
             onCancelAppointment={onCancelAppointment}
           />
         </div>
-      </Surface>
+      </div>
 
-      <Surface tone="work" className="app-home-workboard app-home-workboard--pickups p-4">
-        <WorkSurfaceHeader
-          icon={Package}
-          title="Ready for pickup"
-          subtitle="Anything ready and still waiting to be collected"
-          count={visiblePickupCount}
-          countLabel="pickups"
-          tone="success"
-        />
+      <div className="app-home-workboard app-home-workboard--pickups pt-4">
+        <div className="px-4">
+          <WorkSurfaceHeader
+            icon={Package}
+            title="Ready for pickup"
+            subtitle="Anything ready and still waiting to be collected"
+            count={visiblePickupCount}
+            countLabel="pickups"
+            tone="success"
+            flatIcon
+          />
+        </div>
 
-        <div className="app-home-pickup-list mt-4">
+        <div className="app-table-shell app-home-pickup-list mt-3">
           <ScrollableLaneBody
             itemCount={readyPickups.length}
             emptyState={
@@ -725,7 +737,7 @@ export function HomeWorkboards({
             }
           />
         </div>
-      </Surface>
+      </div>
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { QuickActionTile, Surface, cx } from "../../../components/ui/primitives";
+import { QuickActionTile, cx } from "../../../components/ui/primitives";
 
 type HomeQuickAction = {
   label: string;
@@ -20,7 +20,7 @@ type HomeQuickActionsDeckProps = {
 
 export function HomeQuickActionsDeck({ actions, className = "" }: HomeQuickActionsDeckProps) {
   return (
-    <Surface tone="control" className={cx("px-4 py-4 md:px-5", className)}>
+    <div className={cx("px-4 py-4 md:px-5", className)}>
       <div className="flex gap-2.5 overflow-x-auto pb-1 app-no-scrollbar md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
         {actions.map((action) => (
           <QuickActionTile
@@ -35,6 +35,6 @@ export function HomeQuickActionsDeck({ actions, className = "" }: HomeQuickActio
           />
         ))}
       </div>
-    </Surface>
+    </div>
   );
 }

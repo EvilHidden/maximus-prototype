@@ -440,8 +440,6 @@ textarea:focus-visible {
 
 @media (min-width: 768px) {
   .app-main {
-    border: 1px solid color-mix(in srgb, var(--app-border) 55%, transparent);
-    border-radius: 14px;
     padding: 1rem;
   }
 
@@ -498,6 +496,68 @@ textarea:focus-visible {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1179px) {
+  .app-home-dashboard {
+    gap: 0;
+  }
+
+  .app-home-dashboard__quick-actions-surface {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0.6rem 0 0.2rem;
+    margin-bottom: 1.35rem;
+  }
+
+  .app-home-dashboard__quick-actions-surface > div {
+    gap: 1.1rem;
+  }
+
+  .app-home-dashboard__quick-actions-surface button {
+    min-height: 74px;
+    border-color: color-mix(in srgb, var(--app-border) 48%, transparent);
+    background: color-mix(in srgb, var(--app-surface-muted) 42%, var(--app-surface));
+    box-shadow: var(--app-shadow-sm);
+    padding-inline: 0.875rem;
+    padding-block: 0.75rem;
+  }
+
+  .app-home-dashboard__locations {
+    margin-bottom: 1.55rem;
+  }
+
+  .app-home-location-deck {
+    border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+    border-radius: calc(var(--app-radius-md) + 2px);
+    background: color-mix(in srgb, var(--app-surface-muted) 34%, var(--app-surface));
+    box-shadow: var(--app-shadow-sm);
+    padding: 0.7rem 0.95rem 0.8rem;
+  }
+
+  .app-home-location-bar {
+    gap: 1.3rem 1rem;
+  }
+
+  .app-home-workboards {
+    gap: 1.9rem;
+  }
+
+  .app-home-workboard--appointments {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .app-home-workboard .app-table-head {
+    background: transparent;
+  }
+
+  .app-home-workboard--appointments > div:nth-child(2) {
+    margin-top: 1.45rem;
+  }
+}
+
 @media (min-width: 768px) and (max-height: 940px) {
   .app-home-dashboard {
     gap: 0.75rem;
@@ -508,6 +568,9 @@ textarea:focus-visible {
   }
 
   .app-home-dashboard__quick-actions-surface {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
     padding: 0.75rem 0.875rem;
   }
 
@@ -521,7 +584,11 @@ textarea:focus-visible {
   }
 
   .app-home-dashboard__locations {
-    padding-block: 0;
+    margin-bottom: 1.15rem;
+  }
+
+  .app-home-location-deck {
+    padding: 0.625rem 0.8rem 0.7rem;
   }
 
   .app-home-location-bar {
@@ -536,7 +603,15 @@ textarea:focus-visible {
     padding: 0.75rem;
   }
 
+  .app-home-workboard--appointments {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
   .app-home-workboard .app-table-head {
+    background: transparent;
     padding-block: 0.75rem;
   }
 
@@ -664,6 +739,8 @@ textarea:focus-visible {
   }
 
   .app-main {
+    border: 1px solid color-mix(in srgb, var(--app-border) 55%, transparent);
+    border-radius: 14px;
     padding: 1.25rem;
     scrollbar-gutter: stable;
   }
@@ -745,7 +822,6 @@ textarea:focus-visible {
 @media (max-width: 1179px) {
   .app-main {
     min-height: 0;
-    border-radius: 1rem;
     padding-bottom: 1rem;
   }
 }
