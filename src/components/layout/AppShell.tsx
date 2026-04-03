@@ -3,7 +3,6 @@ import {
   ClipboardList,
   Ellipsis,
   Home,
-  Menu,
   Monitor,
   Moon,
   Package,
@@ -37,17 +36,6 @@ const navIcons = {
   orderDetails: Package,
 } satisfies Record<Screen, typeof Home>;
 
-const screenLabels: Record<Screen, string> = {
-  home: "Home",
-  customer: "Customers",
-  openOrders: "Orders",
-  appointments: "Appointments",
-  order: "Order Builder",
-  measurements: "Measurements",
-  checkout: "Checkout",
-  orderDetails: "Order details",
-};
-
 const themeOptions = [
   { key: "light" as const, label: "Light", Icon: Sun },
   { key: "dark" as const, label: "Dark", Icon: Moon },
@@ -72,7 +60,6 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
   };
 
   const activeNavScreen = getActiveNavScreen(screen);
-  const activeNavLabel = screenLabels[screen];
   const mobileMoreActive =
     utilityNavItems.some((item) => item.key === activeNavScreen) || screen === "checkout" || screen === "orderDetails";
 
@@ -99,21 +86,6 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
 
   return (
     <div className="app-shell">
-      <div className="app-mobile-topbar">
-        <button
-          type="button"
-          onClick={() => setMobileNavOpen(true)}
-          className="app-mobile-topbar__menu"
-          aria-label="Open navigation"
-        >
-          <Menu className="h-4 w-4" />
-        </button>
-        <div className="min-w-0">
-          <div className="app-text-overline">Workspace</div>
-        </div>
-        <div className="ml-auto">{themeControl}</div>
-      </div>
-
       {mobileNavOpen ? (
         <div className="app-mobile-drawer">
           <button
