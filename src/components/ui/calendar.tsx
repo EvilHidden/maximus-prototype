@@ -6,7 +6,7 @@ type CalendarDayCardProps = {
   isSelected: boolean;
   isToday: boolean;
   isCurrentMonth: boolean;
-  hasItems: boolean;
+  itemCount?: number;
   onClick: () => void;
   children: ReactNode;
 };
@@ -16,7 +16,7 @@ export function CalendarDayCard({
   isSelected,
   isToday,
   isCurrentMonth,
-  hasItems,
+  itemCount = 0,
   onClick,
   children,
 }: CalendarDayCardProps) {
@@ -37,7 +37,11 @@ export function CalendarDayCard({
     >
       <div className="mb-1.5 flex items-center justify-between gap-2">
         <div className={isSelected || isToday ? "app-text-strong" : "app-text-body font-medium"}>{dayNumber}</div>
-        {hasItems ? <span className="inline-flex h-2.5 w-2.5 rounded-full bg-[var(--app-accent)] opacity-70" /> : null}
+        {itemCount > 0 ? (
+          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--app-accent)]/12 px-1.5 text-[10px] font-semibold text-[var(--app-text)]">
+            {itemCount}
+          </span>
+        ) : null}
       </div>
       {children}
     </button>

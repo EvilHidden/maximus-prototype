@@ -1,7 +1,8 @@
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import { CalendarCheck2, ChevronLeft, ChevronRight, PencilRuler, Ruler, Scissors, Users, type LucideIcon } from "lucide-react";
 import { ActionButton, CalendarDayCard, Surface } from "../../../components/ui/primitives";
 import type { Appointment } from "../../../types";
-import { getAppointmentDateKey, getAppointmentTimeLabel } from "../selectors";
+import type { AppointmentTypeKey } from "../../../types";
+import { getAppointmentDateKey } from "../selectors";
 
 type AppointmentsCalendarProps = {
   anchorDate: Date;
@@ -40,16 +41,25 @@ function toDateKey(date: Date) {
   return `${year}-${month}-${day}`;
 }
 
-function getCalendarLine(appointment: Appointment) {
-  if (/consult/i.test(appointment.type)) {
-    return "Consult";
-  }
+const appointmentCalendarTypeMeta: Record<AppointmentTypeKey, { icon: LucideIcon; label: string }> = {
+  alteration_fitting: { icon: Scissors, label: "Alteration fitting" },
+  custom_consult: { icon: PencilRuler, label: "Custom consult" },
+  first_fitting: { icon: Ruler, label: "First fitting" },
+  custom_fitting: { icon: Ruler, label: "Custom fitting" },
+  wedding_party_fitting: { icon: Users, label: "Wedding party fitting" },
+  pickup: { icon: CalendarCheck2, label: "Pickup" },
+};
 
-  if (/fitting/i.test(appointment.type)) {
-    return "Fitting";
-  }
+function getDayAppointmentGroups(dayAppointments: Appointment[]) {
+  const grouped = new Map<AppointmentTypeKey, number>();
 
-  return appointment.type;
+  dayAppointments.forEach((appointment) => {
+    grouped.set(appointment.typeKey, (grouped.get(appointment.typeKey) ?? 0) + 1);
+  });
+
+  return Array.from(grouped.entries())
+    .sort((left, right) => right[1] - left[1])
+    .map(([typeKey, count]) => ({ typeKey, count, ...appointmentCalendarTypeMeta[typeKey] }));
 }
 
 export function AppointmentsCalendar({
@@ -113,6 +123,7 @@ export function AppointmentsCalendar({
           {dayCells.map((day) => {
             const dayKey = toDateKey(day);
             const dayAppointments = appointments.filter((appointment) => getAppointmentDateKey(appointment) === dayKey);
+            const dayAppointmentGroups = getDayAppointmentGroups(dayAppointments);
             const isCurrentMonth = day.getMonth() === anchorDate.getMonth();
             const isToday = dayKey === todayKey;
             const isSelected = dayKey === selectedDateKey;
@@ -125,25 +136,30 @@ export function AppointmentsCalendar({
                 isSelected={isSelected}
                 isToday={isToday}
                 isCurrentMonth={isCurrentMonth}
-                hasItems={hasAppointments}
+                itemCount={dayAppointments.length}
                 onClick={() => onSelectDate(dayKey)}
               >
-                <div className="space-y-1.5">
-                  {dayAppointments.slice(0, 1).map((appointment) => (
-                    <div
-                      key={appointment.id}
-                      className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/22 px-2 py-1"
-                    >
-                      <div className="text-[12px] font-semibold text-[var(--app-text)]">{getAppointmentTimeLabel(appointment)}</div>
-                      <div className="mt-1 truncate text-[12px] font-medium text-[var(--app-text-muted)]">{appointment.customer}</div>
-                      <div className="mt-0.5 truncate text-[11px] leading-snug text-[var(--app-text-soft)]">
-                        {getCalendarLine(appointment)}
+                <div className="space-y-1">
+                  {hasAppointments ? (
+                    <div className="px-0.5 py-1">
+                      <div className="flex flex-wrap items-center gap-1.5">
+                        {dayAppointmentGroups.slice(0, 4).map(({ typeKey, count, icon: Icon, label }) => (
+                          <div
+                            key={typeKey}
+                            className="inline-flex h-5 w-5 items-center justify-center text-[var(--app-text-soft)]"
+                            title={`${count} ${label}${count === 1 ? "" : "s"}`}
+                          >
+                            <Icon className="h-3.5 w-3.5" />
+                          </div>
+                        ))}
+                        {dayAppointmentGroups.length > 4 ? (
+                          <div className="inline-flex h-5 min-w-5 items-center justify-center text-[10px] font-semibold text-[var(--app-text-soft)]">
+                            +{dayAppointmentGroups.length - 4}
+                          </div>
+                        ) : null}
                       </div>
                     </div>
-                  ))}
-                  {dayAppointments.length > 1 ? (
-                    <div className="app-text-caption px-1">+{dayAppointments.length - 1} more</div>
-                  ) : hasAppointments ? null : (
+                  ) : (
                     <div className="h-[42px] rounded-[var(--app-radius-sm)] border border-dashed border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/10 lg:h-[36px]" />
                   )}
                 </div>
