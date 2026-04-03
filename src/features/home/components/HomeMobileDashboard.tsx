@@ -194,31 +194,34 @@ function MobilePickupRow({
 }) {
   const needsPayment = pickup.pickupBalanceDue > 0;
   const summary = pickup.itemSummary.filter(Boolean).join(" · ");
+  const pickupLocation = pickup.pickupSchedule.pickupLocation || "Location pending";
+  const secondaryMeta = needsPayment ? `Balance ${formatCurrency(pickup.pickupBalanceDue)}` : pickupLocation;
 
   return (
-    <div className="border-b border-[var(--app-border)]/28 py-3.5 last:border-b-0 last:pb-0 first:pt-0">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+    <div className="border-b border-[var(--app-border)]/24 py-4 last:border-b-0 last:pb-0 first:pt-0">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3.5">
         <div className="min-w-0 flex-1">
-          <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
-            <div className="app-text-strong">{pickup.payerName}</div>
-            <div className="app-text-caption">Order {pickup.openOrderId}</div>
+          <div className="app-text-strong truncate">{pickup.payerName}</div>
+          <div className="app-text-body mt-1 truncate text-[0.8rem] leading-tight">
+            {summary || pickup.pickupSchedule.label}
           </div>
-          <div className="app-text-body mt-0.5 text-[0.82rem] leading-tight">{summary || pickup.pickupSchedule.label}</div>
           <div className="app-text-caption mt-2 flex flex-wrap items-center gap-x-3 gap-y-1.5">
-            <span className="inline-flex items-center gap-1.5">
-              <MapPin className="h-3.5 w-3.5 shrink-0" />
-              <span>{pickup.pickupSchedule.pickupLocation || "Location pending"}</span>
-            </span>
-            <span>{needsPayment ? `Balance ${formatCurrency(pickup.pickupBalanceDue)}` : "Prepaid"}</span>
+            {!needsPayment ? (
+              <span className="inline-flex items-center gap-1.5">
+                <MapPin className="h-3.5 w-3.5 shrink-0" />
+                <span>{pickupLocation}</span>
+              </span>
+            ) : null}
+            <span>{secondaryMeta}</span>
           </div>
         </div>
         <div className="pt-0.5">
           <ActionButton
             tone="secondary"
-            className="min-h-7.5 px-2.5 py-1 text-[0.74rem]"
+            className="min-h-7 px-2.5 py-1 text-[0.72rem]"
             onClick={() => (needsPayment ? onCheckoutPickup(pickup.openOrderId) : onCompletePickup(pickup.openOrderId))}
           >
-            {needsPayment ? "Take payment" : "Complete pickup"}
+            {needsPayment ? "Take payment" : "Complete"}
           </ActionButton>
         </div>
       </div>
