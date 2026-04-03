@@ -9,6 +9,7 @@ import {
   type AppointmentComposerState,
 } from "../features/appointments/components/AppointmentComposerModal";
 import { AppointmentsCalendar } from "../features/appointments/components/AppointmentsCalendar";
+import { AppointmentsMobileAgenda } from "../features/appointments/components/AppointmentsMobileAgenda";
 import { ConfirmAppointmentCancelModal } from "../features/appointments/components/ConfirmAppointmentCancelModal";
 import { AppointmentsRegistry } from "../features/appointments/components/AppointmentsRegistry";
 import { AppointmentsScheduleRail } from "../features/appointments/components/AppointmentsScheduleRail";
@@ -224,13 +225,15 @@ export function AppointmentsScreen({
       ) : null}
 
       {viewMode === "calendar" ? (
-        <div className="app-page-with-support-rail">
-          <AppointmentsCalendar
+        <>
+          <AppointmentsMobileAgenda
             anchorDate={anchorDate}
             monthLabel={monthLabel}
             selectedDateKey={selectedDateKey}
+            railSubtitle={railSubtitle}
             todayKey={todayKey}
             appointments={filteredAppointments}
+            railAppointments={railAppointments}
             onSelectDate={setSelectedDateKey}
             onPreviousMonth={() => {
               const nextDate = new Date(anchorDate);
@@ -246,13 +249,6 @@ export function AppointmentsScreen({
               nextDate.setMonth(nextDate.getMonth() + 1);
               setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
             }}
-          />
-
-          <AppointmentsScheduleRail
-            railAppointments={railAppointments}
-            selectedDateKey={selectedDateKey}
-            railSubtitle={railSubtitle}
-            onShowAll={() => setSelectedDateKey(null)}
             onOpenReschedule={(appointment) => {
               setEditingAppointmentId(appointment.id);
               setComposerQuery("");
@@ -260,7 +256,45 @@ export function AppointmentsScreen({
               setComposerOpen(true);
             }}
           />
-        </div>
+
+          <div className="hidden md:grid app-page-with-support-rail">
+            <AppointmentsCalendar
+              anchorDate={anchorDate}
+              monthLabel={monthLabel}
+              selectedDateKey={selectedDateKey}
+              todayKey={todayKey}
+              appointments={filteredAppointments}
+              onSelectDate={setSelectedDateKey}
+              onPreviousMonth={() => {
+                const nextDate = new Date(anchorDate);
+                nextDate.setMonth(nextDate.getMonth() - 1);
+                setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+              }}
+              onToday={() => {
+                setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
+                setSelectedDateKey(todayKey);
+              }}
+              onNextMonth={() => {
+                const nextDate = new Date(anchorDate);
+                nextDate.setMonth(nextDate.getMonth() + 1);
+                setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+              }}
+            />
+
+            <AppointmentsScheduleRail
+              railAppointments={railAppointments}
+              selectedDateKey={selectedDateKey}
+              railSubtitle={railSubtitle}
+              onShowAll={() => setSelectedDateKey(null)}
+              onOpenReschedule={(appointment) => {
+                setEditingAppointmentId(appointment.id);
+                setComposerQuery("");
+                setComposerState(getComposerStateForAppointment(appointment));
+                setComposerOpen(true);
+              }}
+            />
+          </div>
+        </>
       ) : (
         <AppointmentsRegistry
           appointments={listAppointments}

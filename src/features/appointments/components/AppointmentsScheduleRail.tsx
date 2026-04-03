@@ -1,5 +1,5 @@
 import { MapPin } from "lucide-react";
-import { ActionButton, EmptyState, Surface, SurfaceHeader } from "../../../components/ui/primitives";
+import { ActionButton, EmptyState, Surface, SurfaceHeader, cx } from "../../../components/ui/primitives";
 import { AppointmentIssuePill } from "../../../components/ui/pills";
 import type { Appointment } from "../../../types";
 import {
@@ -10,30 +10,38 @@ import {
 } from "../selectors";
 
 type AppointmentsScheduleRailProps = {
+  title?: string;
   railAppointments: Appointment[];
   selectedDateKey: string | null;
   railSubtitle: string;
   onShowAll: () => void;
   onOpenReschedule: (appointment: Appointment) => void;
+  showShowAllButton?: boolean;
+  tone?: "support" | "work";
+  className?: string;
 };
 
 export function AppointmentsScheduleRail({
+  title = "Coming up",
   railAppointments,
   selectedDateKey,
   railSubtitle,
   onShowAll,
   onOpenReschedule,
+  showShowAllButton = true,
+  tone = "support",
+  className,
 }: AppointmentsScheduleRailProps) {
   const showDateInRow = !selectedDateKey;
 
   return (
-    <Surface tone="support" as="aside" className="app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 lg:p-3">
+    <Surface tone={tone} as="aside" className={cx("app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 lg:p-3", className)}>
       <SurfaceHeader
-        title="Coming up"
+        title={title}
         subtitle={railSubtitle}
         className="mb-2 border-b border-[var(--app-border)]/40 pb-2"
         meta={
-          selectedDateKey ? (
+          selectedDateKey && showShowAllButton ? (
             <div className="w-[96px] shrink-0 text-right">
               <ActionButton
                 tone="quiet"
