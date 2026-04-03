@@ -1,7 +1,7 @@
 import { ChevronRight, Mail, MapPin, Phone, Plus, Search, Users } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { Customer, CustomerOrder, MeasurementSet, PickupLocation, Screen, ServiceAppointmentType } from "../types";
-import { ActionButton, EmptyState, SearchField, SectionHeader, Surface } from "../components/ui/primitives";
+import { ActionButton, EmptyState, RowChevronAffordance, SearchField, SectionHeader, Surface } from "../components/ui/primitives";
 import { MeasurementStatusPill, VipPill } from "../components/ui/pills";
 import { StatusPill } from "../components/ui/primitives";
 import { useToast } from "../components/ui/toast";
@@ -50,7 +50,7 @@ function CustomerRow({
   return (
     <button
       onClick={onOpen}
-      className="group relative grid w-full gap-3 border-b border-[var(--app-border)]/45 px-4 py-3 pr-12 text-left transition hover:bg-[var(--app-surface-muted)]/65 md:grid-cols-[minmax(0,1.8fr)_140px_140px_180px] md:items-center md:gap-4 md:pr-14 xl:grid-cols-[minmax(0,1.8fr)_140px_140px_180px_24px] xl:items-center xl:pr-4"
+      className="app-customer-directory-row group"
     >
       <div className="min-w-0">
         <div className="flex min-w-0 items-center gap-2">
@@ -97,16 +97,10 @@ function CustomerRow({
         )}
       </div>
 
-      <div className="hidden justify-self-end xl:block">
+      <div className="app-desktop-only justify-self-end">
         <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)]" />
       </div>
-
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3 xl:hidden">
-        <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
-          <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
-          <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
-        </div>
-      </div>
+      <RowChevronAffordance hideAboveDesktop />
     </button>
   );
 }
@@ -179,12 +173,12 @@ export function CustomerScreen({
           </div>
 
           <div className="mt-4 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
-            <div className="hidden gap-4 border-b border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/85 px-4 py-2 md:grid md:grid-cols-[minmax(0,1.8fr)_140px_140px_180px] md:pr-14 xl:grid-cols-[minmax(0,1.8fr)_140px_140px_180px_24px] xl:pr-4">
+            <div className="app-customer-directory-head">
               <div className="app-text-overline">Customer</div>
               <div className="app-text-overline">Location</div>
               <div className="app-text-overline">Measurements</div>
               <div className="app-text-overline">Last order</div>
-              <div className="hidden xl:block" />
+              <div className="app-desktop-only" />
             </div>
 
             {filteredCustomers.length ? (

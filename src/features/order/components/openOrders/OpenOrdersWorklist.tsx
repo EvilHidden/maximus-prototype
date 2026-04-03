@@ -1,9 +1,10 @@
-import { ChevronRight, MapPin, PackageSearch, type LucideIcon } from "lucide-react";
+import { MapPin, PackageSearch, type LucideIcon } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type { OpenOrder } from "../../../../types";
 import {
   ActionButton,
   EmptyState,
+  RowChevronAffordance,
   SurfaceHeader,
   cx,
 } from "../../../../components/ui/primitives";
@@ -209,12 +210,7 @@ function WorkQueueOrderRow({
           </div>
         </div>
       </div>
-      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
-        <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
-          <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
-          <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
-        </div>
-      </div>
+      <RowChevronAffordance />
     </div>
   );
 }

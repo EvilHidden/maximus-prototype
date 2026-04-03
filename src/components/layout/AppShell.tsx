@@ -172,7 +172,7 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
       ) : null}
 
       <div className="app-shell-grid">
-        <aside className="app-sidebar hidden h-full min-h-0 flex-col rounded-[14px] border border-[var(--app-border)]/70 p-3 md:flex">
+        <aside className="app-sidebar h-full min-h-0 flex-col rounded-[14px] border border-[var(--app-border)]/70 p-3">
           <div className="rounded-[12px] border border-[var(--app-border)]/55 bg-[color:color-mix(in_srgb,var(--app-surface-muted)_72%,var(--app-surface))] px-4 py-4">
             <div className="app-text-strong">SAMEpage Tailor OS</div>
             <div className="app-text-overline mt-1">Operations</div>
@@ -211,7 +211,7 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
           </div>
         </aside>
 
-        <main className="app-main h-full overflow-x-hidden overflow-y-auto rounded-[14px] border border-[var(--app-border)]/55 p-3 [scrollbar-gutter:stable] sm:p-3.5 md:p-4 xl:p-5">
+        <main className="app-main h-full overflow-x-hidden overflow-y-auto rounded-[14px] border border-[var(--app-border)]/55 [scrollbar-gutter:stable]">
           {children}
         </main>
       </div>
