@@ -225,6 +225,10 @@ textarea:focus-visible {
   color: var(--app-text);
 }
 
+.app-tablet-topbar {
+  display: none;
+}
+
 .app-main {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 22%, transparent), transparent 180px),
@@ -439,6 +443,35 @@ textarea:focus-visible {
 }
 
 @media (min-width: 768px) {
+  .app-tablet-topbar {
+    display: flex;
+    align-items: center;
+    padding: 0 0 0.5rem;
+  }
+
+  .app-tablet-topbar__trigger {
+    display: inline-flex;
+    height: 2.6rem;
+    width: 2.6rem;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid color-mix(in srgb, var(--app-border) 74%, transparent);
+    border-radius: 0.9rem;
+    background: color-mix(in srgb, var(--app-surface-muted) 56%, var(--app-surface));
+    color: var(--app-text-muted);
+    box-shadow: var(--app-shadow-sm);
+    transition:
+      color 180ms ease,
+      border-color 180ms ease,
+      background-color 180ms ease;
+  }
+
+  .app-tablet-topbar__trigger:hover {
+    border-color: color-mix(in srgb, var(--app-border-strong) 70%, transparent);
+    background: color-mix(in srgb, var(--app-surface-muted) 78%, var(--app-surface));
+    color: var(--app-text);
+  }
+
   .app-main {
     padding: 1rem;
   }
@@ -677,6 +710,12 @@ textarea:focus-visible {
   }
 }
 
+@media (min-width: 768px) and (max-width: 1179px) {
+  .app-mobile-tabbar {
+    display: none;
+  }
+}
+
 @media (min-width: 980px) {
   .app-page-with-support-rail {
     grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width-tablet);
@@ -760,6 +799,7 @@ textarea:focus-visible {
   }
 
   .app-mobile-topbar,
+  .app-tablet-topbar,
   .app-mobile-drawer,
   .app-mobile-tabbar {
     display: none !important;
