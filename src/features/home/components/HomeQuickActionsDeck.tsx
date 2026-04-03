@@ -29,7 +29,8 @@ export function HomeQuickActionsDeck({ actions }: HomeQuickActionsDeckProps) {
             icon={action.icon}
             iconStyle={action.iconStyle}
             onClick={action.onClick}
-            className="min-h-[84px] min-w-[11rem] shrink-0 px-3 py-3 sm:min-h-[88px] sm:min-w-[11.5rem] md:min-w-0 md:px-3 md:py-3 xl:min-h-[112px] xl:px-5 xl:py-4.5"
+            size="compact"
+            className="min-w-[11rem] shrink-0 sm:min-w-[11.5rem] md:min-w-0"
           />
         ))}
       </div>

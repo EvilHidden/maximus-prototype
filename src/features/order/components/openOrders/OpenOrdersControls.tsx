@@ -96,14 +96,16 @@ export function OpenOrdersControls({
               onChange={onQueryChange}
               placeholder="Search by customer, garment, or order ID"
               icon={Search}
-              className="min-w-0 basis-full md:min-w-[280px] md:flex-[1.4] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]"
+              density="compact"
+              className="min-w-0 basis-full md:min-w-[280px] md:flex-[1.4]"
             />
 
             <SelectField
               label="Type"
               value={typeFilter}
               onChange={(value) => onTypeFilterChange(value as OrderType | "all")}
-              className="min-w-0 basis-[calc(50%-0.25rem)] md:min-w-[152px] md:flex-[0.82] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]"
+              density="compact"
+              className="min-w-0 basis-[calc(50%-0.25rem)] md:min-w-[152px] md:flex-[0.82]"
             >
               <option value="all">All order types</option>
               <option value="alteration">Alterations</option>
@@ -116,7 +118,8 @@ export function OpenOrdersControls({
                 label={showOperatorControls ? "Viewing queue" : "Assigned to"}
                 value={assigneeFilter}
                 onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
-                className="min-w-0 basis-[calc(50%-0.25rem)] md:min-w-[164px] md:flex-[0.92] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]"
+                density="compact"
+                className="min-w-0 basis-[calc(50%-0.25rem)] md:min-w-[164px] md:flex-[0.92]"
               >
                 <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
                 <option value="unassigned">Unassigned</option>
@@ -132,8 +135,9 @@ export function OpenOrdersControls({
               label="Location"
               value={locationFilter}
               onChange={(value) => onLocationFilterChange(value as PickupLocation | "all")}
+              density="compact"
               className={cx(
-                "min-w-0 basis-full md:min-w-[156px] md:flex-[0.86] [&_.app-field-control]:min-h-[2.85rem] [&_.app-field-control]:gap-2.5 [&_.app-field-control]:px-3 [&_.app-field-control]:py-2.5 [&_.app-text-overline]:text-[0.625rem]",
+                "min-w-0 basis-full md:min-w-[156px] md:flex-[0.86]",
                 activeView === "all" ? "md:basis-[190px]" : "",
               )}
             >

@@ -252,6 +252,7 @@ textarea:focus-visible {
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 22%, transparent), transparent 180px),
     var(--app-bg);
+  padding: 0.75rem;
 }
 
 [data-theme="dark"] .app-sidebar {
@@ -352,10 +353,27 @@ textarea:focus-visible {
   gap: 0.75rem;
 }
 
+.app-home-schedule-row__time {
+  padding-top: 0.3125rem;
+}
+
+.app-home-schedule-row__details {
+  min-width: 0;
+  display: grid;
+  gap: 0.375rem;
+}
+
 .app-home-schedule-row__actions {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.375rem;
+}
+
+.app-home-schedule-row__action-button {
+  min-height: 2.25rem;
+  padding: 0.375rem 0.75rem;
+  font-size: 0.74rem;
+  white-space: nowrap;
 }
 
 .app-home-schedule-row__status {
@@ -366,9 +384,43 @@ textarea:focus-visible {
   grid-column: 2 / 3;
 }
 
+.app-home-lane-scroll {
+  max-height: calc(24rem + 4px);
+}
+
+.app-customer-directory-row {
+  display: grid;
+  width: 100%;
+  gap: 0.75rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 45%, transparent);
+  padding: 0.75rem 3rem 0.75rem 1rem;
+  text-align: left;
+  transition: background-color 180ms ease;
+}
+
+.app-customer-directory-row:hover {
+  background: color-mix(in srgb, var(--app-surface-muted) 65%, transparent);
+}
+
+.app-customer-directory-head {
+  display: none;
+}
+
 .app-home-pickup-row {
   display: grid;
   gap: 1rem;
+}
+
+.app-sidebar {
+  display: none;
+}
+
+.app-hide-at-desktop {
+  display: block;
+}
+
+.app-desktop-only {
+  display: none;
 }
 
 .app-order-builder-layout,
@@ -395,6 +447,80 @@ textarea:focus-visible {
 .app-checkout-rail,
 .app-measurements-rail {
   overflow: hidden;
+}
+
+@media (min-width: 768px) {
+  .app-main {
+    padding: 1rem;
+  }
+
+  .app-customer-directory-row {
+    grid-template-columns: minmax(0, 1.8fr) 140px 140px 180px;
+    align-items: center;
+    gap: 1rem;
+    padding-right: 3.5rem;
+  }
+
+  .app-customer-directory-head {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1.8fr) 140px 140px 180px;
+    border-bottom: 1px solid color-mix(in srgb, var(--app-border) 45%, transparent);
+    background: color-mix(in srgb, var(--app-surface-muted) 85%, transparent);
+    padding: 0.5rem 3.5rem 0.5rem 1rem;
+  }
+
+  .app-home-schedule-row {
+    grid-template-columns: 84px minmax(0, 1fr) 88px 252px;
+    align-items: start;
+    gap: 0.85rem 0.75rem;
+  }
+
+  .app-home-schedule-row__status {
+    grid-column: auto;
+    min-width: 0;
+    padding-top: 1.6rem;
+    align-self: start;
+  }
+
+  .app-home-schedule-row__actions {
+    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
+    gap: 0.9rem;
+  }
+
+  .app-home-schedule-row__action-button {
+    min-height: 2.375rem;
+    padding-inline: 0.8125rem;
+    font-size: 0.79rem;
+  }
+
+  .app-home-lane-scroll {
+    max-height: calc(20rem + 4px);
+  }
+
+  .app-home-pickup-row {
+    grid-template-columns: 180px minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1rem 1.5rem;
+  }
+}
+
+@media (max-width: 639px) {
+  .app-home-location-bar {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 979px) {
+  .app-order-builder-layout,
+  .app-review-layout,
+  .app-measurements-layout {
+    gap: 0.85rem;
+  }
+
+  .app-detail-hero__meta {
+    text-align: left;
+  }
 }
 
 @media (min-width: 980px) {
@@ -430,50 +556,48 @@ textarea:focus-visible {
   .app-measurements-workspace__editor {
     padding: 0.85rem 0.8rem;
   }
-}
 
-@media (min-width: 768px) {
-  .app-home-schedule-row {
-    grid-template-columns: 84px minmax(0, 1fr) 88px 252px;
-    align-items: start;
-    gap: 0.85rem 0.75rem;
-  }
-
-  .app-home-schedule-row__status {
-    grid-column: auto;
-    min-width: 0;
-    padding-top: 1.6rem;
-    align-self: start;
-  }
-
-  .app-home-schedule-row__actions {
-    grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.35fr);
-    gap: 0.9rem;
-  }
-
-  .app-home-pickup-row {
-    grid-template-columns: 180px minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 1rem 1.5rem;
+  .app-home-lane-scroll {
+    max-height: calc(21rem + 4px);
   }
 }
 
-@media (min-width: 1380px) {
-  .app-page-with-support-rail {
-    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
-  }
-
-  .app-support-rail-fixed {
-    min-width: var(--app-support-rail-width);
-    max-width: var(--app-support-rail-width);
-  }
-
-  .app-measurements-workspace {
-    grid-template-columns: 260px minmax(0, 1fr);
+@media (min-width: 980px) and (max-width: 1179px) {
+  .app-order-bag,
+  .app-checkout-rail,
+  .app-measurements-rail {
+    position: sticky;
+    top: 0;
   }
 }
 
 @media (min-width: 1180px) {
+  .app-sidebar {
+    display: flex !important;
+  }
+
+  .app-desktop-only {
+    display: block !important;
+  }
+
+  .app-hide-at-desktop {
+    display: none !important;
+  }
+
+  .app-main {
+    padding: 1.25rem;
+  }
+
+  .app-customer-directory-row {
+    grid-template-columns: minmax(0, 1.8fr) 140px 140px 180px 24px;
+    padding-right: 1rem;
+  }
+
+  .app-customer-directory-head {
+    grid-template-columns: minmax(0, 1.8fr) 140px 140px 180px 24px;
+    padding-right: 1rem;
+  }
+
   .app-home-schedule-row__actions {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -509,10 +633,6 @@ textarea:focus-visible {
 }
 
 @media (max-width: 1179px) {
-  .app-sidebar {
-    display: none !important;
-  }
-
   .app-main {
     min-height: 0;
     border-radius: 1rem;
@@ -520,30 +640,22 @@ textarea:focus-visible {
   }
 }
 
-@media (max-width: 979px) {
-  .app-order-builder-layout,
-  .app-review-layout,
-  .app-measurements-layout {
-    gap: 0.85rem;
+@media (min-width: 1380px) {
+  .app-page-with-support-rail {
+    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
   }
 
-  .app-detail-hero__meta {
-    text-align: left;
+  .app-support-rail-fixed {
+    min-width: var(--app-support-rail-width);
+    max-width: var(--app-support-rail-width);
   }
-}
 
-@media (min-width: 980px) and (max-width: 1179px) {
-  .app-order-bag,
-  .app-checkout-rail,
-  .app-measurements-rail {
-    position: sticky;
-    top: 0;
+  .app-measurements-workspace {
+    grid-template-columns: 260px minmax(0, 1fr);
   }
-}
 
-@media (max-width: 639px) {
-  .app-home-location-bar {
-    align-items: flex-start;
+  .app-home-lane-scroll {
+    max-height: calc(31.5rem + 4px);
   }
 }
 

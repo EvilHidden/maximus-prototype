@@ -202,11 +202,11 @@ function ScheduleRow({
 
   return (
     <div ref={rowRef} className="app-home-schedule-row">
-      <div className="pt-[0.3125rem]">
+      <div className="app-home-schedule-row__time">
         <div className="app-text-value whitespace-nowrap text-[0.95rem] leading-tight">{getAppointmentTimeLabel(appointment)}</div>
       </div>
 
-      <div className="min-w-0 space-y-1.5 sm:space-y-2">
+      <div className="app-home-schedule-row__details">
         <div className="app-text-value leading-tight">{appointment.customer}</div>
         <div className="space-y-1">
           <div className="app-text-body font-medium leading-tight">{appointment.type}</div>
@@ -242,10 +242,10 @@ function ScheduleRow({
       </div>
 
       <div className="app-home-schedule-row__actions">
-        <ActionButton tone="primary" className="min-h-9 whitespace-nowrap px-3 py-1.5 text-[0.76rem] sm:min-h-9.5 sm:px-3.25 sm:text-[0.8rem]" onClick={() => onCreateOrder(appointment)}>
+        <ActionButton tone="primary" className="app-home-schedule-row__action-button" onClick={() => onCreateOrder(appointment)}>
           Start order
         </ActionButton>
-        <ActionButton tone="quiet" className="min-h-9 whitespace-nowrap px-3 py-1.5 text-[0.74rem] sm:min-h-9.5 sm:px-3.25 sm:text-[0.79rem]" onClick={() => onCancelAppointment(appointment)}>
+        <ActionButton tone="quiet" className="app-home-schedule-row__action-button" onClick={() => onCancelAppointment(appointment)}>
           Cancel appointment
         </ActionButton>
       </div>
@@ -281,7 +281,7 @@ function AppointmentLane({
       </div>
       <ScrollableLaneBody
         itemCount={appointments.length}
-        scrollClassName="max-h-[calc(24rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar md:max-h-[calc(20rem+4px)] lg:max-h-[calc(21rem+4px)] 2xl:max-h-[calc(31.5rem+4px)]"
+        scrollClassName="app-home-lane-scroll max-h-[calc(24rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar"
         emptyState={
           <HomeLaneEmptyState
             kind="appointment"
