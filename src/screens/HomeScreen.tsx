@@ -106,12 +106,12 @@ export function HomeScreen({
   ];
 
   return (
-    <div className="space-y-4">
+    <div className="app-home-dashboard">
       <SectionHeader icon={House} title="Home" subtitle="What needs attention today" />
 
-      <HomeQuickActionsDeck actions={actions} />
+      <HomeQuickActionsDeck actions={actions} className="app-home-dashboard__quick-actions-surface" />
 
-      <div className="px-1 py-1">
+      <div className="app-home-dashboard__locations px-1 py-1">
         <div className="app-home-location-bar">
           <div className="shrink-0 pt-0.5">
             <div className="app-text-overline">View locations</div>

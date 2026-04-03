@@ -655,8 +655,8 @@ export function HomeWorkboards({
   onCompletePickup,
 }: HomeWorkboardsProps) {
   return (
-    <>
-      <Surface tone="work" className="p-4">
+    <div className="app-home-workboards">
+      <Surface tone="work" className="app-home-workboard app-home-workboard--appointments p-4">
         <WorkSurfaceHeader
           icon={CalendarDays}
           title="Appointments"
@@ -686,7 +686,7 @@ export function HomeWorkboards({
         </div>
       </Surface>
 
-      <Surface tone="work" className="p-4">
+      <Surface tone="work" className="app-home-workboard app-home-workboard--pickups p-4">
         <WorkSurfaceHeader
           icon={Package}
           title="Ready for pickup"
@@ -696,7 +696,7 @@ export function HomeWorkboards({
           tone="success"
         />
 
-        <div className="mt-4">
+        <div className="app-home-pickup-list mt-4">
           <ScrollableLaneBody
             itemCount={readyPickups.length}
             emptyState={
@@ -726,6 +726,6 @@ export function HomeWorkboards({
           />
         </div>
       </Surface>
-    </>
+    </div>
   );
 }
