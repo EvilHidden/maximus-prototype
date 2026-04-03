@@ -1,4 +1,5 @@
-import { ChevronDown, ClipboardList, MapPin, PlayCircle, UserRoundCheck } from "lucide-react";
+import { ChevronDown, ChevronRight, ClipboardList, MapPin, PlayCircle, UserRoundCheck } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import type { OpenOrder, OpenOrderPickup, StaffMember } from "../../../../types";
 import { ActionButton, EmptyState, SurfaceHeader, cx } from "../../../../components/ui/primitives";
 import {
@@ -14,7 +15,6 @@ import {
   type OperatorQueueStageKey,
 } from "../../selectors";
 import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
-import { OrderDetailsLink } from "./OrderDetailsLink";
 
 const stageMeta: Array<{
   key: OperatorQueueStageKey;
@@ -214,22 +214,32 @@ function OperatorQueueRow({
   const stage = getOperatorQueueStage(openOrder);
   const pickupGroups = getOpenOrderPickupGroups(openOrder, { scopes: ["alteration"] });
   const stageStatusDisplay = getOperatorStageStatusDisplay(stage);
+  const handleOpen = () => onOpenOrderDetails(openOrder.id);
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
+    }
+  };
 
   if (!stage) {
     return null;
   }
 
   return (
-    <div className="px-4 py-4">
+    <div
+      className="group relative cursor-pointer px-4 py-4 pr-12 lg:pr-14"
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={handleRowKeyDown}
+    >
       <div className="grid gap-4 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] lg:items-start">
         <div className="min-w-0">
           <div className="app-text-overline lg:hidden">Customer</div>
           <div className="app-text-value mt-1 min-w-0 lg:mt-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
           <div className="app-text-body mt-2 text-[var(--app-text)]/82">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-          <div className="mt-1.5">
-            <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
-          </div>
         </div>
 
         <div className="min-w-0">
@@ -285,7 +295,10 @@ function OperatorQueueRow({
                       <ActionButton
                         tone="primary"
                         className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
-                        onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                        }}
                       >
                         Ready
                       </ActionButton>
@@ -293,7 +306,10 @@ function OperatorQueueRow({
                       <ActionButton
                         tone="primary"
                         className="min-w-[4.75rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
-                        onClick={() => onStartOpenOrderWork(openOrder.id)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onStartOpenOrderWork(openOrder.id);
+                        }}
                       >
                         Start
                       </ActionButton>
@@ -328,6 +344,12 @@ function OperatorQueueRow({
               <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>{getWorklistPaymentLabel(openOrder.balanceDue)}</span>
             </div>
           </div>
+        </div>
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+        <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
+          <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
+          <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
         </div>
       </div>
     </div>

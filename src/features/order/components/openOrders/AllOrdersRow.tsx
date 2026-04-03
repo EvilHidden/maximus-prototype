@@ -1,4 +1,5 @@
-import { MapPin } from "lucide-react";
+import { ChevronRight, MapPin } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import type { OpenOrder } from "../../../../types";
 import { ActionButton, cx } from "../../../../components/ui/primitives";
 import {
@@ -13,7 +14,6 @@ import {
   getOperationalPickupTimeLabel,
 } from "../../selectors";
 import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
-import { OrderDetailsLink } from "./OrderDetailsLink";
 import {
   getCompactPickupScheduleSummary,
   getOrderTimelineSummary,
@@ -158,16 +158,26 @@ export function AllOrdersRow({
   const readyPickupSummary = getReadyPickupSummary(openOrder);
   const readyStatusSummary = getReadyStatusSummary(openOrder);
   const rowGridClassName = isReadyVariant ? READY_ORDER_ROW_GRID_CLASS : OPEN_ORDER_ROW_GRID_CLASS;
+  const handleOpen = () => onOpenOrderDetails(openOrder.id);
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
+    }
+  };
 
   return (
-    <div className={rowGridClassName}>
+    <div
+      className={cx("group relative cursor-pointer pr-12 lg:pr-14", rowGridClassName)}
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={handleRowKeyDown}
+    >
       <div className="min-w-0">
         <div className="app-text-value min-w-0">{openOrder.payerName}</div>
         <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
         <div className="app-text-body-muted mt-2 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-        <div className="mt-2">
-          <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
-        </div>
       </div>
       {isReadyVariant ? null : (
         <div className="min-w-0">
@@ -223,7 +233,10 @@ export function AllOrdersRow({
                       <ActionButton
                         tone="primary"
                         className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
-                        onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                        }}
                       >
                         Ready
                       </ActionButton>
@@ -289,6 +302,12 @@ export function AllOrdersRow({
           </div>
         </div>
       )}
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+        <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
+          <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
+          <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
+        </div>
+      </div>
     </div>
   );
 }

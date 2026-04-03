@@ -1,4 +1,5 @@
-import { MapPin, PackageSearch, type LucideIcon } from "lucide-react";
+import { ChevronRight, MapPin, PackageSearch, type LucideIcon } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import type { OpenOrder } from "../../../../types";
 import {
   ActionButton,
@@ -15,7 +16,6 @@ import {
   type OrdersQueueKey,
 } from "../../selectors";
 import { formatWorklistTotal, getPhaseTone, getWorklistPaymentLabel, getWorklistPaymentTextClassName, getWorklistPhaseLabel, queueMeta, queueOverviewMeta } from "./meta";
-import { OrderDetailsLink } from "./OrderDetailsLink";
 
 function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
   if (orderType === "mixed") {
@@ -82,6 +82,13 @@ function WorkQueueOrderRow({
   onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const pickupGroups = getNeedsAttentionPickupGroups(openOrder);
+  const handleOpen = () => onOpenOrderDetails(openOrder.id);
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
+    }
+  };
 
   const getGroupedItemSummary = (items: string[]) => {
     const uniqueItems = [...new Set(items)];
@@ -93,15 +100,18 @@ function WorkQueueOrderRow({
   };
 
   return (
-    <div className="px-4 py-3.5 lg:px-3.5 lg:py-3">
+    <div
+      className="group relative cursor-pointer px-4 py-3.5 pr-12 lg:px-3.5 lg:py-3 lg:pr-14"
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={handleRowKeyDown}
+    >
       <div className="grid gap-3 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] lg:items-start lg:gap-x-4">
         <div className="min-w-0">
           <div className="app-text-value min-w-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
           <div className="app-text-body-muted mt-1.5 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-          <div className="mt-1.5">
-            <OrderDetailsLink onClick={() => onOpenOrderDetails(openOrder.id)} />
-          </div>
         </div>
 
         <div className="min-w-0">
@@ -159,7 +169,10 @@ function WorkQueueOrderRow({
                           tone="primary"
                           className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
                           disabled={groupState.actionDisabled}
-                          onClick={() => onStartOpenOrderWork(openOrder.id)}
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onStartOpenOrderWork(openOrder.id);
+                          }}
                         >
                           Start work
                         </ActionButton>
@@ -170,7 +183,10 @@ function WorkQueueOrderRow({
                       <ActionButton
                         tone="primary"
                         className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
-                        onClick={() => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                        }}
                       >
                         Ready
                       </ActionButton>
@@ -191,6 +207,12 @@ function WorkQueueOrderRow({
           <div className="mt-1.5">
             <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>{getWorklistPaymentLabel(openOrder.balanceDue)}</span>
           </div>
+        </div>
+      </div>
+      <div className="pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3">
+        <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
+          <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
+          <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
         </div>
       </div>
     </div>
