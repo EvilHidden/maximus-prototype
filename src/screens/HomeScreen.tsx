@@ -13,6 +13,7 @@ import { SectionHeader, SelectionChip } from "../components/ui/primitives";
 import { useToast } from "../components/ui/toast";
 import { ConfirmAppointmentCancelModal } from "../features/appointments/components/ConfirmAppointmentCancelModal";
 import { HomeEmptyState, HomeWorkboards } from "../features/home/components/HomeScheduleBoards";
+import { HomeMobileDashboard } from "../features/home/components/HomeMobileDashboard";
 import { HomeQuickActionsDeck } from "../features/home/components/HomeQuickActionsDeck";
 import { useHomeDashboard } from "../features/home/hooks/useHomeDashboard";
 
@@ -107,88 +108,115 @@ export function HomeScreen({
 
   return (
     <div className="app-home-dashboard">
-      <SectionHeader icon={House} title="Home" subtitle="What needs attention today" />
-
-      <HomeQuickActionsDeck actions={actions} className="app-home-dashboard__quick-actions-surface" />
-
-      <div className="app-home-dashboard__locations px-1 py-1">
-        <div className="app-home-location-bar">
-          <div className="shrink-0 pt-0.5">
-            <div className="app-text-overline">View locations</div>
-            <div className="app-text-caption mt-1">Choose which locations to show.</div>
-          </div>
-          <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
-            <SelectionChip
-              selected={allLocationsActive}
-              onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
-              leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-              size="sm"
-            >
-              All locations
-            </SelectionChip>
-            {pickupLocations.map((location) => {
-              const isActive = activeLocations.includes(location);
-
-              return (
-                <SelectionChip
-                  key={location}
-                  selected={isActive}
-                  onClick={() => {
-                    setActiveLocations((current) => {
-                      if (current.includes(location)) {
-                        return current.filter((value) => value !== location);
-                      }
-
-                      return [...current, location];
-                    });
-                  }}
-                  leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                  size="sm"
-                >
-                  {location}
-                </SelectionChip>
-              );
-            })}
-          </div>
-        </div>
-      </div>
-
-      {hasVisibleHomeWork ? (
-        <HomeWorkboards
-          visibleAppointmentCount={visibleAppointmentCount}
-          visiblePickupCount={visiblePickupCount}
-          todayLabel={todayLabel}
-          tomorrowLabel={tomorrowLabel}
+      <div className="md:hidden">
+        <HomeMobileDashboard
+          actions={actions}
+          pickupLocations={pickupLocations}
+          activeLocations={activeLocations}
+          setActiveLocations={setActiveLocations}
+          allLocationsActive={allLocationsActive}
           todayAppointments={todayAppointments}
           tomorrowAppointments={tomorrowAppointments}
           readyPickups={readyPickups}
-          singleActiveLocationLabel={singleActiveLocationLabel}
+          todayLabel={todayLabel}
+          tomorrowLabel={tomorrowLabel}
+          visibleAppointmentCount={visibleAppointmentCount}
+          visiblePickupCount={visiblePickupCount}
+          hasVisibleHomeWork={hasVisibleHomeWork}
+          hasAnyLocationSelected={hasAnyLocationSelected}
+          hasFilteredLaterWork={hasFilteredLaterWork}
+          onScreenChange={onScreenChange}
+          onStartWorkflow={onStartWorkflow}
           onCreateOrder={onOpenAppointment}
-          onCancelAppointment={setCancelingAppointment}
           onCheckoutPickup={onCheckoutReadyPickup}
           onCompletePickup={onCompleteReadyPickup}
         />
-      ) : !hasAnyLocationSelected ? (
-        <HomeEmptyState
-          title="No locations selected"
-          detail="Choose at least one location to bring appointments and ready pickups back into view."
-          primaryAction={{ label: "Show all locations", onClick: () => setActiveLocations(pickupLocations) }}
-        />
-      ) : hasFilteredLaterWork ? (
-        <HomeEmptyState
-          title="Nothing scheduled for today or tomorrow"
-          detail="Later appointments are still scheduled. Open the full calendar or active orders to work ahead."
-          primaryAction={{ label: "Open appointments", onClick: () => onScreenChange("appointments") }}
-          secondaryAction={{ label: "Open all active orders", onClick: () => onScreenChange("openOrders") }}
-        />
-      ) : (
-        <HomeEmptyState
-          title="Nothing needs attention right now"
-          detail="New fittings and ready pickups will show up here once they need attention."
-          primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
-          secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
-        />
-      )}
+      </div>
+
+      <div className="hidden md:block">
+        <SectionHeader icon={House} title="Home" subtitle="What needs attention today" />
+
+        <HomeQuickActionsDeck actions={actions} className="app-home-dashboard__quick-actions-surface" />
+
+        <div className="app-home-dashboard__locations px-1 py-1">
+          <div className="app-home-location-bar">
+            <div className="shrink-0 pt-0.5">
+              <div className="app-text-overline">View locations</div>
+              <div className="app-text-caption mt-1">Choose which locations to show.</div>
+            </div>
+            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+              <SelectionChip
+                selected={allLocationsActive}
+                onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
+                leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                size="sm"
+              >
+                All locations
+              </SelectionChip>
+              {pickupLocations.map((location) => {
+                const isActive = activeLocations.includes(location);
+
+                return (
+                  <SelectionChip
+                    key={location}
+                    selected={isActive}
+                    onClick={() => {
+                      setActiveLocations((current) => {
+                        if (current.includes(location)) {
+                          return current.filter((value) => value !== location);
+                        }
+
+                        return [...current, location];
+                      });
+                    }}
+                    leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+                    size="sm"
+                  >
+                    {location}
+                  </SelectionChip>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+
+        {hasVisibleHomeWork ? (
+          <HomeWorkboards
+            visibleAppointmentCount={visibleAppointmentCount}
+            visiblePickupCount={visiblePickupCount}
+            todayLabel={todayLabel}
+            tomorrowLabel={tomorrowLabel}
+            todayAppointments={todayAppointments}
+            tomorrowAppointments={tomorrowAppointments}
+            readyPickups={readyPickups}
+            singleActiveLocationLabel={singleActiveLocationLabel}
+            onCreateOrder={onOpenAppointment}
+            onCancelAppointment={setCancelingAppointment}
+            onCheckoutPickup={onCheckoutReadyPickup}
+            onCompletePickup={onCompleteReadyPickup}
+          />
+        ) : !hasAnyLocationSelected ? (
+          <HomeEmptyState
+            title="No locations selected"
+            detail="Choose at least one location to bring appointments and ready pickups back into view."
+            primaryAction={{ label: "Show all locations", onClick: () => setActiveLocations(pickupLocations) }}
+          />
+        ) : hasFilteredLaterWork ? (
+          <HomeEmptyState
+            title="Nothing scheduled for today or tomorrow"
+            detail="Later appointments are still scheduled. Open the full calendar or active orders to work ahead."
+            primaryAction={{ label: "Open appointments", onClick: () => onScreenChange("appointments") }}
+            secondaryAction={{ label: "Open all active orders", onClick: () => onScreenChange("openOrders") }}
+          />
+        ) : (
+          <HomeEmptyState
+            title="Nothing needs attention right now"
+            detail="New fittings and ready pickups will show up here once they need attention."
+            primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
+            secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
+          />
+        )}
+      </div>
 
       {cancelingAppointment ? (
         <ConfirmAppointmentCancelModal
