@@ -110,7 +110,6 @@ export function HomeScreen({
     <div className="app-home-dashboard">
       <div className="md:hidden">
         <HomeMobileDashboard
-          actions={actions}
           pickupLocations={pickupLocations}
           activeLocations={activeLocations}
           setActiveLocations={setActiveLocations}
