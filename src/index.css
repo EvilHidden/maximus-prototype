@@ -253,6 +253,7 @@ textarea:focus-visible {
     linear-gradient(180deg, color-mix(in srgb, var(--app-surface) 22%, transparent), transparent 180px),
     var(--app-bg);
   padding: 0.75rem;
+  scrollbar-gutter: auto;
 }
 
 [data-theme="dark"] .app-sidebar {
@@ -586,6 +587,7 @@ textarea:focus-visible {
 
   .app-main {
     padding: 1.25rem;
+    scrollbar-gutter: stable;
   }
 
   .app-customer-directory-row {

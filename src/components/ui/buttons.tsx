@@ -162,12 +162,12 @@ export function RowChevronAffordance({ hideAboveDesktop = false }: { hideAboveDe
   return (
     <div
       className={cx(
-        "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-3",
+        "pointer-events-none absolute inset-y-0 right-0 flex items-center pr-2.5",
         hideAboveDesktop && "app-hide-at-desktop",
       )}
       aria-hidden="true"
     >
-      <div className="flex h-full items-center gap-2 bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/96 to-transparent pl-5 transition group-hover:from-[var(--app-surface-muted)]/65 group-hover:via-[var(--app-surface-muted)]/50">
+      <div className="flex h-11 items-center gap-2 rounded-l-[var(--app-radius-sm)] bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pl-4 pr-0.5 transition group-hover:from-[var(--app-surface-muted)]/72 group-hover:via-[var(--app-surface-muted)]/42">
         <div className="h-9 w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45" />
         <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
       </div>
