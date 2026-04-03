@@ -211,7 +211,7 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
           </div>
         </aside>
 
-        <main className="app-main h-full overflow-x-hidden overflow-y-auto rounded-[14px] border border-[var(--app-border)]/55 [scrollbar-gutter:stable]">
+        <main className="app-main h-full overflow-x-hidden overflow-y-auto rounded-[14px] border border-[var(--app-border)]/55">
           {children}
         </main>
       </div>
