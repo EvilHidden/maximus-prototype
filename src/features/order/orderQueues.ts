@@ -1,5 +1,3 @@
-export type AssigneeFilterValue = "all" | "unassigned" | string;
-
 export type OrdersQueueKey =
   | "all"
   | "due_today"

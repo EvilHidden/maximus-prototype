@@ -35,10 +35,6 @@ export function useAppWorkflowActions({ dispatch }: UseAppWorkflowActionsArgs) {
     dispatch({ type: "saveEditedOpenOrder" });
   }, [dispatch]);
 
-  const assignOpenOrderTailor = useCallback((openOrderId: number, staffId: string | null) => {
-    dispatch({ type: "assignOpenOrderTailor", openOrderId, staffId });
-  }, [dispatch]);
-
   const startOpenOrderWork = useCallback((openOrderId: number) => {
     dispatch({ type: "startOpenOrderWork", openOrderId });
   }, [dispatch]);
@@ -52,7 +48,6 @@ export function useAppWorkflowActions({ dispatch }: UseAppWorkflowActionsArgs) {
     openWorkflowAppointment,
     saveDraftOrder,
     saveEditedOrder,
-    assignOpenOrderTailor,
     startOpenOrderWork,
     completeOpenOrderCheckout,
   };

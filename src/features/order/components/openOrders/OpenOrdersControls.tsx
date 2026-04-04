@@ -5,7 +5,6 @@ import type { OpenOrdersControlsProps } from "./openOrdersControlsShared";
 
 export function OpenOrdersControls(props: OpenOrdersControlsProps) {
   const locationOptions = getLocationOptions(props.pickupLocations);
-  const showOperatorControls = props.activeView === "operator";
 
   return (
     <div className="app-control-deck app-orders-controls-deck px-3 py-3 min-[1000px]:px-4 min-[1000px]:py-3">
@@ -18,9 +17,6 @@ export function OpenOrdersControls(props: OpenOrdersControlsProps) {
           onQueryChange={props.onQueryChange}
           typeFilter={props.typeFilter}
           onTypeFilterChange={props.onTypeFilterChange}
-          inHouseTailors={props.inHouseTailors}
-          assigneeFilter={props.assigneeFilter}
-          onAssigneeFilterChange={props.onAssigneeFilterChange}
           locationOptions={locationOptions}
           locationFilter={props.locationFilter}
           onLocationFilterChange={props.onLocationFilterChange}
@@ -30,7 +26,6 @@ export function OpenOrdersControls(props: OpenOrdersControlsProps) {
           allOrdersTab={props.allOrdersTab}
           onAllOrdersTabChange={props.onAllOrdersTabChange}
           allOrdersTabCounts={props.allOrdersTabCounts}
-          showOperatorControls={showOperatorControls}
         />
 
         <OpenOrdersMobileControls
@@ -41,9 +36,6 @@ export function OpenOrdersControls(props: OpenOrdersControlsProps) {
           onQueryChange={props.onQueryChange}
           typeFilter={props.typeFilter}
           onTypeFilterChange={props.onTypeFilterChange}
-          inHouseTailors={props.inHouseTailors}
-          assigneeFilter={props.assigneeFilter}
-          onAssigneeFilterChange={props.onAssigneeFilterChange}
           locationOptions={locationOptions}
           locationFilter={props.locationFilter}
           onLocationFilterChange={props.onLocationFilterChange}
@@ -53,7 +45,6 @@ export function OpenOrdersControls(props: OpenOrdersControlsProps) {
           allOrdersTab={props.allOrdersTab}
           onAllOrdersTabChange={props.onAllOrdersTabChange}
           allOrdersTabCounts={props.allOrdersTabCounts}
-          showOperatorControls={showOperatorControls}
         />
       </div>
     </div>

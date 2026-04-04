@@ -1,7 +1,6 @@
 import type { AppAction, AppState } from "./types";
 import { adaptCustomers, adaptOpenOrders } from "../db/adapters";
 import {
-  assignOpenOrderTailor,
   cancelOpenOrder,
   cancelAppointmentRecord,
   completeAppointmentRecord,
@@ -124,11 +123,6 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           order: createInitialOrderState(),
         };
       }
-    case "assignOpenOrderTailor":
-      return {
-        ...state,
-        database: assignOpenOrderTailor(state.database, action.openOrderId, action.staffId, getNow(options)),
-      };
     case "startOpenOrderWork":
       return {
         ...state,

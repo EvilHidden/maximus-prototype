@@ -1,6 +1,6 @@
 import { ClipboardList, PackageSearch } from "lucide-react";
 import { useState } from "react";
-import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
+import type { ClosedOrderHistoryItem, OpenOrder } from "../../../../types";
 import { EmptyState } from "../../../../components/ui/primitives";
 import { ConfirmMarkReadyModal } from "../../modals/ConfirmMarkReadyModal";
 import type { OrdersQueueKey } from "../../selectors";
@@ -26,8 +26,6 @@ export function OpenOrdersBody({
   filteredOperatorOrders,
   filteredFactoryOrders,
   filteredHistoryItems,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onMarkOpenOrderPickupReady,
   onOpenOrderDetails,
@@ -41,8 +39,6 @@ export function OpenOrdersBody({
   filteredOperatorOrders: OpenOrder[];
   filteredFactoryOrders: OpenOrder[];
   filteredHistoryItems: ClosedOrderHistoryItem[];
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onMarkOpenOrderPickupReady: (openOrderId: number, pickupId: string) => void;
   onOpenOrderDetails: (openOrderId: number) => void;
@@ -151,8 +147,6 @@ export function OpenOrdersBody({
       {activeView === "operator" ? (
         <OperatorQueuePanel
           openOrders={filteredOperatorOrders}
-          inHouseTailors={inHouseTailors}
-          onAssignOpenOrderTailor={onAssignOpenOrderTailor}
           onStartOpenOrderWork={onStartOpenOrderWork}
           onRequestMarkOpenOrderPickupReady={(openOrder, pickupIds) => setMarkReadyConfirmation({ openOrder, pickupIds })}
           onOpenOrderDetails={onOpenOrderDetails}

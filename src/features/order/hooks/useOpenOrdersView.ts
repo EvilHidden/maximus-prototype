@@ -2,8 +2,6 @@ import { useMemo, useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, OrderType, PickupLocation } from "../../../types";
 import {
   getOperatorQueueStageCounts,
-  getOperatorQueueStage,
-  type AssigneeFilterValue,
   filterClosedOrderHistory,
   filterOpenOrders,
   getNeedsAttentionOpenOrders,
@@ -24,11 +22,10 @@ export function useOpenOrdersView(
   const [allOrdersTab, setAllOrdersTab] = useState<AllOrdersTab>("active");
   const [typeFilter, setTypeFilter] = useState<OrderType | "all">("all");
   const [locationFilter, setLocationFilter] = useState<PickupLocation | "all">("all");
-  const [assigneeFilter, setAssigneeFilter] = useState<AssigneeFilterValue>("all");
 
   const baseOpenOrders = useMemo(
-    () => filterOpenOrders(openOrders, { query, queue: "all", typeFilter, locationFilter, assigneeFilter }),
-    [assigneeFilter, locationFilter, openOrders, query, typeFilter],
+    () => filterOpenOrders(openOrders, { query, queue: "all", typeFilter, locationFilter }),
+    [locationFilter, openOrders, query, typeFilter],
   );
 
   const queueCounts = useMemo(
@@ -47,24 +44,23 @@ export function useOpenOrdersView(
   const filteredQueueOrders = useMemo(
     () => activeQueue === "all"
       ? needsAttentionOrders
-      : filterOpenOrders(openOrders, { query, queue: activeQueue, typeFilter, locationFilter, assigneeFilter }),
-    [activeQueue, assigneeFilter, locationFilter, needsAttentionOrders, openOrders, query, typeFilter],
+      : filterOpenOrders(openOrders, { query, queue: activeQueue, typeFilter, locationFilter }),
+    [activeQueue, locationFilter, needsAttentionOrders, openOrders, query, typeFilter],
   );
 
   const filteredReadyOrders = useMemo(
-    () => filterOpenOrders(openOrders, { query, queue: "ready_for_pickup", typeFilter, locationFilter, assigneeFilter }),
-    [assigneeFilter, locationFilter, openOrders, query, typeFilter],
+    () => filterOpenOrders(openOrders, { query, queue: "ready_for_pickup", typeFilter, locationFilter }),
+    [locationFilter, openOrders, query, typeFilter],
   );
 
   const filteredOperatorOrders = useMemo(
-    () => filterOpenOrders(openOrders, { query, queue: "in_house", typeFilter, locationFilter, assigneeFilter })
-      .filter((openOrder) => getOperatorQueueStage(openOrder) !== "ready"),
-    [assigneeFilter, locationFilter, openOrders, query, typeFilter],
+    () => filterOpenOrders(openOrders, { query, queue: "in_house", typeFilter, locationFilter }),
+    [locationFilter, openOrders, query, typeFilter],
   );
 
   const filteredFactoryOrders = useMemo(
-    () => filterOpenOrders(openOrders, { query, queue: "factory", typeFilter, locationFilter, assigneeFilter }),
-    [assigneeFilter, locationFilter, openOrders, query, typeFilter],
+    () => filterOpenOrders(openOrders, { query, queue: "factory", typeFilter, locationFilter }),
+    [locationFilter, openOrders, query, typeFilter],
   );
 
   const operatorQueueCounts = useMemo(
@@ -85,8 +81,8 @@ export function useOpenOrdersView(
     filteredReadyOrders.length === 1 ? "1 order is ready for pickup" : `${filteredReadyOrders.length} orders are ready for pickup`;
   const operatorSubtitle =
     filteredOperatorOrders.length === 1
-      ? "1 alteration order in progress"
-      : `${filteredOperatorOrders.length} alteration orders in progress`;
+      ? "1 active alteration order"
+      : `${filteredOperatorOrders.length} active alteration orders`;
   const factorySubtitle =
     filteredFactoryOrders.length === 1 ? "1 custom garment order in progress" : `${filteredFactoryOrders.length} custom garment orders in progress`;
   const allOrdersCount = baseOpenOrders.length + filteredHistoryItems.length;
@@ -122,8 +118,6 @@ export function useOpenOrdersView(
     setTypeFilter,
     locationFilter,
     setLocationFilter,
-    assigneeFilter,
-    setAssigneeFilter,
     baseOpenOrders,
     queueCounts,
     filteredQueueOrders,

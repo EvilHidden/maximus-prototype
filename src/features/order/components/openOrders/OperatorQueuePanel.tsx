@@ -1,6 +1,6 @@
-import { ChevronDown, ClipboardList, MapPin, UserRoundCheck } from "lucide-react";
+import { ClipboardList, MapPin, UserRoundCheck } from "lucide-react";
 import type { KeyboardEvent } from "react";
-import type { OpenOrder, OpenOrderPickup, StaffMember } from "../../../../types";
+import type { OpenOrder, OpenOrderPickup } from "../../../../types";
 import { ActionButton, EmptyState, RowChevronAffordance, cx } from "../../../../components/ui/primitives";
 import {
   formatOpenOrderCreatedAt,
@@ -9,7 +9,6 @@ import {
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
   getOperatorQueueStage,
-  getOperatorQueueStageCounts,
   sortOperatorQueueOrders,
   type OperatorQueueStageCounts,
   type OperatorQueueStageKey,
@@ -24,19 +23,19 @@ const stageMeta: Array<{
   subtitle: string;
 }> = [
   {
-    key: "needs_assignment",
-    title: "Needs assignment",
-    subtitle: "Accepted orders that still need someone assigned.",
-  },
-  {
     key: "ready_to_start",
     title: "Ready to start",
-    subtitle: "Assigned orders that can be started now.",
+    subtitle: "Accepted orders that can be started now.",
   },
   {
     key: "in_progress",
     title: "In progress",
     subtitle: "Work already underway in-house.",
+  },
+  {
+    key: "ready",
+    title: "Ready for pickup",
+    subtitle: "Finished alteration work waiting on customer handoff.",
   },
 ];
 
@@ -63,7 +62,10 @@ export function OperatorQueueSummary({
 
   return (
     <div className="overflow-hidden rounded-[calc(var(--app-radius-md)+0.125rem)] border border-[var(--app-border)]/50 bg-[rgba(246,242,234,0.75)] shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_28px_rgba(15,23,42,0.04)]">
-      <div className="grid grid-cols-3 gap-px sm:gap-0">
+      <div
+        className="grid gap-px sm:gap-0"
+        style={{ gridTemplateColumns: `repeat(${stageMeta.length}, minmax(0, 1fr))` }}
+      >
         {stageMeta.map((stage, index) => (
           <button
             key={stage.key}
@@ -71,7 +73,6 @@ export function OperatorQueueSummary({
             onClick={() => handleStageJump(stage.key)}
             className={cx(
               "flex min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center transition-[transform,box-shadow,filter] duration-150 hover:z-[1] hover:brightness-[0.99] focus-visible:z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-primary)]/35 active:translate-y-px sm:items-stretch sm:justify-between sm:gap-0 sm:px-4 sm:py-3 sm:text-left",
-              stage.key === "needs_assignment" && "bg-[rgba(248,237,223,0.95)]",
               stage.key === "ready_to_start" && "bg-[rgba(223,230,244,0.98)]",
               stage.key === "in_progress" && "bg-[rgba(231,239,231,0.94)]",
               index > 0 && "border-l border-white/40 sm:border-l sm:border-t-0",
@@ -136,15 +137,15 @@ function getOperatorStatusTextClassName(tone: "default" | "dark" | "success" | "
 function getOperatorStageStatusDisplay(stage: OperatorQueueStageKey) {
   if (stage === "ready_to_start") {
     return {
-      label: "Assigned",
+      label: "Ready to start",
       className: getOperatorStatusTextClassName("dark"),
     };
   }
 
-  if (stage === "needs_assignment") {
+  if (stage === "ready") {
     return {
-      label: "Needs tailor",
-      className: getOperatorStatusTextClassName("warn"),
+      label: "Ready for pickup",
+      className: getOperatorStatusTextClassName("success"),
     };
   }
 
@@ -179,54 +180,14 @@ function getAlterationPickupStatusDisplay(
   };
 }
 
-function TailorAssignmentControl({
-  openOrder,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
-}: {
-  openOrder: OpenOrder;
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
-}) {
-  const stage = getOperatorQueueStage(openOrder);
-  const helperText = !openOrder.inHouseAssignee
-    ? stage === "needs_assignment"
-      ? "Assign a tailor before work can start."
-      : "No tailor assigned yet."
-    : null;
-
-  return (
-    <div className="min-w-0" onClick={(event) => event.stopPropagation()}>
-      <div className="app-field-control relative min-h-[2.5rem] px-2.5 py-1.5">
-        <select
-          aria-label={`Assign tailor for order ${openOrder.id}`}
-          value={openOrder.inHouseAssignee?.id ?? "unassigned"}
-          onChange={(event) => onAssignOpenOrderTailor(openOrder.id, event.target.value === "unassigned" ? null : event.target.value)}
-          className="app-text-body-muted min-w-0 flex-1 appearance-none pr-8"
-        >
-          <option value="unassigned">Choose tailor</option>
-          {inHouseTailors.map((staffMember) => (
-            <option key={staffMember.id} value={staffMember.id}>
-              {staffMember.name}
-            </option>
-          ))}
-        </select>
-        <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--app-text-soft)]" />
-      </div>
-      {helperText ? <div className="app-text-caption mt-1">{helperText}</div> : null}
-    </div>
-  );
-}
-
 function OperatorQueueColumnHeader() {
   return (
     <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 pr-14 min-[1000px]:block">
-      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1fr)_7.25rem_5.5rem_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-start">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1fr)_7.25rem_5.5rem_8.75rem] min-[1000px]:items-start">
         <div className="app-text-overline">Customer</div>
         <div className="app-text-overline">Ready by</div>
         <div className="app-text-overline">Status</div>
         <div aria-hidden="true" />
-        <div className="app-text-overline">Assigned tailor</div>
         <div className="app-text-overline text-right">Total</div>
       </div>
     </div>
@@ -235,15 +196,11 @@ function OperatorQueueColumnHeader() {
 
 function OperatorQueueRow({
   openOrder,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
   onOpenOrderDetails,
 }: {
   openOrder: OpenOrder;
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderDetails: (openOrderId: number) => void;
@@ -271,7 +228,7 @@ function OperatorQueueRow({
       onClick={handleOpen}
       onKeyDown={handleRowKeyDown}
     >
-      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1fr)_7.25rem_5.5rem_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-start">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1fr)_7.25rem_5.5rem_8.75rem] min-[1000px]:items-start">
         <div className="min-w-0">
           <div className="app-text-overline min-[1000px]:hidden">Customer</div>
           <div className="app-text-value mt-1 min-w-0 min-[1000px]:mt-0">{openOrder.payerName}</div>
@@ -397,17 +354,6 @@ function OperatorQueueRow({
           </div>
         </div>
 
-        <div className="min-w-0">
-          <div className="app-text-overline min-[1000px]:hidden">Assigned tailor</div>
-          <div className="mt-1 min-[1000px]:mt-0">
-            <TailorAssignmentControl
-              openOrder={openOrder}
-              inHouseTailors={inHouseTailors}
-              onAssignOpenOrderTailor={onAssignOpenOrderTailor}
-            />
-          </div>
-        </div>
-
         <div className="min-w-0 text-left min-[1000px]:text-right">
           <div className="app-text-overline min-[1000px]:hidden">Total</div>
           <div className="mt-1 min-[1000px]:mt-0">
@@ -430,8 +376,6 @@ function OperatorQueueStageSection({
   title,
   subtitle,
   openOrders,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
   onOpenOrderDetails,
@@ -440,8 +384,6 @@ function OperatorQueueStageSection({
   title: string;
   subtitle: string;
   openOrders: OpenOrder[];
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderDetails: (openOrderId: number) => void;
@@ -468,8 +410,6 @@ function OperatorQueueStageSection({
           >
             <OperatorQueueRow
               openOrder={openOrder}
-              inHouseTailors={inHouseTailors}
-              onAssignOpenOrderTailor={onAssignOpenOrderTailor}
               onStartOpenOrderWork={onStartOpenOrderWork}
               onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
               onOpenOrderDetails={onOpenOrderDetails}
@@ -483,15 +423,11 @@ function OperatorQueueStageSection({
 
 export function OperatorQueuePanel({
   openOrders,
-  inHouseTailors,
-  onAssignOpenOrderTailor,
   onStartOpenOrderWork,
   onRequestMarkOpenOrderPickupReady,
   onOpenOrderDetails,
 }: {
   openOrders: OpenOrder[];
-  inHouseTailors: StaffMember[];
-  onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
   onRequestMarkOpenOrderPickupReady: (openOrder: OpenOrder, pickupIds: string[]) => void;
   onOpenOrderDetails: (openOrderId: number) => void;
@@ -501,13 +437,10 @@ export function OperatorQueuePanel({
     groups[stage.key] = sortedOrders.filter((openOrder) => getOperatorQueueStage(openOrder) === stage.key);
     return groups;
   }, {
-    needs_assignment: [],
     ready_to_start: [],
     in_progress: [],
     ready: [],
   });
-  const visibleStageCounts = getOperatorQueueStageCounts(sortedOrders);
-
   if (!sortedOrders.length) {
     return (
       <div className="app-work-surface">
@@ -515,7 +448,7 @@ export function OperatorQueuePanel({
           <OpenOrdersPanelHeader
             icon={UserRoundCheck}
             title="Alterations"
-            subtitle="In-house orders will show up here once they are accepted."
+            subtitle="Active in-house alteration work will show up here once it is accepted."
           />
         </div>
         <div className="border-t border-[var(--app-border)]/45">
@@ -536,8 +469,6 @@ export function OperatorQueuePanel({
           title={stage.title}
           subtitle={stage.subtitle}
           openOrders={ordersByStage[stage.key]}
-          inHouseTailors={inHouseTailors}
-          onAssignOpenOrderTailor={onAssignOpenOrderTailor}
           onStartOpenOrderWork={onStartOpenOrderWork}
           onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
           onOpenOrderDetails={onOpenOrderDetails}

@@ -1,8 +1,8 @@
 import { useState } from "react";
-import type { OrderType, PickupLocation, StaffMember } from "../../../../types";
+import type { OrderType, PickupLocation } from "../../../../types";
 import { ActionButton, SearchField, SelectField, Surface } from "../../../../components/ui/primitives";
 import { Search, SlidersHorizontal } from "lucide-react";
-import type { AssigneeFilterValue, OrdersQueueKey } from "../../selectors";
+import type { OrdersQueueKey } from "../../selectors";
 import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { queueMeta } from "./meta";
 import { getMobileFilterSummary, getOpenOrdersViewOptions } from "./openOrdersControlsShared";
@@ -16,9 +16,6 @@ export function OpenOrdersMobileControls({
   onQueryChange,
   typeFilter,
   onTypeFilterChange,
-  inHouseTailors,
-  assigneeFilter,
-  onAssigneeFilterChange,
   locationOptions,
   locationFilter,
   onLocationFilterChange,
@@ -28,7 +25,6 @@ export function OpenOrdersMobileControls({
   allOrdersTab,
   onAllOrdersTabChange,
   allOrdersTabCounts,
-  showOperatorControls,
 }: {
   activeView: OrdersView;
   onViewChange: (view: OrdersView) => void;
@@ -37,9 +33,6 @@ export function OpenOrdersMobileControls({
   onQueryChange: (value: string) => void;
   typeFilter: OrderType | "all";
   onTypeFilterChange: (value: OrderType | "all") => void;
-  inHouseTailors: StaffMember[];
-  assigneeFilter: AssigneeFilterValue;
-  onAssigneeFilterChange: (value: AssigneeFilterValue) => void;
   locationOptions: Array<PickupLocation | "all">;
   locationFilter: PickupLocation | "all";
   onLocationFilterChange: (value: PickupLocation | "all") => void;
@@ -49,7 +42,6 @@ export function OpenOrdersMobileControls({
   allOrdersTab: AllOrdersTab;
   onAllOrdersTabChange: (tab: AllOrdersTab) => void;
   allOrdersTabCounts: { active: number; closed: number };
-  showOperatorControls: boolean;
 }) {
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
   const viewOptions = getOpenOrdersViewOptions(viewCounts);
@@ -60,8 +52,6 @@ export function OpenOrdersMobileControls({
     typeFilter,
     locationFilter,
     activeView,
-    assigneeFilter,
-    inHouseTailors,
     activeQueueLabel,
     activeAllOrdersTabLabel,
   });
@@ -104,7 +94,7 @@ export function OpenOrdersMobileControls({
                 <div className="app-text-caption mt-1">
                   {mobileFilterSummary.length
                     ? mobileFilterSummary.join(" • ")
-                    : `All order types • All locations${activeView !== "all" ? " • All assignees" : ""}`}
+                    : "All order types • All locations"}
                 </div>
               </div>
               <ActionButton
@@ -134,10 +124,6 @@ export function OpenOrdersMobileControls({
           locationOptions={locationOptions}
           locationFilter={locationFilter}
           onLocationFilterChange={onLocationFilterChange}
-          showOperatorControls={showOperatorControls}
-          assigneeFilter={assigneeFilter}
-          onAssigneeFilterChange={onAssigneeFilterChange}
-          inHouseTailors={inHouseTailors}
           onClose={() => setMobileFiltersOpen(false)}
         />
       ) : null}

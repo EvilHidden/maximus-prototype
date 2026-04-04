@@ -127,6 +127,9 @@ Before each follow-up pass, review these issue classes repo-wide:
 - `order_scope_line_components`
 - practical rule: do not replace the normalized model with the Square shape
 - instead, treat the canonical model as a Maximus fulfillment overlay on top of Square-compatible order and item records
+- `order_scopes.assignee_staff_id` can remain nullable in the schema as dormant compatibility data during the prototype
+- do not build current workflow behavior, queue gating, or operator UI around that field
+- if future staffing needs return, prefer modeling work allocation explicitly instead of reviving single-assignee semantics by default
 
 ### Appointments
 - appointments remain their own first-class domain

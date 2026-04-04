@@ -7,7 +7,6 @@ import type {
   OrderWorkflowState,
   OrderLineComponentKind,
   OrderType,
-  PickupLocation,
   WorkflowMode,
 } from "../types";
 import { getCheckoutCollectionAmount } from "../features/order/paymentSummary";
@@ -22,7 +21,6 @@ import type {
   DbOrderScopeLineComponent,
   DbPaymentRecord,
   DbPickupAppointment,
-  DbStaffMember,
 } from "./schema";
 import { createLocationId, toDateTimeString } from "./runtime/support";
 import {
@@ -54,7 +52,6 @@ type SerializeOrderWorkflowArgs = {
   existingOrder?: DbOrder | null;
   existingScopes?: DbOrderScope[];
   existingPickupAppointments?: DbPickupAppointment[];
-  staffMembers: DbStaffMember[];
 };
 
 const seedReferenceData = getSeedReferenceData();
@@ -210,23 +207,6 @@ function createInitialPaymentRecords(
     }];
 }
 
-function getDefaultAlterationAssigneeStaffId(
-  staffMembers: DbStaffMember[],
-  locations: DbLocation[],
-  pickupLocation: PickupLocation | "",
-) {
-  if (!pickupLocation) {
-    return null;
-  }
-
-  const pickupLocationId = locations.find((location) => location.name === pickupLocation)?.id ?? null;
-  if (!pickupLocationId) {
-    return null;
-  }
-
-  return staffMembers.find((staffMember) => staffMember.primaryLocationId === pickupLocationId)?.id ?? null;
-}
-
 function getAlterationPickupSummary(items: OrderWorkflowState["alteration"]["items"]) {
   return items.map((item) => `${item.garment} ${item.modifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" + ")}`.trim());
 }
@@ -306,7 +286,6 @@ export function serializeOrderWorkflowToRecords({
   existingOrder = null,
   existingScopes = [],
   existingPickupAppointments = [],
-  staffMembers,
 }: SerializeOrderWorkflowArgs): SerializedOrderWorkflow | null {
   const orderType = getOrderType(order);
   if (!orderType) {
@@ -362,9 +341,7 @@ export function serializeOrderWorkflowToRecords({
       orderId,
       workflow: scope,
       phase: existingScope?.phase ?? "in_progress",
-      assigneeStaffId: scope === "alteration"
-        ? existingScope?.assigneeStaffId ?? getDefaultAlterationAssigneeStaffId(staffMembers, locations, alterationPickup.pickupLocation)
-        : null,
+      assigneeStaffId: existingScope?.assigneeStaffId ?? null,
       promisedReadyAt,
       readyAt: existingScope?.readyAt ?? null,
       pickedUpAt: existingScope?.pickedUpAt ?? null,
@@ -681,7 +658,7 @@ export function deserializeOrderWorkflowFromRecords(
     return {
       pickupDate,
       pickupTime,
-      pickupLocation: pickupLocation as PickupLocation | "",
+      pickupLocation,
     };
   };
 

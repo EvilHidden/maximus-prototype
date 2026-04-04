@@ -143,7 +143,6 @@ function createOpenOrder(overrides: Partial<OpenOrder>): OpenOrder {
     orderType: "alteration",
     operationalStatus: "accepted",
     holdUntilAllScopesReady: false,
-    inHouseAssignee: null,
     itemCount: 1,
     lineItems: [
       {
@@ -456,7 +455,6 @@ describe("order selectors", () => {
           queue: "due_today",
           typeFilter: "all",
           locationFilter: "all",
-          assigneeFilter: "all",
         },
         { now },
       ).map((order) => order.id),
@@ -495,7 +493,6 @@ describe("order selectors", () => {
       queue: "all",
       typeFilter: "all",
       locationFilter: "all",
-      assigneeFilter: "all",
     }).map((order) => order.id)).toEqual([1012, 1011]);
   });
 
@@ -739,57 +736,11 @@ describe("order selectors", () => {
     expect(getNeedsAttentionOpenOrders([mixedLaterEarliest, mixedEarlierEarliest]).map((order) => order.id)).toEqual([1014, 1013]);
   });
 
-  it("filters open orders by in-house tailor assignment", () => {
-    const luisOrder = createOpenOrder({
-      id: 1004,
-      inHouseAssignee: {
-        id: "staff-tailor-luis",
-        name: "Luis Rivera",
-        primaryLocation: "Fifth Avenue",
-      },
-    });
-    const unassignedOrder = createOpenOrder({
-      id: 1005,
-      inHouseAssignee: null,
-    });
-
-    expect(filterOpenOrders([luisOrder, unassignedOrder], {
-      query: "",
-      queue: "in_house",
-      typeFilter: "all",
-      locationFilter: "all",
-      assigneeFilter: "staff-tailor-luis",
-    })).toEqual([luisOrder]);
-
-    expect(filterOpenOrders([luisOrder, unassignedOrder], {
-      query: "",
-      queue: "in_house",
-      typeFilter: "all",
-      locationFilter: "all",
-      assigneeFilter: "unassigned",
-    })).toEqual([unassignedOrder]);
-  });
-
   it("groups in-house work into operator queue stages", () => {
-    const needsAssignment = createOpenOrder({ id: 1006, inHouseAssignee: null, operationalStatus: "accepted" });
-    const readyToStart = createOpenOrder({
-      id: 1007,
-      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
-      operationalStatus: "accepted",
-    });
-    const inProgress = createOpenOrder({
-      id: 1008,
-      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
-      operationalStatus: "in_progress",
-    });
-    const unassignedInProgress = createOpenOrder({
-      id: 1010,
-      inHouseAssignee: null,
-      operationalStatus: "in_progress",
-    });
+    const readyToStart = createOpenOrder({ id: 1007, operationalStatus: "accepted" });
+    const inProgress = createOpenOrder({ id: 1008, operationalStatus: "in_progress" });
     const ready = createOpenOrder({
       id: 1009,
-      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
       pickupSchedules: [
         {
           ...createOpenOrder({}).pickupSchedules[0],
@@ -799,14 +750,11 @@ describe("order selectors", () => {
       ],
     });
 
-    expect(getOperatorQueueStage(needsAssignment)).toBe("needs_assignment");
     expect(getOperatorQueueStage(readyToStart)).toBe("ready_to_start");
     expect(getOperatorQueueStage(inProgress)).toBe("in_progress");
-    expect(getOperatorQueueStage(unassignedInProgress)).toBe("needs_assignment");
     expect(getOperatorQueueStage(ready)).toBe("ready");
 
-    expect(getOperatorQueueStageCounts([needsAssignment, readyToStart, inProgress, unassignedInProgress, ready])).toEqual({
-      needs_assignment: 2,
+    expect(getOperatorQueueStageCounts([readyToStart, inProgress, ready])).toEqual({
       ready_to_start: 1,
       in_progress: 1,
       ready: 1,
@@ -819,35 +767,20 @@ describe("order selectors", () => {
       pickupDate: "2026-04-10",
       pickupTime: "13:00",
     };
-    const awaitingAssignment = createOpenOrder({
-      id: 1101,
-      inHouseAssignee: null,
-      operationalStatus: "accepted",
-      pickupSchedules: [{ ...futurePickup, id: "pickup-awaiting-assignment" }],
-    });
     const readyToStart = createOpenOrder({
       id: 1102,
-      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
       operationalStatus: "accepted",
       pickupSchedules: [{ ...futurePickup, id: "pickup-ready-to-start" }],
     });
     const inProgress = createOpenOrder({
       id: 1103,
-      inHouseAssignee: { id: "staff-tailor-luis", name: "Luis Rivera", primaryLocation: "Fifth Avenue" },
       operationalStatus: "in_progress",
       pickupSchedules: [{ ...futurePickup, id: "pickup-in-progress" }],
     });
 
-    const awaitingAssignmentState = getNeedsAttentionGroupState(awaitingAssignment, getNeedsAttentionPickupGroups(awaitingAssignment)[0]!);
     const readyToStartState = getNeedsAttentionGroupState(readyToStart, getNeedsAttentionPickupGroups(readyToStart)[0]!);
     const inProgressState = getNeedsAttentionGroupState(inProgress, getNeedsAttentionPickupGroups(inProgress)[0]!);
 
-    expect(awaitingAssignmentState).toMatchObject({
-      label: "Awaiting assignment",
-      tone: "warn",
-      actionKind: "start_work",
-      actionDisabled: true,
-    });
     expect(readyToStartState).toMatchObject({
       label: "Ready to start",
       tone: "dark",
@@ -860,6 +793,32 @@ describe("order selectors", () => {
       actionKind: "mark_ready",
       actionDisabled: false,
     });
+  });
+
+  it("keeps ready-for-pickup alteration work in the operator lane", () => {
+    const readyAlteration = createOpenOrder({
+      id: 1120,
+      operationalStatus: "in_progress",
+      pickupSchedules: [
+        {
+          ...createOpenOrder({}).pickupSchedules[0],
+          id: "pickup-ready-1120",
+          readyForPickup: true,
+        },
+      ],
+    });
+    const stillInProgress = createOpenOrder({
+      id: 1121,
+      operationalStatus: "in_progress",
+    });
+
+    expect(filterOpenOrders([readyAlteration, stillInProgress], {
+      query: "",
+      queue: "in_house",
+      typeFilter: "all",
+      locationFilter: "all",
+    }).map((order) => order.id)).toEqual([1120, 1121]);
+    expect(getOperatorQueueStage(readyAlteration)).toBe("ready");
   });
 
   it("builds open orders deterministically for tests", () => {
