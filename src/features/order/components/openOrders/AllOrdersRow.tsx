@@ -1,28 +1,34 @@
 import { MapPin } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type { OpenOrder } from "../../../../types";
-import { ActionButton, RowChevronAffordance, cx } from "../../../../components/ui/primitives";
+import { RowChevronAffordance, cx } from "../../../../components/ui/primitives";
 import {
-  formatOpenOrderCreatedAt,
   getOpenOrderLocationSummary,
   getOpenOrderOperationalLane,
   getOpenOrderPickupGroups,
   getOpenOrderReadinessBreakdown,
   getOpenOrderStatusPills,
-  getOpenOrderTypeLabel,
   getOperationalPickupDateLabel,
   getOperationalPickupTimeLabel,
 } from "../../selectors";
-import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
 import {
   getCompactPickupScheduleSummary,
   getOrderTimelineSummary,
-  getOrdersStatusTextClassName,
   getWorkflowSummaryLabel,
-  OPEN_ORDER_ROW_GRID_CLASS,
-  READY_ORDER_ROW_GRID_CLASS,
   summarizeGroupedOrderItems,
-} from "./openOrdersRegistryShared";
+} from "./openOrdersFormatting";
+import { OPEN_ORDER_ROW_GRID_CLASS, READY_ORDER_ROW_GRID_CLASS } from "./openOrdersLayout";
+import {
+  OpenOrdersActionSection,
+  OpenOrdersIdentitySection,
+  OpenOrdersMobileReadyStatusLayout,
+  OpenOrdersReadyBySection,
+  OpenOrdersStatusSection,
+  OpenOrdersTotalSection,
+  type OpenOrdersActionRow,
+  type OpenOrdersReadyByGroup,
+  type OpenOrdersStatusRow,
+} from "./OpenOrdersRowSections";
 
 function getReadyPickupSummary(openOrder: OpenOrder) {
   const readyPickups = openOrder.pickupSchedules.filter((pickup) => pickup.readyForPickup && !pickup.pickedUp);
@@ -158,6 +164,56 @@ export function AllOrdersRow({
   const readyPickupSummary = getReadyPickupSummary(openOrder);
   const readyStatusSummary = getReadyStatusSummary(openOrder);
   const rowGridClassName = isReadyVariant ? READY_ORDER_ROW_GRID_CLASS : OPEN_ORDER_ROW_GRID_CLASS;
+  const workflowLabel = getWorkflowSummaryLabel(openOrder.orderType);
+  const readyByGroups: OpenOrdersReadyByGroup[] = isReadyVariant
+    ? [{
+        key: `ready-${openOrder.id}`,
+        dateLabel: readyPickupSummary.scheduleSummary || "Pickup pending",
+        location: readyPickupSummary.locations,
+      }]
+    : pickupGroups.map((group, index) => {
+        const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
+
+        return {
+          key: group.key,
+          dateLabel: representativePickup
+            ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime) ?? "Date pending"
+            : "Date pending",
+          timeLabel: representativePickup
+            ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+            : null,
+          location: representativePickup?.pickupLocation ?? null,
+          summary: summarizeGroupedOrderItems(group.itemSummary) || timeline.items,
+          secondary: openOrder.inHouseAssignee && group.scope === "alteration"
+            ? `Assigned to ${openOrder.inHouseAssignee.name}`
+            : null,
+        };
+      });
+  const statusRows: OpenOrdersStatusRow[] = isReadyVariant
+    ? [{
+        key: `ready-status-${openOrder.id}`,
+        label: readyStatusSummary.primary.label,
+        tone: readyStatusSummary.primary.tone,
+        secondary: readyStatusSummary.secondary,
+      }]
+    : pickupGroups.map((group, index) => {
+        const scopedStatus = getStatusForScope(openOrder, group.scope);
+
+        return {
+          key: `${group.key}-status`,
+          label: getGroupedStatusLabel(openOrder, index, scopedStatus.label),
+          tone: scopedStatus.tone,
+        };
+      });
+  const actionRows: OpenOrdersActionRow[] = isReadyVariant
+    ? [{ key: `ready-action-${openOrder.id}` }]
+    : pickupGroups.map((group) => ({
+        key: `${group.key}-action`,
+        label: group.actionPickupIds.length ? "Ready" : undefined,
+        onClick: group.actionPickupIds.length
+          ? () => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)
+          : undefined,
+      }));
   const handleOpen = () => onOpenOrderDetails(openOrder.id);
   const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -177,205 +233,73 @@ export function AllOrdersRow({
       <div className="space-y-3 min-[1000px]:hidden">
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0">
-            <div className="app-text-value min-w-0">{openOrder.payerName}</div>
-            <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-            <div className="app-text-body-muted mt-1.5 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+            <OpenOrdersIdentitySection
+              payerName={openOrder.payerName}
+              orderId={openOrder.id}
+              createdAt={openOrder.createdAt}
+              workflowLabel={workflowLabel}
+              compactDesktop
+            />
           </div>
-          <div className="shrink-0 text-right">
-            <div className="text-[1.125rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-              {formatWorklistTotal(openOrder.total)}
-            </div>
-            <div className="mt-1">
-              <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>
-                {getWorklistPaymentLabel(openOrder.balanceDue)}
-              </span>
-            </div>
-          </div>
+          <OpenOrdersTotalSection total={openOrder.total} balanceDue={openOrder.balanceDue} amountClassName="text-[1.125rem]" />
         </div>
 
         {isReadyVariant ? (
-          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2.5 border-t border-[var(--app-border)]/35 pt-3">
-            <div className="min-w-0">
-              <div className="app-text-body font-medium">
-                <span className="inline-flex items-center gap-1.5">
-                  <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                  <span>{readyPickupSummary.locations}</span>
-                </span>
+          <OpenOrdersMobileReadyStatusLayout
+            left={(
+              <div className="min-w-0">
+                <div className="app-text-body font-medium">
+                  <span className="inline-flex items-center gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                    <span>{readyPickupSummary.locations}</span>
+                  </span>
+                </div>
+                {readyPickupSummary.scheduleSummary ? (
+                  <div className="app-text-caption mt-1.5">{readyPickupSummary.scheduleSummary}</div>
+                ) : null}
               </div>
-              {readyPickupSummary.scheduleSummary ? (
-                <div className="app-text-caption mt-1.5">{readyPickupSummary.scheduleSummary}</div>
-              ) : null}
-            </div>
-            <div className="min-w-[5.25rem] text-right">
-              <div className="text-[0.8rem] font-semibold leading-tight text-[var(--app-success-text)]">
-                {readyStatusSummary.primary.label}
+            )}
+            right={(
+              <div className="min-w-[5.25rem] text-right">
+                <div className="text-[0.8rem] font-semibold leading-tight text-[var(--app-success-text)]">
+                  {readyStatusSummary.primary.label}
+                </div>
+                {readyStatusSummary.secondary ? (
+                  <div className="app-text-caption mt-1">{readyStatusSummary.secondary}</div>
+                ) : null}
               </div>
-              {readyStatusSummary.secondary ? (
-                <div className="app-text-caption mt-1">{readyStatusSummary.secondary}</div>
-              ) : null}
-            </div>
-          </div>
+            )}
+          />
         ) : null}
       </div>
 
       <div className="hidden min-[1000px]:contents">
-        <div className="min-w-0">
-          <div className="app-text-value min-w-0">{openOrder.payerName}</div>
-          <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
-          <div className="app-text-body-muted mt-2 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
-        </div>
+        <OpenOrdersIdentitySection
+          payerName={openOrder.payerName}
+          orderId={openOrder.id}
+          createdAt={openOrder.createdAt}
+          workflowLabel={workflowLabel}
+        />
         {isReadyVariant ? null : (
           <>
-          <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">Ready by</div>
-            <div className="mt-1 min-[1000px]:mt-0">
-            {pickupGroups.map((group, index) => {
-              const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
-              const dateLabel = representativePickup
-                ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-                : null;
-              const timeLabel = representativePickup
-                ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-                : null;
-              const location = representativePickup?.pickupLocation ?? "";
-              const scopedStatus = getStatusForScope(openOrder, group.scope);
-              const statusLabel = getGroupedStatusLabel(openOrder, index, scopedStatus.label);
-              const statusTone = scopedStatus.tone;
-
-              return (
-                <div
-                  key={group.key}
-                  className={cx(
-                    "min-w-0 py-2.5",
-                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
-                  )}
-                >
-                  <div className="min-w-0">
-                    <div className="mt-0 flex flex-wrap items-center gap-2">
-                      <div className="app-text-body font-medium">
-                        {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
-                      </div>
-                      {location ? (
-                        <div className="app-text-caption inline-flex items-center gap-1.5">
-                          <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                          <span>{location}</span>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="app-text-caption mt-1">
-                      {summarizeGroupedOrderItems(group.itemSummary) || timeline.items}
-                    </div>
-                    {openOrder.inHouseAssignee && group.scope === "alteration" ? (
-                      <div className="app-text-caption mt-1">Assigned to {openOrder.inHouseAssignee.name}</div>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-            </div>
-          </div>
-          <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">Status</div>
-            <div className="mt-1 min-[1000px]:mt-0">
-              {pickupGroups.map((group, index) => {
-                const scopedStatus = getStatusForScope(openOrder, group.scope);
-                const statusLabel = getGroupedStatusLabel(openOrder, index, scopedStatus.label);
-                const statusTone = scopedStatus.tone;
-
-                return (
-                  <div
-                    key={`${group.key}-status`}
-                    className={cx(
-                      "flex min-h-14 flex-col items-start justify-center py-2.5",
-                      index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
-                    )}
-                  >
-                    <div className={getOrdersStatusTextClassName(statusTone)}>{statusLabel}</div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-          <div className="min-w-0">
-            <div className="mt-1 min-[1000px]:mt-0">
-              {pickupGroups.map((group, index) => (
-                <div
-                  key={`${group.key}-action`}
-                  className={cx(
-                    "flex min-h-14 items-center justify-start py-2.5",
-                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
-                  )}
-                >
-                  {group.actionPickupIds.length ? (
-                    <ActionButton
-                      tone="primary"
-                      className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
-                      }}
-                    >
-                      Ready
-                    </ActionButton>
-                  ) : null}
-                </div>
-              ))}
-            </div>
-          </div>
+            <OpenOrdersReadyBySection groups={readyByGroups} />
+            <OpenOrdersStatusSection rows={statusRows} />
+            <OpenOrdersActionSection rows={actionRows} />
           </>
         )}
         {isReadyVariant ? (
           <>
-          <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">Ready by</div>
-            <div className="app-text-body mt-1 font-medium">
-              <span className="inline-flex items-center gap-1.5">
-                <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                <span>{readyPickupSummary.locations}</span>
-              </span>
-            </div>
-            {readyPickupSummary.scheduleSummary ? (
-              <div className="app-text-caption mt-1">{readyPickupSummary.scheduleSummary}</div>
-            ) : null}
-          </div>
-          <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">Status</div>
-            <div className="mt-1 flex min-w-0 flex-col items-start gap-1.5">
-              <div className="text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]">
-                {readyStatusSummary.primary.label}
-              </div>
-              {readyStatusSummary.secondary ? (
-                <div className="app-text-caption text-left">{readyStatusSummary.secondary}</div>
-              ) : null}
-            </div>
-          </div>
+            <OpenOrdersReadyBySection groups={readyByGroups} />
+            <OpenOrdersStatusSection rows={statusRows} />
           <div className="min-w-0" />
-          <div className="min-w-0 text-left min-[1000px]:text-right">
-            <div className="app-text-overline min-[1000px]:hidden">Total</div>
-            <div className="pt-1 min-[1000px]:pt-0">
-              <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-                {formatWorklistTotal(openOrder.total)}
-              </div>
-            </div>
-            <div className="mt-1.5">
-              <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>
-                {getWorklistPaymentLabel(openOrder.balanceDue)}
-              </span>
-            </div>
-          </div>
+            <OpenOrdersTotalSection
+              total={openOrder.total}
+              balanceDue={openOrder.balanceDue}
+              className="pt-1 min-[1000px]:pt-0 min-[1000px]:text-right"
+            />
           </>
         ) : (
-          <div className="min-w-0 text-left md:text-right">
-          <div className="app-text-overline min-[1000px]:hidden">Total</div>
-          <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-            {formatWorklistTotal(openOrder.total)}
-          </div>
-          <div className="mt-1.5">
-            <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>
-              {getWorklistPaymentLabel(openOrder.balanceDue)}
-            </span>
-          </div>
-          </div>
+          <OpenOrdersTotalSection total={openOrder.total} balanceDue={openOrder.balanceDue} />
         )}
       </div>
       <RowChevronAffordance />

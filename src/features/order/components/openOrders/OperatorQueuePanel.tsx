@@ -1,7 +1,7 @@
 import { ChevronDown, ClipboardList, MapPin, UserRoundCheck } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type { OpenOrder, OpenOrderPickup, StaffMember } from "../../../../types";
-import { ActionButton, EmptyState, RowChevronAffordance, SurfaceHeader, cx } from "../../../../components/ui/primitives";
+import { ActionButton, EmptyState, RowChevronAffordance, cx } from "../../../../components/ui/primitives";
 import {
   formatOpenOrderCreatedAt,
   getInHouseOpenOrderPickups,
@@ -15,6 +15,8 @@ import {
   type OperatorQueueStageKey,
 } from "../../selectors";
 import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
+import { getWorkflowSummaryLabel } from "./openOrdersFormatting";
+import { OpenOrdersPanelHeader, openOrdersSectionClassName } from "./openOrdersLayout";
 
 const stageMeta: Array<{
   key: OperatorQueueStageKey;
@@ -37,18 +39,6 @@ const stageMeta: Array<{
     subtitle: "Work already underway in-house.",
   },
 ];
-
-function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
-  if (orderType === "mixed") {
-    return "Alteration + Custom Garment";
-  }
-
-  if (orderType === "custom") {
-    return "Custom Garment";
-  }
-
-  return "Alteration";
-}
 
 export function OperatorQueueSummary({
   stageCounts,
@@ -463,13 +453,10 @@ function OperatorQueueStageSection({
   return (
     <div id={`operator-queue-${stageKey}`} className="app-work-surface scroll-mt-6">
       <div className="px-4 py-4">
-        <SurfaceHeader
+        <OpenOrdersPanelHeader
           icon={ClipboardList}
           title={title}
           subtitle={subtitle}
-          className="pb-3"
-          titleClassName="app-text-value"
-          subtitleClassName="app-text-caption"
         />
       </div>
       <div className="border-t border-[var(--app-border)]/45">
@@ -477,7 +464,7 @@ function OperatorQueueStageSection({
         {openOrders.map((openOrder, index) => (
           <div
             key={openOrder.id}
-            className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+            className={openOrdersSectionClassName(index > 0)}
           >
             <OperatorQueueRow
               openOrder={openOrder}
@@ -525,13 +512,10 @@ export function OperatorQueuePanel({
     return (
       <div className="app-work-surface">
         <div className="px-4 py-4">
-          <SurfaceHeader
+          <OpenOrdersPanelHeader
             icon={UserRoundCheck}
-        title="Alterations"
-        subtitle="In-house orders will show up here once they are accepted."
-            className="pb-3"
-            titleClassName="app-text-value"
-            subtitleClassName="app-text-caption"
+            title="Alterations"
+            subtitle="In-house orders will show up here once they are accepted."
           />
         </div>
         <div className="border-t border-[var(--app-border)]/45">
