@@ -1,4 +1,4 @@
-import { ChevronDown, ClipboardList, MapPin, PlayCircle, UserRoundCheck } from "lucide-react";
+import { ChevronDown, ClipboardList, MapPin, UserRoundCheck } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type { OpenOrder, OpenOrderPickup, StaffMember } from "../../../../types";
 import { ActionButton, EmptyState, RowChevronAffordance, SurfaceHeader, cx } from "../../../../components/ui/primitives";
@@ -50,22 +50,60 @@ function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
   return "Alteration";
 }
 
-function OperatorQueueSummary({
+export function OperatorQueueSummary({
   stageCounts,
 }: {
   stageCounts: OperatorQueueStageCounts;
 }) {
+  const handleStageJump = (stageKey: OperatorQueueStageKey) => {
+    const target = document.getElementById(`operator-queue-${stageKey}`);
+    if (!target) {
+      return;
+    }
+
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
   return (
-    <div className="grid gap-3 md:grid-cols-2 min-[1000px]:grid-cols-3">
-      {stageMeta.map((stage) => (
-        <div key={stage.key} className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface-subtle)] px-4 py-3">
-          <div className="app-text-overline">{stage.title}</div>
-          <div className="mt-2 text-[1.5rem] font-semibold leading-none tracking-[-0.02em] text-[var(--app-text)]">
-            {stageCounts[stage.key]}
-          </div>
-          <div className="app-text-caption mt-2">{stage.subtitle}</div>
-        </div>
-      ))}
+    <div className="overflow-hidden rounded-[calc(var(--app-radius-md)+0.125rem)] border border-[var(--app-border)]/50 bg-[rgba(246,242,234,0.75)] shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_28px_rgba(15,23,42,0.04)]">
+      <div className="grid grid-cols-3 gap-px sm:gap-0">
+        {stageMeta.map((stage, index) => (
+          <button
+            key={stage.key}
+            type="button"
+            onClick={() => handleStageJump(stage.key)}
+            className={cx(
+              "flex min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center transition-[transform,box-shadow,filter] duration-150 hover:z-[1] hover:brightness-[0.99] focus-visible:z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-primary)]/35 active:translate-y-px sm:items-stretch sm:justify-between sm:gap-0 sm:px-4 sm:py-3 sm:text-left",
+              stage.key === "needs_assignment" && "bg-[rgba(248,237,223,0.95)]",
+              stage.key === "ready_to_start" && "bg-[rgba(223,230,244,0.98)]",
+              stage.key === "in_progress" && "bg-[rgba(231,239,231,0.94)]",
+              index > 0 && "border-l border-white/40 sm:border-l sm:border-t-0",
+            )}
+            aria-label={`Jump to ${stage.title.toLowerCase()} section`}
+          >
+            <div className="flex min-h-[1.75rem] items-center justify-center min-w-0 sm:min-h-0 sm:items-start sm:justify-between sm:gap-3">
+              <div className="min-w-0 sm:pt-0.5">
+                <div className="app-text-overline text-[0.52rem] leading-[1.15] text-[var(--app-text-muted)]/90 sm:mb-1 sm:text-[0.58rem] sm:leading-[1.05]">
+                  {stage.title}
+                </div>
+                <div className="app-text-caption mt-1 hidden text-[var(--app-text-muted)]/80 sm:mt-0 sm:block sm:line-clamp-1">
+                  {stage.subtitle}
+                </div>
+              </div>
+              <div className="hidden shrink-0 sm:flex sm:items-center sm:justify-end">
+                <div className="flex h-9 min-w-9 items-center justify-center rounded-full border border-black/5 bg-white/82 px-3 text-[1.35rem] font-semibold leading-none tracking-[-0.05em] text-[var(--app-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] [font-variant-numeric:tabular-nums]">
+                  {stageCounts[stage.key]}
+                </div>
+              </div>
+            </div>
+            <div className="flex justify-center sm:hidden">
+              <div className="flex h-5 min-w-5 items-center justify-center rounded-full border border-black/5 bg-white/78 px-1.5 text-[0.9rem] font-semibold leading-none tracking-[-0.04em] text-[var(--app-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] [font-variant-numeric:tabular-nums] sm:h-auto sm:min-w-0 sm:px-3 sm:py-2 sm:text-[1.4rem]">
+                {stageCounts[stage.key]}
+              </div>
+            </div>
+          </button>
+        ))}
+      </div>
     </div>
   );
 }
@@ -391,6 +429,7 @@ function OperatorQueueRow({
 }
 
 function OperatorQueueStageSection({
+  stageKey,
   title,
   subtitle,
   openOrders,
@@ -400,6 +439,7 @@ function OperatorQueueStageSection({
   onRequestMarkOpenOrderPickupReady,
   onOpenOrderDetails,
 }: {
+  stageKey: OperatorQueueStageKey;
   title: string;
   subtitle: string;
   openOrders: OpenOrder[];
@@ -414,7 +454,7 @@ function OperatorQueueStageSection({
   }
 
   return (
-    <div className="app-work-surface">
+    <div id={`operator-queue-${stageKey}`} className="app-work-surface scroll-mt-6">
       <div className="px-4 py-4">
         <SurfaceHeader
           icon={ClipboardList}
@@ -449,7 +489,6 @@ function OperatorQueueStageSection({
 
 export function OperatorQueuePanel({
   openOrders,
-  stageCounts: _stageCounts,
   inHouseTailors,
   onAssignOpenOrderTailor,
   onStartOpenOrderWork,
@@ -457,7 +496,6 @@ export function OperatorQueuePanel({
   onOpenOrderDetails,
 }: {
   openOrders: OpenOrder[];
-  stageCounts: OperatorQueueStageCounts;
   inHouseTailors: StaffMember[];
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
   onStartOpenOrderWork: (openOrderId: number) => void;
@@ -499,35 +537,21 @@ export function OperatorQueuePanel({
   }
 
   return (
-    <div className="space-y-4">
-      <div className="app-control-deck px-4 py-4">
-        <SurfaceHeader
-          icon={PlayCircle}
-          title="Alterations"
-          subtitle="Assign accepted orders, start the work, and move finished pieces to ready."
-          titleClassName="app-text-value"
-          subtitleClassName="app-text-caption"
+    <div className="space-y-4 pt-1">
+      {stageMeta.map((stage) => (
+        <OperatorQueueStageSection
+          key={stage.key}
+          stageKey={stage.key}
+          title={stage.title}
+          subtitle={stage.subtitle}
+          openOrders={ordersByStage[stage.key]}
+          inHouseTailors={inHouseTailors}
+          onAssignOpenOrderTailor={onAssignOpenOrderTailor}
+          onStartOpenOrderWork={onStartOpenOrderWork}
+          onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
+          onOpenOrderDetails={onOpenOrderDetails}
         />
-        <div className="mt-4">
-          <OperatorQueueSummary stageCounts={visibleStageCounts} />
-        </div>
-      </div>
-
-      <div className="space-y-4">
-        {stageMeta.map((stage) => (
-          <OperatorQueueStageSection
-            key={stage.key}
-            title={stage.title}
-            subtitle={stage.subtitle}
-            openOrders={ordersByStage[stage.key]}
-            inHouseTailors={inHouseTailors}
-            onAssignOpenOrderTailor={onAssignOpenOrderTailor}
-            onStartOpenOrderWork={onStartOpenOrderWork}
-            onRequestMarkOpenOrderPickupReady={onRequestMarkOpenOrderPickupReady}
-            onOpenOrderDetails={onOpenOrderDetails}
-          />
-        ))}
-      </div>
+      ))}
     </div>
   );
 }

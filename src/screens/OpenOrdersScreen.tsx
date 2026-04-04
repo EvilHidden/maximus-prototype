@@ -1,5 +1,6 @@
 import type { ClosedOrderHistoryItem, OpenOrder, PickupLocation, StaffMember } from "../types";
 import { OpenOrdersBody, OpenOrdersControls, OpenOrdersHeader } from "../features/order/components/OpenOrdersPanels";
+import { OperatorQueueSummary } from "../features/order/components/openOrders/OperatorQueuePanel";
 import { useOpenOrdersView } from "../features/order/hooks/useOpenOrdersView";
 
 type OpenOrdersScreenProps = {
@@ -56,6 +57,12 @@ export function OpenOrdersScreen({
       <div className="space-y-5">
         <OpenOrdersHeader subtitle={activeSubtitle} onStartNewOrder={onStartNewOrder} />
 
+        {activeView === "operator" ? (
+          <div className="app-work-surface px-2.5 py-2.5 min-[1000px]:px-4 min-[1000px]:py-3">
+            <OperatorQueueSummary stageCounts={operatorQueueCounts} />
+          </div>
+        ) : null}
+
         <OpenOrdersControls
           activeView={activeView}
           onViewChange={setActiveView}
@@ -97,7 +104,6 @@ export function OpenOrdersScreen({
         filteredReadyOrders={filteredReadyOrders}
         filteredOperatorOrders={filteredOperatorOrders}
         filteredFactoryOrders={filteredFactoryOrders}
-        operatorQueueCounts={operatorQueueCounts}
         filteredHistoryItems={filteredHistoryItems}
         inHouseTailors={inHouseTailors}
         onAssignOpenOrderTailor={onAssignOpenOrderTailor}
