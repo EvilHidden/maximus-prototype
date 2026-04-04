@@ -2,7 +2,7 @@ import { ChevronLeft, ChevronRight } from "lucide-react";
 import { ActionButton, Surface, cx } from "../../../components/ui/primitives";
 import type { Appointment } from "../../../types";
 import { getAppointmentDateKey } from "../selectors";
-import { AppointmentsScheduleRail } from "./AppointmentsScheduleRail";
+import { AppointmentsScheduleList } from "./AppointmentsScheduleList";
 
 type AppointmentsMobileAgendaProps = {
   anchorDate: Date;
@@ -34,6 +34,83 @@ function getMonthDays(anchorDate: Date) {
   return Array.from({ length: totalDays }, (_, index) => new Date(year, month, index + 1));
 }
 
+function getRelativeDayLabel(dateKey: string, todayKey: string) {
+  if (dateKey === todayKey) {
+    return "Today";
+  }
+
+  const selectedDate = new Date(`${dateKey}T12:00:00`);
+  const todayDate = new Date(`${todayKey}T12:00:00`);
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(todayDate.getDate() + 1);
+
+  if (selectedDate.toDateString() === tomorrowDate.toDateString()) {
+    return "Tomorrow";
+  }
+
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(selectedDate);
+}
+
+function getCompactDateLabel(dateKey: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "short",
+    month: "short",
+    day: "numeric",
+  }).format(new Date(`${dateKey}T12:00:00`));
+}
+
+function getFullDateLabel(dateKey: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "long",
+    day: "numeric",
+  }).format(new Date(`${dateKey}T12:00:00`));
+}
+
+function getContextLabel(dateKey: string, todayKey: string) {
+  if (dateKey === todayKey) {
+    return "Today";
+  }
+
+  const selectedDate = new Date(`${dateKey}T12:00:00`);
+  const todayDate = new Date(`${todayKey}T12:00:00`);
+  const tomorrowDate = new Date(todayDate);
+  tomorrowDate.setDate(todayDate.getDate() + 1);
+
+  return selectedDate.toDateString() === tomorrowDate.toDateString() ? "Tomorrow" : null;
+}
+
+function getNextAppointmentGroup(appointments: Appointment[], selectedDateKey: string | null) {
+  if (!selectedDateKey) {
+    return null;
+  }
+
+  const groups = new Map<string, Appointment[]>();
+
+  appointments.forEach((appointment) => {
+    const dateKey = getAppointmentDateKey(appointment);
+    const currentGroup = groups.get(dateKey);
+    if (currentGroup) {
+      currentGroup.push(appointment);
+      return;
+    }
+
+    groups.set(dateKey, [appointment]);
+  });
+
+  for (const [dateKey, groupAppointments] of groups.entries()) {
+    if (dateKey > selectedDateKey) {
+      return { dateKey, appointments: groupAppointments };
+    }
+  }
+
+  return null;
+}
+
 export function AppointmentsMobileAgenda({
   anchorDate,
   monthLabel,
@@ -49,14 +126,16 @@ export function AppointmentsMobileAgenda({
   onOpenReschedule,
 }: AppointmentsMobileAgendaProps) {
   const monthDays = getMonthDays(anchorDate);
+  const selectedDayTitle = selectedDateKey ? getCompactDateLabel(selectedDateKey) : railSubtitle;
+  const selectedDayContext = selectedDateKey ? getContextLabel(selectedDateKey, todayKey) : null;
+  const nextAppointmentGroup = getNextAppointmentGroup(appointments, selectedDateKey);
 
   return (
-    <div className="space-y-3 md:hidden">
-      <Surface tone="work" className="p-3.5">
+    <div className="md:hidden">
+      <Surface tone="work" className="overflow-hidden p-3.5">
         <div className="flex items-start justify-between gap-3">
           <div>
             <div className="app-text-value">{monthLabel}</div>
-            <div className="app-text-caption mt-1">Choose a day to view appointments.</div>
           </div>
           <div className="flex items-center gap-1.5">
             <ActionButton
@@ -85,7 +164,7 @@ export function AppointmentsMobileAgenda({
           </div>
         </div>
 
-        <div className="-mx-1 mt-3 overflow-x-auto pb-1 app-no-scrollbar">
+        <div className="-mx-1 mt-2.5 overflow-x-auto pb-1 app-no-scrollbar">
           <div className="flex min-w-max gap-2 px-1">
             {monthDays.map((day) => {
               const dayKey = toDateKey(day);
@@ -107,8 +186,15 @@ export function AppointmentsMobileAgenda({
                         : "border-[var(--app-border)]/70 bg-[var(--app-surface-muted)]/26",
                   )}
                 >
-                  <div className="app-text-overline">{new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(day)}</div>
-                  <div className={cx("text-[1rem] font-semibold leading-none", isSelected || isToday ? "text-[var(--app-text)]" : "text-[var(--app-text-muted)]")}>
+                  <div className="app-text-overline">
+                    {new Intl.DateTimeFormat("en-US", { weekday: "short" }).format(day)}
+                  </div>
+                  <div
+                    className={cx(
+                      "text-[1rem] font-semibold leading-none",
+                      isSelected || isToday ? "text-[var(--app-text)]" : "text-[var(--app-text-muted)]",
+                    )}
+                  >
                     {day.getDate()}
                   </div>
                   <div className="app-text-caption mt-0.5">
@@ -119,19 +205,65 @@ export function AppointmentsMobileAgenda({
             })}
           </div>
         </div>
-      </Surface>
 
-      <AppointmentsScheduleRail
-        title="Day schedule"
-        railAppointments={railAppointments}
-        selectedDateKey={selectedDateKey}
-        railSubtitle={railSubtitle}
-        onShowAll={() => {}}
-        onOpenReschedule={onOpenReschedule}
-        showShowAllButton={false}
-        tone="work"
-        className="h-auto"
-      />
+        <div className="mt-3 border-t border-[var(--app-border)]/45 pt-3">
+          <div className="flex items-start justify-between gap-3 border-b border-[var(--app-border)]/35 pb-3">
+            <div>
+              <div className="app-text-overline text-[var(--app-text-soft)]/72">Selected day</div>
+              <div className="app-text-value mt-1">{selectedDayTitle}</div>
+              {selectedDayContext ? <div className="app-text-caption mt-0.75">{selectedDayContext}</div> : null}
+            </div>
+            <div className="app-text-caption mt-1 shrink-0">
+              {railAppointments.length} booked
+            </div>
+          </div>
+
+          <div className="mt-2.5">
+            <AppointmentsScheduleList
+              railAppointments={railAppointments}
+              selectedDateKey={selectedDateKey}
+              railSubtitle={railSubtitle}
+              onShowAll={() => {}}
+              onOpenReschedule={onOpenReschedule}
+              showShowAllButton={false}
+              tone="work"
+              embedded
+              headerless
+            />
+          </div>
+
+          {nextAppointmentGroup ? (
+            <div className="mt-3 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/30 bg-[var(--app-surface-muted)]/42 px-3 py-3">
+              <div className="flex items-start justify-between gap-3 border-b border-[var(--app-border)]/28 pb-3">
+                <div>
+                  <div className="app-text-overline text-[var(--app-text-soft)]/68">Upcoming</div>
+                  <div className="app-text-strong mt-1 text-[0.92rem]">{getCompactDateLabel(nextAppointmentGroup.dateKey)}</div>
+                  {getContextLabel(nextAppointmentGroup.dateKey, todayKey) ? (
+                    <div className="app-text-caption mt-0.75">{getContextLabel(nextAppointmentGroup.dateKey, todayKey)}</div>
+                  ) : null}
+                </div>
+                <div className="app-text-caption mt-1 shrink-0">
+                  {nextAppointmentGroup.appointments.length} booked
+                </div>
+              </div>
+
+              <div className="mt-2.5">
+                <AppointmentsScheduleList
+                  railAppointments={nextAppointmentGroup.appointments}
+                  selectedDateKey={nextAppointmentGroup.dateKey}
+                  railSubtitle={getFullDateLabel(nextAppointmentGroup.dateKey)}
+                  onShowAll={() => {}}
+                  onOpenReschedule={onOpenReschedule}
+                  showShowAllButton={false}
+                  tone="work"
+                  embedded
+                  headerless
+                />
+              </div>
+            </div>
+          ) : null}
+        </div>
+      </Surface>
     </div>
   );
 }

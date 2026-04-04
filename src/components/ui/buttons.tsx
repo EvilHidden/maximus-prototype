@@ -98,7 +98,7 @@ export function SelectionChip({
         "inline-flex items-center gap-2 border transition",
         sizeClassName,
         selected
-          ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
+          ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[inset_0_0_0_1px_var(--app-border-strong)]"
           : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)]",
         className,
       )}

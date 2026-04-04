@@ -12,7 +12,7 @@ import { AppointmentsCalendar } from "../features/appointments/components/Appoin
 import { AppointmentsMobileAgenda } from "../features/appointments/components/AppointmentsMobileAgenda";
 import { ConfirmAppointmentCancelModal } from "../features/appointments/components/ConfirmAppointmentCancelModal";
 import { AppointmentsRegistry } from "../features/appointments/components/AppointmentsRegistry";
-import { AppointmentsScheduleRail } from "../features/appointments/components/AppointmentsScheduleRail";
+import { AppointmentsScheduleList } from "../features/appointments/components/AppointmentsScheduleList";
 import {
   compareAppointments,
   getAppointmentDateKey,
@@ -108,6 +108,43 @@ export function AppointmentsScreen({
         day: "numeric",
       }).format(new Date(`${selectedDateKey}T12:00:00`))
     : "Appointments";
+  const locationSelectionChips = (
+    <>
+      <SelectionChip
+        selected={allLocationsActive}
+        onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
+        leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+        size="sm"
+        className="shrink-0"
+      >
+        All
+      </SelectionChip>
+      {pickupLocations.map((location) => {
+        const isActive = activeLocations.includes(location);
+
+        return (
+          <SelectionChip
+            key={location}
+            selected={isActive}
+            onClick={() => {
+              setActiveLocations((current) => {
+                if (current.includes(location)) {
+                  return current.filter((value) => value !== location);
+                }
+
+                return [...current, location];
+              });
+            }}
+            leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
+            size="sm"
+            className="shrink-0"
+          >
+            {location}
+          </SelectionChip>
+        );
+      })}
+    </>
+  );
 
   return (
     <div className="space-y-3.5">
@@ -130,7 +167,7 @@ export function AppointmentsScreen({
         }
       />
 
-      <div className="app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5">
+      <div className="hidden app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5 md:block">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <SelectionChip
@@ -149,49 +186,28 @@ export function AppointmentsScreen({
             </SelectionChip>
           </div>
 
-          <div className="hidden h-6 w-px bg-[var(--app-border)]/35 md:block" />
+          <div className="h-6 w-px bg-[var(--app-border)]/35" />
 
           <div className="shrink-0">
             <div className="app-text-overline">View locations</div>
           </div>
-          <div className="flex min-w-0 basis-full flex-wrap gap-1.5 md:basis-auto md:flex-1">
-            <SelectionChip
-              selected={allLocationsActive}
-              onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
-              leading={allLocationsActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-              size="sm"
-            >
-              All locations
-            </SelectionChip>
-            {pickupLocations.map((location) => {
-              const isActive = activeLocations.includes(location);
+          <div className="flex min-w-0 basis-auto flex-1 flex-wrap gap-1.5">
+            {locationSelectionChips}
+          </div>
+        </div>
+      </div>
 
-              return (
-                <SelectionChip
-                  key={location}
-                  selected={isActive}
-                  onClick={() => {
-                    setActiveLocations((current) => {
-                      if (current.includes(location)) {
-                        return current.filter((value) => value !== location);
-                      }
-
-                      return [...current, location];
-                    });
-                  }}
-                  leading={isActive ? <CheckSquare2 className="h-4 w-4" /> : <Square className="h-4 w-4" />}
-                  size="sm"
-                >
-                  {location}
-                </SelectionChip>
-              );
-            })}
+      <div className="app-control-deck px-4 py-3 md:hidden">
+        <div className="space-y-2.5">
+          <div className="app-text-overline px-0.5 text-[var(--app-text-soft)]/62">Filter locations</div>
+          <div className="-mx-1 overflow-x-auto px-1 py-1 app-no-scrollbar">
+            <div className="flex gap-2.5">{locationSelectionChips}</div>
           </div>
         </div>
       </div>
 
       {viewMode === "list" ? (
-        <div className="app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5">
+        <div className="hidden app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5 md:block">
           <div className="pt-1">
             <div className="flex flex-wrap items-end gap-3">
               <SearchField
@@ -224,40 +240,40 @@ export function AppointmentsScreen({
         </div>
       ) : null}
 
-      {viewMode === "calendar" ? (
-        <>
-          <AppointmentsMobileAgenda
-            anchorDate={anchorDate}
-            monthLabel={monthLabel}
-            selectedDateKey={selectedDateKey}
-            railSubtitle={railSubtitle}
-            todayKey={todayKey}
-            appointments={filteredAppointments}
-            railAppointments={railAppointments}
-            onSelectDate={setSelectedDateKey}
-            onPreviousMonth={() => {
-              const nextDate = new Date(anchorDate);
-              nextDate.setMonth(nextDate.getMonth() - 1);
-              setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
-            }}
-            onToday={() => {
-              setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
-              setSelectedDateKey(todayKey);
-            }}
-            onNextMonth={() => {
-              const nextDate = new Date(anchorDate);
-              nextDate.setMonth(nextDate.getMonth() + 1);
-              setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
-            }}
-            onOpenReschedule={(appointment) => {
-              setEditingAppointmentId(appointment.id);
-              setComposerQuery("");
-              setComposerState(getComposerStateForAppointment(appointment));
-              setComposerOpen(true);
-            }}
-          />
+      <AppointmentsMobileAgenda
+        anchorDate={anchorDate}
+        monthLabel={monthLabel}
+        selectedDateKey={selectedDateKey}
+        railSubtitle={railSubtitle}
+        todayKey={todayKey}
+        appointments={filteredAppointments}
+        railAppointments={railAppointments}
+        onSelectDate={setSelectedDateKey}
+        onPreviousMonth={() => {
+          const nextDate = new Date(anchorDate);
+          nextDate.setMonth(nextDate.getMonth() - 1);
+          setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+        }}
+        onToday={() => {
+          setAnchorDate(new Date(today.getFullYear(), today.getMonth(), 1));
+          setSelectedDateKey(todayKey);
+        }}
+        onNextMonth={() => {
+          const nextDate = new Date(anchorDate);
+          nextDate.setMonth(nextDate.getMonth() + 1);
+          setAnchorDate(new Date(nextDate.getFullYear(), nextDate.getMonth(), 1));
+        }}
+        onOpenReschedule={(appointment) => {
+          setEditingAppointmentId(appointment.id);
+          setComposerQuery("");
+          setComposerState(getComposerStateForAppointment(appointment));
+          setComposerOpen(true);
+        }}
+      />
 
-          <div className="hidden md:grid app-page-with-support-rail">
+      {viewMode === "calendar" ? (
+        <div className="hidden md:block">
+          <div className="app-page-with-support-rail">
             <AppointmentsCalendar
               anchorDate={anchorDate}
               monthLabel={monthLabel}
@@ -281,7 +297,7 @@ export function AppointmentsScreen({
               }}
             />
 
-            <AppointmentsScheduleRail
+            <AppointmentsScheduleList
               railAppointments={railAppointments}
               selectedDateKey={selectedDateKey}
               railSubtitle={railSubtitle}
@@ -294,20 +310,22 @@ export function AppointmentsScreen({
               }}
             />
           </div>
-        </>
+        </div>
       ) : (
-        <AppointmentsRegistry
-          appointments={listAppointments}
-          customers={customers}
-          onOpenReschedule={(appointment) => {
-            setEditingAppointmentId(appointment.id);
-            setComposerQuery("");
-            setComposerState(getComposerStateForAppointment(appointment));
-            setComposerOpen(true);
-          }}
-          onConfirmAppointment={onConfirmAppointment}
-          onCancelAppointment={setCancelingAppointment}
-        />
+        <div className="hidden md:block">
+          <AppointmentsRegistry
+            appointments={listAppointments}
+            customers={customers}
+            onOpenReschedule={(appointment) => {
+              setEditingAppointmentId(appointment.id);
+              setComposerQuery("");
+              setComposerState(getComposerStateForAppointment(appointment));
+              setComposerOpen(true);
+            }}
+            onConfirmAppointment={onConfirmAppointment}
+            onCancelAppointment={setCancelingAppointment}
+          />
+        </div>
       )}
 
       <AppointmentComposerModal
