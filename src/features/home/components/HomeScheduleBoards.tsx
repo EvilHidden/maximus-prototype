@@ -695,20 +695,18 @@ export function HomeWorkboards({
         </div>
       </div>
 
-      <div className="app-home-workboard app-home-workboard--pickups pt-4">
-        <div className="px-4">
-          <WorkSurfaceHeader
-            icon={Package}
-            title="Ready for pickup"
-            subtitle="Anything ready and still waiting to be collected"
-            count={visiblePickupCount}
-            countLabel="pickups"
-            tone="success"
-            flatIcon
-          />
-        </div>
+      <div className="app-home-workboard app-home-workboard--pickups p-4">
+        <WorkSurfaceHeader
+          icon={Package}
+          title="Ready for pickup"
+          subtitle="Anything ready and still waiting to be collected"
+          count={visiblePickupCount}
+          countLabel="pickups"
+          tone="success"
+          flatIcon
+        />
 
-        <div className="app-table-shell app-home-pickup-list mt-3">
+        <div className="app-table-shell app-home-pickup-list mt-4">
           <ScrollableLaneBody
             itemCount={readyPickups.length}
             emptyState={
