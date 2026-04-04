@@ -213,17 +213,17 @@ export function MeasurementsScreen({
                   <div className="flex flex-wrap items-start justify-between gap-4">
                     <div className="min-w-0">
                       <div className="app-text-overline">Current field</div>
-                      <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] sm:text-[1.45rem] xl:text-[1.5rem]">
+                      <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] md:text-[1.45rem] min-[1000px]:text-[1.5rem]">
                         {activeField || "Choose a field"}
                       </div>
                       <div className="app-text-caption mt-1">
                         {activeFieldHasValue ? "Adjust the value below if it needs a change." : "Tap below to enter inches."}
                       </div>
                     </div>
-                    <div className="min-w-[152px] text-left sm:text-right">
+                    <div className="min-w-[152px] text-left md:text-right">
                       <div className="app-text-overline">{activeFieldHasValue ? "Current value" : "Next step"}</div>
                       {activeFieldHasValue ? (
-                        <div className="mt-1 text-[1.85rem] font-semibold tracking-[-0.05em] text-[var(--app-text)] sm:text-[2.05rem] xl:text-[2.25rem]">
+                        <div className="mt-1 text-[1.85rem] font-semibold tracking-[-0.05em] text-[var(--app-text)] md:text-[2.05rem] min-[1000px]:text-[2.25rem]">
                           {formatMeasurementDisplayValue(activeFieldValue)} in
                         </div>
                       ) : (
@@ -235,7 +235,7 @@ export function MeasurementsScreen({
                       )}
                     </div>
                   </div>
-                  <div className="mt-3.5 flex min-h-[260px] items-center justify-center border-b border-[var(--app-border)]/36 pb-4 sm:min-h-[320px] xl:min-h-[332px]">
+                  <div className="mt-3.5 flex min-h-[260px] items-center justify-center border-b border-[var(--app-border)]/36 pb-4 md:min-h-[320px] min-[1000px]:min-h-[332px]">
                     <MeasurementBodyMap activeField={activeField} />
                   </div>
                 </section>
@@ -255,7 +255,7 @@ export function MeasurementsScreen({
                 <section className="mt-auto px-1 pt-3.5">
                   <div className="border-t border-[var(--app-border)]/36 pt-3.5">
                     <div className="mb-2.5 app-text-overline">Move through measurements</div>
-                    <div className="grid gap-2 sm:grid-cols-3">
+                    <div className="grid gap-2 md:grid-cols-3">
                       <ActionButton
                         tone="secondary"
                         className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"

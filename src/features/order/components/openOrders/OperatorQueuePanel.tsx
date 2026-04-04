@@ -56,7 +56,7 @@ function OperatorQueueSummary({
   stageCounts: OperatorQueueStageCounts;
 }) {
   return (
-    <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+    <div className="grid gap-3 md:grid-cols-2 min-[1000px]:grid-cols-3">
       {stageMeta.map((stage) => (
         <div key={stage.key} className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface-subtle)] px-4 py-3">
           <div className="app-text-overline">{stage.title}</div>
@@ -185,8 +185,8 @@ function TailorAssignmentControl({
 
 function OperatorQueueColumnHeader() {
   return (
-    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 lg:block">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] lg:items-center">
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 min-[1000px]:block">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-center">
         <div className="app-text-overline">Customer</div>
         <div className="app-text-overline">Ready by</div>
         <div className="app-text-overline">Assigned tailor</div>
@@ -228,23 +228,23 @@ function OperatorQueueRow({
 
   return (
     <div
-      className="group relative cursor-pointer px-4 py-4 pr-12 lg:pr-14"
+      className="group relative cursor-pointer px-4 py-4 pr-12 min-[1000px]:pr-14"
       role="button"
       tabIndex={0}
       onClick={handleOpen}
       onKeyDown={handleRowKeyDown}
     >
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] lg:items-start">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-start">
         <div className="min-w-0">
-          <div className="app-text-overline lg:hidden">Customer</div>
-          <div className="app-text-value mt-1 min-w-0 lg:mt-0">{openOrder.payerName}</div>
+          <div className="app-text-overline min-[1000px]:hidden">Customer</div>
+          <div className="app-text-value mt-1 min-w-0 min-[1000px]:mt-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
           <div className="app-text-body mt-2 text-[var(--app-text)]/82">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
         </div>
 
         <div className="min-w-0">
-          <div className="app-text-overline lg:hidden">Ready by</div>
-          <div className="mt-1 lg:mt-0">
+          <div className="app-text-overline min-[1000px]:hidden">Ready by</div>
+          <div className="mt-1 min-[1000px]:mt-0">
             {pickupGroups.map((group, index) => {
               const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
               const dateLabel = representativePickup
@@ -265,7 +265,7 @@ function OperatorQueueRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.5rem_4.75rem] lg:items-center",
+                    "grid min-w-0 gap-3 py-2.5 min-[1000px]:grid-cols-[minmax(0,1fr)_6.5rem_4.75rem] min-[1000px]:items-center",
                     index === 0 ? "pt-0" : "",
                   )}
                 >
@@ -324,8 +324,8 @@ function OperatorQueueRow({
         </div>
 
         <div className="min-w-0">
-          <div className="app-text-overline lg:hidden">Assigned tailor</div>
-          <div className="mt-1 lg:mt-0">
+          <div className="app-text-overline min-[1000px]:hidden">Assigned tailor</div>
+          <div className="mt-1 min-[1000px]:mt-0">
             <TailorAssignmentControl
               openOrder={openOrder}
               inHouseTailors={inHouseTailors}
@@ -334,9 +334,9 @@ function OperatorQueueRow({
           </div>
         </div>
 
-        <div className="min-w-0 text-left lg:text-right">
-          <div className="app-text-overline lg:hidden">Total</div>
-          <div className="mt-1 lg:mt-0">
+        <div className="min-w-0 text-left min-[1000px]:text-right">
+          <div className="app-text-overline min-[1000px]:hidden">Total</div>
+          <div className="mt-1 min-[1000px]:mt-0">
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(openOrder.total)}
             </div>

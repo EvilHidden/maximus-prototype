@@ -271,7 +271,7 @@ export function OrderDetailsScreen({
                 minute: "2-digit",
               }).format(new Date(openOrder.createdAt))}`}
               meta={(
-                <div className="app-detail-hero__meta text-left sm:text-right">
+                <div className="app-detail-hero__meta text-left md:text-right">
                   <div className="app-text-overline">
                     {hasReadyScopesToPickup && dueNow > 0
                       ? "Due today"
@@ -323,7 +323,7 @@ export function OrderDetailsScreen({
           ) : null}
 
           <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-            <div className="grid gap-4 xl:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
+            <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
               <div className="min-w-0">
                 <div className="app-text-overline">Customer</div>
                 <div className="mt-2 app-text-strong">{openOrder.payerName}</div>
@@ -388,7 +388,7 @@ export function OrderDetailsScreen({
                           </div>
                         </div>
                       </div>
-                      <div className="text-left sm:text-right">
+                      <div className="text-left md:text-right">
                         <div className="app-text-overline">Scope total</div>
                         <div className="mt-1 app-text-body font-semibold [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
                           {formatCheckoutCurrency(scopeAmount)}

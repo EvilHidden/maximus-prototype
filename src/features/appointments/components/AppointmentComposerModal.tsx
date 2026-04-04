@@ -259,7 +259,7 @@ export function AppointmentComposerModal({
         </div>
         </div>
 
-        <div className="grid gap-4 sm:grid-cols-[minmax(0,1fr),220px] sm:items-start">
+        <div className="grid gap-4 md:grid-cols-[minmax(0,1fr),220px] md:items-start">
           <div className="space-y-3">
             {!isPickup ? (
               <div className="space-y-2">

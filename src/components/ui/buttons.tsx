@@ -48,30 +48,30 @@ export function QuickActionTile({
 }: QuickActionTileProps) {
   const sizeClassName =
     size === "compact"
-      ? "min-h-[84px] px-3 py-3 sm:min-h-[88px] sm:px-3.25 sm:py-3.25 xl:min-h-[112px] xl:px-5 xl:py-4.5"
-      : "min-h-[92px] px-3.5 py-3.5 sm:min-h-[104px] sm:px-4 sm:py-4 lg:min-h-[112px] lg:px-5 lg:py-4.5";
+      ? "min-h-[84px] px-3 py-3 md:min-h-[100px] md:px-4 md:py-4"
+      : "min-h-[92px] px-3.5 py-3.5 md:min-h-[108px] md:px-4.5 md:py-4.5";
 
   return (
     <button
       onClick={onClick}
       className={cx(
-        "group flex flex-col justify-between gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] sm:gap-2.5",
+        "group flex flex-col justify-between gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] md:gap-2.5",
         sizeClassName,
         className,
       )}
     >
       <div className="flex items-start justify-between gap-3">
         <div
-          className="app-icon-chip h-9 w-9 shrink-0 transition group-hover:border-[var(--app-border-strong)] [&_svg]:h-4.5 [&_svg]:w-4.5 sm:h-10 sm:w-10 sm:[&_svg]:h-5 sm:[&_svg]:w-5"
+          className="app-icon-chip h-9 w-9 shrink-0 transition group-hover:border-[var(--app-border-strong)] [&_svg]:h-4.5 [&_svg]:w-4.5 md:h-10 md:w-10 md:[&_svg]:h-5 md:[&_svg]:w-5"
           style={iconStyle}
         >
           <Icon className="h-5 w-5" />
         </div>
-        <span className="app-text-overline hidden pt-1 text-[var(--app-text-soft)] sm:block">{metaLabel}</span>
+        <span className="app-text-overline hidden pt-1 text-[var(--app-text-soft)] md:block">{metaLabel}</span>
       </div>
       <div className="space-y-1 pt-0.5">
-        <div className="app-text-value text-[0.98rem] leading-tight sm:text-[1.02rem]">{title}</div>
-        <div className="app-text-caption max-w-[22ch] text-[0.73rem] sm:text-[0.76rem]">{subtitle}</div>
+        <div className="app-text-value text-[0.98rem] leading-tight md:text-[1.02rem]">{title}</div>
+        <div className="app-text-caption max-w-[22ch] text-[0.73rem] md:text-[0.76rem]">{subtitle}</div>
       </div>
     </button>
   );

@@ -25,7 +25,7 @@ export function CalendarDayCard({
       type="button"
       onClick={onClick}
       className={cx(
-        "flex min-h-[104px] flex-col items-stretch justify-start rounded-[var(--app-radius-md)] border px-2 py-1.5 text-left align-top transition-colors lg:min-h-[92px] xl:min-h-[104px]",
+        "flex min-h-[104px] flex-col items-stretch justify-start rounded-[var(--app-radius-md)] border px-2 py-1.5 text-left align-top transition-colors",
         isSelected
           ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[inset_0_0_0_1px_var(--app-accent)]"
           : isToday

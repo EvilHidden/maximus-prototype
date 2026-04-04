@@ -131,7 +131,7 @@ export function OrderScreen({
           tone="control"
           className="border-[var(--app-border-strong)] bg-[var(--app-surface)]"
         >
-          <div className="flex flex-col gap-3 px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex flex-col gap-3 px-4 py-3 md:flex-row md:items-center md:justify-between">
             <div className="flex min-w-0 items-center gap-3">
               <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-border)] bg-[var(--app-surface-muted)] p-2 text-[var(--app-text-muted)]">
                 <FilePenLine className="h-4 w-4" />
@@ -291,7 +291,7 @@ export function OrderScreen({
           ) : null}
         </div>
 
-        <div className={cx("space-y-3.5 xl:flex xl:flex-col", order.activeWorkflow === "alteration" && "xl:min-h-0")}>
+        <div className={cx("space-y-3.5 min-[1000px]:flex min-[1000px]:flex-col", order.activeWorkflow === "alteration" && "min-[1000px]:min-h-0")}>
           <OrderBag
             customer={payerCustomer}
             lineItems={controller.lineItems}

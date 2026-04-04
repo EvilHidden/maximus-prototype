@@ -130,7 +130,7 @@ export function AppointmentsScreen({
         }
       />
 
-      <div className="app-control-deck px-4 py-3 lg:px-3.5 lg:py-2.5">
+      <div className="app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5">
         <div className="flex flex-wrap items-center gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <SelectionChip
@@ -149,12 +149,12 @@ export function AppointmentsScreen({
             </SelectionChip>
           </div>
 
-          <div className="hidden h-6 w-px bg-[var(--app-border)]/35 sm:block" />
+          <div className="hidden h-6 w-px bg-[var(--app-border)]/35 md:block" />
 
           <div className="shrink-0">
             <div className="app-text-overline">View locations</div>
           </div>
-          <div className="flex min-w-0 basis-full flex-wrap gap-1.5 sm:basis-auto sm:flex-1">
+          <div className="flex min-w-0 basis-full flex-wrap gap-1.5 md:basis-auto md:flex-1">
             <SelectionChip
               selected={allLocationsActive}
               onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
@@ -191,7 +191,7 @@ export function AppointmentsScreen({
       </div>
 
       {viewMode === "list" ? (
-        <div className="app-control-deck px-4 py-3 lg:px-3.5 lg:py-2.5">
+        <div className="app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5">
           <div className="pt-1">
             <div className="flex flex-wrap items-end gap-3">
               <SearchField
@@ -200,14 +200,14 @@ export function AppointmentsScreen({
                 onChange={setQuery}
                 placeholder="Search by customer, visit, or location"
                 icon={Search}
-                className="min-w-0 basis-full sm:min-w-[240px] sm:flex-1"
+                className="min-w-0 basis-full md:min-w-[240px] md:flex-1"
               />
 
               <SelectField
                 label="Status"
                 value={statusFilter}
                 onChange={(value) => setStatusFilter(value as AppointmentStatusFilter)}
-                className="min-w-0 basis-full sm:min-w-[160px]"
+                className="min-w-0 basis-full md:min-w-[160px]"
               >
                 <option value="active">Active</option>
                 <option value="all">All statuses</option>
