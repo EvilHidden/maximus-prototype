@@ -269,7 +269,7 @@ function AppointmentLane({
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
   return (
-    <div className="app-table-shell">
+    <div className="app-table-shell app-home-appointment-lane">
       <div className="app-table-head px-4 py-3.5">
         <SurfaceHeader
           title={title}
