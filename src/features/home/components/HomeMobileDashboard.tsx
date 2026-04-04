@@ -1,4 +1,4 @@
-import type { CSSProperties, Dispatch, ReactNode, SetStateAction } from "react";
+import type { Dispatch, ReactNode, SetStateAction } from "react";
 import type { LucideIcon } from "lucide-react";
 import { CalendarDays, CheckSquare2, MapPin, Package, Square } from "lucide-react";
 import type { Appointment, PickupLocation } from "../../../types";
@@ -16,16 +16,7 @@ import {
 import type { ReadyPickupQueueItem } from "../selectors";
 import { HomeEmptyState } from "./HomeScheduleBoards";
 
-type HomeMobileAction = {
-  label: string;
-  subtitle: string;
-  icon: LucideIcon;
-  iconStyle: CSSProperties;
-  onClick: () => void;
-};
-
 type HomeMobileDashboardProps = {
-  actions: HomeMobileAction[];
   pickupLocations: PickupLocation[];
   activeLocations: PickupLocation[];
   setActiveLocations: Dispatch<SetStateAction<PickupLocation[]>>;
@@ -80,33 +71,6 @@ function MobileMetric({
       <div className={`app-text-value mt-1.5 text-[1.02rem] ${valueToneClassName}`}>{value}</div>
       <div className="app-text-caption mt-1.5 text-[var(--app-text-soft)]/76">{detail}</div>
     </div>
-  );
-}
-
-function MobileShortcutButton({
-  title,
-  icon: Icon,
-  iconStyle,
-  onClick,
-}: {
-  title: string;
-  icon: LucideIcon;
-  iconStyle?: CSSProperties;
-  onClick: () => void;
-}) {
-  return (
-    <button
-      onClick={onClick}
-      className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/48 bg-[var(--app-surface)] px-3 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)]/65 hover:bg-[var(--app-surface-muted)]/32"
-    >
-      <span
-        className="app-icon-chip h-6.5 w-6.5 shrink-0 border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/8 [&_svg]:h-3.5 [&_svg]:w-3.5"
-        style={iconStyle}
-      >
-        <Icon className="h-3.5 w-3.5" />
-      </span>
-      <span className="app-text-body text-[0.76rem] font-medium text-[var(--app-text)]">{title}</span>
-    </button>
   );
 }
 
@@ -248,7 +212,6 @@ function MobilePickupRow({
 }
 
 export function HomeMobileDashboard({
-  actions,
   pickupLocations,
   activeLocations,
   setActiveLocations,
@@ -269,7 +232,6 @@ export function HomeMobileDashboard({
   onCheckoutPickup,
   onCompletePickup,
 }: HomeMobileDashboardProps) {
-  const mobileQuickActions = actions.slice(0, 4);
   const mobileTodayAppointments = todayAppointments.slice(0, 3);
   const mobileTomorrowAppointments = tomorrowAppointments.slice(0, 2);
   const mobilePickups = readyPickups.slice(0, 2);
@@ -432,28 +394,11 @@ export function HomeMobileDashboard({
       ) : (
         <HomeEmptyState
           title="Nothing needs attention"
-          detail="Use the quick starts below to begin a job or pull up a customer."
+          detail="Open customers or start an alteration order when you are ready to begin the next job."
           primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
           secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
         />
       )}
-
-      <Surface tone="support" className="px-3.5 py-3.5">
-        <div className="space-y-2.5">
-        <div className="app-text-overline px-0.5 text-[var(--app-text-soft)]/58">Quick starts</div>
-        <div className="flex gap-3 overflow-x-auto pb-1.5 app-no-scrollbar">
-          {mobileQuickActions.map((action) => (
-            <MobileShortcutButton
-              key={action.label}
-              title={action.label}
-              icon={action.icon}
-              iconStyle={action.iconStyle}
-              onClick={action.onClick}
-            />
-          ))}
-        </div>
-        </div>
-      </Surface>
     </div>
   );
 }
