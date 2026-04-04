@@ -435,7 +435,6 @@ textarea:focus-visible {
   overflow: hidden;
   width: 100%;
   gap: 0.5rem 0.875rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 45%, transparent);
   padding: 0.675rem 3rem 0.675rem 1rem;
   text-align: left;
   transition: background-color 180ms ease;
@@ -551,8 +550,6 @@ textarea:focus-visible {
     display: grid;
     gap: 1rem;
     grid-template-columns: minmax(0, 1.8fr) 120px 120px 168px;
-    border-bottom: 1px solid color-mix(in srgb, var(--app-border) 45%, transparent);
-    background: color-mix(in srgb, var(--app-surface-muted) 85%, transparent);
     padding: 0.5rem 3.5rem 0.5rem 1rem;
   }
 
@@ -720,12 +717,12 @@ textarea:focus-visible {
   }
 
   .app-customer-directory-row {
-    grid-template-columns: minmax(0, 1.8fr) 140px 140px 180px 24px;
+    grid-template-columns: minmax(0, 1.9fr) 120px 132px 176px 24px;
     padding-right: 1rem;
   }
 
   .app-customer-directory-head {
-    grid-template-columns: minmax(0, 1.8fr) 140px 140px 180px 24px;
+    grid-template-columns: minmax(0, 1.9fr) 120px 132px 176px 24px;
     padding-right: 1rem;
   }
 
