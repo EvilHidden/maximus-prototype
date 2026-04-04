@@ -764,6 +764,10 @@ textarea:focus-visible {
     max-height: calc(28rem + 4px);
   }
 
+  .app-home-dashboard__locations {
+    padding-inline: 1rem;
+  }
+
   .app-home-pickup-row {
     grid-template-columns: 180px minmax(0, 1fr) auto;
     align-items: start;
