@@ -52,8 +52,10 @@ export function OpenOrdersIdentitySection({
 
 export function OpenOrdersReadyBySection({
   groups,
+  desktopCondensed = false,
 }: {
   groups: OpenOrdersReadyByGroup[];
+  desktopCondensed?: boolean;
 }) {
   return (
     <div className="min-w-0">
@@ -64,10 +66,11 @@ export function OpenOrdersReadyBySection({
             key={group.key}
             className={cx(
               "min-w-0 py-2.5",
+              desktopCondensed && "min-[1000px]:py-0",
               index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
             )}
           >
-            <div className={cx("min-w-0", index > 0 && "pt-0.5")}>
+            <div className={cx("min-w-0", index > 0 && "pt-0.5", desktopCondensed && index > 0 && "min-[1000px]:pt-0")}>
               <div className="mt-0 flex flex-wrap items-center gap-2">
                 <div className="app-text-body font-medium">
                   {group.dateLabel}{group.timeLabel ? ` · ${group.timeLabel}` : ""}
@@ -91,8 +94,10 @@ export function OpenOrdersReadyBySection({
 
 export function OpenOrdersStatusSection({
   rows,
+  desktopCondensed = false,
 }: {
   rows: OpenOrdersStatusRow[];
+  desktopCondensed?: boolean;
 }) {
   return (
     <div className="min-w-0">
@@ -103,7 +108,9 @@ export function OpenOrdersStatusSection({
             key={row.key}
             className={cx(
               "flex min-h-12 flex-col items-start justify-center py-2",
+              desktopCondensed && "min-[1000px]:min-h-0 min-[1000px]:justify-start min-[1000px]:py-0",
               index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
+              desktopCondensed && index > 0 && "min-[1000px]:pt-0",
             )}
           >
             {row.label ? <div className={getOrdersStatusTextClassName(row.tone)}>{row.label}</div> : null}
@@ -118,9 +125,11 @@ export function OpenOrdersStatusSection({
 export function OpenOrdersActionSection({
   rows,
   buttonClassName = "min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]",
+  desktopCondensed = false,
 }: {
   rows: OpenOrdersActionRow[];
   buttonClassName?: string;
+  desktopCondensed?: boolean;
 }) {
   return (
     <div className="min-w-0">
@@ -130,7 +139,9 @@ export function OpenOrdersActionSection({
             key={row.key}
             className={cx(
               "flex min-h-12 items-center justify-start py-2",
+              desktopCondensed && "min-[1000px]:min-h-0 min-[1000px]:items-start min-[1000px]:py-0",
               index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
+              desktopCondensed && index > 0 && "min-[1000px]:pt-0",
             )}
           >
             {row.label && row.onClick ? (
@@ -158,14 +169,16 @@ export function OpenOrdersTotalSection({
   balanceDue,
   className,
   amountClassName,
+  desktopCondensed = false,
 }: {
   total: number;
   balanceDue: number;
   className?: string;
   amountClassName?: string;
+  desktopCondensed?: boolean;
 }) {
   return (
-    <div className={cx("min-w-0 text-left md:text-right", className)}>
+    <div className={cx("min-w-0 text-left md:text-right", desktopCondensed && "min-[1000px]:pt-0.5", className)}>
       <div className="app-text-overline min-[1000px]:hidden">Total</div>
       <div className={cx(
         "text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]",

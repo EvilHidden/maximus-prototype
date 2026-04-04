@@ -1,134 +1,51 @@
 import { MapPin } from "lucide-react";
 import type { ClosedOrderHistoryItem } from "../../../../types";
-import { getOperationalPickupDateLabel, getOperationalPickupTimeLabel } from "../../selectors";
-import { getWorklistPaymentLabel, getWorklistPaymentTextClassName, formatWorklistTotal } from "./meta";
+import { OpenOrdersTotalSection } from "./OpenOrdersRowSections";
 import {
   getClosedOrderCompletedLabel,
   getClosedOrderStatusTone,
-  getClosedScopeLabel,
   getCompactPickupScheduleSummary,
+  getPickupLocationSummary,
   getOrdersStatusTextClassName,
 } from "./openOrdersFormatting";
 
-export function MixedClosedOrderRows({ order }: { order: ClosedOrderHistoryItem }) {
-  return (
-    <div className="min-w-0 min-[1000px]:col-span-2">
-      <div className="app-text-overline min-[1000px]:hidden">Order details</div>
-      <div className="mt-1">
-        {order.pickupSchedules.map((pickup, pickupIndex) => (
-          <div
-            key={pickup.id}
-            className={
-              pickupIndex === 0
-                ? "grid min-w-0 gap-3 py-2.5 min-[1000px]:grid-cols-[minmax(0,0.9fr)_minmax(16rem,0.82fr)] min-[1000px]:items-start"
-                : "grid min-w-0 gap-3 border-t border-[var(--app-border)]/35 py-2.5 min-[1000px]:grid-cols-[minmax(0,0.9fr)_minmax(16rem,0.82fr)] min-[1000px]:items-start"
-            }
-          >
-            <div className="min-w-0">
-              <div className="app-text-caption">{getClosedScopeLabel(pickup.scope)}</div>
-              <div className="mt-1 flex flex-wrap items-center gap-2">
-                <div className="app-text-body font-medium">
-                  {[getOperationalPickupDateLabel(pickup.pickupDate, pickup.pickupTime), getOperationalPickupTimeLabel(pickup.pickupDate, pickup.pickupTime)]
-                    .filter(Boolean)
-                    .join(" • ") || "Pickup pending"}
-                </div>
-                <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                <span className="app-text-caption inline-flex items-center gap-1.5">
-                  {pickup.pickupLocation || "Pending"}
-                </span>
-              </div>
-              <div className="app-text-caption mt-1 line-clamp-2">
-                {pickup.itemSummary.join(", ")}
-              </div>
-              {pickupIndex === 0 && order.inHouseAssignee ? (
-                <div className="app-text-caption mt-1">Assigned to {order.inHouseAssignee.name}</div>
-              ) : null}
-            </div>
-            <div className="min-w-0">
-              <div className="mt-1 grid gap-3 md:grid-cols-[minmax(0,1fr)_7rem] md:items-start">
-                <div className="min-w-0">
-                  <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
-                    Picked up
-                  </div>
-                  {pickup.pickedUpAt ? (
-                    <div className="app-text-caption mt-1">
-                      {getClosedOrderCompletedLabel(pickup.pickedUpAt)}
-                    </div>
-                  ) : null}
-                </div>
-                <div className="text-left md:text-right">
-                  {pickupIndex === 0 ? (
-                    <>
-                      <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-                        {formatWorklistTotal(order.total)}
-                      </div>
-                      <div className="mt-1.5">
-                        <span className={getWorklistPaymentTextClassName(order.balanceDue ?? 0)}>
-                          {getWorklistPaymentLabel(order.balanceDue ?? 0)}
-                        </span>
-                      </div>
-                    </>
-                  ) : (
-                    <span className="app-text-caption opacity-0">Paid</span>
-                  )}
-                </div>
-              </div>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+export function ClosedOrderRow({ order }: { order: ClosedOrderHistoryItem }) {
+  const pickupSummary = getCompactPickupScheduleSummary(order.pickupSchedules ?? []);
+  const locationSummary = getPickupLocationSummary(order.pickupSchedules ?? []);
+  const itemSummary = order.itemSummary?.join(", ") || order.label;
+  const completedLabel = getClosedOrderCompletedLabel(order.completedAt ?? order.pickupSchedules?.[0]?.pickedUpAt);
 
-export function SingleClosedOrderRow({ order }: { order: ClosedOrderHistoryItem }) {
   return (
     <>
       <div className="min-w-0">
-        <div className="app-text-overline min-[1000px]:hidden">Order details</div>
-        <div className="mt-1 flex flex-wrap items-center gap-2">
+        <div className="app-text-overline min-[1000px]:hidden">Customer</div>
+        <div className="app-text-strong">{order.payerName ?? order.customerName}</div>
+        <div className="app-text-caption mt-1">{`Order ${order.displayId ?? order.id}`} • {getClosedOrderCompletedLabel(order.createdAt)}</div>
+        <div className="app-text-caption mt-2">{order.orderType === "mixed" ? "Alteration + Custom Garment" : order.orderType === "custom" ? "Custom Garment" : "Alteration"}</div>
+      </div>
+      <div className="min-w-0">
+        <div className="app-text-overline min-[1000px]:hidden">Closed out</div>
+        <div className="mt-1 flex flex-wrap items-center gap-2 min-[1000px]:mt-0">
           <div className="app-text-body font-medium">
-            {getCompactPickupScheduleSummary(order.pickupSchedules) || "Pickup pending"}
+            {pickupSummary || "Pickup pending"}
           </div>
-          <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-          <span className="app-text-caption inline-flex items-center gap-1.5">
-            {order.pickupSchedules?.length
-              ? [...new Set(order.pickupSchedules.map((pickup) => pickup.pickupLocation).filter(Boolean))].join(" • ")
-              : "Pending"}
-          </span>
+          {locationSummary ? (
+            <>
+              <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+              <span className="app-text-caption inline-flex items-center gap-1.5">{locationSummary}</span>
+            </>
+          ) : null}
         </div>
-        <div className="app-text-caption mt-1 line-clamp-2">
-          {order.itemSummary?.join(", ") || order.label}
-        </div>
-        {order.inHouseAssignee ? (
-          <div className="app-text-caption mt-1">Assigned to {order.inHouseAssignee.name}</div>
-        ) : null}
+        <div className="app-text-caption mt-1.5 line-clamp-2 min-[1000px]:mt-1">{itemSummary}</div>
       </div>
-      <div className="min-w-0 text-left">
-        <div className="app-text-overline min-[1000px]:hidden">Total</div>
-        <div className="mt-1 grid gap-3 md:grid-cols-[minmax(0,1fr)_7rem] md:items-start">
-          <div className="min-w-0">
-            <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
-              {order.status}
-            </div>
-            {order.status === "Picked up" && order.completedAt ? (
-              <div className="app-text-caption mt-1">
-                {getClosedOrderCompletedLabel(order.completedAt)}
-              </div>
-            ) : null}
-          </div>
-          <div className="text-left md:text-right">
-            <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
-              {formatWorklistTotal(order.total)}
-            </div>
-            <div className="mt-1.5">
-              <span className={getWorklistPaymentTextClassName(order.balanceDue ?? 0)}>
-                {getWorklistPaymentLabel(order.balanceDue ?? 0)}
-              </span>
-            </div>
-          </div>
+      <div className="min-w-0">
+        <div className="app-text-overline min-[1000px]:hidden">Status</div>
+        <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
+          {order.status}
         </div>
+        {completedLabel ? <div className="app-text-caption mt-1">{completedLabel}</div> : null}
       </div>
+      <OpenOrdersTotalSection total={order.total} balanceDue={order.balanceDue ?? 0} />
     </>
   );
 }

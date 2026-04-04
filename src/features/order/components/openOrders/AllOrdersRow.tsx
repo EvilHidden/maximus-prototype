@@ -1,25 +1,18 @@
 import { MapPin } from "lucide-react";
 import type { KeyboardEvent } from "react";
 import type { OpenOrder } from "../../../../types";
-import { RowChevronAffordance, cx } from "../../../../components/ui/primitives";
+import { ActionButton, RowChevronAffordance, cx } from "../../../../components/ui/primitives";
 import {
+  getOpenOrderOperationalPhase,
   getOpenOrderLocationSummary,
-  getOpenOrderOperationalLane,
   getOpenOrderPickupGroups,
+  getOpenOrderReadinessDetails,
   getOpenOrderReadinessBreakdown,
-  getOpenOrderStatusPills,
-  getOperationalPickupDateLabel,
-  getOperationalPickupTimeLabel,
 } from "../../selectors";
-import {
-  getCompactPickupScheduleSummary,
-  getOrderTimelineSummary,
-  getWorkflowSummaryLabel,
-  summarizeGroupedOrderItems,
-} from "./openOrdersFormatting";
+import { getPhaseTone, getWorklistPhaseLabel } from "./meta";
+import { getCompactPickupScheduleSummary, getOrderTimelineSummary, getOrdersStatusTextClassName, getPickupLocationSummary, getWorkflowSummaryLabel } from "./openOrdersFormatting";
 import { OPEN_ORDER_ROW_GRID_CLASS, READY_ORDER_ROW_GRID_CLASS } from "./openOrdersLayout";
 import {
-  OpenOrdersActionSection,
   OpenOrdersIdentitySection,
   OpenOrdersMobileReadyStatusLayout,
   OpenOrdersReadyBySection,
@@ -90,57 +83,15 @@ function getReadyStatusSummary(openOrder: OpenOrder) {
   };
 }
 
-function getFallbackGroupStatusLabel(openOrder: OpenOrder, index: number) {
-  if (openOrder.orderType === "mixed") {
-    return index === 0 ? "Alterations in progress" : "Custom in progress";
-  }
+function getAggregateActiveStatus(openOrder: OpenOrder) {
+  const phase = getOpenOrderOperationalPhase(openOrder);
+  const readinessDetails = getOpenOrderReadinessDetails(openOrder);
 
-  return getOpenOrderOperationalLane(openOrder);
-}
-
-function getGroupedStatusLabel(openOrder: OpenOrder, index: number, label?: string) {
-  const baseLabel = label ?? getFallbackGroupStatusLabel(openOrder, index);
-
-  if (openOrder.orderType !== "mixed") {
-    return baseLabel;
-  }
-
-  const condensedLabel = baseLabel
-    .replace(/^Alterations\s+/i, "")
-    .replace(/^Custom\s+/i, "")
-    .trim();
-
-  return condensedLabel.charAt(0).toUpperCase() + condensedLabel.slice(1);
-}
-
-function getStatusForScope(openOrder: OpenOrder, scope: OpenOrder["pickupSchedules"][number]["scope"]) {
-  if (openOrder.orderType !== "mixed") {
-    const statusPill = getOpenOrderStatusPills(openOrder)[0];
-    return {
-      label: statusPill?.label ?? getOpenOrderOperationalLane(openOrder),
-      tone: statusPill?.tone ?? "default",
-    };
-  }
-
-  const breakdown = getOpenOrderReadinessBreakdown(openOrder);
-
-  if (scope === "alteration") {
-    const label = breakdown.alterationPickedUp
-      ? "Picked up"
-      : breakdown.alterationReady
-        ? "Ready"
-        : "In progress";
-    const tone = breakdown.alterationPickedUp || breakdown.alterationReady ? "success" as const : "default" as const;
-    return { label, tone };
-  }
-
-  const label = breakdown.customPickedUp
-    ? "Picked up"
-    : breakdown.customReady
-      ? "Ready"
-      : "In progress";
-  const tone = breakdown.customPickedUp || breakdown.customReady ? "success" as const : "default" as const;
-  return { label, tone };
+  return {
+    label: getWorklistPhaseLabel(phase),
+    tone: getPhaseTone(phase),
+    secondary: openOrder.orderType === "mixed" ? readinessDetails.join(" • ") || null : null,
+  };
 }
 
 export function AllOrdersRow({
@@ -163,32 +114,22 @@ export function AllOrdersRow({
   });
   const readyPickupSummary = getReadyPickupSummary(openOrder);
   const readyStatusSummary = getReadyStatusSummary(openOrder);
+  const activeStatusSummary = getAggregateActiveStatus(openOrder);
   const rowGridClassName = isReadyVariant ? READY_ORDER_ROW_GRID_CLASS : OPEN_ORDER_ROW_GRID_CLASS;
   const workflowLabel = getWorkflowSummaryLabel(openOrder.orderType);
+  const summaryPickups = openOrder.pickupSchedules.filter((pickup) => !pickup.pickedUp && (!isFactoryVariant || pickup.scope === "custom"));
+  const actionPickupIds = pickupGroups.flatMap((group) => group.actionPickupIds);
   const readyByGroups: OpenOrdersReadyByGroup[] = isReadyVariant
     ? [{
         key: `ready-${openOrder.id}`,
         dateLabel: readyPickupSummary.scheduleSummary || "Pickup pending",
         location: readyPickupSummary.locations,
       }]
-    : pickupGroups.map((group, index) => {
-        const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
-
-        return {
-          key: group.key,
-          dateLabel: representativePickup
-            ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime) ?? "Date pending"
-            : "Date pending",
-          timeLabel: representativePickup
-            ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-            : null,
-          location: representativePickup?.pickupLocation ?? null,
-          summary: summarizeGroupedOrderItems(group.itemSummary) || timeline.items,
-          secondary: openOrder.inHouseAssignee && group.scope === "alteration"
-            ? `Assigned to ${openOrder.inHouseAssignee.name}`
-            : null,
-        };
-      });
+    : [{
+        key: `summary-${openOrder.id}`,
+        dateLabel: getCompactPickupScheduleSummary(summaryPickups) || timeline.schedule,
+        location: getPickupLocationSummary(summaryPickups) || getOpenOrderLocationSummary(openOrder) || "Pending",
+      }];
   const statusRows: OpenOrdersStatusRow[] = isReadyVariant
     ? [{
         key: `ready-status-${openOrder.id}`,
@@ -196,24 +137,18 @@ export function AllOrdersRow({
         tone: readyStatusSummary.primary.tone,
         secondary: readyStatusSummary.secondary,
       }]
-    : pickupGroups.map((group, index) => {
-        const scopedStatus = getStatusForScope(openOrder, group.scope);
-
-        return {
-          key: `${group.key}-status`,
-          label: getGroupedStatusLabel(openOrder, index, scopedStatus.label),
-          tone: scopedStatus.tone,
-        };
-      });
+    : [{
+        key: `status-${openOrder.id}`,
+        label: activeStatusSummary.label,
+        tone: activeStatusSummary.tone,
+      }];
   const actionRows: OpenOrdersActionRow[] = isReadyVariant
     ? [{ key: `ready-action-${openOrder.id}` }]
-    : pickupGroups.map((group) => ({
-        key: `${group.key}-action`,
-        label: group.actionPickupIds.length ? "Ready" : undefined,
-        onClick: group.actionPickupIds.length
-          ? () => onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds)
-          : undefined,
-      }));
+    : [{
+        key: `action-${openOrder.id}`,
+        label: actionPickupIds.length ? "Ready" : undefined,
+        onClick: actionPickupIds.length ? () => onRequestMarkOpenOrderPickupReady(openOrder, actionPickupIds) : undefined,
+      }];
   const handleOpen = () => onOpenOrderDetails(openOrder.id);
   const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -282,9 +217,33 @@ export function AllOrdersRow({
         />
         {isReadyVariant ? null : (
           <>
-            <OpenOrdersReadyBySection groups={readyByGroups} />
-            <OpenOrdersStatusSection rows={statusRows} />
-            <OpenOrdersActionSection rows={actionRows} />
+            <div className="min-w-0">
+              <div className="app-text-body font-medium">{readyByGroups[0]?.dateLabel}</div>
+              {readyByGroups[0]?.location ? (
+                <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
+                  <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                  <span>{readyByGroups[0].location}</span>
+                </div>
+              ) : null}
+            </div>
+            <div className="min-w-0 pt-0.5">
+              {statusRows[0]?.label ? <div className={getOrdersStatusTextClassName(statusRows[0].tone)}>{statusRows[0].label}</div> : null}
+            </div>
+            <div className="min-w-0 pt-0.5">
+              {actionRows[0]?.label && actionRows[0].onClick ? (
+                <ActionButton
+                  tone="primary"
+                  className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
+                  disabled={actionRows[0].disabled}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    actionRows[0].onClick?.();
+                  }}
+                >
+                  {actionRows[0].label}
+                </ActionButton>
+              ) : null}
+            </div>
           </>
         )}
         {isReadyVariant ? (

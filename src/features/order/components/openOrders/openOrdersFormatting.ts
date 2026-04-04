@@ -51,6 +51,10 @@ export function getCompactPickupScheduleSummary(pickups: OpenOrder["pickupSchedu
   return `${uniqueLabels[0]} +${uniqueLabels.length - 1} more`;
 }
 
+export function getPickupLocationSummary(pickups: OpenOrder["pickupSchedules"] | ClosedOrderHistoryItem["pickupSchedules"]) {
+  return [...new Set((pickups ?? []).map((pickup) => pickup.pickupLocation).filter(Boolean))].join(" • ");
+}
+
 export function getOrderTimelineSummary(openOrder: OpenOrder) {
   return {
     schedule: getPickupScheduleSummary(openOrder.pickupSchedules) || "Pickup pending",
