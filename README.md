@@ -250,6 +250,53 @@ If you try to start a second branch in the same subsystem, the script now stops 
 For the rapid branch-to-main loop, use `npm run ship -- "Short PR title"` from a `codex/` branch. It runs `npm run check` locally for a faster preflight, commits and pushes the branch, opens or reuses a PR, enables auto-merge, then returns the local repo to `main` and deletes the local topic branch after the full GitHub build passes.
 In this repo, `ship it` means exactly that full script. Opening a PR manually, pushing a branch, or stopping at “draft PR created” is not considered shipped.
 
+The only phrases that should trigger that flow are explicit ship commands such as:
+
+- `ship`
+- `ship it`
+- `ship this`
+
+Approval alone is not shipping. Phrases like `looks good`, `approved`, or `great` mean keep going unless the user also says `ship`.
+
+Also note:
+
+- if more edits happen after a `ship` request, those edits are not considered shipped until the user says `ship` again for the newer state
+- do not call something `shipped` unless the PR merged, the local repo returned to `main`, and the local topic branch was deleted
+- if the script only partially succeeds, report the partial state instead of saying `shipped`
+
 Do not ship after every accepted tweak. Continue iterating locally until the user explicitly says `ship`, then use `npm run ship -- "Short PR title"` for the release pass.
 
 Do not keep working on the same `codex/` branch after its PR has been merged or closed. Start a fresh branch with `npm run start-topic -- "short topic name"` for every new follow-up pass.
+
+## Rapid iteration workflow
+
+For small UI and layout tuning passes, prefer a rapid iteration loop instead of validating after every tiny change.
+
+Natural-language signals that mean "stay in rapid iteration mode" include:
+
+- `keep going`
+- `keep iterating`
+- `one more pass`
+- `make another tweak`
+- repeated small review notes on the same screen without a `ship` request
+
+In rapid iteration mode:
+
+- stay on the same `codex/` branch
+- keep changes local
+- skip `npm run build` / `npm run check` after every tiny tweak unless:
+  - the user explicitly asks for validation
+  - the change is structurally risky
+  - you are about to ship
+
+Use three explicit states when talking about progress:
+
+- local-only = edits exist only in the working tree
+- checkpoint commit = saved on the current branch, but not shipped
+- shipped = PR merged, repo back on `main`, branch deleted
+
+If a lot of small passes accumulate, proactively offer the next step:
+
+- keep iterating
+- make a checkpoint commit
+- ship

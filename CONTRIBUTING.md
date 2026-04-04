@@ -37,6 +37,55 @@ In this repo, `ship it` has one concrete meaning:
 
 Pushing a branch, opening a draft PR, or saying “it’s ready” is not the same as shipped.
 
+Trigger-word rule:
+
+- `ship`, `ship it`, and `ship this` mean run the full ship flow now
+- approval phrases like `looks good`, `approved`, `great`, or `perfect` do not mean ship unless the user also says `ship`
+- if new edits are made after the user said `ship`, those edits are local-only until the user says `ship` again for that newer state
+
+Shipped-state rule:
+
+- Only call something `shipped` after all four are true:
+  - the ship script completed successfully
+  - the PR merged
+  - the local repo is back on `main`
+  - the local topic branch is deleted
+- If any one of those is false, report the exact partial state instead of saying `shipped`
+
+## Rapid iteration mode
+
+This repo should support fast UI iteration without turning every tiny tweak into a build-check-ship ceremony.
+
+Use rapid iteration mode when:
+
+- the user is making repeated small design or layout corrections on the same screen
+- the user says things like `keep going`, `keep iterating`, `one more pass`, `make another tweak`, or keeps giving small visual nudges
+- the current work is clearly still in review/polish mode and not yet ready for release
+
+In rapid iteration mode:
+
+- stay on the same `codex/` branch
+- make the requested changes directly
+- do not run `npm run build` or `npm run check` after every tiny tweak by default
+- save full validation for one of these moments:
+  - the user explicitly asks to validate
+  - the change is structurally risky
+  - the branch is about to ship
+
+If several passes stack up, proactively checkpoint the process:
+
+- ask whether to keep iterating, make a checkpoint commit, or ship
+- be explicit about the current state:
+  - local-only changes
+  - checkpoint commit only
+  - fully shipped
+
+Checkpoint commit rule:
+
+- a checkpoint commit is allowed on the current branch when the user wants to preserve progress
+- it is not a PR, not a merge, and not a ship
+- do not call a checkpoint `shipped`
+
 ## Branch naming
 
 Use branch names like:
@@ -180,6 +229,16 @@ Before merging, make sure the answer to all of these is `yes`:
 - Did we sanity-check the affected UI flow in the running app?
 - Did we write down any remaining logic holes or visual holes?
 - Is the branch ready to be closed immediately after merge?
+
+## Ship-state checklist
+
+Before saying `shipped`, confirm all of these explicitly:
+
+- Are we shipping the current branch state, not an earlier local approval?
+- Did no extra edits land after the most recent user `ship` request?
+- Did `npm run ship -- "Short PR title"` finish without interruption?
+- Did the repo return to clean `main`?
+- Is the local `codex/` branch gone?
 
 ## PR notes template
 
