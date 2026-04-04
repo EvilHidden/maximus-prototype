@@ -108,7 +108,83 @@ function WorkQueueOrderRow({
       onClick={handleOpen}
       onKeyDown={handleRowKeyDown}
     >
-      <div className="grid gap-3 min-[1000px]:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
+      <div className="space-y-3 min-[1000px]:hidden">
+        <div className="flex items-start justify-between gap-3">
+          <div className="min-w-0">
+            <div className="app-text-value min-w-0">{openOrder.payerName}</div>
+            <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
+            <div className="app-text-body-muted mt-1.5 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
+          </div>
+          <div className="shrink-0 text-right">
+            <div className="text-[1.125rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+              {formatWorklistTotal(openOrder.total)}
+            </div>
+            <div className="mt-1">
+              <span className={getWorklistPaymentTextClassName(openOrder.balanceDue)}>{getWorklistPaymentLabel(openOrder.balanceDue)}</span>
+            </div>
+          </div>
+        </div>
+
+        <div className="space-y-2.5">
+          {pickupGroups.map((group, index) => {
+            const uniqueItems = [...new Set(group.itemSummary)];
+            const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
+            const dateLabel = representativePickup
+              ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+              : null;
+            const timeLabel = representativePickup
+              ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
+              : null;
+            const location = representativePickup?.pickupLocation ?? "";
+            const groupState = getNeedsAttentionGroupState(openOrder, group);
+
+            return (
+              <div key={group.key} className="space-y-2.5 rounded-[calc(var(--app-radius-md)-4px)] border border-[var(--app-border)]/35 px-3 py-2.5">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="app-text-body font-medium">
+                      {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
+                    </div>
+                    <div className="app-text-caption mt-1 line-clamp-2">
+                      {getGroupedItemSummary(uniqueItems)}
+                    </div>
+                    {location ? (
+                      <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
+                        <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
+                        <span>{location}</span>
+                      </div>
+                    ) : null}
+                  </div>
+                  <div className="shrink-0 text-right">
+                    <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
+                  </div>
+                </div>
+                {(groupState.actionKind === "start_work" && index === 0) || groupState.actionKind === "mark_ready" ? (
+                  <div className="flex justify-end">
+                    <ActionButton
+                      tone="primary"
+                      className="min-h-8 min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
+                      disabled={groupState.actionKind === "start_work" ? groupState.actionDisabled : false}
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        if (groupState.actionKind === "start_work") {
+                          onStartOpenOrderWork(openOrder.id);
+                          return;
+                        }
+                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                      }}
+                    >
+                      {groupState.actionKind === "start_work" ? "Start work" : "Ready"}
+                    </ActionButton>
+                  </div>
+                ) : null}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <div className="hidden min-[1000px]:grid min-[1000px]:gap-3 min-[1000px]:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
         <div className="min-w-0">
           <div className="app-text-value min-w-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>

@@ -344,6 +344,18 @@ textarea:focus-visible {
   gap: 1.25rem;
 }
 
+.app-orders-controls-deck {
+  gap: 0.875rem;
+}
+
+.app-orders-mobile-field .app-field-label {
+  display: none;
+}
+
+.app-orders-mobile-field .app-field-control {
+  min-height: 2.7rem;
+}
+
 .app-quick-action-tile {
   box-shadow: var(--app-shadow-quick-action);
 }
@@ -357,6 +369,25 @@ textarea:focus-visible {
   grid-template-columns: 72px minmax(0, 1fr) auto;
   align-items: start;
   gap: 0.75rem;
+}
+
+@media (max-width: 767px) {
+  .app-orders-controls-deck {
+    border-color: color-mix(in srgb, var(--app-border) 58%, transparent);
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .app-orders-controls-deck > .space-y-3 {
+    display: flex;
+    flex-direction: column;
+    gap: 0.875rem;
+  }
+
+  .app-orders-controls-deck .border-t {
+    border-top-color: color-mix(in srgb, var(--app-border) 32%, transparent);
+  }
 }
 
 .app-home-schedule-row__time {
