@@ -223,15 +223,18 @@ export function OpenOrdersControls({
 
         {activeView === "queues" ? (
           <div className="hidden border-t border-[var(--app-border)]/40 pt-2.5 min-[1000px]:block">
-            <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
-              <div className="flex min-w-max gap-1.5 px-1">
+            <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar min-[1000px]:mx-0 min-[1000px]:overflow-visible min-[1000px]:pb-0">
+              <div className="flex min-w-max gap-1.5 px-1 min-[1000px]:grid min-[1000px]:min-w-0 min-[1000px]:grid-cols-4 min-[1000px]:gap-2 min-[1000px]:px-0">
                 {queueMeta.map((queue) => (
                   <SelectionChip
                     key={queue.key}
                     selected={activeQueue === queue.key}
                     onClick={() => onQueueChange(queue.key)}
                     size="sm"
-                    className={activeQueue === queue.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
+                    className={cx(
+                      "min-[1000px]:w-full min-[1000px]:justify-between",
+                      activeQueue === queue.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30",
+                    )}
                     trailing={
                       <CountPill
                         count={queueCounts[queue.key]}
@@ -255,8 +258,8 @@ export function OpenOrdersControls({
 
         {activeView === "all" ? (
           <div className="hidden border-t border-[var(--app-border)]/40 pt-2.5 min-[1000px]:block">
-            <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar">
-              <div className="flex min-w-max gap-1.5 px-1">
+            <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar min-[1000px]:mx-0 min-[1000px]:overflow-visible min-[1000px]:pb-0">
+              <div className="flex min-w-max gap-1.5 px-1 min-[1000px]:grid min-[1000px]:min-w-0 min-[1000px]:grid-cols-2 min-[1000px]:gap-2 min-[1000px]:px-0">
                 {([
                   { key: "active", label: "All active orders", count: allOrdersTabCounts.active },
                   { key: "closed", label: "Closed orders", count: allOrdersTabCounts.closed },
@@ -266,7 +269,10 @@ export function OpenOrdersControls({
                     selected={allOrdersTab === tab.key}
                     onClick={() => onAllOrdersTabChange(tab.key)}
                     size="sm"
-                    className={allOrdersTab === tab.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30"}
+                    className={cx(
+                      "min-[1000px]:w-full min-[1000px]:justify-between",
+                      allOrdersTab === tab.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30",
+                    )}
                     trailing={
                       <CountPill
                         count={tab.count}
