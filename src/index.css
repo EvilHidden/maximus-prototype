@@ -329,19 +329,19 @@ textarea:focus-visible {
 .app-home-location-bar {
   display: flex;
   flex-wrap: wrap;
-  align-items: center;
-  gap: 1rem;
+  align-items: flex-start;
+  gap: 1.1rem;
 }
 
 .app-home-dashboard {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .app-home-workboards {
   display: grid;
-  gap: 1rem;
+  gap: 1.25rem;
 }
 
 .app-quick-action-tile {
@@ -560,19 +560,19 @@ textarea:focus-visible {
   }
 
   .app-home-dashboard {
-    gap: 0;
+    gap: 0.2rem;
   }
 
   .app-home-dashboard__quick-actions-surface {
     border: 0;
     background: transparent;
     box-shadow: none;
-    padding: 0.6rem 0 0.2rem;
-    margin-bottom: 1.35rem;
+    padding: 0.85rem 0 0.25rem;
+    margin-bottom: 1.55rem;
   }
 
   .app-home-dashboard__quick-actions-surface > div {
-    gap: 1.1rem;
+    gap: 1.2rem;
   }
 
   .app-home-dashboard__quick-actions-surface button {
@@ -585,7 +585,7 @@ textarea:focus-visible {
   }
 
   .app-home-dashboard__locations {
-    margin-bottom: 1.55rem;
+    margin-bottom: 1.7rem;
   }
 
   .app-home-location-deck {
@@ -593,15 +593,15 @@ textarea:focus-visible {
     border-radius: calc(var(--app-radius-md) + 2px);
     background: color-mix(in srgb, var(--app-surface-muted) 34%, var(--app-surface));
     box-shadow: var(--app-shadow-sm);
-    padding: 0.7rem 0.95rem 0.8rem;
+    padding: 0.8rem 1rem 0.9rem;
   }
 
   .app-home-location-bar {
-    gap: 1.3rem 1rem;
+    gap: 1.45rem 1rem;
   }
 
   .app-home-workboards {
-    gap: 1.9rem;
+    gap: 2rem;
   }
 
   .app-home-workboard--appointments {
@@ -616,7 +616,7 @@ textarea:focus-visible {
   }
 
   .app-home-workboard--appointments > div:nth-child(2) {
-    margin-top: 1.45rem;
+    margin-top: 1.2rem;
   }
 
   .app-home-schedule-row {
@@ -748,6 +748,41 @@ textarea:focus-visible {
     top: 0;
   }
 
+  .app-home-dashboard {
+    gap: 0.25rem;
+  }
+
+  .app-home-dashboard__quick-actions-surface {
+    padding: 0.8rem 1rem 0.25rem;
+    margin-bottom: 1.3rem;
+  }
+
+  .app-home-dashboard__quick-actions-surface > div {
+    gap: 1rem;
+  }
+
+  .app-home-dashboard__locations {
+    padding-inline: 1rem;
+    margin-bottom: 1.45rem;
+  }
+
+  .app-home-location-deck {
+    padding: 0.78rem 1rem 0.9rem;
+  }
+
+  .app-home-location-bar {
+    gap: 1.3rem 1rem;
+  }
+
+  .app-home-workboards {
+    gap: 1.8rem;
+  }
+
+  .app-home-workboard--appointments > div:nth-child(2),
+  .app-home-workboard--pickups .app-home-pickup-list {
+    margin-top: 1.2rem;
+  }
+
   .app-home-schedule-row {
     grid-template-columns: 84px minmax(0, 1fr) 92px 252px;
     align-items: start;
@@ -776,10 +811,6 @@ textarea:focus-visible {
     max-height: calc(28rem + 4px);
   }
 
-  .app-home-dashboard__locations {
-    padding-inline: 1rem;
-  }
-
   .app-home-appointment-lane {
     container-type: inline-size;
   }
@@ -788,6 +819,29 @@ textarea:focus-visible {
     grid-template-columns: 180px minmax(0, 1fr) auto;
     align-items: start;
     gap: 1rem 1.5rem;
+  }
+}
+
+@media (min-width: 1000px) and (max-height: 1080px) {
+  .app-home-dashboard__quick-actions-surface {
+    margin-bottom: 1.05rem;
+  }
+
+  .app-home-dashboard__locations {
+    margin-bottom: 1.15rem;
+  }
+
+  .app-home-workboards {
+    gap: 1.35rem;
+  }
+
+  .app-home-lane-scroll {
+    max-height: calc(24.5rem + 4px);
+  }
+
+  .app-home-workboard--appointments > div:nth-child(2),
+  .app-home-workboard--pickups .app-home-pickup-list {
+    margin-top: 1rem;
   }
 }
 
