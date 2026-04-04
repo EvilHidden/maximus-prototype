@@ -16,7 +16,7 @@ import {
 import { useState, type ReactNode } from "react";
 import { navItems } from "../../data";
 import type { Screen } from "../../types";
-import { SelectionChip, cx } from "../ui/primitives";
+import { ActionButton, SelectionChip, cx } from "../ui/primitives";
 
 type AppShellProps = {
   screen: Screen;

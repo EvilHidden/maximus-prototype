@@ -43,6 +43,7 @@
   --app-support-rail-width: 340px;
   --app-support-rail-width-tablet: 304px;
   --app-shell-gutter: 0.75rem;
+  --app-mobile-topbar-height: 4.25rem;
   --app-bottom-nav-height: 5.25rem;
   --app-safe-top: env(safe-area-inset-top, 0px);
   --app-safe-right: env(safe-area-inset-right, 0px);
@@ -178,6 +179,50 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--app-bg) 82%, var(--app-surface));
   box-shadow: var(--app-shadow-lg);
   backdrop-filter: blur(10px);
+}
+
+.app-mobile-tabbar {
+  position: fixed;
+  left: max(0.75rem, calc(var(--app-safe-left) + 0.5rem));
+  right: max(0.75rem, calc(var(--app-safe-right) + 0.5rem));
+  bottom: max(0.75rem, calc(var(--app-safe-bottom) + 0.35rem));
+  z-index: 50;
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.35rem;
+  padding: 0.45rem;
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  border-radius: 1.1rem;
+  background: color-mix(in srgb, var(--app-surface) 84%, transparent);
+  box-shadow: 0 22px 50px rgba(15, 23, 42, 0.18);
+  backdrop-filter: blur(18px);
+}
+
+.app-mobile-tabbar__item {
+  display: flex;
+  min-height: 4rem;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.3rem;
+  border: 1px solid transparent;
+  border-radius: 0.95rem;
+  color: var(--app-text-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  letter-spacing: 0.01em;
+  transition:
+    color 180ms ease,
+    background-color 180ms ease,
+    border-color 180ms ease,
+    transform 180ms ease;
+}
+
+.app-mobile-tabbar__item--active {
+  border-color: color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 65%, var(--app-surface));
+  color: var(--app-text);
 }
 
 .app-tablet-topbar {
@@ -397,53 +442,7 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
-@media (max-width: 767px) {
-  .app-mobile-tabbar {
-    position: fixed;
-    left: max(0.75rem, calc(var(--app-safe-left) + 0.5rem));
-    right: max(0.75rem, calc(var(--app-safe-right) + 0.5rem));
-    bottom: max(0.75rem, calc(var(--app-safe-bottom) + 0.35rem));
-    z-index: 50;
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 0.35rem;
-    padding: 0.45rem;
-    border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
-    border-radius: 1.1rem;
-    background: color-mix(in srgb, var(--app-surface) 84%, transparent);
-    box-shadow: 0 22px 50px rgba(15, 23, 42, 0.18);
-    backdrop-filter: blur(18px);
-  }
-
-  .app-mobile-tabbar__item {
-    display: flex;
-    min-height: 4rem;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 0.3rem;
-    border: 1px solid transparent;
-    border-radius: 0.95rem;
-    color: var(--app-text-soft);
-    font-size: 0.72rem;
-    font-weight: 600;
-    line-height: 1;
-    letter-spacing: 0.01em;
-    transition:
-      color 180ms ease,
-      background-color 180ms ease,
-      border-color 180ms ease,
-      transform 180ms ease;
-  }
-
-  .app-mobile-tabbar__item--active {
-    border-color: color-mix(in srgb, var(--app-border) 72%, transparent);
-    background: color-mix(in srgb, var(--app-surface-muted) 65%, var(--app-surface));
-    color: var(--app-text);
-  }
-}
-
-@media (min-width: 768px) and (max-width: 1179px) {
+@media (min-width: 768px) {
   .app-tablet-topbar {
     display: flex;
     align-items: center;
@@ -496,6 +495,7 @@ textarea:focus-visible {
   .app-home-schedule-row {
     grid-template-columns: 84px minmax(0, 1fr) 88px 252px;
     align-items: start;
+    gap: 0.95rem 0.9rem;
   }
 
   .app-home-schedule-row__status {
@@ -508,52 +508,51 @@ textarea:focus-visible {
 
   .app-home-schedule-row__actions {
     grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.45fr);
+    gap: 1rem;
     align-self: center;
+  }
+
+  .app-home-schedule-row__action-button {
+    min-height: 2.375rem;
+    padding-inline: 0.9rem;
+    font-size: 0.79rem;
+  }
+
+  .app-home-lane-scroll {
+    max-height: calc(20rem + 4px);
   }
 
   .app-home-pickup-row {
     grid-template-columns: 180px minmax(0, 1fr) auto;
     align-items: start;
+    gap: 1rem 1.5rem;
   }
+}
 
+@media (min-width: 768px) and (max-width: 1179px) {
   .app-home-dashboard {
     gap: 0;
-    --app-home-quick-actions-padding: 0.6rem 0 0.2rem;
-    --app-home-quick-actions-gap: 1.1rem;
-    --app-home-quick-action-height: 74px;
-    --app-home-location-deck-padding: 0.7rem 0.95rem 0.8rem;
-    --app-home-location-bar-gap: 1.3rem 1rem;
-    --app-home-workboards-gap: 1.9rem;
-    --app-home-appointments-spacing: 1.45rem;
-    --app-home-schedule-row-gap: 0.95rem 0.9rem;
-    --app-home-schedule-action-gap: 1rem;
-    --app-home-schedule-action-height: 2.375rem;
-    --app-home-schedule-action-py: 0.375rem;
-    --app-home-schedule-action-font: 0.79rem;
-    --app-home-lane-max-height: calc(20rem + 4px);
-    --app-home-pickup-list-margin-top: 1rem;
-    --app-home-pickup-row-gap: 1rem 1.5rem;
   }
 
   .app-home-dashboard__quick-actions-surface {
     border: 0;
     background: transparent;
     box-shadow: none;
-    padding: var(--app-home-quick-actions-padding);
+    padding: 0.6rem 0 0.2rem;
     margin-bottom: 1.35rem;
   }
 
   .app-home-dashboard__quick-actions-surface > div {
-    gap: var(--app-home-quick-actions-gap);
+    gap: 1.1rem;
   }
 
   .app-home-dashboard__quick-actions-surface button {
-    min-height: var(--app-home-quick-action-height);
+    min-height: 74px;
     border-color: color-mix(in srgb, var(--app-border) 48%, transparent);
     background: color-mix(in srgb, var(--app-surface-muted) 42%, var(--app-surface));
     box-shadow: var(--app-shadow-sm);
     padding-inline: 0.875rem;
-    padding-block: var(--app-home-schedule-action-py);
+    padding-block: 0.75rem;
   }
 
   .app-home-dashboard__locations {
@@ -565,15 +564,15 @@ textarea:focus-visible {
     border-radius: calc(var(--app-radius-md) + 2px);
     background: color-mix(in srgb, var(--app-surface-muted) 34%, var(--app-surface));
     box-shadow: var(--app-shadow-sm);
-    padding: var(--app-home-location-deck-padding);
+    padding: 0.7rem 0.95rem 0.8rem;
   }
 
   .app-home-location-bar {
-    gap: var(--app-home-location-bar-gap);
+    gap: 1.3rem 1rem;
   }
 
   .app-home-workboards {
-    gap: var(--app-home-workboards-gap);
+    gap: 1.9rem;
   }
 
   .app-home-workboard--appointments {
@@ -588,70 +587,69 @@ textarea:focus-visible {
   }
 
   .app-home-workboard--appointments > div:nth-child(2) {
-    margin-top: var(--app-home-appointments-spacing);
-  }
-
-  .app-home-schedule-row {
-    gap: var(--app-home-schedule-row-gap);
-  }
-
-  .app-home-schedule-row__actions {
-    gap: var(--app-home-schedule-action-gap);
-  }
-
-  .app-home-schedule-row__action-button {
-    min-height: var(--app-home-schedule-action-height);
-    padding-inline: 0.9rem;
-    padding-block: var(--app-home-schedule-action-py);
-    font-size: var(--app-home-schedule-action-font);
-  }
-
-  .app-home-lane-scroll {
-    max-height: var(--app-home-lane-max-height);
-  }
-
-  .app-home-pickup-list {
-    margin-top: var(--app-home-pickup-list-margin-top);
-  }
-
-  .app-home-pickup-row {
-    gap: var(--app-home-pickup-row-gap);
+    margin-top: 1.45rem;
   }
 }
 
-@media (min-width: 768px) and (max-width: 1179px) and (max-height: 940px) {
+@media (min-width: 768px) and (max-height: 940px) {
   .app-home-dashboard {
     gap: 0.75rem;
-    --app-home-quick-actions-padding: 0.75rem 0.875rem;
-    --app-home-quick-actions-gap: 0.625rem;
-    --app-home-quick-action-height: 80px;
-    --app-home-location-deck-padding: 0.625rem 0.8rem 0.7rem;
-    --app-home-location-bar-gap: 0.625rem 0.875rem;
-    --app-home-workboards-gap: 0.75rem;
-    --app-home-appointments-spacing: 0.75rem;
-    --app-home-schedule-row-gap: 0.625rem;
-    --app-home-schedule-action-gap: 0.625rem;
-    --app-home-schedule-action-height: 2.125rem;
-    --app-home-schedule-action-py: 0.3125rem;
-    --app-home-schedule-action-font: 0.72rem;
-    --app-home-lane-max-height: calc(17rem + 4px);
-    --app-home-pickup-list-margin-top: 0.75rem;
-    --app-home-pickup-row-gap: 0.75rem 1rem;
   }
 
   .app-home-dashboard > :first-child {
     margin-bottom: -0.25rem;
   }
 
+  .app-home-dashboard__quick-actions-surface {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0.75rem 0.875rem;
+  }
+
+  .app-home-dashboard__quick-actions-surface > div {
+    gap: 0.625rem;
+  }
+
+  .app-home-dashboard__quick-actions-surface button {
+    min-height: 80px;
+    padding-block: 0.75rem;
+  }
+
+  .app-home-dashboard__locations {
+    margin-bottom: 1.15rem;
+  }
+
+  .app-home-location-deck {
+    padding: 0.625rem 0.8rem 0.7rem;
+  }
+
+  .app-home-location-bar {
+    gap: 0.625rem 0.875rem;
+  }
+
+  .app-home-workboards {
+    gap: 0.75rem;
+  }
+
   .app-home-workboard {
     padding: 0.75rem;
   }
 
+  .app-home-workboard--appointments {
+    border: 0;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
   .app-home-workboard .app-table-head {
+    background: transparent;
     padding-block: 0.75rem;
   }
 
   .app-home-workboard--appointments > div:nth-child(2) {
+    margin-top: 0.75rem;
     gap: 0.75rem;
   }
 
@@ -659,12 +657,38 @@ textarea:focus-visible {
     padding-block: 0.5rem;
   }
 
+  .app-home-schedule-row {
+    gap: 0.625rem;
+  }
+
   .app-home-schedule-row__details {
     gap: 0.25rem;
   }
 
+  .app-home-schedule-row__actions {
+    gap: 0.625rem;
+  }
+
+  .app-home-schedule-row__action-button {
+    min-height: 2.125rem;
+    padding-block: 0.3125rem;
+    font-size: 0.72rem;
+  }
+
+  .app-home-lane-scroll {
+    max-height: calc(17rem + 4px);
+  }
+
+  .app-home-pickup-list {
+    margin-top: 0.75rem;
+  }
+
   .app-home-workboard--pickups .app-table-row {
     padding-block: 0.75rem;
+  }
+
+  .app-home-pickup-row {
+    gap: 0.75rem 1rem;
   }
 }
 
@@ -683,6 +707,12 @@ textarea:focus-visible {
 
   .app-detail-hero__meta {
     text-align: left;
+  }
+}
+
+@media (min-width: 768px) and (max-width: 1179px) {
+  .app-mobile-tabbar {
+    display: none;
   }
 }
 
@@ -768,6 +798,7 @@ textarea:focus-visible {
     grid-template-columns: minmax(0, 1fr);
   }
 
+  .app-mobile-topbar,
   .app-tablet-topbar,
   .app-mobile-drawer,
   .app-mobile-tabbar {
@@ -857,6 +888,10 @@ textarea:focus-visible {
 @media (display-mode: standalone) {
   .app-shell {
     padding-top: max(var(--app-shell-gutter), calc(var(--app-safe-top) + 0.55rem));
+  }
+
+  .app-mobile-topbar {
+    min-height: calc(var(--app-mobile-topbar-height) + 0.35rem);
   }
 }
 
