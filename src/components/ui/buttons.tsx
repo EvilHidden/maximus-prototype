@@ -168,7 +168,6 @@ export function RowChevronAffordance({ hideAboveDesktop = false }: { hideAboveDe
       aria-hidden="true"
     >
       <div className="flex h-full items-center gap-2 rounded-l-[var(--app-radius-sm)] bg-gradient-to-l from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pl-4 pr-0.5 transition group-hover:from-[var(--app-surface-muted)]/72 group-hover:via-[var(--app-surface-muted)]/42">
-        <div className="hidden h-full w-px bg-[var(--app-border)]/55 transition group-hover:bg-[var(--app-text-soft)]/45 md:block" />
         <ChevronRight className="h-4 w-4 text-[var(--app-text-soft)] transition group-hover:text-[var(--app-text)]" />
       </div>
     </div>

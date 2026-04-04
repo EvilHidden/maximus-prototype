@@ -13,9 +13,9 @@ import {
 import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
 
 export const OPEN_ORDER_ROW_GRID_CLASS =
-  "grid gap-4 px-4 py-4 min-[1000px]:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] min-[1000px]:items-start min-[1000px]:gap-x-4";
+  "grid gap-4 px-4 py-4 min-[1000px]:grid-cols-[minmax(0,0.78fr)_minmax(0,0.92fr)_7.25rem_5.5rem_7.75rem] min-[1000px]:items-start min-[1000px]:gap-x-4";
 export const READY_ORDER_ROW_GRID_CLASS =
-  "grid gap-4 px-4 py-3.5 min-[1000px]:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] min-[1000px]:items-center";
+  "grid gap-4 px-4 py-3.5 min-[1000px]:grid-cols-[minmax(0,1.2fr)_minmax(0,1.05fr)_7.25rem_5.5rem_7.75rem] min-[1000px]:items-start min-[1000px]:gap-x-4";
 
 export function getPickupScheduleSummary(pickups: OpenOrder["pickupSchedules"] | ClosedOrderHistoryItem["pickupSchedules"]) {
   const labels = (pickups ?? [])
@@ -115,7 +115,7 @@ export function OrdersSectionHeader({
         icon={icon}
         title={title}
         subtitle={subtitle}
-        className="border-b border-[var(--app-border)]/45 pb-3"
+        className="pb-3"
         titleClassName="app-text-value"
         subtitleClassName="app-text-caption"
       />
@@ -125,11 +125,26 @@ export function OrdersSectionHeader({
 
 export function ReadyOrdersColumnHeader() {
   return (
-    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 min-[1000px]:block">
-      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] min-[1000px]:items-center">
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 pr-14 min-[1000px]:block">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,1.2fr)_minmax(0,1.05fr)_7.25rem_5.5rem_7.75rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
         <div className="app-text-overline">Customer</div>
-        <div className="app-text-overline">Pickup</div>
-        <div className="app-text-overline">Ready</div>
+        <div className="app-text-overline">Ready by</div>
+        <div className="app-text-overline">Status</div>
+        <div aria-hidden="true" />
+        <div className="app-text-overline text-right">Total</div>
+      </div>
+    </div>
+  );
+}
+
+export function OpenOrdersColumnHeader() {
+  return (
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 pr-14 min-[1000px]:block">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.78fr)_minmax(0,0.92fr)_7.25rem_5.5rem_7.75rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
+        <div className="app-text-overline">Customer</div>
+        <div className="app-text-overline">Ready by</div>
+        <div className="app-text-overline">Status</div>
+        <div aria-hidden="true" />
         <div className="app-text-overline text-right">Total</div>
       </div>
     </div>

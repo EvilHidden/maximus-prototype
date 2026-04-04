@@ -185,10 +185,12 @@ function TailorAssignmentControl({
 
 function OperatorQueueColumnHeader() {
   return (
-    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 min-[1000px]:block">
-      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-center">
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 pr-14 min-[1000px]:block">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1fr)_7.25rem_5.5rem_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-start">
         <div className="app-text-overline">Customer</div>
         <div className="app-text-overline">Ready by</div>
+        <div className="app-text-overline">Status</div>
+        <div aria-hidden="true" />
         <div className="app-text-overline">Assigned tailor</div>
         <div className="app-text-overline text-right">Total</div>
       </div>
@@ -234,7 +236,7 @@ function OperatorQueueRow({
       onClick={handleOpen}
       onKeyDown={handleRowKeyDown}
     >
-      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1.15fr)_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-start">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.76fr)_minmax(0,1fr)_7.25rem_5.5rem_minmax(12.5rem,14rem)_8.75rem] min-[1000px]:items-start">
         <div className="min-w-0">
           <div className="app-text-overline min-[1000px]:hidden">Customer</div>
           <div className="app-text-value mt-1 min-w-0 min-[1000px]:mt-0">{openOrder.payerName}</div>
@@ -265,7 +267,7 @@ function OperatorQueueRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-3 py-2.5 min-[1000px]:grid-cols-[minmax(0,1fr)_6.5rem_4.75rem] min-[1000px]:items-center",
+                    "min-w-0 py-2.5",
                     index === 0 ? "pt-0" : "",
                   )}
                 >
@@ -281,42 +283,79 @@ function OperatorQueueRow({
                     ) : null}
                     <div className="app-text-caption mt-1 line-clamp-2">{itemSummary}</div>
                   </div>
-                  <div className={cx("min-w-0", index > 0 && "pt-2.5")}>
-                    <div className="flex min-h-14 items-center">
-                      {showPerPickupAction && statusDisplay ? (
-                        <div className={statusDisplay.className}>{statusDisplay.label}</div>
-                      ) : showStageStatus ? (
-                        <div className={stageStatusDisplay.className}>{stageStatusDisplay.label}</div>
-                      ) : null}
-                    </div>
-                  </div>
-                  <div className={cx("flex min-h-14 items-center justify-end", index > 0 && "pt-2.5")}>
-                    {showPerPickupAction ? (
-                      <ActionButton
-                        tone="primary"
-                        className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
-                        }}
-                      >
-                        Ready
-                      </ActionButton>
-                    ) : showStageAction ? (
-                      <ActionButton
-                        tone="primary"
-                        className="min-w-[4.75rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onStartOpenOrderWork(openOrder.id);
-                        }}
-                      >
-                        Start
-                      </ActionButton>
-                    ) : (
-                      <span className="app-text-caption opacity-0">No action</span>
-                    )}
-                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="min-w-0">
+          <div className="app-text-overline min-[1000px]:hidden">Status</div>
+          <div className="mt-1 min-[1000px]:mt-0">
+            {pickupGroups.map((group, index) => {
+              const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
+              const statusDisplay = representativePickup
+                ? getAlterationPickupStatusDisplay(representativePickup, group.alertLabel)
+                : null;
+              const showPerPickupAction = stage === "in_progress" && group.actionPickupIds.length > 0;
+              const showStageAction = index === 0 && stage === "ready_to_start";
+              const showStageStatus = index === 0 && stageStatusDisplay;
+
+              return (
+                <div
+                  key={`${group.key}-status`}
+                  className={cx(
+                    "flex min-h-14 flex-col items-start justify-center py-2.5",
+                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
+                  )}
+                >
+                  {showPerPickupAction && statusDisplay ? (
+                    <div className={statusDisplay.className}>{statusDisplay.label}</div>
+                  ) : showStageStatus ? (
+                    <div className={stageStatusDisplay.className}>{stageStatusDisplay.label}</div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="mt-1 min-[1000px]:mt-0">
+            {pickupGroups.map((group, index) => {
+              const showPerPickupAction = stage === "in_progress" && group.actionPickupIds.length > 0;
+              const showStageAction = index === 0 && stage === "ready_to_start";
+
+              return (
+                <div
+                  key={`${group.key}-action`}
+                  className={cx(
+                    "flex min-h-14 items-center justify-start py-2.5",
+                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
+                  )}
+                >
+                  {showPerPickupAction ? (
+                    <ActionButton
+                      tone="primary"
+                      className="min-w-[4.5rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                      }}
+                    >
+                      Ready
+                    </ActionButton>
+                  ) : showStageAction ? (
+                    <ActionButton
+                      tone="primary"
+                      className="min-w-[4.75rem] justify-center whitespace-nowrap px-2.75 py-1.25 text-[0.68rem]"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onStartOpenOrderWork(openOrder.id);
+                      }}
+                    >
+                      Start
+                    </ActionButton>
+                  ) : null}
                 </div>
               );
             })}
@@ -381,7 +420,7 @@ function OperatorQueueStageSection({
           icon={ClipboardList}
           title={title}
           subtitle={subtitle}
-          className="border-b border-[var(--app-border)]/45 pb-3"
+          className="pb-3"
           titleClassName="app-text-value"
           subtitleClassName="app-text-caption"
         />
@@ -445,7 +484,7 @@ export function OperatorQueuePanel({
             icon={UserRoundCheck}
         title="Alterations"
         subtitle="In-house orders will show up here once they are accepted."
-            className="border-b border-[var(--app-border)]/45 pb-3"
+            className="pb-3"
             titleClassName="app-text-value"
             subtitleClassName="app-text-caption"
           />
