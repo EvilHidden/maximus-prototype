@@ -124,7 +124,7 @@ const additionalCustomers: DbCustomer[] = [
     lastVisitLabel: "Mar 20",
     measurementsStatus: "missing",
     marketingOptIn: false,
-    notes: "Sari blouse alterations; very schedule-sensitive",
+    notes: "Shirt alterations; very schedule-sensitive",
   },
   {
     id: "C-1296",

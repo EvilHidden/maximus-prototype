@@ -11,14 +11,13 @@ import { createAlterationServiceDefinitions } from "../referenceSeed";
 function inferAlterationGarment(label: string) {
   const normalized = label.toLowerCase();
 
-  if (normalized.includes("trouser") || normalized.includes("pant")) return "Trousers";
+  if (normalized.includes("jean")) return "Jeans";
+  if (normalized.includes("trouser") || normalized.includes("pant")) return "Pants";
   if (normalized.includes("jacket") || normalized.includes("sleeve")) return "Jacket";
   if (normalized.includes("vest")) return "Vest";
-  if (normalized.includes("dress")) return "Dress";
+  if (normalized.includes("dress") || normalized.includes("gown")) return "Dress";
   if (normalized.includes("skirt")) return "Skirt";
-  if (normalized.includes("blouse")) return "Blouse";
-  if (normalized.includes("gown")) return "Gown";
-  if (normalized.includes("sari")) return "Sari blouse";
+  if (normalized.includes("shirt") || normalized.includes("blouse") || normalized.includes("sari")) return "Shirt";
 
   return "Alteration";
 }
@@ -343,7 +342,7 @@ const seedScopeLines: SeedScopeLineInput[] = [
   { id: "line-9008-1", scopeId: "scope-9008-custom", label: "Wedding tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: blackTieTuxedo },
   { id: "line-9009-1", scopeId: "scope-9009-alteration", label: "Jacket suppression", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Chest", "Stomach"] },
   { id: "line-9009-2", scopeId: "scope-9009-alteration", label: "Sleeve shorten", quantity: 1, garmentLabel: "Jacket", alterationServices: ["Sleeve length"] },
-  { id: "line-9010-1", scopeId: "scope-9010-alteration", label: "Blouse sleeve taper", quantity: 1, garmentLabel: "Blouse", alterationServices: ["Bicep", "Sleeve length"] },
+  { id: "line-9010-1", scopeId: "scope-9010-alteration", label: "Shirt sleeve taper", quantity: 1, garmentLabel: "Shirt", alterationServices: ["Bicep", "Sleeve length"] },
   { id: "line-9010-2", scopeId: "scope-9010-custom", label: "Reception jacket", quantity: 1, garmentLabel: "Jacket", customComponents: receptionJacketDetails },
   { id: "line-9011-1", scopeId: "scope-9011-custom", label: "Mother-of-the-bride suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: motherBrideSuitDetails },
   { id: "line-9012-1", scopeId: "scope-9012-alteration", label: "Stage pant hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Length"] },
@@ -367,9 +366,9 @@ const seedScopeLines: SeedScopeLineInput[] = [
   { id: "line-9018-1", scopeId: "scope-9018-custom", label: "Midnight tuxedo", quantity: 1, garmentLabel: "Three-piece tuxedo", customComponents: midnightTuxedo },
   { id: "line-9019-1", scopeId: "scope-9019-alteration", label: "Trouser taper", quantity: 1, garmentLabel: "Pants", alterationServices: ["Taper"] },
   { id: "line-9019-2", scopeId: "scope-9019-custom", label: "Ceremony suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
-  { id: "line-9020-1", scopeId: "scope-9020-alteration", label: "Gown shoulder lift", quantity: 1, garmentLabel: "Gown", alterationServices: ["Shoulder"] },
+  { id: "line-9020-1", scopeId: "scope-9020-alteration", label: "Dress shoulder lift", quantity: 1, garmentLabel: "Dress", alterationServices: ["Shoulder"] },
   { id: "line-9021-1", scopeId: "scope-9021-custom", label: "Charcoal suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: charcoalSuitDetails },
-  { id: "line-9022-1", scopeId: "scope-9022-alteration", label: "Sari blouse adjustment", quantity: 1, garmentLabel: "Sari blouse", alterationServices: ["Shoulder", "Waist"] },
+  { id: "line-9022-1", scopeId: "scope-9022-alteration", label: "Shirt shoulder adjustment", quantity: 1, garmentLabel: "Shirt", alterationServices: ["Shoulder", "Stomach"] },
   { id: "line-9023-1", scopeId: "scope-9023-custom", label: "Dinner suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: galaSuitDetails },
   { id: "line-9024-1", scopeId: "scope-9024-alteration", label: "Trouser hem", quantity: 1, garmentLabel: "Pants", alterationServices: ["Hem"] },
   { id: "line-9024-2", scopeId: "scope-9024-custom", label: "Wedding suit", quantity: 1, garmentLabel: "Two-piece suit", customComponents: weddingSuitDetails },
