@@ -97,6 +97,10 @@ function WorkQueueOrderRow({
   onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   const pickupGroups = getNeedsAttentionPickupGroups(openOrder);
+  const primaryAttentionGroup = pickupGroups.find((group) => group.actionPickupIds.length > 0) ?? pickupGroups[0];
+  const primaryAttentionState = primaryAttentionGroup
+    ? getNeedsAttentionGroupState(openOrder, primaryAttentionGroup)
+    : null;
   const handleOpen = () => onOpenOrderDetails(openOrder.id);
   const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
     if (event.key === "Enter" || event.key === " ") {
@@ -195,67 +199,43 @@ function WorkQueueOrderRow({
         <div className="min-w-0">
           <div className="app-text-overline min-[1000px]:hidden">Status</div>
           <div className="mt-1 min-[1000px]:mt-0">
-            {pickupGroups.map((group, index) => {
-              const groupState = getNeedsAttentionGroupState(openOrder, group);
-
-              return (
-                <div
-                  key={`${group.key}-status`}
-                  className={cx(
-                    "flex min-h-12 flex-col items-start justify-center py-2",
-                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
-                  )}
-                >
-                  {groupState ? (
-                    <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
-                  ) : null}
+            <div className="flex min-h-12 flex-col items-start justify-center py-2">
+              {primaryAttentionState ? (
+                <div className={getWorklistStatusTextClassName(primaryAttentionState.tone)}>
+                  {primaryAttentionState.label}
                 </div>
-              );
-            })}
+              ) : null}
+            </div>
           </div>
         </div>
         <div className="min-w-0">
           <div className="mt-1 min-[1000px]:mt-0">
-            {pickupGroups.map((group, index) => {
-              const groupState = getNeedsAttentionGroupState(openOrder, group);
-
-              return (
-                <div
-                  key={`${group.key}-action`}
-                  className={cx(
-                    "flex min-h-12 items-center justify-start py-2",
-                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
-                  )}
+            <div className="flex min-h-12 items-center justify-start py-2">
+              {primaryAttentionState?.actionKind === "start_work" ? (
+                <ActionButton
+                  tone="primary"
+                  className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
+                  disabled={primaryAttentionState.actionDisabled}
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onStartOpenOrderWork(openOrder.id);
+                  }}
                 >
-                  {groupState.actionKind === "start_work" ? (
-                    index === 0 ? (
-                      <ActionButton
-                        tone="primary"
-                        className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
-                        disabled={groupState.actionDisabled}
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onStartOpenOrderWork(openOrder.id);
-                        }}
-                      >
-                        Start work
-                      </ActionButton>
-                    ) : null
-                  ) : groupState.actionKind === "mark_ready" ? (
-                    <ActionButton
-                      tone="primary"
-                      className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
-                      }}
-                    >
-                      Ready
-                    </ActionButton>
-                  ) : null}
-                </div>
-              );
-            })}
+                  Start work
+                </ActionButton>
+              ) : primaryAttentionState?.actionKind === "mark_ready" && primaryAttentionGroup?.actionPickupIds.length ? (
+                <ActionButton
+                  tone="primary"
+                  className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
+                  onClick={(event) => {
+                    event.stopPropagation();
+                    onRequestMarkOpenOrderPickupReady(openOrder, primaryAttentionGroup.actionPickupIds);
+                  }}
+                >
+                  Ready
+                </ActionButton>
+              ) : null}
+            </div>
           </div>
         </div>
 
