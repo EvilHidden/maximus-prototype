@@ -2,6 +2,7 @@ import type { ClosedOrderHistoryItem, OpenOrder, PickupLocation, StaffMember } f
 import { OpenOrdersBody, OpenOrdersControls, OpenOrdersHeader } from "../features/order/components/OpenOrdersPanels";
 import { OperatorQueueSummary } from "../features/order/components/openOrders/OperatorQueuePanel";
 import { useOpenOrdersView } from "../features/order/hooks/useOpenOrdersView";
+import type { OperatorQueueStageKey } from "../features/order/selectors";
 
 type OpenOrdersScreenProps = {
   openOrders: OpenOrder[];
@@ -52,16 +53,30 @@ export function OpenOrdersScreen({
     activeSubtitle,
   } = useOpenOrdersView(openOrders, closedOrderHistory);
 
+  const handleOperatorStageSelect = (stageKey: OperatorQueueStageKey) => {
+    setActiveView("operator");
+
+    window.setTimeout(() => {
+      const target = document.getElementById(`operator-queue-${stageKey}`);
+      if (!target) {
+        return;
+      }
+
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 0);
+  };
+
   return (
     <div className="space-y-4">
       <div className="space-y-5">
         <OpenOrdersHeader subtitle={activeSubtitle} onStartNewOrder={onStartNewOrder} />
 
-        {activeView === "operator" ? (
-          <div className="app-work-surface px-2.5 py-2.5 min-[1000px]:px-4 min-[1000px]:py-3">
-            <OperatorQueueSummary stageCounts={operatorQueueCounts} />
-          </div>
-        ) : null}
+        <div className="app-work-surface px-2.5 py-2.5 min-[1000px]:px-4 min-[1000px]:py-3">
+          <OperatorQueueSummary
+            stageCounts={operatorQueueCounts}
+            onStageSelect={handleOperatorStageSelect}
+          />
+        </div>
 
         <OpenOrdersControls
           activeView={activeView}
