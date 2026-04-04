@@ -780,10 +780,48 @@ textarea:focus-visible {
     padding-inline: 1rem;
   }
 
+  .app-home-appointment-lane {
+    container-type: inline-size;
+  }
+
   .app-home-pickup-row {
     grid-template-columns: 180px minmax(0, 1fr) auto;
     align-items: start;
     gap: 1rem 1.5rem;
+  }
+}
+
+@container (max-width: 560px) {
+  .app-home-appointment-lane .app-home-schedule-row {
+    grid-template-columns: 84px minmax(0, 1fr) 176px;
+    align-items: start;
+    gap: 0.95rem 0.75rem;
+  }
+
+  .app-home-appointment-lane .app-home-schedule-row__details {
+    gap: 0.45rem;
+  }
+
+  .app-home-appointment-lane .app-home-schedule-row__status {
+    grid-column: 2 / 3;
+    grid-row: auto;
+    align-self: start;
+    align-items: flex-start;
+    padding-top: 0.15rem;
+  }
+
+  .app-home-appointment-lane .app-home-schedule-row__actions {
+    grid-column: 3 / 4;
+    grid-row: 1 / span 2;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 0.55rem;
+    align-self: start;
+  }
+
+  .app-home-appointment-lane .app-home-schedule-row__action-button {
+    min-height: 2.25rem;
+    padding-inline: 0.8rem;
+    font-size: 0.76rem;
   }
 }
 
