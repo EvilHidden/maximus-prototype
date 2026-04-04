@@ -286,7 +286,6 @@ export function saveOrderWorkflowToDatabase(
     existingOrder,
     existingScopes: existingOrder ? database.orderScopes.filter((scope) => scope.orderId === existingOrder.id) : [],
     existingPickupAppointments: existingOrder ? database.pickupAppointments.filter((appointment) => appointment.orderId === existingOrder.id) : [],
-    staffMembers: database.staffMembers,
   });
   if (!serialized) {
     return null;
@@ -374,31 +373,6 @@ export function completeOpenOrderCheckout(
       ...database.payments,
       ...createCapturedPaymentRecords({ database, orderId, paymentMode, amount, now }),
     ],
-    generatedAt: toDateTimeString(now),
-  };
-}
-
-export function assignOpenOrderTailor(
-  database: PrototypeDatabase,
-  openOrderId: number,
-  staffId: string | null,
-  now = new Date(),
-): PrototypeDatabase {
-  const orderId = getOrderIdFromOpenOrderId(database, openOrderId);
-  if (!orderId) {
-    return database;
-  }
-
-  return {
-    ...database,
-    orderScopes: database.orderScopes.map((scope) => (
-      scope.orderId === orderId && scope.workflow === "alteration"
-        ? {
-            ...scope,
-            assigneeStaffId: staffId,
-          }
-        : scope
-    )),
     generatedAt: toDateTimeString(now),
   };
 }

@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { adaptAppointments, adaptClosedOrderHistory, adaptOpenOrders } from "../db/adapters";
 import { createPrototypeDatabase } from "../db/runtime";
+import { getOperatorQueueStage } from "../features/order/selectors";
 import { appReducer, createInitialAppState } from "./appState";
 import { tryReduceOrderAction } from "./orderReducer";
 import type { AppState } from "./types";
@@ -167,7 +168,7 @@ describe("order reducer", () => {
       id: "order-9501-alteration",
       orderId: "order-9501",
       workflow: "alteration",
-      assigneeStaffId: "staff-tailor-nina",
+      assigneeStaffId: null,
     });
     expect(next?.database.orderScopeLines.find((line) => line.scopeId === "order-9501-alteration")).toMatchObject({
       scopeId: "order-9501-alteration",
@@ -319,6 +320,12 @@ describe("order reducer", () => {
       { type: "saveOpenOrder", paymentMode: "none", openCheckout: true },
       { now: new Date(2026, 2, 22, 9, 30, 0, 0), idFactory: () => 9502 },
     )!;
+    const savedOpenOrder = adaptOpenOrders(saved.database).find((order) => order.id === 9502);
+
+    expect(saved.database.orderScopes.find((scope) => scope.orderId === "order-9502")).toMatchObject({
+      assigneeStaffId: null,
+    });
+    expect(getOperatorQueueStage(savedOpenOrder!)).toBe("ready_to_start");
 
     const next = tryReduceOrderAction(
       saved,
@@ -391,27 +398,6 @@ describe("order reducer", () => {
       wearerName: "Sam Rivera",
     });
     expect(adaptOpenOrders(reverted.database).find((order) => order.id === 9503)).toBeFalsy();
-  });
-
-  it("reassigns in-house tailoring work from the work queue", () => {
-    const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
-    const state = createInitialAppState({ database });
-
-    const next = tryReduceOrderAction(
-      state,
-      { type: "assignOpenOrderTailor", openOrderId: 9005, staffId: "staff-tailor-luis" },
-      { now: new Date("2026-03-22T16:15:00.000Z") },
-    );
-
-    expect(next?.database.orderScopes.find((scope) => scope.id === "scope-9005-alteration")).toMatchObject({
-      assigneeStaffId: "staff-tailor-luis",
-    });
-    expect(adaptOpenOrders(next!.database).find((order) => order.id === 9005)).toMatchObject({
-      inHouseAssignee: {
-        id: "staff-tailor-luis",
-        name: "Luis Rivera",
-      },
-    });
   });
 
   it("records payment in one step and keeps the order anchored in the focused order flow", () => {

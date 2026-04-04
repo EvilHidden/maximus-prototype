@@ -92,7 +92,6 @@ export type AppAction =
   | { type: "activateWorkflow"; workflow: WorkflowMode }
   | { type: "saveOpenOrder"; paymentMode: CheckoutPaymentMode; openCheckout: boolean }
   | { type: "saveEditedOpenOrder" }
-  | { type: "assignOpenOrderTailor"; openOrderId: number; staffId: string | null }
   | { type: "startOpenOrderWork"; openOrderId: number }
   | { type: "completeOpenOrderCheckout"; openOrderId: number; paymentMode: Exclude<CheckoutPaymentMode, "none"> }
   | { type: "markOpenOrderPickupReady"; openOrderId: number; pickupId: string }

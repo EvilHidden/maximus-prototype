@@ -146,7 +146,6 @@ describe("seed consistency", () => {
     expect(operationalStatuses.has("partially_ready")).toBe(true);
     expect(operationalStatuses.has("ready_for_pickup")).toBe(true);
 
-    expect(queueCounts.needs_assignment).toBeGreaterThan(0);
     expect(queueCounts.ready_to_start).toBeGreaterThan(0);
     expect(queueCounts.in_progress).toBeGreaterThan(0);
     expect(queueCounts.ready).toBeGreaterThan(0);

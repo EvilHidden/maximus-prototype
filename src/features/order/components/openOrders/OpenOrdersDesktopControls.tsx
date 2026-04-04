@@ -2,7 +2,7 @@ import type { OrderType, PickupLocation } from "../../../../types";
 import { CountPill } from "../../../../components/ui/pills";
 import { SearchField, SelectField, SelectionChip, cx } from "../../../../components/ui/primitives";
 import { Search } from "lucide-react";
-import type { AssigneeFilterValue, OrdersQueueKey } from "../../selectors";
+import type { OrdersQueueKey } from "../../selectors";
 import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { queueMeta } from "./meta";
 import { getAllOrdersTabOptions, getOpenOrdersViewOptions } from "./openOrdersControlsShared";
@@ -15,9 +15,6 @@ export function OpenOrdersDesktopControls({
   onQueryChange,
   typeFilter,
   onTypeFilterChange,
-  inHouseTailors,
-  assigneeFilter,
-  onAssigneeFilterChange,
   locationOptions,
   locationFilter,
   onLocationFilterChange,
@@ -27,7 +24,6 @@ export function OpenOrdersDesktopControls({
   allOrdersTab,
   onAllOrdersTabChange,
   allOrdersTabCounts,
-  showOperatorControls,
 }: {
   activeView: OrdersView;
   onViewChange: (view: OrdersView) => void;
@@ -36,9 +32,6 @@ export function OpenOrdersDesktopControls({
   onQueryChange: (value: string) => void;
   typeFilter: OrderType | "all";
   onTypeFilterChange: (value: OrderType | "all") => void;
-  inHouseTailors: { id: string; name: string }[];
-  assigneeFilter: AssigneeFilterValue;
-  onAssigneeFilterChange: (value: AssigneeFilterValue) => void;
   locationOptions: Array<PickupLocation | "all">;
   locationFilter: PickupLocation | "all";
   onLocationFilterChange: (value: PickupLocation | "all") => void;
@@ -48,7 +41,6 @@ export function OpenOrdersDesktopControls({
   allOrdersTab: AllOrdersTab;
   onAllOrdersTabChange: (tab: AllOrdersTab) => void;
   allOrdersTabCounts: { active: number; closed: number };
-  showOperatorControls: boolean;
 }) {
   const viewOptions = getOpenOrdersViewOptions(viewCounts);
   const allTabOptions = getAllOrdersTabOptions(allOrdersTabCounts);
@@ -110,24 +102,6 @@ export function OpenOrdersDesktopControls({
             <option value="custom">Custom Garment</option>
             <option value="mixed">Custom + Alterations</option>
           </SelectField>
-
-          {activeView !== "all" ? (
-            <SelectField
-              label={showOperatorControls ? "Viewing queue" : "Assigned to"}
-              value={assigneeFilter}
-              onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
-              density="compact"
-              className="min-w-0 min-[1000px]:min-w-[164px] min-[1000px]:flex-[0.92]"
-            >
-              <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
-              <option value="unassigned">Unassigned</option>
-              {inHouseTailors.map((staffMember) => (
-                <option key={staffMember.id} value={staffMember.id}>
-                  {staffMember.name}
-                </option>
-              ))}
-            </SelectField>
-          ) : null}
 
           <SelectField
             label="Location"

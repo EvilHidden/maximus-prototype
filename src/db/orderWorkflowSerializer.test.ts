@@ -29,7 +29,6 @@ function serializeOrder(order: OrderWorkflowState, orderSequence: number) {
     paymentMode: "none",
     orderSequence,
     now: new Date("2026-03-22T12:00:00.000Z"),
-    staffMembers: database.staffMembers,
   });
 
   expect(serialized).toBeTruthy();

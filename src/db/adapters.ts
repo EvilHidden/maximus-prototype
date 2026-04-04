@@ -364,10 +364,6 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
         orderType: order.orderType,
         total,
       });
-      const alterationScope = scopes.find((scope) => scope.workflow === "alteration");
-      const staffMember = alterationScope?.assigneeStaffId
-        ? database.staffMembers.find((candidate) => candidate.id === alterationScope.assigneeStaffId)
-        : null;
       const completedAt = order.status === "complete"
         ? scopes
           .map((scope) => scope.pickedUpAt)
@@ -383,7 +379,6 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
         payerName: order.payerName,
         label: getOrderLabel(database, order.id),
         orderType: order.orderType,
-        inHouseAssignee: staffMember ? adaptStaffMember(database, staffMember) : null,
         itemCount: lineItems.length,
         lineItems,
         itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),
@@ -487,15 +482,6 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         orderType: order.orderType,
         operationalStatus: deriveOperationalStatus(order, scopes),
         holdUntilAllScopesReady: order.holdUntilAllScopesReady,
-        inHouseAssignee: (() => {
-          const alterationScope = scopes.find((scope) => scope.workflow === "alteration");
-          if (!alterationScope?.assigneeStaffId) {
-            return null;
-          }
-
-          const staffMember = database.staffMembers.find((candidate) => candidate.id === alterationScope.assigneeStaffId);
-          return staffMember ? adaptStaffMember(database, staffMember) : null;
-        })(),
         itemCount: lineItems.length,
         lineItems,
         itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),

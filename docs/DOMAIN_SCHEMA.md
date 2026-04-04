@@ -47,6 +47,12 @@ The goal is not to be production-perfect yet. The goal is to stop spreading busi
   - optional event linkage
   - pickup behavior
 
+Staffing note:
+- `assignee_staff_id` remains in the canonical shape as a dormant compatibility field
+- the current prototype does not use single-tailor assignment as active workflow logic or UI
+- existing seeded or historical values may remain on records, but they should not block readiness, queueing, or start-work actions
+- if staffing returns later, it will likely need a more flexible work-allocation model than one scope-level assignee
+
 This is what allows mixed orders to be partially ready without pretending the whole order moves as one indivisible block.
 
 UI note:
@@ -150,6 +156,19 @@ Note:
 - Can become `ready` before customer pickup is scheduled
 - May be picked up independently
 - In mixed orders, may be held operationally until the rest of the order is ready
+
+Active alteration lifecycle:
+- `Draft`
+- `Accepted`
+- `In progress`
+- `Ready for pickup`
+- `Picked up`
+- `Closed`
+
+Notes:
+- `Accepted` is the live saved state before work starts
+- `Ready for pickup` is still an active order state, not a closed one
+- `Closed` should only happen after pickup completion resolves the remaining active scope work
 
 ### Custom scopes
 - May exist with no event

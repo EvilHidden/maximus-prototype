@@ -1,7 +1,7 @@
 import type { OpenOrder } from "../../types";
 import { getPickupDateTime } from "./orderDateUtils";
 
-export type OperatorQueueStageKey = "needs_assignment" | "ready_to_start" | "in_progress" | "ready";
+export type OperatorQueueStageKey = "ready_to_start" | "in_progress" | "ready";
 
 export type OperatorQueueStageCounts = Record<OperatorQueueStageKey, number>;
 
@@ -24,10 +24,6 @@ export function getOperatorQueueStage(openOrder: OpenOrder): OperatorQueueStageK
     return "ready";
   }
 
-  if (!openOrder.inHouseAssignee) {
-    return "needs_assignment";
-  }
-
   if (openOrder.operationalStatus === "accepted") {
     return "ready_to_start";
   }
@@ -44,7 +40,6 @@ export function getOperatorQueueStageCounts(openOrders: OpenOrder[]): OperatorQu
 
     return counts;
   }, {
-    needs_assignment: 0,
     ready_to_start: 0,
     in_progress: 0,
     ready: 0,

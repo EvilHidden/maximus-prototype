@@ -478,7 +478,6 @@ export function buildOpenOrder(
     orderType,
     operationalStatus: "accepted",
     holdUntilAllScopesReady: orderType === "mixed",
-    inHouseAssignee: null,
     itemCount: lineItems.length,
     lineItems,
     itemSummary: lineItems.map((item) => item.title.replace(/^\d+\.\s*/, "")),

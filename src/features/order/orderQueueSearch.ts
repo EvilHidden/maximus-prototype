@@ -1,6 +1,6 @@
 import type { ClosedOrderHistoryItem, OpenOrder, PickupLocation } from "../../types";
 import { getOpenOrderTypeLabel } from "./orderWorkflow";
-import { type AssigneeFilterValue, type OrdersQueueKey } from "./orderQueues";
+import { type OrdersQueueKey } from "./orderQueues";
 import {
   getOpenOrderLocationSummary,
   getPickupAlertState,
@@ -21,7 +21,6 @@ function getOpenOrderSearchText(openOrder: OpenOrder) {
     [
       openOrder.id,
       openOrder.payerName,
-      openOrder.inHouseAssignee?.name,
       getOpenOrderTypeLabel(openOrder.orderType),
       ...openOrder.itemSummary,
       ...openOrder.pickupSchedules.flatMap((pickup) => [
@@ -57,18 +56,6 @@ function openOrderMatchesLocation(openOrder: OpenOrder, locationFilter: PickupLo
   }
 
   return openOrder.pickupSchedules.some((pickup) => pickup.pickupLocation === locationFilter);
-}
-
-function openOrderMatchesAssignee(openOrder: OpenOrder, assigneeFilter: AssigneeFilterValue) {
-  if (assigneeFilter === "all") {
-    return true;
-  }
-
-  if (assigneeFilter === "unassigned") {
-    return (openOrder.orderType === "alteration" || openOrder.orderType === "mixed") && !openOrder.inHouseAssignee;
-  }
-
-  return openOrder.inHouseAssignee?.id === assigneeFilter;
 }
 
 function openOrderMatchesQueue(openOrder: OpenOrder, queue: OrdersQueueKey, now = new Date()) {
@@ -110,7 +97,6 @@ export type OpenOrderFilterOptions = {
   queue: OrdersQueueKey;
   typeFilter: OpenOrder["orderType"] | "all";
   locationFilter: PickupLocation | "all";
-  assigneeFilter: AssigneeFilterValue;
 };
 
 export function getOrderQueueCounts(openOrders: OpenOrder[], options: { now?: Date } = {}) {
@@ -142,7 +128,7 @@ export function getOrderQueueCounts(openOrders: OpenOrder[], options: { now?: Da
 
 export function filterOpenOrders(
   openOrders: OpenOrder[],
-  { query, queue, typeFilter, locationFilter, assigneeFilter }: OpenOrderFilterOptions,
+  { query, queue, typeFilter, locationFilter }: OpenOrderFilterOptions,
   options: { now?: Date } = {},
 ) {
   const now = options.now ?? new Date();
@@ -154,10 +140,6 @@ export function filterOpenOrders(
     }
 
     if (!openOrderMatchesLocation(openOrder, locationFilter)) {
-      return false;
-    }
-
-    if (!openOrderMatchesAssignee(openOrder, assigneeFilter)) {
       return false;
     }
 

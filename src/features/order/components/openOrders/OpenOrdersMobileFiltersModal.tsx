@@ -1,7 +1,7 @@
-import type { OrderType, PickupLocation, StaffMember } from "../../../../types";
+import type { OrderType, PickupLocation } from "../../../../types";
 import { CountPill } from "../../../../components/ui/pills";
 import { ModalShell, SelectField, SelectionChip, cx } from "../../../../components/ui/primitives";
-import type { AssigneeFilterValue, OrdersQueueKey } from "../../selectors";
+import type { OrdersQueueKey } from "../../selectors";
 import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { queueMeta } from "./meta";
 import { getAllOrdersTabOptions } from "./openOrdersControlsShared";
@@ -19,10 +19,6 @@ export function OpenOrdersMobileFiltersModal({
   locationOptions,
   locationFilter,
   onLocationFilterChange,
-  showOperatorControls,
-  assigneeFilter,
-  onAssigneeFilterChange,
-  inHouseTailors,
   onClose,
 }: {
   activeView: OrdersView;
@@ -37,10 +33,6 @@ export function OpenOrdersMobileFiltersModal({
   locationOptions: Array<PickupLocation | "all">;
   locationFilter: PickupLocation | "all";
   onLocationFilterChange: (value: PickupLocation | "all") => void;
-  showOperatorControls: boolean;
-  assigneeFilter: AssigneeFilterValue;
-  onAssigneeFilterChange: (value: AssigneeFilterValue) => void;
-  inHouseTailors: StaffMember[];
   onClose: () => void;
 }) {
   const allTabOptions = getAllOrdersTabOptions(allOrdersTabCounts);
@@ -147,24 +139,6 @@ export function OpenOrdersMobileFiltersModal({
             </option>
           ))}
         </SelectField>
-
-        {activeView !== "all" ? (
-          <SelectField
-            label={showOperatorControls ? "Viewing queue" : "Assigned to"}
-            value={assigneeFilter}
-            onChange={(value) => onAssigneeFilterChange(value as AssigneeFilterValue)}
-            density="compact"
-            className="min-w-0"
-          >
-            <option value="all">{showOperatorControls ? "All in-house work" : "All tailors"}</option>
-            <option value="unassigned">Unassigned</option>
-            {inHouseTailors.map((staffMember) => (
-              <option key={staffMember.id} value={staffMember.id}>
-                {staffMember.name}
-              </option>
-            ))}
-          </SelectField>
-        ) : null}
       </div>
     </ModalShell>
   );

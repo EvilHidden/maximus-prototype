@@ -258,7 +258,6 @@ export type OpenOrder = {
   orderType: OrderType;
   operationalStatus: OpenOrderOperationalStatus;
   holdUntilAllScopesReady: boolean;
-  inHouseAssignee: StaffMember | null;
   itemCount: number;
   lineItems: OrderBagLineItem[];
   itemSummary: string[];
@@ -285,7 +284,6 @@ export type ClosedOrderHistoryItem = {
   payerCustomerId?: string | null;
   payerName?: string;
   orderType?: OrderType;
-  inHouseAssignee?: StaffMember | null;
   itemCount?: number;
   lineItems?: OrderBagLineItem[];
   itemSummary?: string[];

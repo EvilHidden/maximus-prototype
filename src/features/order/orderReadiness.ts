@@ -92,16 +92,7 @@ export function getNeedsAttentionGroupState(
       label: "Overdue",
       tone: "danger",
       actionKind: hasPendingAction ? (isAlterationGroup && isAccepted ? "start_work" : "mark_ready") : null,
-      actionDisabled: Boolean(isAlterationGroup && isAccepted && !openOrder.inHouseAssignee),
-    };
-  }
-
-  if (isAlterationGroup && isAccepted && !openOrder.inHouseAssignee) {
-    return {
-      label: "Awaiting assignment",
-      tone: "warn",
-      actionKind: hasPendingAction ? "start_work" : null,
-      actionDisabled: true,
+      actionDisabled: false,
     };
   }
 

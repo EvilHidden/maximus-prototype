@@ -6,7 +6,6 @@ import {
   adaptCustomers,
   adaptMeasurementSets,
   adaptOpenOrders,
-  adaptStaffMembers,
 } from "../../db/adapters";
 import { filterActiveAppointments, filterServiceAppointments } from "../appointments/selectors";
 import { appReducer, createInitialAppState } from "../../state/appState";
@@ -34,7 +33,6 @@ export function useAppController() {
   const appointments = useMemo(() => filterServiceAppointments(activeAppointments), [activeAppointments]);
   const derivedMeasurementSets = useMemo(() => adaptMeasurementSets(state.database), [state.database]);
   const openOrders = useMemo(() => adaptOpenOrders(state.database), [state.database]);
-  const inHouseTailors = useMemo(() => adaptStaffMembers(state.database), [state.database]);
   const closedOrderHistory = useMemo(() => adaptClosedOrderHistory(state.database), [state.database]);
 
   const selectedCustomer = useMemo<Customer | null>(
@@ -59,7 +57,6 @@ export function useAppController() {
     openWorkflowAppointment,
     saveDraftOrder,
     saveEditedOrder,
-    assignOpenOrderTailor,
     startOpenOrderWork,
     completeOpenOrderCheckout,
   } = useAppWorkflowActions({ dispatch });
@@ -72,7 +69,6 @@ export function useAppController() {
     customerOrders,
     appointments,
     openOrders,
-    inHouseTailors,
     measurementSets,
     closedOrderHistory,
     selectedCustomer,
@@ -85,7 +81,6 @@ export function useAppController() {
     deleteMeasurementSet,
     saveDraftOrder,
     saveEditedOrder,
-    assignOpenOrderTailor,
     startOpenOrderWork,
     completeOpenOrderCheckout,
   };

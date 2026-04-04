@@ -20,7 +20,6 @@ export function AppScreenContent({
   customerOrders,
   appointments,
   openOrders,
-  inHouseTailors,
   measurementSets,
   closedOrderHistory,
   selectedCustomer,
@@ -33,7 +32,6 @@ export function AppScreenContent({
   deleteMeasurementSet,
   saveDraftOrder,
   saveEditedOrder,
-  assignOpenOrderTailor,
   startOpenOrderWork,
   completeOpenOrderCheckout,
 }: AppController) {
@@ -124,8 +122,6 @@ export function AppScreenContent({
         openOrders={openOrders}
         closedOrderHistory={closedOrderHistory}
         pickupLocations={referenceData.pickupLocations}
-        inHouseTailors={inHouseTailors}
-        onAssignOpenOrderTailor={assignOpenOrderTailor}
         onStartOpenOrderWork={startOpenOrderWork}
         onMarkOpenOrderPickupReady={(openOrderId, pickupId) => dispatch({ type: "markOpenOrderPickupReady", openOrderId, pickupId })}
         onOpenOrderDetails={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
