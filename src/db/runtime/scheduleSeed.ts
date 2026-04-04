@@ -138,7 +138,7 @@ export function createPickupAppointments({ baseDate }: RuntimeSeedDates): DbPick
       durationMinutes: 15,
       typeKey: "pickup",
       statusKey: "scheduled",
-      summary: "Alterations: blouse sleeve taper • Custom: reception jacket",
+      summary: "Alterations: shirt sleeve taper • Custom: reception jacket",
       confirmationStatus: "confirmed",
     },
     {
