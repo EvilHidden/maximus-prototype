@@ -37,6 +37,10 @@ const navIcons = {
   orderDetails: Package,
 } satisfies Record<Screen, typeof Home>;
 
+const mobileTabLabels: Partial<Record<Screen, string>> = {
+  appointments: "Appts",
+};
+
 const themeOptions = [
   { key: "light" as const, label: "Light", Icon: Sun },
   { key: "dark" as const, label: "Dark", Icon: Moon },
@@ -205,6 +209,7 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
         {primaryNavItems.map((item) => {
           const Icon = navIcons[item.key];
           const isActive = activeNavScreen === item.key;
+          const mobileLabel = mobileTabLabels[item.key] ?? item.label;
 
           return (
             <button
@@ -213,9 +218,10 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
               onClick={() => handleScreenChange(item.key)}
               className={cx("app-mobile-tabbar__item", isActive ? "app-mobile-tabbar__item--active" : "")}
               aria-current={isActive ? "page" : undefined}
+              aria-label={item.label}
             >
               <Icon className="h-[1.05rem] w-[1.05rem] shrink-0" />
-              <span>{item.label}</span>
+              <span>{mobileLabel}</span>
             </button>
           );
         })}
