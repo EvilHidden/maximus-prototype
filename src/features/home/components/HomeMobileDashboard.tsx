@@ -6,7 +6,7 @@ import {
   ActionButton,
   SelectionChip,
 } from "../../../components/ui/primitives";
-import { AppointmentIssuePill, CountPill } from "../../../components/ui/pills";
+import { AppointmentIssuePill } from "../../../components/ui/pills";
 import {
   getAppointmentAttentionLabel,
   getAppointmentTimeLabel,
@@ -56,10 +56,12 @@ function formatCurrency(value: number) {
 
 function MobileMetric({
   label,
+  detail,
   value,
   tone = "default",
 }: {
   label: string;
+  detail: string;
   value: string;
   tone?: "default" | "info" | "success";
 }) {
@@ -71,9 +73,10 @@ function MobileMetric({
         : "text-[var(--app-text)]";
 
   return (
-    <div className="min-w-0 border-l border-[var(--app-border)]/38 pl-3 first:border-l-0 first:pl-0">
-      <div className="app-text-overline text-[var(--app-text-soft)]/90">{label}</div>
-      <div className={`app-text-value mt-0.5 truncate text-[0.95rem] ${valueToneClassName}`}>{value}</div>
+    <div className="min-w-0 px-1 text-center">
+      <div className="app-text-overline text-[var(--app-text-soft)]/88">{label}</div>
+      <div className={`app-text-value mt-1 text-[0.98rem] ${valueToneClassName}`}>{value}</div>
+      <div className="app-text-caption mt-1 text-[var(--app-text-soft)]/76">{detail}</div>
     </div>
   );
 }
@@ -152,27 +155,27 @@ function MobileAppointmentRow({
   onCreateOrder: (appointment: Appointment) => void;
 }) {
   return (
-    <div className="border-b border-[var(--app-border)]/20 py-6 last:border-b-0 last:pb-0 first:pt-0">
-      <div className="grid grid-cols-[70px_minmax(0,1fr)_auto] gap-x-8.5 gap-y-4">
-        <div className="app-text-value whitespace-nowrap pt-0.5 text-[0.8rem] leading-none text-[var(--app-text-muted)]">{getAppointmentTimeLabel(appointment)}</div>
+    <div className="border-b border-[var(--app-border)]/24 py-5 last:border-b-0 last:pb-0 first:pt-0">
+      <div className="grid grid-cols-[68px_minmax(0,1fr)_auto] gap-x-5 gap-y-3">
+        <div className="app-text-value whitespace-nowrap pt-0.5 text-[0.79rem] leading-none text-[var(--app-text-muted)]">{getAppointmentTimeLabel(appointment)}</div>
         <div className="min-w-0">
-          <div className="min-w-0">
+          <div className="min-w-0 space-y-1">
             <div className="app-text-strong truncate">{appointment.customer}</div>
-            <div className="app-text-body mt-1 text-[0.8rem] leading-tight">{appointment.type}</div>
+            <div className="app-text-body text-[0.8rem] leading-tight text-[var(--app-text-muted)]">{appointment.type}</div>
           </div>
-          <div className="app-text-caption mt-4.5 inline-flex items-center gap-1.5">
+          <div className="app-text-caption mt-3 inline-flex items-center gap-1.5">
             <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span>{appointment.location}</span>
           </div>
         </div>
-        <div className="flex min-w-[92px] flex-col items-end gap-4.5 pt-0.5">
+        <div className="flex min-w-[84px] flex-col items-end gap-3.5 pt-0.5">
           <AppointmentIssuePill
             tone={appointment.contextFlags.includes("unconfirmed") ? "warn" : "success"}
             label={getAppointmentAttentionLabel(appointment)}
           />
           <ActionButton
             tone="quiet"
-            className="min-h-0 rounded-[10px] border-[var(--app-border)]/32 px-2.5 py-1.5 text-[0.68rem] font-medium text-[var(--app-text-soft)] hover:text-[var(--app-text)]"
+            className="min-h-0 rounded-[10px] border-[var(--app-border)]/24 px-2.25 py-1 text-[0.66rem] font-medium text-[var(--app-text-soft)] hover:text-[var(--app-text)]"
             onClick={() => onCreateOrder(appointment)}
           >
             Start order
@@ -199,10 +202,10 @@ function MobilePickupRow({
 
   return (
     <div className="border-b border-[var(--app-border)]/24 py-4.5 last:border-b-0 last:pb-0 first:pt-0">
-      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4">
+      <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3.5">
         <div className="min-w-0 flex-1">
           <div className="app-text-strong truncate">{pickup.payerName}</div>
-          <div className="app-text-body mt-1 truncate text-[0.8rem] leading-tight">
+          <div className="app-text-body mt-1 truncate text-[0.8rem] leading-tight text-[var(--app-text-muted)]">
             {summary || pickup.pickupSchedule.label}
           </div>
           <div className="app-text-caption mt-2.5 flex flex-wrap items-center gap-x-3 gap-y-1.5">
@@ -218,7 +221,7 @@ function MobilePickupRow({
         <div className="pt-0.5">
           <ActionButton
             tone="secondary"
-            className="min-h-7 px-2.5 py-1 text-[0.72rem]"
+            className="min-h-7 rounded-[10px] px-2.5 py-1 text-[0.7rem]"
             onClick={() => (needsPayment ? onCheckoutPickup(pickup.openOrderId) : onCompletePickup(pickup.openOrderId))}
           >
             {needsPayment ? "Take payment" : "Complete"}
@@ -255,43 +258,30 @@ export function HomeMobileDashboard({
   const mobileTodayAppointments = todayAppointments.slice(0, 3);
   const mobileTomorrowAppointments = tomorrowAppointments.slice(0, 2);
   const mobilePickups = readyPickups.slice(0, 2);
-
   return (
     <div className="space-y-6.5 md:hidden">
-      <div className="pb-5.5">
+      <div className="pb-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="app-text-overline text-[var(--app-text-soft)]/70">Today at a glance</div>
-            <div className="app-text-strong mt-1 text-[0.92rem]">Home</div>
+            <div className="app-text-overline text-[var(--app-text-soft)]/58">Today overview</div>
+            <div className="app-text-strong mt-1 text-[1rem]">Home</div>
           </div>
-          <CountPill count={visibleAppointmentCount + visiblePickupCount} label="items" icon={CalendarDays} tone="default" className="px-2 py-1 opacity-75" />
         </div>
 
-        <div className="mt-5 grid grid-cols-3 gap-4.5">
-          <MobileMetric label="Today" value={String(todayAppointments.length)} tone="info" />
-          <MobileMetric label="Tomorrow" value={String(tomorrowAppointments.length)} tone="default" />
-          <MobileMetric label="Ready" value={String(readyPickups.length)} tone="success" />
+        <div className="mt-4 grid grid-cols-3 gap-0 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/24 bg-[var(--app-surface-muted)]/8 py-3">
+          <div className="border-r border-[var(--app-border)]/24">
+            <MobileMetric label="Today" detail="appointments" value={String(todayAppointments.length)} tone="info" />
+          </div>
+          <div className="border-r border-[var(--app-border)]/24">
+            <MobileMetric label="Tomorrow" detail="appointments" value={String(tomorrowAppointments.length)} tone="default" />
+          </div>
+          <MobileMetric label="Ready" detail="pickups" value={String(readyPickups.length)} tone="success" />
         </div>
       </div>
 
       <div className="space-y-2.5">
-        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/68">Shortcuts</div>
-        <div className="flex gap-3 overflow-x-auto pb-1.5 app-no-scrollbar">
-          {mobileQuickActions.map((action) => (
-            <MobileShortcutButton
-              key={action.label}
-              title={action.label}
-              icon={action.icon}
-              iconStyle={action.iconStyle}
-              onClick={action.onClick}
-            />
-          ))}
-        </div>
-      </div>
-
-      <div className="space-y-3">
-        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/68">Locations</div>
-        <div className="flex gap-2.5 overflow-x-auto pb-2 app-no-scrollbar">
+        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/62">Filter locations</div>
+        <div className="flex gap-2.5 overflow-x-auto pb-1 app-no-scrollbar">
           <SelectionChip
             selected={allLocationsActive}
             onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
@@ -329,7 +319,7 @@ export function HomeMobileDashboard({
       {hasVisibleHomeWork ? (
         <div className="space-y-6">
           <MobileSection
-            title="Today"
+            title="Today’s appointments"
             subtitle={todayLabel}
             count={todayAppointments.length}
             countLabel="booked"
@@ -357,7 +347,7 @@ export function HomeMobileDashboard({
           </MobileSection>
 
           <MobileSection
-            title="Tomorrow"
+            title="Tomorrow’s appointments"
             subtitle={tomorrowLabel}
             count={tomorrowAppointments.length}
             countLabel="booked"
@@ -429,11 +419,26 @@ export function HomeMobileDashboard({
       ) : (
         <HomeEmptyState
           title="Nothing needs attention"
-          detail="Use the shortcuts below to start a new job or pull up a customer."
+          detail="Use the quick starts below to begin a job or pull up a customer."
           primaryAction={{ label: "Open customers", onClick: () => onScreenChange("customer") }}
           secondaryAction={{ label: "Start alteration order", onClick: () => onStartWorkflow("alteration") }}
         />
       )}
+
+      <div className="space-y-2.5 border-t border-[var(--app-border)]/22 pt-5">
+        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/58">Quick starts</div>
+        <div className="flex gap-3 overflow-x-auto pb-1.5 app-no-scrollbar">
+          {mobileQuickActions.map((action) => (
+            <MobileShortcutButton
+              key={action.label}
+              title={action.label}
+              icon={action.icon}
+              iconStyle={action.iconStyle}
+              onClick={action.onClick}
+            />
+          ))}
+        </div>
+      </div>
     </div>
   );
 }
