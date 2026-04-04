@@ -66,7 +66,7 @@ function OpenSectionHeader({
       subtitle={subtitle}
       className="pb-3"
       titleClassName="app-text-value"
-      subtitleClassName="app-text-caption"
+      subtitleClassName="app-text-caption line-clamp-1"
     />
   );
 }
@@ -291,7 +291,7 @@ export function QueueSection({
   if (!count) {
     return (
       <div className="app-work-surface">
-        <div className="px-4 py-4">
+        <div className="min-h-[4.5rem] px-4 py-4">
           <OpenSectionHeader
             icon={PackageSearch}
             title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
@@ -313,7 +313,7 @@ export function QueueSection({
 
   return (
     <div className="app-work-surface">
-      <div className="px-4 py-4">
+      <div className="min-h-[4.5rem] px-4 py-4">
         <OpenSectionHeader
           icon={PackageSearch}
           title={queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Queue"}
