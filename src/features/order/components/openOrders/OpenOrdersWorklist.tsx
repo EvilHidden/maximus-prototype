@@ -64,10 +64,24 @@ function OpenSectionHeader({
       icon={Icon}
       title={title}
       subtitle={subtitle}
-      className="border-b border-[var(--app-border)]/45 pb-3"
+      className="pb-3"
       titleClassName="app-text-value"
       subtitleClassName="app-text-caption"
     />
+  );
+}
+
+function WorkQueueColumnHeader() {
+  return (
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 pr-14 min-[1000px]:block">
+      <div className="grid gap-3 min-[1000px]:grid-cols-[minmax(0,0.62fr)_minmax(0,0.92fr)_7.25rem_5.5rem_8.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
+        <div className="app-text-overline">Customer</div>
+        <div className="app-text-overline">Ready by</div>
+        <div className="app-text-overline">Status</div>
+        <div aria-hidden="true" />
+        <div className="app-text-overline text-right">Total</div>
+      </div>
+    </div>
   );
 }
 
@@ -124,67 +138,9 @@ function WorkQueueOrderRow({
             </div>
           </div>
         </div>
-
-        <div className="space-y-2.5">
-          {pickupGroups.map((group, index) => {
-            const uniqueItems = [...new Set(group.itemSummary)];
-            const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
-            const dateLabel = representativePickup
-              ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-              : null;
-            const timeLabel = representativePickup
-              ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-              : null;
-            const location = representativePickup?.pickupLocation ?? "";
-            const groupState = getNeedsAttentionGroupState(openOrder, group);
-
-            return (
-              <div key={group.key} className="space-y-2.5 rounded-[calc(var(--app-radius-md)-4px)] border border-[var(--app-border)]/35 px-3 py-2.5">
-                <div className="flex items-start justify-between gap-3">
-                  <div className="min-w-0">
-                    <div className="app-text-body font-medium">
-                      {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
-                    </div>
-                    <div className="app-text-caption mt-1 line-clamp-2">
-                      {getGroupedItemSummary(uniqueItems)}
-                    </div>
-                    {location ? (
-                      <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
-                        <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                        <span>{location}</span>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div className="shrink-0 text-right">
-                    <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
-                  </div>
-                </div>
-                {(groupState.actionKind === "start_work" && index === 0) || groupState.actionKind === "mark_ready" ? (
-                  <div className="flex justify-end">
-                    <ActionButton
-                      tone="primary"
-                      className="min-h-8 min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
-                      disabled={groupState.actionKind === "start_work" ? groupState.actionDisabled : false}
-                      onClick={(event) => {
-                        event.stopPropagation();
-                        if (groupState.actionKind === "start_work") {
-                          onStartOpenOrderWork(openOrder.id);
-                          return;
-                        }
-                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
-                      }}
-                    >
-                      {groupState.actionKind === "start_work" ? "Start work" : "Ready"}
-                    </ActionButton>
-                  </div>
-                ) : null}
-              </div>
-            );
-          })}
-        </div>
       </div>
 
-      <div className="hidden min-[1000px]:grid min-[1000px]:gap-3 min-[1000px]:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
+      <div className="hidden min-[1000px]:grid min-[1000px]:gap-3 min-[1000px]:grid-cols-[minmax(0,0.62fr)_minmax(0,0.92fr)_7.25rem_5.5rem_8.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
         <div className="min-w-0">
           <div className="app-text-value min-w-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
@@ -210,7 +166,7 @@ function WorkQueueOrderRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-2.5 py-2 min-[1000px]:grid-cols-[minmax(0,1fr)_6.25rem_4.75rem] min-[1000px]:items-center",
+                    "min-w-0 py-2",
                     index === 0 ? "pt-0" : "",
                   )}
                 >
@@ -230,47 +186,73 @@ function WorkQueueOrderRow({
                       {getGroupedItemSummary(uniqueItems)}
                     </div>
                   </div>
-                  <div className={cx("min-w-0", index > 0 && "pt-2.5")}>
-                    {groupState ? (
-                      <div className="flex min-h-12 items-center justify-start">
-                        <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
-                      </div>
-                    ) : null}
-                  </div>
-                  <div
-                    className={cx("flex min-h-12 items-center justify-end", index > 0 && "pt-2.5")}
-                  >
-                    {groupState.actionKind === "start_work" ? (
-                      index === 0 ? (
-                        <ActionButton
-                          tone="primary"
-                          className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
-                          disabled={groupState.actionDisabled}
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onStartOpenOrderWork(openOrder.id);
-                          }}
-                        >
-                          Start work
-                        </ActionButton>
-                      ) : (
-                        <span className="app-text-caption opacity-0">No action</span>
-                      )
-                    ) : groupState.actionKind === "mark_ready" ? (
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        <div className="min-w-0">
+          <div className="app-text-overline min-[1000px]:hidden">Status</div>
+          <div className="mt-1 min-[1000px]:mt-0">
+            {pickupGroups.map((group, index) => {
+              const groupState = getNeedsAttentionGroupState(openOrder, group);
+
+              return (
+                <div
+                  key={`${group.key}-status`}
+                  className={cx(
+                    "flex min-h-12 flex-col items-start justify-center py-2",
+                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
+                  )}
+                >
+                  {groupState ? (
+                    <div className={getWorklistStatusTextClassName(groupState.tone)}>{groupState.label}</div>
+                  ) : null}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div className="min-w-0">
+          <div className="mt-1 min-[1000px]:mt-0">
+            {pickupGroups.map((group, index) => {
+              const groupState = getNeedsAttentionGroupState(openOrder, group);
+
+              return (
+                <div
+                  key={`${group.key}-action`}
+                  className={cx(
+                    "flex min-h-12 items-center justify-start py-2",
+                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35 pt-2.5",
+                  )}
+                >
+                  {groupState.actionKind === "start_work" ? (
+                    index === 0 ? (
                       <ActionButton
                         tone="primary"
                         className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
+                        disabled={groupState.actionDisabled}
                         onClick={(event) => {
                           event.stopPropagation();
-                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                          onStartOpenOrderWork(openOrder.id);
                         }}
                       >
-                        Ready
+                        Start work
                       </ActionButton>
-                    ) : (
-                      <span className="app-text-caption opacity-0">No action</span>
-                    )}
-                  </div>
+                    ) : null
+                  ) : groupState.actionKind === "mark_ready" ? (
+                    <ActionButton
+                      tone="primary"
+                      className="min-h-9 min-w-[4.5rem] justify-center whitespace-nowrap px-2.5 py-1.5 text-[0.68rem]"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                      }}
+                    >
+                      Ready
+                    </ActionButton>
+                  ) : null}
                 </div>
               );
             })}
@@ -343,10 +325,8 @@ export function QueueSection({
         />
       </div>
       <div className="border-t border-[var(--app-border)]/45">
+        <WorkQueueColumnHeader />
         <div>
-          <div className="app-table-head border-b border-[var(--app-border)]/35 px-4 py-2">
-            <div className="app-text-overline">Active orders</div>
-          </div>
           {openOrders.map((openOrder, index) => (
             <div
               key={openOrder.id}

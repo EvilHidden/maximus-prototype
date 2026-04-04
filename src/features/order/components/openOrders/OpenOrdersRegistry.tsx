@@ -9,7 +9,7 @@ import { OperatorQueuePanel } from "./OperatorQueuePanel";
 import { QueueSection } from "./OpenOrdersWorklist";
 import { AllOrdersRow } from "./AllOrdersRow";
 import { ClosedOrdersSection } from "./ClosedOrdersSection";
-import { OrdersSectionHeader, ReadyOrdersColumnHeader } from "./openOrdersRegistryShared";
+import { OpenOrdersColumnHeader, OrdersSectionHeader, ReadyOrdersColumnHeader } from "./openOrdersRegistryShared";
 
 export function OpenOrdersBody({
   activeView,
@@ -72,6 +72,7 @@ export function OpenOrdersBody({
                 subtitle="Scan every active order in one place."
               />
               <div className="border-t border-[var(--app-border)]/45">
+                <OpenOrdersColumnHeader />
                 <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
                   No active orders match this search and filter set.
                 </EmptyState>
@@ -85,6 +86,7 @@ export function OpenOrdersBody({
                 subtitle="Scan every active order in one place."
               />
               <div className="border-t border-[var(--app-border)]/45">
+                <OpenOrdersColumnHeader />
                 {baseOpenOrders.map((openOrder, index) => (
                   <div
                     key={openOrder.id}
@@ -110,6 +112,11 @@ export function OpenOrdersBody({
           <EmptyState>No ready orders match this search and filter set.</EmptyState>
         ) : (
           <div className="app-work-surface">
+            <OrdersSectionHeader
+              icon={ClipboardList}
+              title="Ready"
+              subtitle="Orders with at least one pickup ready to hand off."
+            />
             <ReadyOrdersColumnHeader />
             {filteredReadyOrders.map((openOrder, index) => (
               <div
@@ -159,6 +166,7 @@ export function OpenOrdersBody({
                 subtitle="Custom work that still needs production or pickup follow-through."
               />
             <div className="border-t border-[var(--app-border)]/45">
+              <OpenOrdersColumnHeader />
               <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
                 No custom garment orders match this search and filter set.
               </EmptyState>
@@ -172,6 +180,7 @@ export function OpenOrdersBody({
                 subtitle="Custom work that still needs production or pickup follow-through."
               />
             <div className="border-t border-[var(--app-border)]/45">
+              <OpenOrdersColumnHeader />
               {filteredFactoryOrders.map((openOrder, index) => (
                 <div
                   key={openOrder.id}

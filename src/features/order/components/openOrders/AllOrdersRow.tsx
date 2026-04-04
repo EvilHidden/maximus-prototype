@@ -194,8 +194,8 @@ export function AllOrdersRow({
         </div>
 
         {isReadyVariant ? (
-          <div className="space-y-2.5">
-            <div>
+          <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-x-3 gap-y-2.5 border-t border-[var(--app-border)]/35 pt-3">
+            <div className="min-w-0">
               <div className="app-text-body font-medium">
                 <span className="inline-flex items-center gap-1.5">
                   <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
@@ -203,74 +203,19 @@ export function AllOrdersRow({
                 </span>
               </div>
               {readyPickupSummary.scheduleSummary ? (
-                <div className="app-text-caption mt-1">{readyPickupSummary.scheduleSummary}</div>
+                <div className="app-text-caption mt-1.5">{readyPickupSummary.scheduleSummary}</div>
               ) : null}
             </div>
-            <div className="flex items-start justify-between gap-3">
-              <div className="min-w-0">
-                <div className="text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]">
-                  {readyStatusSummary.primary.label}
-                </div>
-                {readyStatusSummary.secondary ? (
-                  <div className="app-text-caption mt-1">{readyStatusSummary.secondary}</div>
-                ) : null}
+            <div className="min-w-[5.25rem] text-right">
+              <div className="text-[0.8rem] font-semibold leading-tight text-[var(--app-success-text)]">
+                {readyStatusSummary.primary.label}
               </div>
+              {readyStatusSummary.secondary ? (
+                <div className="app-text-caption mt-1">{readyStatusSummary.secondary}</div>
+              ) : null}
             </div>
           </div>
-        ) : (
-          <div className="space-y-2.5">
-            {pickupGroups.map((group) => {
-              const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
-              const dateLabel = representativePickup
-                ? getOperationalPickupDateLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-                : null;
-              const timeLabel = representativePickup
-                ? getOperationalPickupTimeLabel(representativePickup.pickupDate, representativePickup.pickupTime)
-                : null;
-              const location = representativePickup?.pickupLocation ?? "";
-              const scopedStatus = getStatusForScope(openOrder, group.scope);
-              const statusLabel = getGroupedStatusLabel(openOrder, 0, scopedStatus.label);
-
-              return (
-                <div key={group.key} className="space-y-2.5 rounded-[calc(var(--app-radius-md)-4px)] border border-[var(--app-border)]/35 px-3 py-2.5">
-                  <div className="flex items-start justify-between gap-3">
-                    <div className="min-w-0">
-                      <div className="app-text-body font-medium">
-                        {dateLabel ?? "Date pending"}{timeLabel ? ` · ${timeLabel}` : ""}
-                      </div>
-                      <div className="app-text-caption mt-1 line-clamp-2">
-                        {summarizeGroupedOrderItems(group.itemSummary) || timeline.items}
-                      </div>
-                      {location ? (
-                        <div className="app-text-caption mt-1 inline-flex items-center gap-1.5">
-                          <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
-                          <span>{location}</span>
-                        </div>
-                      ) : null}
-                    </div>
-                    <div className="shrink-0 text-right">
-                      <div className={getOrdersStatusTextClassName(scopedStatus.tone)}>{statusLabel}</div>
-                    </div>
-                  </div>
-                  {group.actionPickupIds.length ? (
-                    <div className="flex justify-end">
-                      <ActionButton
-                        tone="primary"
-                        className="min-h-8 min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
-                        }}
-                      >
-                        Ready
-                      </ActionButton>
-                    </div>
-                  ) : null}
-                </div>
-              );
-            })}
-          </div>
-        )}
+        ) : null}
       </div>
 
       <div className="hidden min-[1000px]:contents">
@@ -280,8 +225,9 @@ export function AllOrdersRow({
           <div className="app-text-body-muted mt-2 font-medium">{getWorkflowSummaryLabel(openOrder.orderType)}</div>
         </div>
         {isReadyVariant ? null : (
+          <>
           <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">{isFactoryVariant ? "Ready by" : "Order details"}</div>
+            <div className="app-text-overline min-[1000px]:hidden">Ready by</div>
             <div className="mt-1 min-[1000px]:mt-0">
             {pickupGroups.map((group, index) => {
               const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
@@ -300,7 +246,7 @@ export function AllOrdersRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-3 py-2.5 min-[1000px]:grid-cols-[minmax(0,1fr)_6.75rem_5rem] min-[1000px]:items-start",
+                    "min-w-0 py-2.5",
                     index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
                   )}
                 >
@@ -323,37 +269,65 @@ export function AllOrdersRow({
                       <div className="app-text-caption mt-1">Assigned to {openOrder.inHouseAssignee.name}</div>
                     ) : null}
                   </div>
-                  <div className="min-w-0">
-                    <div className="flex min-h-14 items-center justify-start">
-                      <div className={getOrdersStatusTextClassName(statusTone)}>{statusLabel}</div>
-                    </div>
-                  </div>
-                  <div className="flex min-h-14 items-center justify-end">
-                    {group.actionPickupIds.length ? (
-                      <ActionButton
-                        tone="primary"
-                        className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
-                        onClick={(event) => {
-                          event.stopPropagation();
-                          onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
-                        }}
-                      >
-                        Ready
-                      </ActionButton>
-                    ) : (
-                      <span className="app-text-caption opacity-0">No action</span>
-                    )}
-                  </div>
                 </div>
               );
             })}
             </div>
           </div>
+          <div className="min-w-0">
+            <div className="app-text-overline min-[1000px]:hidden">Status</div>
+            <div className="mt-1 min-[1000px]:mt-0">
+              {pickupGroups.map((group, index) => {
+                const scopedStatus = getStatusForScope(openOrder, group.scope);
+                const statusLabel = getGroupedStatusLabel(openOrder, index, scopedStatus.label);
+                const statusTone = scopedStatus.tone;
+
+                return (
+                  <div
+                    key={`${group.key}-status`}
+                    className={cx(
+                      "flex min-h-14 flex-col items-start justify-center py-2.5",
+                      index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
+                    )}
+                  >
+                    <div className={getOrdersStatusTextClassName(statusTone)}>{statusLabel}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+          <div className="min-w-0">
+            <div className="mt-1 min-[1000px]:mt-0">
+              {pickupGroups.map((group, index) => (
+                <div
+                  key={`${group.key}-action`}
+                  className={cx(
+                    "flex min-h-14 items-center justify-start py-2.5",
+                    index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
+                  )}
+                >
+                  {group.actionPickupIds.length ? (
+                    <ActionButton
+                      tone="primary"
+                      className="min-w-[4.75rem] justify-center whitespace-nowrap px-3 py-1.5 text-[0.68rem]"
+                      onClick={(event) => {
+                        event.stopPropagation();
+                        onRequestMarkOpenOrderPickupReady(openOrder, group.actionPickupIds);
+                      }}
+                    >
+                      Ready
+                    </ActionButton>
+                  ) : null}
+                </div>
+              ))}
+            </div>
+          </div>
+          </>
         )}
         {isReadyVariant ? (
           <>
           <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">Pickup</div>
+            <div className="app-text-overline min-[1000px]:hidden">Ready by</div>
             <div className="app-text-body mt-1 font-medium">
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
@@ -365,7 +339,7 @@ export function AllOrdersRow({
             ) : null}
           </div>
           <div className="min-w-0">
-            <div className="app-text-overline min-[1000px]:hidden">Ready</div>
+            <div className="app-text-overline min-[1000px]:hidden">Status</div>
             <div className="mt-1 flex min-w-0 flex-col items-start gap-1.5">
               <div className="text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]">
                 {readyStatusSummary.primary.label}
@@ -375,6 +349,7 @@ export function AllOrdersRow({
               ) : null}
             </div>
           </div>
+          <div className="min-w-0" />
           <div className="min-w-0 text-left min-[1000px]:text-right">
             <div className="app-text-overline min-[1000px]:hidden">Total</div>
             <div className="pt-1 min-[1000px]:pt-0">
