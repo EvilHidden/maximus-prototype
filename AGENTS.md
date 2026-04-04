@@ -42,7 +42,31 @@ Secondary goal:
   - does an existing branch already contain the accepted fix?
   - should the follow-up continue there instead?
 - Keep iterating locally by default. Only run the shipping flow when the user explicitly says `ship`.
+- Use a rapid-iteration bias for UI tuning and review-driven polish. If the user is making several small visual passes in a row on the same branch, assume they want local iteration speed over ceremony until they explicitly ask to validate or ship.
 - In this repo, `ship` / `ship it` means the full `npm run ship -- "Short PR title"` flow through merge, return to `main`, and local branch deletion. Opening a PR manually is not sufficient.
+- Treat `ship`, `ship it`, and `ship this` as the only ship triggers unless the user explicitly says an equivalent phrase with the same intent. Approval phrases like `looks good`, `approved`, `great`, or `perfect` are not ship triggers by themselves.
+- A change is only considered shipped when all of these are true:
+  - the ship script finished successfully
+  - the PR merged
+  - the local repo is back on `main`
+  - the local topic branch has been deleted
+- If more edits happen after a user says `ship it`, those later edits are not shipped unless the user says `ship` again for the newer state.
+- If the ship script partially succeeds, do not say `shipped`. Report the exact partial state instead:
+  - committed only
+  - pushed only
+  - PR opened only
+  - merged but local cleanup failed
+- Treat phrases like `keep going`, `keep iterating`, `one more pass`, `push it further`, `make another tweak`, or repeated UI correction requests as rapid-iteration signals. In that mode:
+  - stay on the same branch
+  - make the requested changes directly
+  - skip `npm run build` / `npm run check` after every tiny tweak unless the user explicitly asks for validation, the change is structurally risky, or you are about to ship
+  - only summarize the delta and current local state after each pass
+- In rapid iteration mode, proactively checkpoint the process out loud when helpful. Good prompts are:
+  - `We’re clearly iterating quickly; I’ll keep this local and skip full validation until you want a checkpoint.`
+  - `We’ve stacked several passes here; do you want to keep iterating, make a checkpoint commit, or ship?`
+- A checkpoint commit is different from shipping:
+  - checkpoint commit = local branch commit only, no PR/merge/cleanup
+  - ship = full `npm run ship -- "Short PR title"` flow
 - During the work, check in periodically:
   - what problem are we solving?
   - are logic holes closed?
