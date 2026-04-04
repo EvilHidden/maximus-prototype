@@ -55,7 +55,7 @@ export function QuickActionTile({
     <button
       onClick={onClick}
       className={cx(
-        "group flex flex-col justify-between gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] md:gap-2.5",
+        "app-quick-action-tile group flex flex-col justify-between gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/62 bg-[var(--app-surface)] text-left transition hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)] md:gap-2.5",
         sizeClassName,
         className,
       )}
