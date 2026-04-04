@@ -1,7 +1,7 @@
 import { ClipboardList, PackageSearch } from "lucide-react";
 import { useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
-import { EmptyState, cx } from "../../../../components/ui/primitives";
+import { EmptyState } from "../../../../components/ui/primitives";
 import { ConfirmMarkReadyModal } from "../../modals/ConfirmMarkReadyModal";
 import type { OrdersQueueKey } from "../../selectors";
 import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
@@ -9,7 +9,12 @@ import { OperatorQueuePanel } from "./OperatorQueuePanel";
 import { QueueSection } from "./OpenOrdersWorklist";
 import { AllOrdersRow } from "./AllOrdersRow";
 import { ClosedOrdersSection } from "./ClosedOrdersSection";
-import { OpenOrdersColumnHeader, OrdersSectionHeader, ReadyOrdersColumnHeader } from "./openOrdersRegistryShared";
+import {
+  OpenOrdersColumnHeader,
+  OrdersSectionHeader,
+  ReadyOrdersColumnHeader,
+  openOrdersSectionClassName,
+} from "./openOrdersLayout";
 
 export function OpenOrdersBody({
   activeView,
@@ -88,7 +93,7 @@ export function OpenOrdersBody({
                 {baseOpenOrders.map((openOrder, index) => (
                   <div
                     key={openOrder.id}
-                    className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+                    className={openOrdersSectionClassName(index > 0)}
                   >
                     <AllOrdersRow
                       openOrder={openOrder}
@@ -119,7 +124,7 @@ export function OpenOrdersBody({
             {filteredReadyOrders.map((openOrder, index) => (
               <div
                 key={openOrder.id}
-                className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+                className={openOrdersSectionClassName(index > 0)}
               >
                 <AllOrdersRow
                   openOrder={openOrder}
@@ -181,7 +186,7 @@ export function OpenOrdersBody({
               {filteredFactoryOrders.map((openOrder, index) => (
                 <div
                   key={openOrder.id}
-                  className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+                  className={openOrdersSectionClassName(index > 0)}
                 >
                   <AllOrdersRow
                     openOrder={openOrder}

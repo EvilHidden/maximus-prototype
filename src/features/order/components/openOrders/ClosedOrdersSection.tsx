@@ -1,14 +1,10 @@
 import { ClipboardList } from "lucide-react";
 import type { ClosedOrderHistoryItem } from "../../../../types";
-import { EmptyState, cx } from "../../../../components/ui/primitives";
+import { EmptyState } from "../../../../components/ui/primitives";
 import { formatOpenOrderCreatedAt } from "../../selectors";
-import {
-  MixedClosedOrderRows,
-  OPEN_ORDER_ROW_GRID_CLASS,
-  OrdersSectionHeader,
-  SingleClosedOrderRow,
-  getWorkflowSummaryLabel,
-} from "./openOrdersRegistryShared";
+import { MixedClosedOrderRows, SingleClosedOrderRow } from "./ClosedOrderRows";
+import { getWorkflowSummaryLabel } from "./openOrdersFormatting";
+import { OPEN_ORDER_ROW_GRID_CLASS, OrdersSectionHeader, openOrdersSectionClassName } from "./openOrdersLayout";
 
 export function ClosedOrdersSection({
   filteredHistoryItems,
@@ -43,7 +39,7 @@ export function ClosedOrdersSection({
         {filteredHistoryItems.map((order, index) => (
           <div
             key={order.displayId ?? order.id}
-            className={cx("app-table-row", index > 0 && "border-t border-[var(--app-border)]/35")}
+            className={openOrdersSectionClassName(index > 0)}
           >
             <div className={OPEN_ORDER_ROW_GRID_CLASS}>
               <div className="min-w-0">
