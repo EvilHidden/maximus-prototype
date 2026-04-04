@@ -40,14 +40,16 @@ export function VipPill() {
 export function MeasurementStatusPill({
   status,
   showIcon = false,
+  className,
 }: {
   status: MeasurementStatus;
   showIcon?: boolean;
+  className?: string;
 }) {
   const Icon = status === "on_file" ? Ruler : AlertCircle;
 
   return (
-    <StatusPill tone={getMeasurementStatusTone(status)}>
+    <StatusPill tone={getMeasurementStatusTone(status)} className={className}>
       {showIcon ? <Icon className="h-3.5 w-3.5" /> : null}
       <span>{getMeasurementStatusLabel(status)}</span>
     </StatusPill>

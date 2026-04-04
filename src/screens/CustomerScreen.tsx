@@ -58,7 +58,7 @@ function CustomerRow({
           {customer.isVip ? <VipPill /> : null}
           {customer.archived ? <StatusPill tone="default">Archived</StatusPill> : null}
         </div>
-        <div className="mt-1 flex flex-wrap items-center gap-x-3 gap-y-1">
+        <div className="mt-1 grid gap-y-1">
           <div className="app-text-caption flex items-center gap-1.5">
             <Phone className="h-3.5 w-3.5" />
             {customer.phone}
@@ -69,7 +69,7 @@ function CustomerRow({
           </div>
         </div>
         {lastOrderSummary ? (
-          <div className="mt-2 md:hidden">
+          <div className="mt-2 min-[1000px]:hidden">
             <div className="app-text-caption line-clamp-2 break-words">
               <span className="font-medium text-[var(--app-text)]">{lastOrderDate ?? "Recent"}</span>
               <span className="mx-1 text-[var(--app-text-soft)]">•</span>
@@ -77,32 +77,31 @@ function CustomerRow({
             </div>
           </div>
         ) : (
-          <div className="app-text-caption mt-2 md:hidden">No order history</div>
+          <div className="app-text-caption mt-2 min-[1000px]:hidden">No order history</div>
         )}
       </div>
 
-      <div className="min-w-0 self-start justify-self-end md:flex md:min-h-full md:items-center md:justify-self-auto">
-        <div className="app-text-overline hidden md:block">Measurements</div>
-        <div className="mt-0 md:mt-0">
-          <MeasurementStatusPill status={customer.measurementsStatus} showIcon />
+      <div className="min-w-0 self-start justify-self-end min-[1000px]:flex min-[1000px]:min-h-full min-[1000px]:items-center min-[1000px]:justify-self-auto">
+        <div className="mt-0">
+          <MeasurementStatusPill status={customer.measurementsStatus} showIcon className="whitespace-nowrap" />
         </div>
       </div>
 
-      <div className="hidden min-w-0 md:flex md:min-h-full md:items-center">
-        <div className="app-text-body mt-1 inline-flex items-center gap-1.5 font-medium md:mt-0">
+      <div className="hidden min-w-0 min-[1000px]:flex min-[1000px]:min-h-full min-[1000px]:items-center">
+        <div className="app-text-body mt-1 inline-flex items-center gap-1.5 font-medium min-[1000px]:mt-0">
           <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
           <span>{customer.preferredLocation}</span>
         </div>
       </div>
 
-      <div className="hidden min-w-0 md:flex md:min-h-full md:items-center">
+      <div className="hidden min-w-0 min-[1000px]:flex min-[1000px]:min-h-full min-[1000px]:items-center">
         {lastOrderSummary ? (
           <div className="min-w-0 w-full">
-            <div className="hidden app-text-body truncate font-medium md:block md:mt-0">{lastOrderDate ?? "Recent"}</div>
-            <div className="hidden app-text-caption mt-1 line-clamp-2 break-words md:block">{lastOrderLabel}</div>
+            <div className="hidden app-text-body truncate font-medium min-[1000px]:block min-[1000px]:mt-0">{lastOrderDate ?? "Recent"}</div>
+            <div className="hidden app-text-caption mt-1 line-clamp-2 break-words min-[1000px]:block">{lastOrderLabel}</div>
           </div>
         ) : (
-          <div className="hidden app-text-caption md:block md:mt-0">No order history</div>
+          <div className="hidden app-text-caption min-[1000px]:block min-[1000px]:mt-0">No order history</div>
         )}
       </div>
 
@@ -159,7 +158,7 @@ export function CustomerScreen({
               onChange={setQuery}
               placeholder="Search by name, phone, customer ID, or notes"
               icon={Search}
-              className="min-w-0 basis-full md:min-w-[320px] md:flex-1"
+              className="min-w-0 basis-full min-[1000px]:min-w-[320px] min-[1000px]:flex-1"
             />
             <ActionButton
               tone="primary"
@@ -181,11 +180,11 @@ export function CustomerScreen({
             <div className="app-text-overline">{filteredCustomers.length} customers</div>
           </div>
 
-          <div className="mt-4 overflow-hidden rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]">
-            <div className="app-customer-directory-head">
+          <div className="app-table-shell mt-4 overflow-hidden rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
+            <div className="app-table-head app-customer-directory-head">
               <div className="app-text-overline">Customer</div>
-              <div className="app-text-overline">Location</div>
               <div className="app-text-overline">Measurements</div>
+              <div className="app-text-overline">Location</div>
               <div className="app-text-overline">Last order</div>
               <div className="app-desktop-only" />
             </div>
