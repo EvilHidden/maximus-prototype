@@ -108,7 +108,7 @@ export function OpenOrdersControls({
         </div>
 
         <div className="grid gap-2.5 min-[1000px]:hidden">
-          <Surface tone="control" className="p-3">
+          <Surface tone="control" className="rounded-none border-0 shadow-none p-3">
             <div className="space-y-3">
               <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2.5">
                 <SelectField

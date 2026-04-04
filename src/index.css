@@ -389,6 +389,16 @@ textarea:focus-visible {
   .app-orders-controls-deck .border-t {
     border-top-color: color-mix(in srgb, var(--app-border) 32%, transparent);
   }
+
+  .app-open-orders-results {
+    padding-top: 0;
+  }
+
+  .app-open-orders-results > .app-work-surface:first-child {
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+    border-top-width: 0;
+  }
 }
 
 .app-home-schedule-row__time {

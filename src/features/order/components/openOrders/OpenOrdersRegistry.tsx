@@ -61,7 +61,7 @@ export function OpenOrdersBody({
   };
 
   return (
-    <div className="pt-1">
+    <div className="pt-1 app-open-orders-results">
       {activeView === "all" ? (
         allOrdersTab === "active" ? (
           baseOpenOrders.length === 0 ? (
