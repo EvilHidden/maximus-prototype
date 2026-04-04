@@ -35,7 +35,7 @@ export function AppointmentsScheduleRail({
   const showDateInRow = !selectedDateKey;
 
   return (
-    <Surface tone={tone} as="aside" className={cx("app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 lg:p-3", className)}>
+    <Surface tone={tone} as="aside" className={cx("app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}>
       <SurfaceHeader
         title={title}
         subtitle={railSubtitle}

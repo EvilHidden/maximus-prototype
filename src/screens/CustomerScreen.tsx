@@ -150,11 +150,11 @@ export function CustomerScreen({
               onChange={setQuery}
               placeholder="Search by name, phone, customer ID, or notes"
               icon={Search}
-              className="min-w-0 basis-full sm:min-w-[320px] sm:flex-1"
+              className="min-w-0 basis-full md:min-w-[320px] md:flex-1"
             />
             <ActionButton
               tone="primary"
-              className="min-h-[3.625rem] w-full px-4 py-2.5 text-sm sm:w-auto"
+              className="min-h-[3.625rem] w-full px-4 py-2.5 text-sm md:w-auto"
               onClick={() => setEditorMode("add")}
             >
               <Plus className="h-4 w-4" />

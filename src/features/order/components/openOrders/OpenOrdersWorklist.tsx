@@ -102,13 +102,13 @@ function WorkQueueOrderRow({
 
   return (
     <div
-      className="group relative cursor-pointer px-4 py-3.5 pr-12 lg:px-3.5 lg:py-3 lg:pr-14"
+      className="group relative cursor-pointer px-4 py-3.5 pr-12 min-[1000px]:px-3.5 min-[1000px]:py-3 min-[1000px]:pr-14"
       role="button"
       tabIndex={0}
       onClick={handleOpen}
       onKeyDown={handleRowKeyDown}
     >
-      <div className="grid gap-3 lg:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] lg:items-start lg:gap-x-4">
+      <div className="grid gap-3 min-[1000px]:grid-cols-[minmax(0,0.62fr)_minmax(0,1fr)_8.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4">
         <div className="min-w-0">
           <div className="app-text-value min-w-0">{openOrder.payerName}</div>
           <div className="app-text-caption mt-1">Order #{openOrder.id} • {formatOpenOrderCreatedAt(openOrder.createdAt)}</div>
@@ -116,8 +116,8 @@ function WorkQueueOrderRow({
         </div>
 
         <div className="min-w-0">
-          <div className="app-text-overline lg:hidden">Ready by</div>
-          <div className="mt-1 lg:mt-0">
+          <div className="app-text-overline min-[1000px]:hidden">Ready by</div>
+          <div className="mt-1 min-[1000px]:mt-0">
             {pickupGroups.map((group, index) => {
               const uniqueItems = [...new Set(group.itemSummary)];
               const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
@@ -134,7 +134,7 @@ function WorkQueueOrderRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-2.5 py-2 lg:grid-cols-[minmax(0,1fr)_6.25rem_4.75rem] lg:items-center",
+                    "grid min-w-0 gap-2.5 py-2 min-[1000px]:grid-cols-[minmax(0,1fr)_6.25rem_4.75rem] min-[1000px]:items-center",
                     index === 0 ? "pt-0" : "",
                   )}
                 >
@@ -201,8 +201,8 @@ function WorkQueueOrderRow({
           </div>
         </div>
 
-        <div className="min-w-0 text-left sm:text-right lg:min-w-[7.5rem]">
-          <div className="text-[1.25rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)] lg:text-[1.2rem]">
+        <div className="min-w-0 text-left md:text-right min-[1000px]:min-w-[7.5rem]">
+          <div className="text-[1.25rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)] min-[1000px]:text-[1.2rem]">
             {formatWorklistTotal(openOrder.total)}
           </div>
           <div className="mt-1.5">

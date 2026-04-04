@@ -13,9 +13,9 @@ import {
 import { formatWorklistTotal, getWorklistPaymentLabel, getWorklistPaymentTextClassName } from "./meta";
 
 export const OPEN_ORDER_ROW_GRID_CLASS =
-  "grid gap-4 px-4 py-4 lg:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start lg:gap-x-4";
+  "grid gap-4 px-4 py-4 min-[1000px]:grid-cols-[minmax(0,0.78fr)_minmax(0,0.9fr)_minmax(16rem,0.82fr)] min-[1000px]:items-start min-[1000px]:gap-x-4";
 export const READY_ORDER_ROW_GRID_CLASS =
-  "grid gap-4 px-4 py-3.5 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] lg:items-center";
+  "grid gap-4 px-4 py-3.5 min-[1000px]:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] min-[1000px]:items-center";
 
 export function getPickupScheduleSummary(pickups: OpenOrder["pickupSchedules"] | ClosedOrderHistoryItem["pickupSchedules"]) {
   const labels = (pickups ?? [])
@@ -125,8 +125,8 @@ export function OrdersSectionHeader({
 
 export function ReadyOrdersColumnHeader() {
   return (
-    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 lg:block">
-      <div className="grid gap-4 lg:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] lg:items-center">
+    <div className="app-table-head hidden border-b border-[var(--app-border)]/35 px-4 py-2 min-[1000px]:block">
+      <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,1.35fr)_minmax(0,1.05fr)_minmax(9rem,0.95fr)_7.75rem] min-[1000px]:items-center">
         <div className="app-text-overline">Customer</div>
         <div className="app-text-overline">Pickup</div>
         <div className="app-text-overline">Ready</div>
@@ -178,14 +178,14 @@ export function getClosedOrderCompletedLabel(value: string | null | undefined) {
 
 export function MixedClosedOrderRows({ order }: { order: ClosedOrderHistoryItem }) {
   return (
-    <div className="min-w-0 lg:col-span-2">
-      <div className="app-text-overline lg:hidden">Order details</div>
+    <div className="min-w-0 min-[1000px]:col-span-2">
+      <div className="app-text-overline min-[1000px]:hidden">Order details</div>
       <div className="mt-1">
         {order.pickupSchedules.map((pickup, pickupIndex) => (
           <div
             key={pickup.id}
             className={cx(
-              "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,0.9fr)_minmax(16rem,0.82fr)] lg:items-start",
+              "grid min-w-0 gap-3 py-2.5 min-[1000px]:grid-cols-[minmax(0,0.9fr)_minmax(16rem,0.82fr)] min-[1000px]:items-start",
               pickupIndex === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
             )}
           >
@@ -208,7 +208,7 @@ export function MixedClosedOrderRows({ order }: { order: ClosedOrderHistoryItem 
               ) : null}
             </div>
             <div className="min-w-0">
-              <div className="mt-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-start">
+              <div className="mt-1 grid gap-3 md:grid-cols-[minmax(0,1fr)_7rem] md:items-start">
                 <div className="min-w-0">
                   <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
                     Picked up
@@ -219,7 +219,7 @@ export function MixedClosedOrderRows({ order }: { order: ClosedOrderHistoryItem 
                     </div>
                   ) : null}
                 </div>
-                <div className="text-left sm:text-right">
+                <div className="text-left md:text-right">
                   {pickupIndex === 0 ? (
                     <>
                       <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
@@ -248,7 +248,7 @@ export function SingleClosedOrderRow({ order }: { order: ClosedOrderHistoryItem 
   return (
     <>
       <div className="min-w-0">
-        <div className="app-text-overline lg:hidden">Order details</div>
+        <div className="app-text-overline min-[1000px]:hidden">Order details</div>
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <div className="app-text-body font-medium">
             {getCompactPickupScheduleSummary(order.pickupSchedules) || "Pickup pending"}
@@ -268,8 +268,8 @@ export function SingleClosedOrderRow({ order }: { order: ClosedOrderHistoryItem 
         ) : null}
       </div>
       <div className="min-w-0 text-left">
-        <div className="app-text-overline lg:hidden">Total</div>
-        <div className="mt-1 grid gap-3 sm:grid-cols-[minmax(0,1fr)_7rem] sm:items-start">
+        <div className="app-text-overline min-[1000px]:hidden">Total</div>
+        <div className="mt-1 grid gap-3 md:grid-cols-[minmax(0,1fr)_7rem] md:items-start">
           <div className="min-w-0">
             <div className={getOrdersStatusTextClassName(getClosedOrderStatusTone(order.status))}>
               {order.status}
@@ -280,7 +280,7 @@ export function SingleClosedOrderRow({ order }: { order: ClosedOrderHistoryItem 
               </div>
             ) : null}
           </div>
-          <div className="text-left sm:text-right">
+          <div className="text-left md:text-right">
             <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
               {formatWorklistTotal(order.total)}
             </div>

@@ -295,8 +295,8 @@ function AppointmentLane({
             <div
               key={appointment.id}
               className={[
-                "app-table-row border-t border-[var(--app-border)]/55 px-3 py-2.5 sm:px-4 sm:py-3",
-                hasOverflowRows ? "min-h-[7.6rem] xl:min-h-[8.8rem]" : "",
+                "app-table-row border-t border-[var(--app-border)]/55 px-3 py-2.5 md:px-4 md:py-3",
+                hasOverflowRows ? "min-h-[7.6rem] min-[1000px]:min-h-[8.8rem]" : "",
               ].join(" ")}
             >
               <ScheduleRow
@@ -360,14 +360,14 @@ function ScrollableLaneBody({
             ref={scrollBodyRef}
             className={
               hasOverflowRows
-                ? scrollClassName ?? "max-h-[calc(29.25rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar md:max-h-[calc(31.5rem+4px)]"
+                ? scrollClassName ?? "max-h-[calc(29.25rem+4px)] overflow-y-auto pb-16 pr-1 app-no-scrollbar min-[1000px]:max-h-[calc(31.5rem+4px)]"
                 : ""
             }
           >
             {renderRows(hasOverflowRows)}
           </div>
           {hasOverflowRows && showScrollHint ? (
-            <div className="pointer-events-none absolute inset-x-0 bottom-0 hidden h-20 items-end justify-center bg-gradient-to-t from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pb-3 sm:flex">
+            <div className="pointer-events-none absolute inset-x-0 bottom-0 flex h-20 items-end justify-center bg-gradient-to-t from-[var(--app-surface)] via-[var(--app-surface)]/92 to-transparent pb-3">
               <div className="inline-flex items-center gap-1.5 rounded-full border border-[var(--app-border)]/75 bg-[var(--app-surface)]/96 px-3 py-1.5 shadow-[0_-8px_20px_rgba(15,23,42,0.08)] backdrop-blur-sm">
                 <span className="app-text-overline text-[var(--app-text-soft)]">More below</span>
                 <ChevronDown className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
@@ -573,7 +573,7 @@ function ReadyPickupRow({
           </span>
         </div>
       </div>
-      <div className="flex items-center md:justify-start lg:pt-0.5">
+      <div className="flex items-center md:justify-start min-[1000px]:pt-0.5">
         <ActionButton
           tone="primary"
           className="min-h-10 px-3.5 py-2 text-sm"
@@ -675,7 +675,7 @@ export function HomeWorkboards({
           flatIcon
         />
 
-        <div className="mt-4 grid gap-4 xl:grid-cols-2">
+        <div className="mt-4 grid gap-4 min-[1000px]:grid-cols-2">
           <AppointmentLane
             title="Today"
             dateLabel={todayLabel}

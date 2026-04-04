@@ -168,7 +168,7 @@ export function AllOrdersRow({
 
   return (
     <div
-      className={cx("group relative cursor-pointer pr-12 lg:pr-14", rowGridClassName)}
+      className={cx("group relative cursor-pointer pr-12 min-[1000px]:pr-14", rowGridClassName)}
       role="button"
       tabIndex={0}
       onClick={handleOpen}
@@ -181,8 +181,8 @@ export function AllOrdersRow({
       </div>
       {isReadyVariant ? null : (
         <div className="min-w-0">
-          <div className="app-text-overline lg:hidden">{isFactoryVariant ? "Ready by" : "Order details"}</div>
-          <div className="mt-1 lg:mt-0">
+          <div className="app-text-overline min-[1000px]:hidden">{isFactoryVariant ? "Ready by" : "Order details"}</div>
+          <div className="mt-1 min-[1000px]:mt-0">
             {pickupGroups.map((group, index) => {
               const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]);
               const dateLabel = representativePickup
@@ -200,7 +200,7 @@ export function AllOrdersRow({
                 <div
                   key={group.key}
                   className={cx(
-                    "grid min-w-0 gap-3 py-2.5 lg:grid-cols-[minmax(0,1fr)_6.75rem_5rem] lg:items-start",
+                    "grid min-w-0 gap-3 py-2.5 min-[1000px]:grid-cols-[minmax(0,1fr)_6.75rem_5rem] min-[1000px]:items-start",
                     index === 0 ? "pt-0" : "border-t border-[var(--app-border)]/35",
                   )}
                 >
@@ -253,7 +253,7 @@ export function AllOrdersRow({
       {isReadyVariant ? (
         <>
           <div className="min-w-0">
-            <div className="app-text-overline lg:hidden">Pickup</div>
+            <div className="app-text-overline min-[1000px]:hidden">Pickup</div>
             <div className="app-text-body mt-1 font-medium">
               <span className="inline-flex items-center gap-1.5">
                 <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
@@ -265,7 +265,7 @@ export function AllOrdersRow({
             ) : null}
           </div>
           <div className="min-w-0">
-            <div className="app-text-overline lg:hidden">Ready</div>
+            <div className="app-text-overline min-[1000px]:hidden">Ready</div>
             <div className="mt-1 flex min-w-0 flex-col items-start gap-1.5">
               <div className="text-[0.82rem] font-semibold leading-tight text-[var(--app-success-text)]">
                 {readyStatusSummary.primary.label}
@@ -275,9 +275,9 @@ export function AllOrdersRow({
               ) : null}
             </div>
           </div>
-          <div className="min-w-0 text-left lg:text-right">
-            <div className="app-text-overline lg:hidden">Total</div>
-            <div className="pt-1 lg:pt-0">
+          <div className="min-w-0 text-left min-[1000px]:text-right">
+            <div className="app-text-overline min-[1000px]:hidden">Total</div>
+            <div className="pt-1 min-[1000px]:pt-0">
               <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
                 {formatWorklistTotal(openOrder.total)}
               </div>
@@ -290,8 +290,8 @@ export function AllOrdersRow({
           </div>
         </>
       ) : (
-        <div className="min-w-0 text-left sm:text-right">
-          <div className="app-text-overline lg:hidden">Total</div>
+        <div className="min-w-0 text-left md:text-right">
+          <div className="app-text-overline min-[1000px]:hidden">Total</div>
           <div className="text-[1.375rem] font-semibold leading-none tracking-[-0.01em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
             {formatWorklistTotal(openOrder.total)}
           </div>

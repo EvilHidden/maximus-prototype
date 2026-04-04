@@ -76,7 +76,7 @@ export function AppointmentsCalendar({
   const dayCells = getMonthDays(anchorDate);
 
   return (
-    <Surface tone="work" className="p-3.5 lg:p-3">
+    <Surface tone="work" className="p-3.5 min-[1000px]:p-3">
       <div className="mb-2 flex flex-wrap items-start justify-between gap-2.5 px-1">
         <div>
           <div className="app-text-value">{monthLabel}</div>
@@ -109,8 +109,8 @@ export function AppointmentsCalendar({
           </ActionButton>
         </div>
       </div>
-      <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)] lg:p-1.5">
-        <div className="grid grid-cols-7 gap-2 lg:gap-1.5">
+      <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)] min-[1000px]:p-1.5">
+        <div className="grid grid-cols-7 gap-2 min-[1000px]:gap-1.5">
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (
             <div
               key={dayLabel}

@@ -366,7 +366,7 @@ export function ReviewOrderScreen({
           ) : (
             <>
               <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-                <div className="grid gap-6 xl:grid-cols-[minmax(0,1fr)_220px]">
+                <div className="grid gap-6 min-[1000px]:grid-cols-[minmax(0,1fr)_220px]">
                   <div className="min-w-0">
                     <div className="app-text-overline">Customer details</div>
                     <div className="mt-2 space-y-1.5">
@@ -382,7 +382,7 @@ export function ReviewOrderScreen({
                     </div>
                   </div>
 
-                  <div className="lg:text-right">
+                  <div className="min-[1000px]:text-right">
                     <div className="app-text-overline">Ready by</div>
                     <div className="mt-2 app-text-strong">{pickupRequired || openOrder ? readyBySummary.headline || "Timing needed" : "No pickup timing needed"}</div>
                     {pickupRequired || openOrder ? (
