@@ -63,37 +63,46 @@ function CustomerRow({
             <Phone className="h-3.5 w-3.5" />
             {customer.phone}
           </div>
+          <div className="app-text-caption flex min-w-0 items-center gap-1.5 truncate">
+            <Mail className="h-3.5 w-3.5 shrink-0" />
+            <span className="truncate">{customer.email || "No email on file"}</span>
+          </div>
         </div>
-        <div className="app-text-caption mt-1 flex items-center gap-1.5 truncate">
-          <Mail className="h-3.5 w-3.5 shrink-0" />
-          <span className="truncate">{customer.email || "No email on file"}</span>
+        {lastOrderSummary ? (
+          <div className="mt-2 md:hidden">
+            <div className="app-text-caption line-clamp-2 break-words">
+              <span className="font-medium text-[var(--app-text)]">{lastOrderDate ?? "Recent"}</span>
+              <span className="mx-1 text-[var(--app-text-soft)]">•</span>
+              <span>{lastOrderLabel}</span>
+            </div>
+          </div>
+        ) : (
+          <div className="app-text-caption mt-2 md:hidden">No order history</div>
+        )}
+      </div>
+
+      <div className="min-w-0 self-start justify-self-end md:flex md:min-h-full md:items-center md:justify-self-auto">
+        <div className="app-text-overline hidden md:block">Measurements</div>
+        <div className="mt-0 md:mt-0">
+          <MeasurementStatusPill status={customer.measurementsStatus} showIcon />
         </div>
       </div>
 
-      <div className="min-w-0 md:flex md:min-h-full md:items-center">
-        <div className="app-text-overline md:hidden">Location</div>
+      <div className="hidden min-w-0 md:flex md:min-h-full md:items-center">
         <div className="app-text-body mt-1 inline-flex items-center gap-1.5 font-medium md:mt-0">
           <MapPin className="h-3.5 w-3.5 text-[var(--app-text-soft)]" />
           <span>{customer.preferredLocation}</span>
         </div>
       </div>
 
-      <div className="min-w-0 md:flex md:min-h-full md:items-center">
-        <div className="app-text-overline md:hidden">Measurements</div>
-        <div className="mt-1 md:mt-0">
-          <MeasurementStatusPill status={customer.measurementsStatus} showIcon />
-        </div>
-      </div>
-
-      <div className="min-w-0 md:flex md:min-h-full md:items-center">
-        <div className="app-text-overline md:hidden">Last order</div>
+      <div className="hidden min-w-0 md:flex md:min-h-full md:items-center">
         {lastOrderSummary ? (
           <div className="min-w-0 w-full">
-            <div className="app-text-body mt-1 truncate font-medium md:mt-0">{lastOrderDate ?? "Recent"}</div>
-            <div className="app-text-caption mt-1 line-clamp-2 break-words">{lastOrderLabel}</div>
+            <div className="hidden app-text-body truncate font-medium md:block md:mt-0">{lastOrderDate ?? "Recent"}</div>
+            <div className="hidden app-text-caption mt-1 line-clamp-2 break-words md:block">{lastOrderLabel}</div>
           </div>
         ) : (
-          <div className="app-text-caption mt-1 md:mt-0">No order history</div>
+          <div className="hidden app-text-caption md:block md:mt-0">No order history</div>
         )}
       </div>
 
