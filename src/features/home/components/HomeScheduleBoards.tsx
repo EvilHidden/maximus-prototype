@@ -1,4 +1,4 @@
-import { BadgeDollarSign, CalendarClock, CalendarDays, ChevronDown, Mail, MapPin, Megaphone, Package, Phone, Ruler, type LucideIcon } from "lucide-react";
+import { BadgeDollarSign, CalendarClock, CalendarDays, ChevronDown, MapPin, Package, type LucideIcon } from "lucide-react";
 import type { ReactNode } from "react";
 import { useEffect, useRef, useState } from "react";
 import type { Appointment } from "../../../types";
@@ -12,8 +12,6 @@ import {
 import { AppointmentIssuePill, CountPill } from "../../../components/ui/pills";
 import {
   getAppointmentContextFlagLabel,
-  getAppointmentPrepFlagLabel,
-  getAppointmentProfileFlagLabel,
   getAppointmentTimeLabel,
 } from "../../appointments/selectors";
 import type { ReadyPickupQueueItem } from "../selectors";
@@ -28,102 +26,6 @@ function getAppointmentConfirmationPills(appointment: Appointment) {
       label: getAppointmentContextFlagLabel(flag),
       tone: flag === "unconfirmed" ? ("warn" as const) : ("success" as const),
     }));
-}
-
-function getAppointmentAlertIcons(appointment: Appointment) {
-  const icons: Array<{
-    key: string;
-    label: string;
-    Icon: LucideIcon;
-    tone?: "info" | "muted" | "danger";
-  }> = [];
-
-  icons.push(
-    ...appointment.prepFlags.map((flag) => ({
-      key: flag,
-      label: getAppointmentPrepFlagLabel(flag),
-      Icon: Ruler,
-      tone: "info" as const,
-    })),
-  );
-
-  icons.push(
-    ...appointment.profileFlags.map((flag) => {
-    if (flag === "missing_email") {
-      return {
-        key: flag,
-        label: getAppointmentProfileFlagLabel(flag),
-        Icon: Mail,
-        tone: "muted" as const,
-      };
-    }
-
-    if (flag === "missing_phone") {
-      return {
-        key: flag,
-        label: getAppointmentProfileFlagLabel(flag),
-        Icon: Phone,
-        tone: "muted" as const,
-      };
-    }
-
-    if (flag === "missing_address") {
-      return {
-        key: flag,
-        label: getAppointmentProfileFlagLabel(flag),
-        Icon: MapPin,
-        tone: "muted" as const,
-      };
-    }
-
-    return {
-      key: flag,
-      label: getAppointmentProfileFlagLabel(flag),
-      Icon: Megaphone,
-      tone: "muted" as const,
-    };
-    }),
-  );
-
-  return icons;
-}
-
-function AppointmentAlertIconButton({
-  label,
-  Icon,
-  tone,
-  isOpen,
-  onToggle,
-}: {
-  label: string;
-  Icon: LucideIcon;
-  tone?: "info" | "muted" | "danger";
-  isOpen: boolean;
-  onToggle: () => void;
-}) {
-  return (
-    <button
-      type="button"
-      className={[
-        "relative inline-flex h-8 w-8 items-center justify-center rounded-full border shadow-[var(--app-shadow-sm)] transition-colors",
-        tone === "danger"
-          ? "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)]"
-          : tone === "info"
-            ? "border-[var(--app-info-border)] bg-[var(--app-info-bg)] text-[var(--app-info-text)]"
-            : "border-[var(--app-border)]/74 bg-[var(--app-surface)] text-[var(--app-text-muted)]",
-      ].join(" ")}
-      aria-label={label}
-      aria-expanded={isOpen}
-      onClick={onToggle}
-    >
-      <Icon className="h-4 w-4" />
-      {isOpen ? (
-        <span className="pointer-events-none absolute left-1/2 top-[calc(100%+0.4rem)] z-20 w-max max-w-[12rem] -translate-x-1/2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/82 bg-[var(--app-surface)] px-2.5 py-2 text-center text-[0.7rem] font-medium leading-tight text-[var(--app-text)] shadow-lg">
-          {label}
-        </span>
-      ) : null}
-    </button>
-  );
 }
 
 export function HomeEmptyState({
@@ -181,27 +83,9 @@ function ScheduleRow({
   onCancelAppointment: (appointment: Appointment) => void;
 }) {
   const confirmationPills = getAppointmentConfirmationPills(appointment);
-  const alertIcons = getAppointmentAlertIcons(appointment);
-  const [activeAlertIcon, setActiveAlertIcon] = useState<string | null>(null);
-  const rowRef = useRef<HTMLDivElement | null>(null);
-
-  useEffect(() => {
-    if (!activeAlertIcon) {
-      return;
-    }
-
-    const handlePointerDown = (event: PointerEvent) => {
-      if (!rowRef.current?.contains(event.target as Node)) {
-        setActiveAlertIcon(null);
-      }
-    };
-
-    window.addEventListener("pointerdown", handlePointerDown);
-    return () => window.removeEventListener("pointerdown", handlePointerDown);
-  }, [activeAlertIcon]);
 
   return (
-    <div ref={rowRef} className="app-home-schedule-row">
+    <div className="app-home-schedule-row">
       <div className="app-home-schedule-row__time">
         <div className="app-text-value whitespace-nowrap text-[0.95rem] leading-tight">{getAppointmentTimeLabel(appointment)}</div>
       </div>
@@ -214,20 +98,6 @@ function ScheduleRow({
             <MapPin className="h-3.5 w-3.5 shrink-0" />
             <span>{appointment.location}</span>
           </div>
-          {alertIcons.length ? (
-            <div className="flex flex-wrap items-center gap-1.5 pt-0.5">
-              {alertIcons.map(({ key, label, Icon, tone }) => (
-                <AppointmentAlertIconButton
-                  key={key}
-                  label={label}
-                  Icon={Icon}
-                  tone={tone}
-                  isOpen={activeAlertIcon === key}
-                  onToggle={() => setActiveAlertIcon((current) => (current === key ? null : key))}
-                />
-              ))}
-            </div>
-          ) : null}
         </div>
       </div>
 
