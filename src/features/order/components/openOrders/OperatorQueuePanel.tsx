@@ -52,10 +52,17 @@ function getWorkflowSummaryLabel(orderType: OpenOrder["orderType"]) {
 
 export function OperatorQueueSummary({
   stageCounts,
+  onStageSelect,
 }: {
   stageCounts: OperatorQueueStageCounts;
+  onStageSelect?: (stageKey: OperatorQueueStageKey) => void;
 }) {
   const handleStageJump = (stageKey: OperatorQueueStageKey) => {
+    if (onStageSelect) {
+      onStageSelect(stageKey);
+      return;
+    }
+
     const target = document.getElementById(`operator-queue-${stageKey}`);
     if (!target) {
       return;
