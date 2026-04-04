@@ -51,6 +51,8 @@
   --app-safe-left: env(safe-area-inset-left, 0px);
   --app-shadow-sm: 0 6px 16px rgba(15, 23, 42, 0.06);
   --app-shadow-lg: 0 18px 42px rgba(15, 23, 42, 0.14);
+  --app-shadow-quick-action: 0 14px 30px rgba(15, 23, 42, 0.12), 0 4px 12px rgba(15, 23, 42, 0.06);
+  --app-shadow-quick-action-hover: 0 18px 36px rgba(15, 23, 42, 0.16), 0 8px 18px rgba(15, 23, 42, 0.08);
 }
 
 [data-theme="dark"] {
@@ -85,6 +87,8 @@
   --app-danger-text: #f0bbbb;
   --app-shadow-sm: 0 10px 24px rgba(2, 6, 23, 0.3);
   --app-shadow-lg: 0 24px 48px rgba(2, 6, 23, 0.48);
+  --app-shadow-quick-action: 0 18px 34px rgba(2, 6, 23, 0.42), 0 8px 18px rgba(2, 6, 23, 0.24), 0 0 0 1px rgba(255, 255, 255, 0.03);
+  --app-shadow-quick-action-hover: 0 22px 42px rgba(2, 6, 23, 0.52), 0 10px 24px rgba(2, 6, 23, 0.3), 0 0 0 1px rgba(255, 255, 255, 0.05);
 }
 
 * {
@@ -338,6 +342,14 @@ textarea:focus-visible {
 .app-home-workboards {
   display: grid;
   gap: 1rem;
+}
+
+.app-quick-action-tile {
+  box-shadow: var(--app-shadow-quick-action);
+}
+
+.app-quick-action-tile:hover {
+  box-shadow: var(--app-shadow-quick-action-hover);
 }
 
 .app-home-schedule-row {
