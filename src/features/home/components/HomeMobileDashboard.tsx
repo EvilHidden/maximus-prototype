@@ -4,9 +4,11 @@ import { CalendarDays, CheckSquare2, MapPin, Package, Square } from "lucide-reac
 import type { Appointment, PickupLocation } from "../../../types";
 import {
   ActionButton,
+  Surface,
+  SurfaceHeader,
   SelectionChip,
 } from "../../../components/ui/primitives";
-import { AppointmentIssuePill } from "../../../components/ui/pills";
+import { AppointmentIssuePill, CountPill } from "../../../components/ui/pills";
 import {
   getAppointmentAttentionLabel,
   getAppointmentTimeLabel,
@@ -73,10 +75,10 @@ function MobileMetric({
         : "text-[var(--app-text)]";
 
   return (
-    <div className="min-w-0 px-1 text-center">
+    <div className="min-w-0 rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/88 px-2.5 py-3 text-center shadow-[var(--app-shadow-sm)]">
       <div className="app-text-overline text-[var(--app-text-soft)]/88">{label}</div>
-      <div className={`app-text-value mt-1 text-[0.98rem] ${valueToneClassName}`}>{value}</div>
-      <div className="app-text-caption mt-1 text-[var(--app-text-soft)]/76">{detail}</div>
+      <div className={`app-text-value mt-1.5 text-[1.02rem] ${valueToneClassName}`}>{value}</div>
+      <div className="app-text-caption mt-1.5 text-[var(--app-text-soft)]/76">{detail}</div>
     </div>
   );
 }
@@ -95,7 +97,7 @@ function MobileShortcutButton({
   return (
     <button
       onClick={onClick}
-      className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/32 bg-transparent px-3 text-left transition hover:border-[var(--app-border-strong)]/55 hover:bg-[var(--app-surface-muted)]/12"
+      className="inline-flex h-9 shrink-0 items-center gap-2 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/48 bg-[var(--app-surface)] px-3 text-left shadow-[var(--app-shadow-sm)] transition hover:border-[var(--app-border-strong)]/65 hover:bg-[var(--app-surface-muted)]/32"
     >
       <span
         className="app-icon-chip h-6.5 w-6.5 shrink-0 border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/8 [&_svg]:h-3.5 [&_svg]:w-3.5"
@@ -127,23 +129,36 @@ function MobileSection({
   action?: ReactNode;
   children: ReactNode;
 }) {
+  const headerTone = tone === "success" ? "success" : "info";
+  const iconStyle =
+    tone === "success"
+      ? {
+          borderColor: "var(--app-success-border)",
+          backgroundColor: "var(--app-success-bg)",
+          color: "var(--app-success-text)",
+        }
+      : {
+          borderColor: "var(--app-info-border)",
+          backgroundColor: "var(--app-info-bg)",
+          color: "var(--app-info-text)",
+        };
+
   return (
-    <section className="border-t border-[var(--app-border)]/34 pt-6 first:border-t-0 first:pt-0">
-      <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-2.5">
-          <Icon className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
-          <div>
-            <div className="app-text-value">{title}</div>
-            <div className="mt-1 app-text-caption">{subtitle}</div>
-          </div>
-        </div>
-        <div className="app-text-overline shrink-0 pt-1 text-[var(--app-text-soft)]">
-          {count} {countLabel}
-        </div>
+    <Surface tone="work" className="p-4">
+      <SurfaceHeader
+        icon={Icon}
+        iconStyle={iconStyle}
+        title={title}
+        subtitle={subtitle}
+        titleClassName="app-text-value"
+        subtitleClassName="app-text-caption"
+        meta={<CountPill count={count} label={countLabel} tone={headerTone} className="px-2.5 py-1" />}
+      />
+      <div className="mt-4 border-t border-[var(--app-border)]/32 pt-3.5">
+        <div className="space-y-0">{children}</div>
       </div>
-      <div className="mt-5 space-y-0">{children}</div>
-      {action ? <div className="mt-5.5">{action}</div> : null}
-    </section>
+      {action ? <div className="mt-4 border-t border-[var(--app-border)]/30 pt-4">{action}</div> : null}
+    </Surface>
   );
 }
 
@@ -260,28 +275,25 @@ export function HomeMobileDashboard({
   const mobilePickups = readyPickups.slice(0, 2);
   return (
     <div className="space-y-6.5 md:hidden">
-      <div className="pb-4">
+      <Surface tone="control" className="p-4">
         <div className="flex items-start justify-between gap-3">
           <div>
-            <div className="app-text-overline text-[var(--app-text-soft)]/58">Today overview</div>
+            <div className="app-text-overline text-[var(--app-text-soft)]/62">Today overview</div>
             <div className="app-text-strong mt-1 text-[1rem]">Home</div>
           </div>
         </div>
 
-        <div className="mt-4 grid grid-cols-3 gap-0 rounded-[var(--app-radius-md)] border border-[var(--app-border)]/24 bg-[var(--app-surface-muted)]/8 py-3">
-          <div className="border-r border-[var(--app-border)]/24">
-            <MobileMetric label="Today" detail="appointments" value={String(todayAppointments.length)} tone="info" />
-          </div>
-          <div className="border-r border-[var(--app-border)]/24">
-            <MobileMetric label="Tomorrow" detail="appointments" value={String(tomorrowAppointments.length)} tone="default" />
-          </div>
+        <div className="mt-3.5 grid grid-cols-3 gap-2.5">
+          <MobileMetric label="Today" detail="appointments" value={String(todayAppointments.length)} tone="info" />
+          <MobileMetric label="Tomorrow" detail="appointments" value={String(tomorrowAppointments.length)} tone="default" />
           <MobileMetric label="Ready" detail="pickups" value={String(readyPickups.length)} tone="success" />
         </div>
-      </div>
+      </Surface>
 
-      <div className="space-y-2.5">
-        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/62">Filter locations</div>
-        <div className="flex gap-2.5 overflow-x-auto pb-1 app-no-scrollbar">
+      <Surface tone="control" className="px-3.5 py-3.5">
+        <div className="space-y-2.5">
+          <div className="app-text-overline px-0.5 text-[var(--app-text-soft)]/62">Filter locations</div>
+          <div className="flex gap-2.5 overflow-x-auto pb-1 app-no-scrollbar">
           <SelectionChip
             selected={allLocationsActive}
             onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}
@@ -314,7 +326,8 @@ export function HomeMobileDashboard({
             );
           })}
         </div>
-      </div>
+        </div>
+      </Surface>
 
       {hasVisibleHomeWork ? (
         <div className="space-y-6">
@@ -425,8 +438,9 @@ export function HomeMobileDashboard({
         />
       )}
 
-      <div className="space-y-2.5 border-t border-[var(--app-border)]/22 pt-5">
-        <div className="app-text-overline px-1 text-[var(--app-text-soft)]/58">Quick starts</div>
+      <Surface tone="support" className="px-3.5 py-3.5">
+        <div className="space-y-2.5">
+        <div className="app-text-overline px-0.5 text-[var(--app-text-soft)]/58">Quick starts</div>
         <div className="flex gap-3 overflow-x-auto pb-1.5 app-no-scrollbar">
           {mobileQuickActions.map((action) => (
             <MobileShortcutButton
@@ -438,7 +452,8 @@ export function HomeMobileDashboard({
             />
           ))}
         </div>
-      </div>
+        </div>
+      </Surface>
     </div>
   );
 }
