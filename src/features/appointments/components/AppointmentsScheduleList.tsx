@@ -9,7 +9,7 @@ import {
   getAppointmentVisitLabel,
 } from "../selectors";
 
-type AppointmentsScheduleRailProps = {
+type AppointmentsScheduleListProps = {
   title?: string;
   railAppointments: Appointment[];
   selectedDateKey: string | null;
@@ -19,9 +19,11 @@ type AppointmentsScheduleRailProps = {
   showShowAllButton?: boolean;
   tone?: "support" | "work";
   className?: string;
+  embedded?: boolean;
+  headerless?: boolean;
 };
 
-export function AppointmentsScheduleRail({
+export function AppointmentsScheduleList({
   title = "Coming up",
   railAppointments,
   selectedDateKey,
@@ -31,29 +33,34 @@ export function AppointmentsScheduleRail({
   showShowAllButton = true,
   tone = "support",
   className,
-}: AppointmentsScheduleRailProps) {
+  embedded = false,
+  headerless = false,
+}: AppointmentsScheduleListProps) {
   const showDateInRow = !selectedDateKey;
+  const header = headerless ? null : (
+    <SurfaceHeader
+      title={title}
+      subtitle={railSubtitle}
+      className="mb-2 border-b border-[var(--app-border)]/40 pb-2"
+      meta={
+        selectedDateKey && showShowAllButton ? (
+          <div className="w-[96px] shrink-0 text-right">
+            <ActionButton
+              tone="quiet"
+              className="whitespace-nowrap px-2.5 py-1.5 text-xs"
+              onClick={onShowAll}
+            >
+              Show all
+            </ActionButton>
+          </div>
+        ) : null
+      }
+    />
+  );
 
-  return (
-    <Surface tone={tone} as="aside" className={cx("app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}>
-      <SurfaceHeader
-        title={title}
-        subtitle={railSubtitle}
-        className="mb-2 border-b border-[var(--app-border)]/40 pb-2"
-        meta={
-          selectedDateKey && showShowAllButton ? (
-            <div className="w-[96px] shrink-0 text-right">
-              <ActionButton
-                tone="quiet"
-                className="whitespace-nowrap px-2.5 py-1.5 text-xs"
-                onClick={onShowAll}
-              >
-                Show all
-              </ActionButton>
-            </div>
-          ) : null
-        }
-      />
+  const content = (
+    <>
+      {header}
       {railAppointments.length === 0 ? (
         <EmptyState className="mt-1">Nothing scheduled here.</EmptyState>
       ) : (
@@ -106,6 +113,16 @@ export function AppointmentsScheduleRail({
           })}
         </div>
       )}
+    </>
+  );
+
+  if (embedded) {
+    return <div className={cx("flex w-full min-w-0 flex-col", className)}>{content}</div>;
+  }
+
+  return (
+    <Surface tone={tone} as="aside" className={cx("app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}>
+      {content}
     </Surface>
   );
 }
