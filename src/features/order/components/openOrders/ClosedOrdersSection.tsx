@@ -1,10 +1,8 @@
 import { ClipboardList } from "lucide-react";
 import type { ClosedOrderHistoryItem } from "../../../../types";
 import { EmptyState } from "../../../../components/ui/primitives";
-import { formatOpenOrderCreatedAt } from "../../selectors";
-import { MixedClosedOrderRows, SingleClosedOrderRow } from "./ClosedOrderRows";
-import { getWorkflowSummaryLabel } from "./openOrdersFormatting";
-import { OPEN_ORDER_ROW_GRID_CLASS, OrdersSectionHeader, openOrdersSectionClassName } from "./openOrdersLayout";
+import { ClosedOrderRow } from "./ClosedOrderRows";
+import { ClosedOrdersColumnHeader, CLOSED_ORDER_ROW_GRID_CLASS, OrdersSectionHeader, openOrdersSectionClassName } from "./openOrdersLayout";
 
 export function ClosedOrdersSection({
   filteredHistoryItems,
@@ -36,20 +34,14 @@ export function ClosedOrdersSection({
         subtitle="Recent finished orders, kept here for reference."
       />
       <div className="border-t border-[var(--app-border)]/45">
+        <ClosedOrdersColumnHeader />
         {filteredHistoryItems.map((order, index) => (
           <div
             key={order.displayId ?? order.id}
             className={openOrdersSectionClassName(index > 0)}
           >
-            <div className={OPEN_ORDER_ROW_GRID_CLASS}>
-              <div className="min-w-0">
-                <div className="app-text-strong">{order.payerName ?? order.customerName}</div>
-                <div className="app-text-caption mt-1">{`Order ${order.displayId ?? order.id}`} • {formatOpenOrderCreatedAt(order.createdAt)}</div>
-                <div className="app-text-caption mt-2">
-                  {order.orderType ? getWorkflowSummaryLabel(order.orderType) : "Alteration"}
-                </div>
-              </div>
-              {order.orderType === "mixed" ? <MixedClosedOrderRows order={order} /> : <SingleClosedOrderRow order={order} />}
+            <div className={CLOSED_ORDER_ROW_GRID_CLASS}>
+              <ClosedOrderRow order={order} />
             </div>
           </div>
         ))}
