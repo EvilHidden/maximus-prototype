@@ -3,7 +3,7 @@ import { useState } from "react";
 import type { ClosedOrderHistoryItem, OpenOrder, StaffMember } from "../../../../types";
 import { EmptyState, cx } from "../../../../components/ui/primitives";
 import { ConfirmMarkReadyModal } from "../../modals/ConfirmMarkReadyModal";
-import type { OperatorQueueStageCounts, OrdersQueueKey } from "../../selectors";
+import type { OrdersQueueKey } from "../../selectors";
 import type { AllOrdersTab, OrdersView } from "../../hooks/useOpenOrdersView";
 import { OperatorQueuePanel } from "./OperatorQueuePanel";
 import { QueueSection } from "./OpenOrdersWorklist";
@@ -20,7 +20,6 @@ export function OpenOrdersBody({
   filteredReadyOrders,
   filteredOperatorOrders,
   filteredFactoryOrders,
-  operatorQueueCounts,
   filteredHistoryItems,
   inHouseTailors,
   onAssignOpenOrderTailor,
@@ -36,7 +35,6 @@ export function OpenOrdersBody({
   filteredReadyOrders: OpenOrder[];
   filteredOperatorOrders: OpenOrder[];
   filteredFactoryOrders: OpenOrder[];
-  operatorQueueCounts: OperatorQueueStageCounts;
   filteredHistoryItems: ClosedOrderHistoryItem[];
   inHouseTailors: StaffMember[];
   onAssignOpenOrderTailor: (openOrderId: number, staffId: string | null) => void;
@@ -148,7 +146,6 @@ export function OpenOrdersBody({
       {activeView === "operator" ? (
         <OperatorQueuePanel
           openOrders={filteredOperatorOrders}
-          stageCounts={operatorQueueCounts}
           inHouseTailors={inHouseTailors}
           onAssignOpenOrderTailor={onAssignOpenOrderTailor}
           onStartOpenOrderWork={onStartOpenOrderWork}
