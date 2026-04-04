@@ -373,10 +373,11 @@ textarea:focus-visible {
 
 @media (max-width: 767px) {
   .app-orders-controls-deck {
-    border-color: color-mix(in srgb, var(--app-border) 58%, transparent);
+    border-color: transparent;
     background: transparent;
     box-shadow: none;
     padding: 0;
+    border-width: 0;
   }
 
   .app-orders-controls-deck > .space-y-3 {

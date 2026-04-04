@@ -51,6 +51,14 @@ export function OpenOrdersControls({
   const locationOptions = getLocationOptions(pickupLocations);
   const showOperatorControls = activeView === "operator";
   const [mobileFiltersOpen, setMobileFiltersOpen] = useState(false);
+  const mobileViewOptions = [
+    { key: "queues" as const, label: "Needs attention", count: viewCounts.queues },
+    { key: "ready" as const, label: "Ready", count: viewCounts.ready },
+    { key: "operator" as const, label: "Alterations", count: viewCounts.operator },
+    { key: "factory" as const, label: "Custom Garments", count: viewCounts.factory },
+    { key: "all" as const, label: "All orders", count: viewCounts.all },
+  ];
+  const activeMobileView = mobileViewOptions.find((view) => view.key === activeView) ?? mobileViewOptions[0];
   const activeQueueLabel = queueMeta.find((queue) => queue.key === activeQueue)?.label ?? "Everything";
   const activeAllOrdersTabLabel = allOrdersTab === "active" ? "All active orders" : "Closed orders";
   const mobileFilterSummary = [
@@ -68,15 +76,9 @@ export function OpenOrdersControls({
   return (
     <div className="app-control-deck app-orders-controls-deck px-3 py-3 min-[1000px]:px-4 min-[1000px]:py-3">
       <div className="space-y-3">
-        <div className="-mx-1 overflow-x-auto pb-1 app-no-scrollbar min-[1000px]:mx-0 min-[1000px]:overflow-visible min-[1000px]:pb-0">
+        <div className="hidden -mx-1 overflow-x-auto pb-1 app-no-scrollbar min-[1000px]:mx-0 min-[1000px]:block min-[1000px]:overflow-visible min-[1000px]:pb-0">
           <div className="flex min-w-max gap-1.5 px-1 min-[1000px]:min-w-0 min-[1000px]:flex-wrap min-[1000px]:gap-2 min-[1000px]:px-0">
-            {([
-              { key: "queues", label: "Needs attention", count: viewCounts.queues },
-              { key: "ready", label: "Ready", count: viewCounts.ready },
-              { key: "operator", label: "Alterations", count: viewCounts.operator },
-              { key: "factory", label: "Custom Garments", count: viewCounts.factory },
-              { key: "all", label: "All orders", count: viewCounts.all },
-            ] as const).map((view) => (
+            {mobileViewOptions.map((view) => (
               <SelectionChip
                 key={view.key}
                 selected={activeView === view.key}
@@ -108,6 +110,23 @@ export function OpenOrdersControls({
         <div className="grid gap-2.5 min-[1000px]:hidden">
           <Surface tone="control" className="p-3">
             <div className="space-y-3">
+              <div className="grid grid-cols-[minmax(0,1fr)_auto] items-end gap-2.5">
+                <SelectField
+                  label="View"
+                  value={activeView}
+                  onChange={(value) => onViewChange(value as OrdersView)}
+                  density="compact"
+                  className="app-orders-mobile-field min-w-0"
+                >
+                  {mobileViewOptions.map((view) => (
+                    <option key={view.key} value={view.key}>
+                      {view.label}
+                    </option>
+                  ))}
+                </SelectField>
+                <div className="app-text-caption pb-2 whitespace-nowrap">{activeMobileView.count} orders</div>
+              </div>
+
               <SearchField
                 label="Search orders"
                 value={query}
