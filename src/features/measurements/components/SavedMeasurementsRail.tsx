@@ -1,6 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { Customer, MeasurementSet } from "../../../types";
-import { ActionButton, EmptyState } from "../../../components/ui/primitives";
+import { ActionButton } from "../../../components/ui/primitives";
 import { getMeasurementSetDisplay } from "../selectors";
 
 type SavedMeasurementsRailProps = {
@@ -96,9 +96,13 @@ export function SavedMeasurementsRail({
           })}
         </div>
       ) : customer ? null : (
-        <EmptyState className="space-y-3">
-          <div>{customer ? "No saved sets yet." : "Select a customer to view or save measurement sets."}</div>
-        </EmptyState>
+        <button
+          type="button"
+          className="app-empty-state app-measurements-sets__empty-state w-full text-left transition hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-focus)]"
+          onClick={onOpenCustomerModal}
+        >
+          Select a customer to view or save measurement sets.
+        </button>
       )}
     </div>
   );
