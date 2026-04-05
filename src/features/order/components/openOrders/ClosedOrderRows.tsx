@@ -3,6 +3,7 @@ import type { KeyboardEvent } from "react";
 import type { ClosedOrderHistoryItem } from "../../../../types";
 import { RowChevronAffordance, cx } from "../../../../components/ui/primitives";
 import { OpenOrdersTotalSection } from "./OpenOrdersRowSections";
+import { CLOSED_ORDER_ROW_GRID_CLASS } from "./openOrdersLayout";
 import {
   getClosedOrderCompletedLabel,
   getClosedOrderStatusTone,
@@ -36,7 +37,7 @@ export function ClosedOrderRow({
 
   return (
     <div
-      className={cx("group relative cursor-pointer pr-12 min-[1000px]:pr-14")}
+      className={cx("group relative cursor-pointer pr-12 min-[1000px]:pr-14", CLOSED_ORDER_ROW_GRID_CLASS)}
       role="button"
       tabIndex={0}
       onClick={handleOpen}
