@@ -1,6 +1,6 @@
 import { CalendarClock, ChevronDown, ClipboardList, CreditCard, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { CheckoutPaymentMode, Customer, OpenOrder, Screen } from "../types";
+import type { CheckoutPaymentMode, Customer, OpenOrder, OrderTimelineItem, Screen } from "../types";
 import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import {
   getMixedPaymentAllocation,
@@ -197,6 +197,15 @@ function getOrderReceiptItems({
   ];
 }
 
+function getTimelineTimestamp(occurredAt: OrderTimelineItem["occurredAt"]) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(occurredAt));
+}
+
 export function OrderDetailsScreen({
   customers,
   openOrder,
@@ -278,6 +287,7 @@ export function OrderDetailsScreen({
     openOrder.lineItems.some((item) => item.kind === "alteration"),
     openOrder.lineItems.some((item) => item.kind === "custom"),
   ].filter(Boolean).length;
+  const timeline = openOrder.timeline ?? [];
 
   return (
     <div className="space-y-4">
@@ -511,13 +521,13 @@ export function OrderDetailsScreen({
         </Surface>
 
         <div className="space-y-4">
-        <CheckoutSummaryRail
-          title="Order receipt"
-          subtitle=""
-          totalsItems={totalsItems}
-          summarySplitIndex={receiptChargeRowCount}
-          summarySplitLabel="Payment summary"
-        >
+          <CheckoutSummaryRail
+            title="Order receipt"
+            subtitle=""
+            totalsItems={totalsItems}
+            summarySplitIndex={receiptChargeRowCount}
+            summarySplitLabel="Payment summary"
+          >
             {openOrder.balanceDue > 0 ? (
               <ActionButton
                 tone="primary"
@@ -550,6 +560,42 @@ export function OrderDetailsScreen({
               Cancel order
             </ActionButton>
           </CheckoutSummaryRail>
+
+          <div className="border-t border-[var(--app-border)]/35 pt-3">
+            <div className="space-y-2.5 px-1">
+              <div className="app-text-overline text-[var(--app-text-soft)]">Order history</div>
+              {timeline.length ? (
+                <div className="relative space-y-3 pl-5 before:absolute before:bottom-1 before:left-[0.34rem] before:top-1 before:w-px before:bg-[var(--app-border)]/35 before:content-['']">
+                  {timeline.map((item) => (
+                    <div key={item.id} className="relative">
+                      <div className="absolute left-[-1.08rem] top-1.5 h-2 w-2 rounded-full border border-[var(--app-border)]/55 bg-[var(--app-surface)]" />
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0">
+                          <div className="app-text-body text-[var(--app-text)]">
+                            {item.label}
+                          </div>
+                          <div className="app-text-caption mt-0.5 break-words leading-relaxed text-[var(--app-text-soft)]">
+                            {getTimelineTimestamp(item.occurredAt)}
+                          </div>
+                        </div>
+                        {typeof item.amount === "number" ? (
+                          <div className="shrink-0 text-right">
+                            <div className="app-text-body [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                              {formatCheckoutCurrency(item.amount)}
+                            </div>
+                          </div>
+                        ) : null}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="app-text-caption leading-relaxed text-[var(--app-text-soft)]">
+                  No order history recorded yet.
+                </div>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

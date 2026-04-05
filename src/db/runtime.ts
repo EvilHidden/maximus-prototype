@@ -6,6 +6,7 @@ import {
   createMeasurementSets,
 } from "./runtime/customerSeed";
 import {
+  createOrderTimelineEvents,
   createOrders,
   createOrderScopeLines,
   createOrderScopeLineComponents,
@@ -73,6 +74,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const pickupAppointments = createPickupAppointments(seedDates);
   const serviceAppointments = createServiceAppointments(seedDates);
   const payments = createPayments(seedDates, orders, orderScopes, orderScopeLines);
+  const orderTimelineEvents = createOrderTimelineEvents(orders, orderScopes, payments);
   const squareLinks = createSquareLinks(orders);
 
   return {
@@ -95,6 +97,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     pickupAppointments,
     serviceAppointments,
     payments,
+    orderTimelineEvents,
     squareLinks,
   };
 }

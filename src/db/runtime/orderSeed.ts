@@ -3,4 +3,4 @@ export {
   createOrderScopeLineComponents,
   createOrderScopeLines,
 } from "./orderSeedModules/orderLines";
-export { createPayments, createSquareLinks } from "./orderSeedModules/payments";
+export { createOrderTimelineEvents, createPayments, createSquareLinks } from "./orderSeedModules/payments";

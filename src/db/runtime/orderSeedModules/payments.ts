@@ -1,4 +1,4 @@
-import type { DbOrder, DbOrderScope, DbOrderScopeLine, DbPaymentRecord, DbSquareLink } from "../../schema";
+import type { DbOrder, DbOrderScope, DbOrderScopeLine, DbOrderTimelineEvent, DbPaymentRecord, DbSquareLink } from "../../schema";
 import { roundCurrency } from "../../pricing";
 import { RuntimeSeedDates, toDateTimeString, withOffset } from "../support";
 
@@ -186,6 +186,152 @@ export function createPayments(
       squarePaymentId: "sq_pay_9024_2",
     }),
   ];
+}
+
+function getPaymentEventLabel(payment: DbPaymentRecord) {
+  switch (payment.allocation) {
+    case "custom_deposit":
+      return "Deposit taken";
+    case "alteration_balance":
+      return "Alteration balance payment taken";
+    case "custom_balance":
+      return "Custom balance payment taken";
+    case "full_balance":
+      return "Payment taken";
+    default:
+      return "Payment taken";
+  }
+}
+
+function getWorkflowLabel(workflow: DbOrderScope["workflow"]) {
+  return workflow === "alteration" ? "Alterations" : "Custom garments";
+}
+
+function getOrderStartedAt(order: DbOrder, orderScopes: DbOrderScope[]) {
+  if (order.operationalStatus !== "in_progress") {
+    return null;
+  }
+
+  const scopeTimes = orderScopes
+    .filter((scope) => scope.orderId === order.id)
+    .flatMap((scope) => [scope.readyAt, scope.pickedUpAt])
+    .filter((value): value is string => Boolean(value))
+    .sort((left, right) => new Date(left).getTime() - new Date(right).getTime());
+
+  return scopeTimes[0] ?? order.createdAt;
+}
+
+export function createOrderTimelineEvents(
+  orders: DbOrder[],
+  orderScopes: DbOrderScope[],
+  payments: DbPaymentRecord[],
+): DbOrderTimelineEvent[] {
+  const events: DbOrderTimelineEvent[] = [];
+
+  orders.forEach((order) => {
+    events.push({
+      id: `timeline-${order.id}-created`,
+      orderId: order.id,
+      type: "order_created",
+      label: "Order created",
+      occurredAt: order.createdAt,
+      amount: null,
+    });
+
+    events.push({
+      id: `timeline-${order.id}-accepted`,
+      orderId: order.id,
+      type: "order_accepted",
+      label: "Order accepted",
+      occurredAt: order.createdAt,
+      amount: null,
+    });
+
+    const startedAt = getOrderStartedAt(order, orderScopes);
+    if (startedAt) {
+      events.push({
+        id: `timeline-${order.id}-started`,
+        orderId: order.id,
+        type: "order_started",
+        label: "Order started",
+        occurredAt: startedAt,
+        amount: null,
+      });
+    }
+
+    orderScopes
+      .filter((scope) => scope.orderId === order.id)
+      .forEach((scope) => {
+        if (scope.readyAt) {
+          events.push({
+            id: `timeline-${scope.id}-ready`,
+            orderId: order.id,
+            type: "scope_ready",
+            label: `${getWorkflowLabel(scope.workflow)} ready`,
+            occurredAt: scope.readyAt,
+            amount: null,
+          });
+        }
+
+        if (scope.pickedUpAt) {
+          events.push({
+            id: `timeline-${scope.id}-picked-up`,
+            orderId: order.id,
+            type: "scope_picked_up",
+            label: `${getWorkflowLabel(scope.workflow)} picked up`,
+            occurredAt: scope.pickedUpAt,
+            amount: null,
+          });
+        }
+      });
+
+    payments
+      .filter((payment) => payment.orderId === order.id && payment.status === "captured" && payment.collectedAt)
+      .forEach((payment) => {
+        events.push({
+          id: `timeline-${payment.id}`,
+          orderId: order.id,
+          type: "payment_captured",
+          label: getPaymentEventLabel(payment),
+          occurredAt: payment.collectedAt ?? order.createdAt,
+          amount: payment.amount,
+        });
+      });
+
+    if (order.status === "complete") {
+      const completedAt = orderScopes
+        .filter((scope) => scope.orderId === order.id)
+        .map((scope) => scope.pickedUpAt)
+        .filter((value): value is string => Boolean(value))
+        .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? order.createdAt;
+
+      events.push({
+        id: `timeline-${order.id}-complete`,
+        orderId: order.id,
+        type: "order_complete",
+        label: "Order complete",
+        occurredAt: completedAt,
+        amount: null,
+      });
+    }
+
+    if (order.status === "canceled") {
+      events.push({
+        id: `timeline-${order.id}-canceled`,
+        orderId: order.id,
+        type: "order_canceled",
+        label: "Order canceled",
+        occurredAt: order.createdAt,
+        amount: null,
+      });
+    }
+  });
+
+  return events.sort((left, right) => {
+    const leftTime = new Date(left.occurredAt).getTime();
+    const rightTime = new Date(right.occurredAt).getTime();
+    return leftTime - rightTime;
+  });
 }
 
 export function createSquareLinks(orders: DbOrder[]): DbSquareLink[] {

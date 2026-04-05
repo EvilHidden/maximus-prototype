@@ -75,6 +75,7 @@ export function cloneDatabase(database: PrototypeDatabase): PrototypeDatabase {
     pickupAppointments: [...database.pickupAppointments],
     serviceAppointments: [...database.serviceAppointments],
     payments: [...database.payments],
+    orderTimelineEvents: [...database.orderTimelineEvents],
     squareLinks: [...database.squareLinks],
   };
 }

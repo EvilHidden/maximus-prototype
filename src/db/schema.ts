@@ -203,6 +203,23 @@ export type DbPaymentRecord = {
   squarePaymentId: string | null;
 };
 
+export type DbOrderTimelineEvent = {
+  id: string;
+  orderId: string;
+  type:
+    | "order_created"
+    | "order_accepted"
+    | "order_started"
+    | "payment_captured"
+    | "scope_ready"
+    | "scope_picked_up"
+    | "order_complete"
+    | "order_canceled";
+  label: string;
+  occurredAt: string;
+  amount: number | null;
+};
+
 export type DbSquareLink = {
   orderId: string;
   squareOrderId: string;
@@ -228,5 +245,6 @@ export type PrototypeDatabase = {
   pickupAppointments: DbPickupAppointment[];
   serviceAppointments: DbServiceAppointment[];
   payments: DbPaymentRecord[];
+  orderTimelineEvents: DbOrderTimelineEvent[];
   squareLinks: DbSquareLink[];
 };

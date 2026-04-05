@@ -466,8 +466,15 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
       const lineItems = getOpenOrderLineItems(database, order.id);
       const total = getOrderTotal(database, order.id);
       const pickupSchedules = scopes.map((scope) => getOpenOrderPickup(database, order, scope));
+      const paymentRecords = database.payments
+        .filter((candidate) => candidate.orderId === order.id)
+        .sort((left, right) => {
+          const leftTime = left.collectedAt ? new Date(left.collectedAt).getTime() : 0;
+          const rightTime = right.collectedAt ? new Date(right.collectedAt).getTime() : 0;
+          return rightTime - leftTime;
+        });
       const payment = getRecordedPaymentSummary({
-        payments: database.payments.filter((candidate) => candidate.orderId === order.id),
+        payments: paymentRecords,
         generatedAt: database.generatedAt,
         orderType: order.orderType,
         total,
@@ -493,6 +500,16 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         balanceDue: payment.balanceDue,
         total: payment.total,
         createdAt: order.createdAt,
+        timeline: database.orderTimelineEvents
+          .filter((event) => event.orderId === order.id)
+          .sort((left, right) => new Date(left.occurredAt).getTime() - new Date(right.occurredAt).getTime())
+          .map((event) => ({
+            id: event.id,
+            type: event.type,
+            label: event.label,
+            occurredAt: event.occurredAt,
+            amount: event.amount,
+          })),
       };
 
       return {
@@ -501,7 +518,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
           orderType: openOrder.orderType,
           lineItems: openOrder.lineItems,
           pickupSchedules: openOrder.pickupSchedules,
-          payments: database.payments.filter((candidate) => candidate.orderId === order.id),
+          payments: paymentRecords,
           total: openOrder.total,
         }),
       };
