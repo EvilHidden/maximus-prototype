@@ -107,7 +107,7 @@ export function MeasurementValueEditor({
     <section className="app-measurements-pad">
       <div className="app-measurements-pad__hero">
         <div className="min-w-0">
-          <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] md:text-[1.45rem]">
+          <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] md:text-[1.45rem] app-measurements-pad__hero-field">
             {activeField || "Choose a field"}
           </div>
         </div>
@@ -128,7 +128,7 @@ export function MeasurementValueEditor({
         <div className="app-measurements-console__flow-actions">
           <ActionButton
             tone="secondary"
-            className="h-14 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
+            className="app-measurements-console__flow-button h-14 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
             onClick={() => previousField && onSelectField(previousField)}
             disabled={!previousField}
           >
@@ -139,7 +139,7 @@ export function MeasurementValueEditor({
           </ActionButton>
           <ActionButton
             tone="secondary"
-            className="h-14 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
+            className="app-measurements-console__flow-button h-14 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
             onClick={() => nextField && onSelectField(nextField)}
             disabled={!nextField}
           >
@@ -150,7 +150,7 @@ export function MeasurementValueEditor({
           </ActionButton>
           <ActionButton
             tone="primary"
-            className="h-14 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
+            className="app-measurements-console__flow-button h-14 flex-col items-start justify-center gap-1 px-3 py-2 text-left"
             onClick={() => nextIncompleteField && onSelectField(nextIncompleteField)}
             disabled={!nextIncompleteField}
           >
@@ -247,7 +247,7 @@ export function MeasurementValueEditor({
                 key={fractionOption.label}
                 type="button"
                 onClick={() => handleSetFraction(fractionOption.value)}
-                className={`flex min-h-[3rem] items-center justify-center border px-0 py-1.5 text-[1.35rem] font-semibold leading-none ${
+                className={`app-measurements-value-editor__fraction flex min-h-[3rem] items-center justify-center border px-0 py-1.5 text-[1.35rem] font-semibold leading-none ${
                   parsedValue.fraction === fractionOption.value ? "app-workflow-toggle app-workflow-toggle--active" : "app-workflow-toggle"
                 }`}
               >
