@@ -163,7 +163,7 @@ export function MeasurementsScreen({
         <SectionHeader icon={Ruler} title="Measurements" subtitle="Review or capture inches for this customer." />
 
         <div className="app-page-with-support-rail app-measurements-layout">
-          <Surface tone="work" className="overflow-hidden">
+          <Surface tone="work" className="overflow-hidden app-measurements-layout__workspace">
             <div className="app-measurements-workspace">
               <div className="px-4 py-4 app-measurements-workspace__editor">
                 <div className="app-measurements-workbench">
@@ -198,13 +198,38 @@ export function MeasurementsScreen({
                     />
                   </div>
                 </div>
+
+                <div className="app-hide-at-desktop app-measurements-mobile-footer">
+                  <CurrentOrderMeasurementCard
+                    customer={selectedCustomer}
+                    activeSetDisplay={activeSetDisplay}
+                    hasEnteredMeasurements={hasEnteredMeasurements}
+                    orderContext={orderContext}
+                    hasCheckoutPath={Boolean(orderContext)}
+                    onSaveCurrentSet={() => {
+                      if (activeSet) {
+                        onSaveMeasurementSet("update");
+                        return;
+                      }
+                      openSaveModal("save");
+                    }}
+                    onSaveAsNewSet={() => openSaveModal("copy")}
+                    onBackToOrder={() => onScreenChange("order")}
+                    checkoutDisabledReason={checkoutDisabledReason}
+                    onCheckout={() => onScreenChange("checkout")}
+                    mobileCaptureOnly
+                  />
+                </div>
               </div>
             </div>
           </Surface>
 
-          <Surface tone="support" className="app-support-rail-fixed w-full p-3.5 app-measurements-rail">
-            <div className="space-y-4">
-              <div className="border-b border-[var(--app-border)]/45 pb-4">
+          <Surface
+            tone="support"
+            className="app-support-rail-fixed w-full p-3.5 app-measurements-rail app-measurements-layout__rail"
+          >
+            <div className="space-y-4 app-measurements-rail-stack">
+              <div className="border-b border-[var(--app-border)]/45 pb-4 app-measurements-rail-stack__sets">
                 <SavedMeasurementsRail
                   customer={selectedCustomer}
                   customerHistory={customerHistory}
@@ -216,24 +241,26 @@ export function MeasurementsScreen({
                 />
               </div>
 
-              <CurrentOrderMeasurementCard
-                customer={selectedCustomer}
-                activeSetDisplay={activeSetDisplay}
-                hasEnteredMeasurements={hasEnteredMeasurements}
-                orderContext={orderContext}
-                hasCheckoutPath={Boolean(orderContext)}
-                onSaveCurrentSet={() => {
-                  if (activeSet) {
-                    onSaveMeasurementSet("update");
-                    return;
-                  }
-                  openSaveModal("save");
-                }}
-                onSaveAsNewSet={() => openSaveModal("copy")}
-                onBackToOrder={() => onScreenChange("order")}
-                checkoutDisabledReason={checkoutDisabledReason}
-                onCheckout={() => onScreenChange("checkout")}
-              />
+              <div className="app-desktop-only app-measurements-rail-stack__status">
+                <CurrentOrderMeasurementCard
+                  customer={selectedCustomer}
+                  activeSetDisplay={activeSetDisplay}
+                  hasEnteredMeasurements={hasEnteredMeasurements}
+                  orderContext={orderContext}
+                  hasCheckoutPath={Boolean(orderContext)}
+                  onSaveCurrentSet={() => {
+                    if (activeSet) {
+                      onSaveMeasurementSet("update");
+                      return;
+                    }
+                    openSaveModal("save");
+                  }}
+                  onSaveAsNewSet={() => openSaveModal("copy")}
+                  onBackToOrder={() => onScreenChange("order")}
+                  checkoutDisabledReason={checkoutDisabledReason}
+                  onCheckout={() => onScreenChange("checkout")}
+                />
+              </div>
             </div>
           </Surface>
         </div>

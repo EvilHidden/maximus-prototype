@@ -21,6 +21,7 @@ type CurrentOrderMeasurementCardProps = {
   onBackToOrder: () => void;
   checkoutDisabledReason?: string;
   onCheckout: () => void;
+  mobileCaptureOnly?: boolean;
 };
 
 export function CurrentOrderMeasurementCard({
@@ -34,6 +35,7 @@ export function CurrentOrderMeasurementCard({
   onBackToOrder,
   checkoutDisabledReason,
   onCheckout,
+  mobileCaptureOnly = false,
 }: CurrentOrderMeasurementCardProps) {
   const currentSetTitle = (() => {
     if (activeSetDisplay) {
@@ -57,17 +59,41 @@ export function CurrentOrderMeasurementCard({
 
   const primarySaveLabel = activeSetDisplay ? "Update set" : "Save set";
 
+  if (mobileCaptureOnly) {
+    return (
+      <div className="app-measurements-status-card app-measurements-status-card--mobile-capture">
+        <ActionButton
+          tone="primary"
+          className="flex min-h-11 w-full items-center justify-center gap-2 px-3 py-2 text-center"
+          onClick={onSaveAsNewSet}
+          disabled={!customer}
+        >
+          <Save className="h-4 w-4" />
+          <span>Save set</span>
+        </ActionButton>
+      </div>
+    );
+  }
+
   return (
-    <div>
-      <div className="mb-4 space-y-1.5">
-        <div className="app-text-overline">{orderContext ? orderContext.eyebrow : "Save status"}</div>
-        <div className="app-text-strong">{orderContext ? orderContext.title : currentSetTitle}</div>
-        <div className="app-text-caption">{orderContext ? orderContext.detail : currentSetDetail}</div>
-        {orderContext?.note ? <div className="app-text-caption">{orderContext.note}</div> : null}
+    <div className="app-measurements-status-card">
+      <div className="mb-4 space-y-1.5 app-measurements-status-card__summary">
+        <div className="app-text-overline app-measurements-status-card__kicker">
+          {orderContext ? orderContext.eyebrow : "Save status"}
+        </div>
+        <div className="app-text-strong app-measurements-status-card__title">
+          {orderContext ? orderContext.title : currentSetTitle}
+        </div>
+        <div className="app-text-caption app-measurements-status-card__detail">
+          {orderContext ? orderContext.detail : currentSetDetail}
+        </div>
+        {orderContext?.note ? (
+          <div className="app-text-caption app-measurements-status-card__note">{orderContext.note}</div>
+        ) : null}
       </div>
 
-      <div className="mb-2 app-text-overline">Save current measurements</div>
-      <div className="space-y-2">
+      <div className="mb-2 app-text-overline app-measurements-status-card__section-label">Save current measurements</div>
+      <div className="space-y-2 app-measurements-status-card__actions">
         <ActionButton
           tone="primary"
           className="flex min-h-11 w-full items-center justify-center gap-2 px-3 py-2 text-center"
@@ -88,9 +114,11 @@ export function CurrentOrderMeasurementCard({
         </ActionButton>
       </div>
 
-      {orderContext ? <div className="mb-2 mt-5 app-text-overline">Order actions</div> : null}
       {orderContext ? (
-        <div className="space-y-2">
+        <div className="mb-2 mt-5 app-text-overline app-measurements-status-card__section-label">Order actions</div>
+      ) : null}
+      {orderContext ? (
+        <div className="space-y-2 app-measurements-status-card__order-actions">
           <ActionButton tone="secondary" className="flex min-h-10 w-full items-center justify-center gap-2 px-3 py-2 text-center" onClick={onBackToOrder}>
             <ArrowLeft className="h-4 w-4" />
             <span>Back to order</span>
