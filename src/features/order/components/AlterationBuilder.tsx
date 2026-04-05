@@ -1,7 +1,7 @@
 import { Scissors, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import type { AlterationServiceDefinition, AlterationServiceSelection } from "../../../types";
-import { ActionButton, Callout, FieldLabel, InlineEmptyState, ModalShell, SelectionChip, StatusPill, Surface, cx } from "../../../components/ui/primitives";
+import { ActionButton, Callout, FieldLabel, InlineEmptyState, ModalShell, SelectionChip, StatusPill, cx } from "../../../components/ui/primitives";
 import { ModalFooterActions } from "../../../components/ui/modalPatterns";
 import { getAlterationGarmentVisual } from "../alterationGarmentVisuals";
 import {
@@ -179,7 +179,7 @@ export function AlterationBuilder({
       : selectedModifiers.find((modifier) => modifier.id === activeAdjustmentModifierId) ?? null;
 
   return (
-    <Surface tone="work" className="flex flex-col p-4">
+    <div className="flex flex-col">
       <div className="mb-4 flex items-start gap-3">
         <Scissors className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
         <div>
@@ -259,7 +259,7 @@ export function AlterationBuilder({
       {selectedGarment ? (
         <div
           className={cx(
-            "mb-3.5 flex flex-col rounded-[var(--app-radius-md)] border border-[var(--app-border)]/65 bg-[var(--app-surface-muted)]/18 p-3.5",
+            "mb-3.5 flex flex-col rounded-[var(--app-radius-md)] border border-[var(--app-border)]/56 bg-[var(--app-surface-muted)]/14 p-3.5",
             showValidation && (missingServices || missingAdjustments) && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/26",
           )}
         >
@@ -279,10 +279,10 @@ export function AlterationBuilder({
                 <div
                   key={`${selectedGarment}-${service.name}`}
                   className={cx(
-                    "flex min-h-[6.25rem] flex-col rounded-[var(--app-radius-sm)] border px-3 pt-2.5 pb-0 transition-colors",
+                    "flex min-h-[5.8rem] flex-col rounded-[var(--app-radius-sm)] border px-3 pt-2.5 pb-0 transition-colors",
                     isSelected
-                      ? "border-[var(--app-accent)] bg-[var(--app-surface)] shadow-[var(--app-shadow-sm)]"
-                      : "border-[var(--app-border)]/65 bg-[var(--app-surface)]/88",
+                      ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] shadow-[var(--app-shadow-xs)]"
+                      : "border-[var(--app-border)]/58 bg-[var(--app-surface)]/72",
                   )}
                 >
                   <button
@@ -299,46 +299,46 @@ export function AlterationBuilder({
                     className="mb-2 flex items-start justify-between gap-3 text-left"
                   >
                     <div className="min-w-0 pr-2">
-                      <div className="app-text-body text-[0.95rem] font-semibold leading-snug text-[var(--app-text)]">{service.name}</div>
+                      <div className="app-text-body text-[0.92rem] font-semibold leading-snug text-[var(--app-text)]">{service.name}</div>
                     </div>
                     <div className="shrink-0 text-right">
-                      <div className="app-text-overline text-[var(--app-text-soft)]">Price</div>
-                      <div className="app-text-strong mt-1">${service.price.toFixed(2)}</div>
+                      <div className="app-text-caption text-[var(--app-text-soft)]">${service.price.toFixed(2)}</div>
                     </div>
                   </button>
 
                   {isSelected && service.supportsAdjustment && selectedModifier ? (
-                    <>
-                      <div className="mb-2 flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/28 px-2.5 py-2">
-                        <div className="min-w-0">
-                          <div className="app-text-overline text-[var(--app-text-soft)]">Adjustment</div>
-                          <div className="app-text-caption mt-0.5 text-[var(--app-text)]">
-                            {selectedModifier.deltaInches === null ? "Not set yet" : formatAlterationAdjustment(selectedModifier.deltaInches)}
-                          </div>
+                    <div className="mb-2 flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/22 px-2.5 py-1.5">
+                      <div className="min-w-0">
+                        <div className="app-text-caption text-[var(--app-text)]">
+                          {selectedModifier.deltaInches === null ? "Adjustment not set yet" : formatAlterationAdjustment(selectedModifier.deltaInches)}
                         </div>
-                        <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            setActiveAdjustmentModifierId(service.id);
-                          }}
-                          className={cx(
-                            "inline-flex h-8 shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.72rem] font-medium transition",
-                            activeAdjustmentModifierId === service.id
-                              ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
-                              : "border-[var(--app-border)]/70 bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]",
-                          )}
-                        >
-                          Adjust
-                        </button>
                       </div>
-                    </>
+                      <button
+                        type="button"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          setActiveAdjustmentModifierId(service.id);
+                        }}
+                        className={cx(
+                          "inline-flex h-7 shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.7rem] font-medium transition",
+                          activeAdjustmentModifierId === service.id
+                            ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
+                            : "border-[var(--app-border)]/70 bg-[var(--app-surface)] text-[var(--app-text-muted)] hover:border-[var(--app-border-strong)] hover:text-[var(--app-text)]",
+                        )}
+                      >
+                        Adjust
+                      </button>
+                    </div>
                   ) : null}
 
-                  <div className="mt-auto grid h-10 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-[var(--app-border)]/45">
-                    <div className="app-text-caption min-w-0">
-                      {isSelected && selectedModifier?.deltaInches !== null && service.supportsAdjustment
-                        ? formatAlterationAdjustment(selectedModifier.deltaInches)
+                  <div className="mt-auto grid h-9 grid-cols-[minmax(0,1fr)_auto] items-center gap-2 border-t border-[var(--app-border)]/36">
+                    <div className="app-text-caption min-w-0 text-[var(--app-text-soft)]">
+                      {isSelected
+                        ? service.supportsAdjustment
+                          ? selectedModifier?.deltaInches !== null
+                            ? "Adjustment set"
+                            : "Adjustment needed"
+                          : "Added to item"
                         : service.supportsAdjustment
                           ? "Set length"
                           : "Standard charge"}
@@ -347,13 +347,13 @@ export function AlterationBuilder({
                       type="button"
                       onClick={() => onToggleModifier(service)}
                       className={cx(
-                        "inline-flex h-8 min-w-[3.75rem] shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.72rem] font-medium tracking-[0.01em] transition",
+                        "inline-flex h-7 min-w-[3.5rem] shrink-0 items-center justify-center rounded-[var(--app-radius-sm)] border px-2.5 text-[0.7rem] font-medium tracking-[0.01em] transition",
                         isSelected
-                          ? "border-[var(--app-accent)] bg-[var(--app-accent-soft)] text-[var(--app-accent)]"
+                          ? "border-[var(--app-border-strong)] bg-[var(--app-surface-muted)] text-[var(--app-text)]"
                           : "border-[var(--app-primary-button)] bg-[var(--app-primary-button)] text-[var(--app-primary-button-contrast)]",
                       )}
                     >
-                      {isSelected ? "Selected" : "Add"}
+                      {isSelected ? "Added" : "Add"}
                     </button>
                   </div>
                 </div>
@@ -369,61 +369,67 @@ export function AlterationBuilder({
         </div>
       ) : null}
 
-      <Surface tone="support" className="mt-4 flex flex-wrap items-start justify-between gap-4 p-4 xl:pt-5">
-        <div className="shrink-0">
-          <div className="app-text-body font-medium">Current item</div>
-          <div className="app-text-caption mt-1">
-            {selectedGarment && selectedModifiers.length > 0 ? "Ready to add" : "Choose the garment and services"}
+      <div className="app-order-builder-workspace__footer mt-4 space-y-3">
+        <div className="flex items-end gap-4">
+          <div className="min-w-[9.5rem] shrink-0">
+            <div className="app-text-body font-medium">Current item</div>
+            <div className="app-text-caption mt-1">
+              {selectedGarment && selectedModifiers.length > 0 ? "Ready to add" : "Choose the garment and services"}
+            </div>
+          </div>
+          <div className="app-text-body-muted min-w-[14rem] flex-1 whitespace-normal break-words text-right">
+            {selectedGarment ? (
+              <>
+                <span className="font-semibold text-[var(--app-text)]">{selectedGarment}</span>
+                {selectedServiceSummary ? <span>{` • ${selectedServiceSummary}`}</span> : null}
+              </>
+            ) : null}
           </div>
         </div>
-        <div className="app-text-body-muted min-w-[16rem] flex-1 self-center whitespace-normal break-words pt-0.5 text-right">
-          {selectedGarment ? (
-            <>
-              <span className="font-semibold text-[var(--app-text)]">{selectedGarment}</span>
-              {selectedServiceSummary ? <span>{` • ${selectedServiceSummary}`}</span> : null}
-            </>
-          ) : (
-            "Select a garment and at least one service."
-          )}
-        </div>
-        <div className="flex shrink-0 items-center gap-3 self-center">
+        <div className="flex items-center gap-2.5">
           <ActionButton
-            tone="secondary"
+            tone={selectedRush ? "danger" : "secondary"}
             className={cx(
-              "min-h-10 px-3 py-2 text-xs",
-              selectedRush && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)] text-[var(--app-danger-text)] hover:bg-[var(--app-danger-bg)]/80",
+              "min-h-10 px-4 py-2 text-sm shrink-0",
+              selectedRush && "shadow-[inset_0_0_0_1px_var(--app-danger-border)]",
             )}
             onClick={onToggleRush}
           >
-            {selectedRush ? "Rush item" : "Mark rush"}
+            {selectedRush ? "Rushing" : "Rush item"}
           </ActionButton>
-          <div className="app-text-value">${currentSubtotal.toFixed(2)}</div>
-          {isEditing ? (
+          <div className="ml-auto flex shrink-0 items-center gap-2.5">
+            <div className="text-right">
+              <div className="app-text-overline">Subtotal</div>
+              <div className="app-text-strong mt-0.5">${currentSubtotal.toFixed(2)}</div>
+            </div>
+            {isEditing ? (
+              <ActionButton
+                tone="secondary"
+                className="min-h-10 px-4 py-2 text-sm"
+                onClick={onCancelEdit}
+              >
+                Cancel edit
+              </ActionButton>
+            ) : null}
             <ActionButton
-              tone="secondary"
-              className="min-h-10 px-3 py-2 text-xs"
-              onClick={onCancelEdit}
-            >
-              Cancel edit
-            </ActionButton>
-          ) : null}
-          <ActionButton
-            tone="primary"
-            onClick={() => {
-              if (!selectedGarment || selectedModifiers.length === 0 || missingAdjustments) {
-                if (addDisabledReason && onShowDisabledReason) {
-                  onShowDisabledReason(addDisabledReason);
+              tone="primary"
+              className="min-h-10 min-w-[160px] px-4 py-2 text-sm"
+              onClick={() => {
+                if (!selectedGarment || selectedModifiers.length === 0 || missingAdjustments) {
+                  if (addDisabledReason && onShowDisabledReason) {
+                    onShowDisabledReason(addDisabledReason);
+                  }
+                  return;
                 }
-                return;
-              }
 
-              onAddItem();
-            }}
-          >
-            {isEditing ? "Save item" : "Add to Cart"}
-          </ActionButton>
+                onAddItem();
+              }}
+            >
+              {isEditing ? "Save item" : "Add to Cart"}
+            </ActionButton>
+          </div>
         </div>
-      </Surface>
+      </div>
 
       {activeAdjustmentService ? (
         <ModalShell
@@ -457,6 +463,6 @@ export function AlterationBuilder({
           />
         </ModalShell>
       ) : null}
-    </Surface>
+    </div>
   );
 }
