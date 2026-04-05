@@ -349,46 +349,47 @@ textarea:focus-visible {
 }
 
 .app-orders-view-chip {
-  background: color-mix(in srgb, var(--app-surface-muted) 54%, var(--app-surface));
+  border-color: color-mix(in srgb, var(--app-border) 62%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 42%, var(--app-surface));
 }
 
 .app-orders-view-chip--active {
-  border-color: color-mix(in srgb, var(--app-accent) 72%, var(--app-border-strong));
-  background: color-mix(in srgb, var(--app-accent) 12%, var(--app-surface));
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 72%, var(--app-border-strong));
+  border-color: color-mix(in srgb, var(--app-accent) 32%, var(--app-border-strong));
+  background: color-mix(in srgb, var(--app-accent) 4%, var(--app-surface));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 32%, var(--app-border-strong));
 }
 
 .app-orders-view-chip__count {
   border-color: color-mix(in srgb, var(--app-border) 55%, transparent);
-  background: color-mix(in srgb, var(--app-surface-muted) 78%, var(--app-surface));
+  background: color-mix(in srgb, var(--app-surface-muted) 62%, var(--app-surface));
   color: var(--app-text-soft);
 }
 
 .app-orders-view-chip__count--active {
-  border-color: color-mix(in srgb, var(--app-accent) 74%, var(--app-border-strong));
-  background: color-mix(in srgb, var(--app-accent) 88%, var(--app-surface));
-  color: var(--app-accent-contrast);
+  border-color: color-mix(in srgb, var(--app-accent) 28%, var(--app-border-strong));
+  background: color-mix(in srgb, var(--app-accent) 14%, var(--app-surface));
+  color: var(--app-accent);
 }
 
 .app-orders-stage-tile {
-  background: color-mix(in srgb, var(--app-surface-muted) 48%, var(--app-surface));
+  background: color-mix(in srgb, var(--app-surface-muted) 44%, var(--app-surface));
 }
 
 .app-orders-stage-tile--ready-to-start {
-  background: color-mix(in srgb, var(--app-accent) 12%, var(--app-surface));
+  background: color-mix(in srgb, var(--app-warn-bg) 58%, var(--app-surface));
 }
 
 .app-orders-stage-tile--in-progress {
-  background: color-mix(in srgb, var(--app-success-bg) 58%, var(--app-surface));
+  background: color-mix(in srgb, var(--app-success-bg) 64%, var(--app-surface));
 }
 
 .app-orders-stage-tile--ready {
-  background: color-mix(in srgb, var(--app-surface-muted) 62%, var(--app-surface));
+  background: color-mix(in srgb, var(--app-info-bg) 68%, var(--app-surface));
 }
 
 .app-orders-stage-tile__count {
   border: 1px solid color-mix(in srgb, var(--app-border) 52%, transparent);
-  background: color-mix(in srgb, var(--app-surface) 88%, white);
+  background: color-mix(in srgb, var(--app-surface) 96%, white);
   color: var(--app-text);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.45);
 }
