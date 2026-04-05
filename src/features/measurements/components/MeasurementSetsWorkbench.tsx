@@ -33,7 +33,7 @@ export function MeasurementSetsWorkbench({
   const sourceValues = selectedSet ? selectedSet.values : draftMeasurements;
 
   return (
-    <section className="app-measurements-set-board">
+    <section className="app-measurements-set-board app-measurements-workbench__list">
       {customer ? (
         <div className="app-measurements-set-board__grid">
           <article key={selectedSet?.id ?? "draft"} className="app-measurements-set-panel">
