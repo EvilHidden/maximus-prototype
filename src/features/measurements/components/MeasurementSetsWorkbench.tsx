@@ -30,7 +30,8 @@ export function MeasurementSetsWorkbench({
   const selectedSet = linkedMeasurementSetId ? customerHistory.find((set) => set.id === linkedMeasurementSetId) ?? null : null;
   const isDraftMode = customer && !selectedSet;
   const display = selectedSet ? getMeasurementSetDisplay(selectedSet) : null;
-  const sourceValues = selectedSet ? selectedSet.values : draftMeasurements;
+  const sourceValues = draftMeasurements;
+  const draftDateLabel = new Intl.DateTimeFormat("en-US", { month: "short", day: "numeric" }).format(new Date());
 
   return (
     <section className="app-measurements-set-board app-measurements-workbench__list">
@@ -48,7 +49,7 @@ export function MeasurementSetsWorkbench({
                   </div>
                 </div>
                 <div className="app-text-caption mt-1 app-measurements-set-panel__caption">
-                  {display?.subline ?? "Tap a measurement to enter values for this new set."}
+                  {display?.subline ?? draftDateLabel}
                 </div>
               </div>
             </div>
@@ -60,26 +61,31 @@ export function MeasurementSetsWorkbench({
                 const comparisonRawValue = comparisonValues?.[field]?.trim() ?? "";
                 const comparisonDisplayValue = comparisonRawValue ? `${formatMeasurementDisplayValue(comparisonRawValue)} in` : null;
                 const isActive = activeField === field;
+                const isEdited = Boolean(selectedSet && comparisonRawValue && rawValue && rawValue !== comparisonRawValue);
+                const isMissing = Boolean(isDraftMode && !rawValue);
 
                 return (
                   <button
                     key={`${selectedSet?.id ?? "draft"}-${field}`}
                     type="button"
-                    className={`app-measurements-set-sheet__row ${isActive ? "app-measurements-set-sheet__row--active" : ""}`}
+                    className={`app-measurements-set-sheet__row ${isActive ? "app-measurements-set-sheet__row--active" : ""} ${isEdited ? "app-measurements-set-sheet__row--edited" : ""} ${isMissing ? "app-measurements-set-sheet__row--missing" : ""}`}
                     onClick={() => onSelectField(field)}
                     aria-pressed={isActive}
                     aria-label={`${field} ${isDraftMode ? "for new set" : "from selected set"}`}
                   >
                     <div className="min-w-0">
-                      <div className="app-text-caption app-measurements-set-sheet__field-name">{field}</div>
-                      {comparisonDisplayValue ? (
+                      <div className="app-text-caption app-measurements-set-sheet__field-name">
+                        <span>{field}</span>
+                        {isEdited ? <span className="app-measurements-draft-pill">Edited</span> : null}
+                      </div>
+                      {isEdited && comparisonDisplayValue ? (
                         <div className="app-text-caption mt-1 app-measurements-set-sheet__comparison">
-                          Last saved {comparisonDisplayValue}
+                          {`Was ${comparisonDisplayValue}`}
                         </div>
                       ) : null}
                     </div>
                     <div className="app-measurements-set-sheet__row-value">
-                      <div className="app-text-body text-right tabular-nums app-measurements-set-sheet__field-value">
+                      <div className={`app-text-body text-right tabular-nums app-measurements-set-sheet__field-value ${isEdited ? "app-measurements-set-sheet__field-value--edited" : ""}`}>
                         {rawValue ? (
                           <>
                             <span>{displayValue}</span>

@@ -99,6 +99,7 @@ export function MeasurementsScreen({
     customerHistory.find((set) => set.suggested && set.id !== order.custom.draft.linkedMeasurementSetId) ??
     customerHistory.find((set) => set.id !== order.custom.draft.linkedMeasurementSetId) ??
     null;
+  const baselineValues = activeSet?.values ?? comparisonSet?.values ?? null;
   const pendingDeleteSet = pendingDeleteSetId ? measurementSets.find((set) => set.id === pendingDeleteSetId) ?? null : null;
   const payerCustomer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
   const wearerCustomer = customers.find((customer) => customer.id === order.custom.draft.wearerCustomerId) ?? null;
@@ -157,6 +158,18 @@ export function MeasurementsScreen({
     setSaveTitle(activeSet ? extractSetTitle(activeSet.note) : "");
   };
 
+  const resetMeasurementWorkbench = () => {
+    onStartNewSet();
+    if (fieldNames[0]) {
+      setActiveField(fieldNames[0]);
+    }
+  };
+
+  const handleSelectMeasurementCustomer = (customerId: string) => {
+    onSelectCustomer(customerId);
+    resetMeasurementWorkbench();
+  };
+
   return (
     <>
       <div className="space-y-3">
@@ -173,7 +186,7 @@ export function MeasurementsScreen({
                     linkedMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
                     measurementFields={measurementFields}
                     draftMeasurements={order.custom.draft.measurements}
-                    comparisonValues={activeSet ? null : comparisonSet?.values ?? null}
+                    comparisonValues={baselineValues}
                     enteredCount={completedMeasurementCount}
                     totalFields={measurementFields.length}
                     activeField={activeField}
@@ -185,7 +198,8 @@ export function MeasurementsScreen({
                       focusKey={activeField}
                       activeField={activeField}
                       value={activeFieldValue}
-                      lastSavedValue={activeSet ? null : comparisonSet?.values?.[activeField] ?? null}
+                      lastSavedValue={baselineValues?.[activeField] ?? null}
+                      hasUnsavedChange={Boolean(activeSet && baselineValues?.[activeField]?.trim() && activeFieldValue.trim() && activeFieldValue.trim() !== (baselineValues?.[activeField]?.trim() ?? ""))}
                       previousField={previousField}
                       nextField={nextField}
                       nextIncompleteField={nextIncompleteField}
@@ -272,7 +286,7 @@ export function MeasurementsScreen({
           query={customerQuery}
           onQueryChange={setCustomerQuery}
           onSelectCustomer={(customerId) => {
-            onSelectCustomer(customerId);
+            handleSelectMeasurementCustomer(customerId);
             setCustomerModalOpen(false);
             setCustomerQuery("");
           }}
@@ -301,7 +315,7 @@ export function MeasurementsScreen({
             };
 
             onAddCustomer(nextCustomer);
-            onSelectCustomer(nextCustomer.id);
+            handleSelectMeasurementCustomer(nextCustomer.id);
             showToast(`${nextCustomer.name} is ready to use in measurements.`, {
               title: "Customer added",
               tone: "success",

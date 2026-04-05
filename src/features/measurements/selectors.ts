@@ -14,17 +14,17 @@ export function getMeasurementSetDisplay(set: MeasurementSet): MeasurementSetDis
       id: set.id,
       title: rest.join(" • "),
       version: compactVersionLabel(set.label),
-      status: set.suggested ? "Latest on file" : null,
+      status: null,
       subline: date,
     };
   }
 
   return {
     id: set.id,
-    title: "Measurement set",
+    title: set.note,
     version: compactVersionLabel(set.label),
-    status: set.suggested ? set.note : null,
-    subline: !set.suggested ? set.note : null,
+    status: null,
+    subline: set.takenAt,
   };
 }
 

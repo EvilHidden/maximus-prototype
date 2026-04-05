@@ -39,7 +39,7 @@ export function CurrentOrderMeasurementCard({
 }: CurrentOrderMeasurementCardProps) {
   const currentSetTitle = (() => {
     if (activeSetDisplay) {
-      return `Measurement set • ${activeSetDisplay.version}`;
+      return `${activeSetDisplay.title} • ${activeSetDisplay.version}`;
     }
     if (hasEnteredMeasurements) {
       return "Measurement set";

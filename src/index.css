@@ -662,6 +662,24 @@ textarea:focus-visible {
   align-items: flex-start;
   justify-content: flex-start;
   text-align: left;
+  gap: 0.2rem;
+}
+
+.app-measurements-console__flow-button .app-text-overline {
+  min-height: 1.2rem;
+  display: flex;
+  align-items: flex-start;
+}
+
+.app-measurements-console__flow-button:disabled {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--app-border) 82%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 92%, var(--app-surface));
+  color: var(--app-text-soft);
+}
+
+.app-measurements-console__flow-button:disabled .app-text-overline {
+  color: var(--app-text-soft);
 }
 
 .app-measurements-sets__actions {
@@ -786,12 +804,94 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--app-accent) 9%, transparent);
 }
 
+.app-measurements-set-sheet__row--edited {
+  border-color: color-mix(in srgb, var(--app-focus) 18%, var(--app-info-border) 82%);
+  background: color-mix(in srgb, var(--app-focus) 4%, var(--app-info-bg) 96%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-focus) 8%, transparent);
+}
+
+.app-measurements-set-sheet__row--edited:hover {
+  border-color: color-mix(in srgb, var(--app-focus) 24%, var(--app-info-border) 76%);
+  background: color-mix(in srgb, var(--app-focus) 6%, var(--app-info-bg) 94%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-focus) 10%, transparent);
+}
+
+.app-measurements-set-sheet__row--missing {
+  border-color: color-mix(in srgb, var(--app-warn-border) 28%, var(--app-border) 72%);
+  background: color-mix(in srgb, var(--app-warn-bg) 38%, var(--app-surface) 62%);
+}
+
+.app-measurements-set-sheet__row--missing:hover {
+  border-color: color-mix(in srgb, var(--app-warn-border) 34%, var(--app-border) 66%);
+  background: color-mix(in srgb, var(--app-warn-bg) 46%, var(--app-surface) 54%);
+}
+
+.app-measurements-set-sheet__row--active.app-measurements-set-sheet__row--edited,
+.app-measurements-set-sheet__row--active.app-measurements-set-sheet__row--edited:hover {
+  border-color: color-mix(in srgb, var(--app-focus) 28%, var(--app-info-border) 72%);
+  background: color-mix(in srgb, var(--app-focus) 9%, var(--app-info-bg) 91%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-focus) 12%, transparent);
+}
+
+.app-measurements-set-sheet__row--active.app-measurements-set-sheet__row--missing,
+.app-measurements-set-sheet__row--active.app-measurements-set-sheet__row--missing:hover {
+  border-color: color-mix(in srgb, var(--app-warn-border) 38%, var(--app-border) 62%);
+  background: color-mix(in srgb, var(--app-warn-bg) 54%, var(--app-surface) 46%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-warn-border) 14%, transparent);
+}
+
+.app-measurements-set-sheet__row--active.app-measurements-set-sheet__row--missing .app-measurements-set-sheet__field-value {
+  font-weight: 700;
+}
+
+.app-measurements-set-sheet__row--active.app-measurements-set-sheet__row--missing .app-measurements-set-sheet__field-name {
+  font-weight: 700;
+}
+
 .app-measurements-set-sheet__row-value {
   display: grid;
   justify-items: end;
   gap: 0.15rem;
   min-width: 0;
   white-space: nowrap;
+}
+
+.app-measurements-set-sheet__comparison {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+}
+
+.app-measurements-set-sheet__field-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem;
+  width: 100%;
+}
+
+.app-measurements-draft-pill {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--app-info-border);
+  border-radius: 999px;
+  background: var(--app-info-bg);
+  color: var(--app-info-text);
+  padding: 0.1rem 0.42rem;
+  font-size: 0.63rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+
+.app-measurements-set-sheet__field-value--edited {
+  color: color-mix(in srgb, var(--app-focus) 72%, var(--app-info-text) 28%);
+  font-weight: 600;
 }
 
 .app-measurements-set-board {
@@ -842,12 +942,27 @@ textarea:focus-visible {
   padding-bottom: 0.95rem;
 }
 
+.app-measurements-pad__hero-field {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .app-measurements-pad__hero-caption {
   min-height: 1rem;
+  display: inline-flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.4rem;
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
   text-align: right;
+}
+
+.app-measurements-pad__hero-caption--hidden {
+  visibility: hidden;
 }
 
 .app-measurements-pad__hero-value {
@@ -865,6 +980,10 @@ textarea:focus-visible {
   line-height: 0.95;
   color: var(--app-text);
   white-space: nowrap;
+}
+
+.app-measurements-pad__hero-caption {
+  transition: color 160ms ease;
 }
 
 .app-measurements-pad__main {
@@ -911,9 +1030,13 @@ textarea:focus-visible {
 
 .app-measurements-pad__mode-actions {
   display: flex;
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 0.5rem;
   align-items: center;
+}
+
+.app-measurements-pad__clear-button {
+  margin-left: auto;
 }
 
 .app-measurements-pad__mode-button,
