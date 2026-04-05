@@ -10,7 +10,7 @@ import {
   getRecordedPaymentPolicy,
 } from "../../features/order/paymentSummary";
 import { deserializeOrderWorkflowFromRecords, serializeOrderWorkflowToRecords } from "../orderWorkflowSerializer";
-import type { DbOrderScope, PrototypeDatabase } from "../schema";
+import type { DbOrderScope, DbOrderTimelineEvent, DbPaymentRecord, PrototypeDatabase } from "../schema";
 import type { OrderMutationOptions } from "./shared";
 import {
   createDraftOrderRecord,
@@ -24,6 +24,50 @@ import {
 
 function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
+}
+
+function createTimelineEvent({
+  id,
+  orderId,
+  type,
+  label,
+  occurredAt,
+  amount = null,
+}: {
+  id: string;
+  orderId: string;
+  type: DbOrderTimelineEvent["type"];
+  label: string;
+  occurredAt: string;
+  amount?: number | null;
+}): DbOrderTimelineEvent {
+  return {
+    id,
+    orderId,
+    type,
+    label,
+    occurredAt,
+    amount,
+  };
+}
+
+function getTimelinePaymentLabel(payment: Pick<DbPaymentRecord, "allocation">) {
+  switch (payment.allocation) {
+    case "custom_deposit":
+      return "Deposit taken";
+    case "alteration_balance":
+      return "Alteration balance payment taken";
+    case "custom_balance":
+      return "Custom balance payment taken";
+    case "full_balance":
+      return "Payment taken";
+    default:
+      return "Payment taken";
+  }
+}
+
+function getScopeTimelineLabel(workflow: DbOrderScope["workflow"], suffix: "ready" | "picked up") {
+  return `${workflow === "alteration" ? "Alterations" : "Custom garments"} ${suffix}`;
 }
 
 function getScopeSubtotal(database: PrototypeDatabase, orderId: string, workflow: DbOrderScope["workflow"]) {
@@ -259,6 +303,7 @@ export function revertAcceptedOrderSave(database: PrototypeDatabase, openOrderId
     pickupAppointments: database.pickupAppointments.filter((appointment) => appointment.orderId !== orderId),
     serviceAppointments: database.serviceAppointments.filter((appointment) => appointment.orderId !== orderId),
     payments: database.payments.filter((payment) => payment.orderId !== orderId),
+    orderTimelineEvents: database.orderTimelineEvents.filter((event) => event.orderId !== orderId),
     squareLinks: database.squareLinks.filter((link) => link.orderId !== orderId),
   };
 }
@@ -292,6 +337,34 @@ export function saveOrderWorkflowToDatabase(
   }
 
   if (!existingOrder) {
+    const occurredAt = toDateTimeString(now);
+    const timelineEvents: DbOrderTimelineEvent[] = [
+      createTimelineEvent({
+        id: `timeline-${serialized.orderRecord.id}-created`,
+        orderId: serialized.orderRecord.id,
+        type: "order_created",
+        label: "Order created",
+        occurredAt,
+      }),
+      createTimelineEvent({
+        id: `timeline-${serialized.orderRecord.id}-accepted`,
+        orderId: serialized.orderRecord.id,
+        type: "order_accepted",
+        label: "Order accepted",
+        occurredAt,
+      }),
+      ...serialized.paymentRecords
+        .filter((payment) => payment.status === "captured" && payment.collectedAt)
+        .map((payment) => createTimelineEvent({
+          id: `timeline-${payment.id}`,
+          orderId: payment.orderId,
+          type: "payment_captured",
+          label: getTimelinePaymentLabel(payment),
+          occurredAt: payment.collectedAt ?? occurredAt,
+          amount: payment.amount,
+        })),
+    ];
+
     return {
       openOrderId: serialized.openOrderId,
       database: {
@@ -303,6 +376,7 @@ export function saveOrderWorkflowToDatabase(
         orderScopeLineComponents: [...database.orderScopeLineComponents, ...serialized.lineComponents],
         pickupAppointments: [...database.pickupAppointments, ...serialized.pickupAppointments],
         payments: [...database.payments, ...serialized.paymentRecords],
+        orderTimelineEvents: [...database.orderTimelineEvents, ...timelineEvents],
         generatedAt: toDateTimeString(now),
       },
     };
@@ -346,6 +420,7 @@ export function saveOrderWorkflowToDatabase(
         ...database.payments.filter((payment) => payment.orderId !== existingOrder.id || payment.status === "captured"),
         ...serialized.paymentRecords,
       ],
+      orderTimelineEvents: [...database.orderTimelineEvents],
       generatedAt: toDateTimeString(now),
     },
   };
@@ -367,11 +442,26 @@ export function completeOpenOrderCheckout(
     return database;
   }
 
+  const newPayments = createCapturedPaymentRecords({ database, orderId, paymentMode, amount, now });
+
   return {
     ...database,
     payments: [
       ...database.payments,
-      ...createCapturedPaymentRecords({ database, orderId, paymentMode, amount, now }),
+      ...newPayments,
+    ],
+    orderTimelineEvents: [
+      ...database.orderTimelineEvents,
+      ...newPayments
+        .filter((payment) => payment.status === "captured" && payment.collectedAt)
+        .map((payment) => createTimelineEvent({
+          id: `timeline-${payment.id}`,
+          orderId: payment.orderId,
+          type: "payment_captured",
+          label: getTimelinePaymentLabel(payment),
+          occurredAt: payment.collectedAt ?? toDateTimeString(now),
+          amount: payment.amount,
+        })),
     ],
     generatedAt: toDateTimeString(now),
   };
@@ -397,6 +487,18 @@ export function startOpenOrderWork(
           }
         : order
     )),
+    orderTimelineEvents: database.orderTimelineEvents.some((event) => event.orderId === orderId && event.type === "order_started")
+      ? database.orderTimelineEvents
+      : [
+          ...database.orderTimelineEvents,
+          createTimelineEvent({
+            id: `timeline-${orderId}-started`,
+            orderId,
+            type: "order_started",
+            label: "Order started",
+            occurredAt: toDateTimeString(now),
+          }),
+        ],
     generatedAt: toDateTimeString(now),
   };
 }
@@ -433,6 +535,18 @@ export function markOrderScopePickupReady(
           }
         : order
     )),
+    orderTimelineEvents: database.orderTimelineEvents.some((event) => event.id === `timeline-${scopeId}-ready`)
+      ? database.orderTimelineEvents
+      : [
+          ...database.orderTimelineEvents,
+          createTimelineEvent({
+            id: `timeline-${scopeId}-ready`,
+            orderId,
+            type: "scope_ready",
+            label: getScopeTimelineLabel(nextScopes.find((scope) => scope.id === scopeId)?.workflow ?? "alteration", "ready"),
+            occurredAt: toDateTimeString(now),
+          }),
+        ],
     generatedAt: toDateTimeString(now),
   };
 }
@@ -465,6 +579,28 @@ export function completeOpenOrderPickup(
         }
       : scope
   ));
+  const nextStatus = deriveOrderStatus(nextScopes.filter((scope) => scope.orderId === orderId));
+  const pickupEvents = readyScopeIds.map((scopeId) => {
+    const scope = nextScopes.find((candidate) => candidate.id === scopeId);
+    return createTimelineEvent({
+      id: `timeline-${scopeId}-picked-up`,
+      orderId,
+      type: "scope_picked_up",
+      label: getScopeTimelineLabel(scope?.workflow ?? "alteration", "picked up"),
+      occurredAt: toDateTimeString(now),
+    });
+  });
+  const completionEvents = nextStatus === "complete" && !database.orderTimelineEvents.some((event) => event.orderId === orderId && event.type === "order_complete")
+    ? [
+        createTimelineEvent({
+          id: `timeline-${orderId}-complete`,
+          orderId,
+          type: "order_complete",
+          label: "Order complete",
+          occurredAt: toDateTimeString(now),
+        }),
+      ]
+    : [];
 
   return {
     ...database,
@@ -473,7 +609,7 @@ export function completeOpenOrderPickup(
       order.id === orderId
         ? {
             ...order,
-            status: deriveOrderStatus(nextScopes.filter((scope) => scope.orderId === orderId)),
+            status: nextStatus,
           }
         : order
     )),
@@ -485,6 +621,11 @@ export function completeOpenOrderPickup(
           }
         : appointment
     )),
+    orderTimelineEvents: [
+      ...database.orderTimelineEvents,
+      ...pickupEvents,
+      ...completionEvents,
+    ],
     generatedAt: toDateTimeString(now),
   };
 }
@@ -526,6 +667,16 @@ export function cancelOpenOrder(
         : appointment
     )),
     payments: database.payments.filter((payment) => payment.orderId !== orderId || payment.status === "captured"),
+    orderTimelineEvents: [
+      ...database.orderTimelineEvents,
+      createTimelineEvent({
+        id: `timeline-${orderId}-canceled`,
+        orderId,
+        type: "order_canceled",
+        label: "Order canceled",
+        occurredAt: toDateTimeString(now),
+      }),
+    ],
     generatedAt: toDateTimeString(now),
   };
 }

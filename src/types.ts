@@ -251,6 +251,22 @@ export type OrderWorkflowState = {
   };
 };
 
+export type OrderTimelineItem = {
+  id: string;
+  type:
+    | "order_created"
+    | "order_accepted"
+    | "order_started"
+    | "payment_captured"
+    | "scope_ready"
+    | "scope_picked_up"
+    | "order_complete"
+    | "order_canceled";
+  label: string;
+  occurredAt: string;
+  amount: number | null;
+};
+
 export type OpenOrder = {
   id: number;
   payerCustomerId: string | null;
@@ -270,6 +286,7 @@ export type OpenOrder = {
   pickupBalanceDue?: number;
   total: number;
   createdAt: string;
+  timeline?: OrderTimelineItem[];
 };
 
 export type ClosedOrderHistoryItem = {

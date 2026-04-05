@@ -253,6 +253,7 @@ const seedReferenceData = createReferenceData({
   pickupAppointments: [],
   serviceAppointments: [],
   payments: [],
+  orderTimelineEvents: [],
   squareLinks: [],
 });
 
