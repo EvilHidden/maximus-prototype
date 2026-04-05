@@ -6,6 +6,8 @@ type PricingSummaryProps = {
 };
 
 export function PricingSummary({ pricing }: PricingSummaryProps) {
+  const hasDepositDue = pricing.depositDue > 0;
+
   return (
     <div className="border-0 bg-transparent p-0">
       <div className="mb-3 app-text-overline text-[var(--app-text-soft)]">Pricing</div>
@@ -25,10 +27,20 @@ export function PricingSummary({ pricing }: PricingSummaryProps) {
           </div>
         </div>
 
-        <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-warn-border)]/65 bg-[var(--app-warn-bg)]/58 px-3.5 py-3">
+        <div
+          className={
+            hasDepositDue
+              ? "rounded-[var(--app-radius-sm)] border border-[var(--app-warn-border)]/65 bg-[var(--app-warn-bg)]/58 px-3.5 py-3"
+              : "px-0 py-0"
+          }
+        >
           <div className="flex items-center justify-between gap-3">
-            <span className="app-text-overline text-[var(--app-warn-text)]">Deposit due</span>
-            <span className="app-text-strong text-[var(--app-warn-text)]">{formatSummaryCurrency(pricing.depositDue)}</span>
+            <span className={hasDepositDue ? "app-text-overline text-[var(--app-warn-text)]" : "app-text-body-muted"}>
+              Deposit due
+            </span>
+            <span className={hasDepositDue ? "app-text-strong text-[var(--app-warn-text)]" : "app-text-body font-medium"}>
+              {formatSummaryCurrency(pricing.depositDue)}
+            </span>
           </div>
         </div>
 
