@@ -5,6 +5,7 @@ This repo is built for fast prototype work by two contributors at the same time.
 The goal is not heavyweight process. The goal is fewer collisions, clearer handoffs, and more reliable merges.
 
 When the work touches shared UI foundations, also check [`docs/UI_SYSTEM_BLUEPRINT.md`](/Users/daniel/Dev%20Work/maximus/docs/UI_SYSTEM_BLUEPRINT.md) so tokens, primitives, and screen composition stay aligned with the future `WeWeb + Xano` target.
+If the work touches responsive layout behavior, also check [`docs/STYLE_GUIDE.md`](/Users/daniel/Dev%20Work/maximus/docs/STYLE_GUIDE.md) before adding new breakpoints or screen-local layout rules.
 
 ## Default workflow
 
@@ -106,6 +107,16 @@ Before implementing, answer these quickly:
 - Are we solving one idea, or sneaking three ideas into one branch?
 
 If the work touches multiple subsystems, stop and split the change if possible.
+
+If the work touches layout, answer these too:
+
+- Is this really a new viewport breakpoint, or just a desktop-band rebalance?
+- Can this be solved in `src/index.css` with an existing shell/pane class instead of adding another screen-local breakpoint utility?
+- Are we keeping the three-band contract intact:
+  - mobile `0-767`
+  - landscape tablet `768-999`
+  - desktop `1000+`
+- If this is inside desktop, should it be handled as a narrow-desktop tuning range instead of a new product breakpoint?
 
 ## Safe subsystem boundaries
 
@@ -229,6 +240,7 @@ Before merging, make sure the answer to all of these is `yes`:
 - Did we sanity-check the affected UI flow in the running app?
 - Did we write down any remaining logic holes or visual holes?
 - Is the branch ready to be closed immediately after merge?
+- If we changed responsive behavior, did we preserve the three-band viewport contract and keep narrow-desktop tuning inside the desktop band instead of inventing another breakpoint?
 
 ## Ship-state checklist
 

@@ -470,6 +470,7 @@ textarea:focus-visible {
   gap: 0.75rem;
 }
 
+/* Mobile band: 0-767px */
 @media (max-width: 767px) {
   .app-orders-controls-deck {
     border-color: transparent;
@@ -982,6 +983,7 @@ textarea:focus-visible {
   min-height: 0;
 }
 
+/* Landscape tablet band: 768-999px */
 @media (min-width: 768px) and (max-width: 999px) {
   .app-shell {
     padding:
@@ -1214,6 +1216,7 @@ textarea:focus-visible {
   }
 }
 
+/* Desktop band starts at 1000px. This includes iPad Air landscape, iPad Pro landscape, and full desktop widths. */
 @media (min-width: 1000px) {
   .app-order-builder-workspace__body {
     gap: 1.35rem;
@@ -1225,6 +1228,7 @@ textarea:focus-visible {
   }
 }
 
+/* Desktop shell defaults shared across all desktop widths. */
 @media (min-width: 1000px) {
   .app-sidebar {
     display: flex !important;
@@ -1425,6 +1429,7 @@ textarea:focus-visible {
   }
 }
 
+/* Desktop height tuning only. This is not a separate viewport breakpoint. */
 @media (min-width: 1000px) and (max-height: 1080px) {
   .app-home-dashboard__quick-actions-surface {
     margin-bottom: 1.05rem;
@@ -1448,6 +1453,7 @@ textarea:focus-visible {
   }
 }
 
+/* Wide desktop tuning inside the desktop band. */
 @media (min-width: 1367px) {
   .app-measurements-layout {
     grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
@@ -1480,6 +1486,7 @@ textarea:focus-visible {
   }
 }
 
+/* Narrow desktop tuning inside the desktop band. */
 @media (min-width: 1000px) and (max-width: 1366px) {
   .app-appointments-calendar-layout {
     grid-template-columns: minmax(0, 1fr) clamp(15.5rem, 27.5vw, var(--app-support-rail-width-tablet));

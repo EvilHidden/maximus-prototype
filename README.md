@@ -71,6 +71,34 @@ Those reference catalogs still live in `src/db/` and are treated as canonical se
 - Keep screens thin; feature modules should own workflow behavior
 - Use reducer actions for order state changes instead of ad hoc shallow patching
 
+## Responsive contract
+
+The prototype now uses one explicit three-band front-end model:
+
+- mobile
+  - `0-767px`
+  - stacked flows and mobile navigation
+- landscape tablet
+  - `768-999px`
+  - tablet topbar, reduced shell chrome, and simplified layouts
+- desktop
+  - `1000px+`
+  - persistent sidebar and desktop page shells
+
+Important nuance:
+
+- the desktop band includes iPad Air landscape, iPad Pro landscape, and full desktop widths
+- `1000-1366px` and `1367px+` are desktop tuning ranges, not extra product breakpoints
+- use those sub-ranges only to tune density, rails, and internal grids inside the desktop shell
+- do not invent a fourth breakpoint to rescue one screen
+
+Implementation bias:
+
+- make the desktop shell correct first
+- then tune narrow desktop inside the same desktop band
+- then simplify for landscape tablet and mobile
+- prefer shared CSS rules in [`src/index.css`](/Users/daniel/Dev%20Work/maximus/src/index.css) for recurring responsive behavior over scattering new one-off breakpoint utilities through screens
+
 ## UX language
 
 The product voice should stay plain, grounded, and non-technical across screens, docs, and seed scenarios.
