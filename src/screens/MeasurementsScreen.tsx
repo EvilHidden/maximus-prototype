@@ -202,7 +202,7 @@ export function MeasurementsScreen({
             </div>
           </Surface>
 
-          <Surface tone="support" className="app-support-rail-fixed px-3.5 py-2.5 app-measurements-rail">
+          <Surface tone="support" className="app-support-rail-fixed w-full p-3.5 app-measurements-rail">
             <div className="space-y-4">
               <div className="border-b border-[var(--app-border)]/45 pb-4">
                 <SavedMeasurementsRail
