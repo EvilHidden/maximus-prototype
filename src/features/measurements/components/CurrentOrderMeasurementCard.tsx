@@ -39,25 +39,15 @@ export function CurrentOrderMeasurementCard({
 }: CurrentOrderMeasurementCardProps) {
   const currentSetTitle = (() => {
     if (activeSetDisplay) {
-      return `${activeSetDisplay.title} • ${activeSetDisplay.version}`;
+      return `Measurement set • ${activeSetDisplay.version}`;
     }
     if (hasEnteredMeasurements) {
-      return "Unsaved measurements";
+      return "Measurement set";
     }
-    return "No set selected";
+    return "Measurement set";
   })();
 
-  const currentSetDetail = (() => {
-    if (activeSetDisplay) {
-      return activeSetDisplay.subline ?? "Saved set";
-    }
-    if (hasEnteredMeasurements) {
-      return customer ? "These edits are only in the current workspace until you save them." : "Choose a customer before saving this set.";
-    }
-    return customer ? "Choose a saved set or start entering measurements." : "Choose a customer to load or save measurement sets.";
-  })();
-
-  const primarySaveLabel = activeSetDisplay ? "Update set" : "Save set";
+  const primarySaveLabel = "Save measurements";
 
   if (mobileCaptureOnly) {
     return (
@@ -78,21 +68,16 @@ export function CurrentOrderMeasurementCard({
   return (
     <div className="app-measurements-status-card">
       <div className="mb-4 space-y-1.5 app-measurements-status-card__summary">
-        <div className="app-text-overline app-measurements-status-card__kicker">
-          {orderContext ? orderContext.eyebrow : "Save status"}
-        </div>
+        {orderContext ? <div className="app-text-overline app-measurements-status-card__kicker">{orderContext.eyebrow}</div> : null}
         <div className="app-text-strong app-measurements-status-card__title">
           {orderContext ? orderContext.title : currentSetTitle}
         </div>
-        <div className="app-text-caption app-measurements-status-card__detail">
-          {orderContext ? orderContext.detail : currentSetDetail}
-        </div>
+        {orderContext ? <div className="app-text-caption app-measurements-status-card__detail">{orderContext.detail}</div> : null}
         {orderContext?.note ? (
           <div className="app-text-caption app-measurements-status-card__note">{orderContext.note}</div>
         ) : null}
       </div>
 
-      <div className="mb-2 app-text-overline app-measurements-status-card__section-label">Save current measurements</div>
       <div className="space-y-2 app-measurements-status-card__actions">
         <ActionButton
           tone="primary"
@@ -100,7 +85,7 @@ export function CurrentOrderMeasurementCard({
           onClick={onSaveCurrentSet}
           disabled={!customer}
         >
-          <Tag className="h-4 w-4" />
+          <Save className="h-4 w-4" />
           <span>{primarySaveLabel}</span>
         </ActionButton>
         <ActionButton
@@ -109,8 +94,8 @@ export function CurrentOrderMeasurementCard({
           onClick={onSaveAsNewSet}
           disabled={!customer}
         >
-          <Save className="h-4 w-4" />
-          <span>Save as new set</span>
+          <Tag className="h-4 w-4" />
+          <span>Save a new measurement set</span>
         </ActionButton>
       </div>
 
