@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Archive, ArrowRight, CalendarDays, MapPin, MessageSquare, PencilRuler, Phone, Ruler, User } from "lucide-react";
+import { Archive, ArrowLeft, ArrowRight, CalendarDays, MapPin, MessageSquare, PencilRuler, Phone, Ruler, User } from "lucide-react";
 import type { Customer, CustomerOrder, MeasurementSet, PickupLocation, Screen, ServiceAppointmentType } from "../../types";
 import { ActionButton, Callout, ModalShell, StatusPill } from "../ui/primitives";
 import { ModalFooterActions, ModalMetaRow, ModalSectionHeading, ModalSummaryCard } from "../ui/modalPatterns";
@@ -171,12 +171,19 @@ export function CustomerProfileDrawer({
       <div className="app-customer-rail__scroll flex-1 overflow-auto p-3.5">
           <div className="space-y-3">
             <div className="app-customer-rail__topbar">
+              <div className="app-customer-rail__topbar-title">
+                <div className="app-text-overline">Customer</div>
+                <div className="app-text-caption mt-1">Profile, measurements, and recent activity</div>
+              </div>
               <ActionButton tone="secondary" onClick={onClose} className="min-h-9 px-3 py-1.5 text-sm">
-                Close
+                <ArrowLeft className="app-hide-at-desktop h-4 w-4" />
+                <span className="app-hide-at-desktop">Back</span>
+                <span className="app-desktop-only">Close</span>
               </ActionButton>
             </div>
 
             <div className="app-customer-rail__hero">
+              <div className="app-customer-rail__hero-kicker app-text-overline">Customer profile</div>
               <div className="app-customer-rail__identity">
                 <div className="flex items-start gap-3">
                   <div className="app-icon-chip mt-0.5 hidden sm:flex">
@@ -226,7 +233,7 @@ export function CustomerProfileDrawer({
               <ModalSectionHeading
                 className="app-customer-rail__section-heading"
                 title={<span className="app-customer-rail__section-title">Quick actions</span>}
-                description="Most common customer-service actions."
+                description="Most-used customer actions."
               />
 
               <div className="space-y-1.5">
