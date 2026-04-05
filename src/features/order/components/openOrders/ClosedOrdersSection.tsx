@@ -42,9 +42,7 @@ export function ClosedOrdersSection({
             key={order.displayId ?? order.id}
             className={openOrdersSectionClassName(index > 0)}
           >
-            <div className={CLOSED_ORDER_ROW_GRID_CLASS}>
-              <ClosedOrderRow order={order} onOpenOrderDetails={onOpenOrderDetails} />
-            </div>
+            <ClosedOrderRow order={order} onOpenOrderDetails={onOpenOrderDetails} />
           </div>
         ))}
       </div>

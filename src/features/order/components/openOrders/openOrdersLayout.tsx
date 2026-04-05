@@ -114,7 +114,7 @@ export function NeedsAttentionColumnHeader() {
 export function ClosedOrdersColumnHeader() {
   return (
     <OpenOrdersColumnHeaderRow
-      wrapperClassName="px-4 py-2"
+      wrapperClassName="px-4 py-2 pr-14"
       className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,0.82fr)_minmax(0,1.08fr)_7.25rem_7.25rem] min-[1000px]:items-start min-[1000px]:gap-x-4"
       columns={[
         <div key="customer" className="app-text-overline">Customer</div>,
