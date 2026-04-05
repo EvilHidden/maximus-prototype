@@ -8,7 +8,7 @@ type PricingSummaryProps = {
 export function PricingSummary({ pricing }: PricingSummaryProps) {
   return (
     <div className="border-0 bg-transparent p-0">
-      <div className="mb-3 app-kicker text-[var(--app-text-muted)]">Pricing</div>
+      <div className="mb-3 app-text-overline text-[var(--app-text-soft)]">Pricing</div>
       <div className="space-y-4">
         <div className="space-y-2.5">
           <div className="flex justify-between gap-3">
@@ -27,7 +27,7 @@ export function PricingSummary({ pricing }: PricingSummaryProps) {
 
         <div className="rounded-[var(--app-radius-sm)] border border-[var(--app-warn-border)]/65 bg-[var(--app-warn-bg)]/58 px-3.5 py-3">
           <div className="flex items-center justify-between gap-3">
-            <span className="app-kicker text-[var(--app-warn-text)]">Deposit due</span>
+            <span className="app-text-overline text-[var(--app-warn-text)]">Deposit due</span>
             <span className="app-text-strong text-[var(--app-warn-text)]">{formatSummaryCurrency(pricing.depositDue)}</span>
           </div>
         </div>
@@ -35,8 +35,7 @@ export function PricingSummary({ pricing }: PricingSummaryProps) {
         <div className="border-t border-[var(--app-border-strong)]/45 pt-3.5">
           <div className="flex items-end justify-between gap-3">
             <div>
-              <div className="app-kicker text-[var(--app-text-muted)]">Order total</div>
-              <div className="app-text-caption mt-1">Including tax</div>
+              <div className="app-text-overline text-[var(--app-text-soft)]">Order total</div>
             </div>
             <div className="app-text-value">{formatSummaryCurrency(pricing.total)}</div>
           </div>

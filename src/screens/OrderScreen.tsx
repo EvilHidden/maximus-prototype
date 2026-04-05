@@ -175,71 +175,72 @@ export function OrderScreen({
           />
 
           {order.activeWorkflow === "alteration" ? (
-            <div>
-              {controller.isEditingAlterationItem ? (
-                <ItemEditBanner
-                  label={controller.editingItem?.garment ?? "Alteration item"}
-                  detail={order.alteration.selectedModifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" • ") || null}
-                />
-              ) : null}
+            <Surface tone="work" className="app-order-builder-workspace">
+              <div className="app-order-builder-workspace__body">
+                {controller.isEditingAlterationItem ? (
+                  <ItemEditBanner
+                    label={controller.editingItem?.garment ?? "Alteration item"}
+                    detail={order.alteration.selectedModifiers.map((modifier) => formatAlterationServiceLabel(modifier)).join(" • ") || null}
+                  />
+                ) : null}
 
-              <AlterationBuilder
-                garmentOptions={controller.garmentOptions}
-                selectedGarment={order.alteration.selectedGarment}
-                currentServices={controller.currentServices}
-                selectedModifiers={order.alteration.selectedModifiers}
-                selectedRush={order.alteration.selectedRush}
-                currentSubtotal={controller.currentAlterationSubtotal}
-                isEditing={controller.isEditingAlterationItem}
-                editingLabel={controller.editingItem?.garment ?? null}
-                addDisabledReason={controller.addToCartDisabledReason}
-                onShowDisabledReason={controller.handleShowAlterationDisabledReason}
-                showValidation={controller.alterationValidationVisible}
-                missingGarment={controller.missingAlterationGarment}
-                missingServices={controller.missingAlterationServices}
-                missingAdjustments={controller.missingAlterationAdjustmentValues}
-                onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
-                onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
-                onSetModifierAdjustment={(modifierId, deltaInches) => dispatch({ type: "setAlterationModifierAdjustment", modifierId, deltaInches })}
-                onToggleRush={() => dispatch({ type: "toggleAlterationRush" })}
-                onAddItem={controller.handleAddOrSaveAlterationItem}
-                onCancelEdit={controller.handleCancelAlterationEdit}
-              />
-            </div>
+                <AlterationBuilder
+                  garmentOptions={controller.garmentOptions}
+                  selectedGarment={order.alteration.selectedGarment}
+                  currentServices={controller.currentServices}
+                  selectedModifiers={order.alteration.selectedModifiers}
+                  selectedRush={order.alteration.selectedRush}
+                  currentSubtotal={controller.currentAlterationSubtotal}
+                  isEditing={controller.isEditingAlterationItem}
+                  editingLabel={controller.editingItem?.garment ?? null}
+                  addDisabledReason={controller.addToCartDisabledReason}
+                  onShowDisabledReason={controller.handleShowAlterationDisabledReason}
+                  showValidation={controller.alterationValidationVisible}
+                  missingGarment={controller.missingAlterationGarment}
+                  missingServices={controller.missingAlterationServices}
+                  missingAdjustments={controller.missingAlterationAdjustmentValues}
+                  onSelectGarment={(garment) => dispatch({ type: "selectAlterationGarment", garment })}
+                  onToggleModifier={(modifier) => dispatch({ type: "toggleAlterationModifier", modifier })}
+                  onSetModifierAdjustment={(modifierId, deltaInches) => dispatch({ type: "setAlterationModifierAdjustment", modifierId, deltaInches })}
+                  onToggleRush={() => dispatch({ type: "toggleAlterationRush" })}
+                  onAddItem={controller.handleAddOrSaveAlterationItem}
+                  onCancelEdit={controller.handleCancelAlterationEdit}
+                />
+              </div>
+            </Surface>
           ) : null}
 
           {order.activeWorkflow === "custom" ? (
-            <div className="space-y-3.5">
-              {controller.editingCustomItem ? (
-                <ItemEditBanner
-                  label={controller.editingCustomItem.selectedGarment ?? "Custom garment"}
-                  detail={[
-                    controller.editingCustomItem.wearerName ?? null,
-                    controller.editingCustomItem.linkedMeasurementLabel ?? null,
-                  ]
-                    .filter(Boolean)
-                    .join(" • ")}
-                />
-              ) : null}
-
-              <Surface tone="work" className="p-4">
-                <div className="space-y-6">
-                  <MeasurementsCard
-                    model={controller.measurementsCardModel}
-                    showValidation={controller.customValidationVisible}
-                    missingWearer={controller.missingCustomWearer}
-                    missingMeasurementSet={controller.missingCustomMeasurements}
-                    onChooseWearer={() => controller.setWearerModalOpen(true)}
-                    onChooseAnother={() => controller.setMeasurementPickerOpen(true)}
-                    onCreateNew={() => {
-                      if (controller.wearerCustomer) {
-                        dispatch({ type: "setCustomer", customerId: controller.wearerCustomer.id });
-                      }
-                      onScreenChange("measurements");
-                    }}
+            <Surface tone="work" className="app-order-builder-workspace">
+              <div className="app-order-builder-workspace__body">
+                {controller.editingCustomItem ? (
+                  <ItemEditBanner
+                    label={controller.editingCustomItem.selectedGarment ?? "Custom garment"}
+                    detail={[
+                      controller.editingCustomItem.wearerName ?? null,
+                      controller.editingCustomItem.linkedMeasurementLabel ?? null,
+                    ]
+                      .filter(Boolean)
+                      .join(" • ")}
                   />
-                  <div className="border-t border-[var(--app-border)]/70 pt-6">
-                    <CustomGarmentBuilder
+                ) : null}
+
+                <MeasurementsCard
+                  model={controller.measurementsCardModel}
+                  showValidation={controller.customValidationVisible}
+                  missingWearer={controller.missingCustomWearer}
+                  missingMeasurementSet={controller.missingCustomMeasurements}
+                  onChooseWearer={() => controller.setWearerModalOpen(true)}
+                  onChooseAnother={() => controller.setMeasurementPickerOpen(true)}
+                  onCreateNew={() => {
+                    if (controller.wearerCustomer) {
+                      dispatch({ type: "setCustomer", customerId: controller.wearerCustomer.id });
+                    }
+                    onScreenChange("measurements");
+                  }}
+                />
+                <div className="border-t border-[var(--app-border)]/70 pt-6">
+                  <CustomGarmentBuilder
                       garmentOptionsByGender={referenceData.customGarmentOptionsByGender}
                       customMaterialOptionsByKind={referenceData.customMaterialOptionsByKind}
                       jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
@@ -283,11 +284,10 @@ export function OrderScreen({
                       onAddToOrder={controller.handleAddOrSaveCustomItem}
                       onCancelEdit={controller.handleCancelCustomEdit}
                       onSetConfiguration={(patch) => dispatch({ type: "setCustomConfiguration", patch })}
-                    />
-                  </div>
+                  />
                 </div>
-              </Surface>
-            </div>
+              </div>
+            </Surface>
           ) : null}
         </div>
 
