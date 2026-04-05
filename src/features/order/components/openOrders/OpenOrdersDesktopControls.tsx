@@ -56,18 +56,16 @@ export function OpenOrdersDesktopControls({
               onClick={() => onViewChange(view.key)}
               size="sm"
               className={cx(
-                "min-h-9 justify-between whitespace-nowrap px-3",
-                activeView === view.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30",
+                "app-orders-view-chip min-h-9 justify-between whitespace-nowrap px-3",
+                activeView === view.key && "app-orders-view-chip--active",
               )}
               trailing={(
                 <CountPill
                   count={view.count}
                   icon={undefined}
                   className={cx(
-                    "px-2 py-0.5 text-[11px]",
-                    activeView === view.key
-                      ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                      : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
+                    "app-orders-view-chip__count px-2 py-0.5 text-[11px]",
+                    activeView === view.key && "app-orders-view-chip__count--active",
                   )}
                 />
               )}
@@ -133,18 +131,16 @@ export function OpenOrdersDesktopControls({
                   onClick={() => onQueueChange(queue.key)}
                   size="sm"
                   className={cx(
-                    "min-[1000px]:w-full min-[1000px]:justify-between",
-                    activeQueue === queue.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30",
+                    "app-orders-view-chip min-[1000px]:w-full min-[1000px]:justify-between",
+                    activeQueue === queue.key && "app-orders-view-chip--active",
                   )}
                   trailing={(
                     <CountPill
                       count={queueCounts[queue.key]}
                       icon={undefined}
                       className={cx(
-                        "px-2 py-0.5 text-[11px]",
-                        activeQueue === queue.key
-                          ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                          : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
+                        "app-orders-view-chip__count px-2 py-0.5 text-[11px]",
+                        activeQueue === queue.key && "app-orders-view-chip__count--active",
                       )}
                     />
                   )}
@@ -168,18 +164,16 @@ export function OpenOrdersDesktopControls({
                   onClick={() => onAllOrdersTabChange(tab.key)}
                   size="sm"
                   className={cx(
-                    "min-[1000px]:w-full min-[1000px]:justify-between",
-                    allOrdersTab === tab.key ? "shadow-[inset_0_0_0_1px_var(--app-accent)]" : "bg-[var(--app-surface-muted)]/30",
+                    "app-orders-view-chip min-[1000px]:w-full min-[1000px]:justify-between",
+                    allOrdersTab === tab.key && "app-orders-view-chip--active",
                   )}
                   trailing={(
                     <CountPill
                       count={tab.count}
                       icon={undefined}
                       className={cx(
-                        "px-2 py-0.5 text-[11px]",
-                        allOrdersTab === tab.key
-                          ? "border-[var(--app-border-strong)] bg-[var(--app-accent)] text-[var(--app-accent-contrast)]"
-                          : "border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/78 text-[var(--app-text-soft)]",
+                        "app-orders-view-chip__count px-2 py-0.5 text-[11px]",
+                        allOrdersTab === tab.key && "app-orders-view-chip__count--active",
                       )}
                     />
                   )}

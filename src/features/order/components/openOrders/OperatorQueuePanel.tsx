@@ -72,9 +72,10 @@ export function OperatorQueueSummary({
             type="button"
             onClick={() => handleStageJump(stage.key)}
             className={cx(
-              "flex min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center transition-[transform,box-shadow,filter] duration-150 hover:z-[1] hover:brightness-[0.99] focus-visible:z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-primary)]/35 active:translate-y-px sm:items-stretch sm:justify-between sm:gap-0 sm:px-4 sm:py-3 sm:text-left",
-              stage.key === "ready_to_start" && "bg-[rgba(223,230,244,0.98)]",
-              stage.key === "in_progress" && "bg-[rgba(231,239,231,0.94)]",
+              "app-orders-stage-tile flex min-w-0 flex-col items-center justify-center gap-1.5 px-2 py-2 text-center transition-[transform,box-shadow,filter] duration-150 hover:z-[1] hover:brightness-[0.99] focus-visible:z-[1] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--app-primary)]/35 active:translate-y-px sm:items-stretch sm:justify-between sm:gap-0 sm:px-4 sm:py-3 sm:text-left",
+              stage.key === "ready_to_start" && "app-orders-stage-tile--ready-to-start",
+              stage.key === "in_progress" && "app-orders-stage-tile--in-progress",
+              stage.key === "ready" && "app-orders-stage-tile--ready",
               index > 0 && "border-l border-white/40 sm:border-l sm:border-t-0",
             )}
             aria-label={`Jump to ${stage.title.toLowerCase()} section`}
@@ -89,13 +90,13 @@ export function OperatorQueueSummary({
                 </div>
               </div>
               <div className="hidden shrink-0 sm:flex sm:items-center sm:justify-end">
-                <div className="flex h-9 min-w-9 items-center justify-center rounded-full border border-black/5 bg-white/82 px-3 text-[1.35rem] font-semibold leading-none tracking-[-0.05em] text-[var(--app-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] [font-variant-numeric:tabular-nums]">
+                <div className="app-orders-stage-tile__count flex h-9 min-w-9 items-center justify-center rounded-full px-3 text-[1.35rem] font-semibold leading-none tracking-[-0.05em] [font-variant-numeric:tabular-nums]">
                   {stageCounts[stage.key]}
                 </div>
               </div>
             </div>
             <div className="flex justify-center sm:hidden">
-              <div className="flex h-5 min-w-5 items-center justify-center rounded-full border border-black/5 bg-white/78 px-1.5 text-[0.9rem] font-semibold leading-none tracking-[-0.04em] text-[var(--app-text)] shadow-[inset_0_1px_0_rgba(255,255,255,0.6)] [font-variant-numeric:tabular-nums] sm:h-auto sm:min-w-0 sm:px-3 sm:py-2 sm:text-[1.4rem]">
+              <div className="app-orders-stage-tile__count flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[0.9rem] font-semibold leading-none tracking-[-0.04em] [font-variant-numeric:tabular-nums] sm:h-auto sm:min-w-0 sm:px-3 sm:py-2 sm:text-[1.4rem]">
                 {stageCounts[stage.key]}
               </div>
             </div>
