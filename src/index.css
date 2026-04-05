@@ -616,6 +616,169 @@ textarea:focus-visible {
   text-align: left;
 }
 
+.app-order-details-overview {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.app-order-details-overview__customer,
+.app-order-details-overview__status {
+  border: 1px solid color-mix(in srgb, var(--app-border) 52%, transparent);
+  border-radius: var(--app-radius-md);
+  background: color-mix(in srgb, var(--app-surface-muted) 28%, transparent);
+  padding: 0.95rem 1rem;
+}
+
+.app-order-details-overview__status--flat {
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  padding: 0.15rem 0 0;
+}
+
+.app-order-details-overview__customer-name {
+  font-size: 1.02rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  color: var(--app-text);
+}
+
+.app-order-details-overview__customer-meta .app-text-caption,
+.app-order-details-overview__status-note {
+  line-height: 1.45;
+}
+
+.app-order-details-section-heading {
+  display: grid;
+  gap: 0.2rem;
+}
+
+.app-order-details-scope {
+  background: color-mix(in srgb, var(--app-surface-muted) 40%, var(--app-surface) 60%);
+}
+
+.app-order-details-scope__header {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.app-order-details-scope__title-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.55rem;
+}
+
+.app-order-details-scope__meta {
+  max-width: 58ch;
+}
+
+.app-order-details-scope__total {
+  min-width: 7rem;
+}
+
+.app-order-details-item-toggle {
+  padding-inline: 0.4rem;
+}
+
+.app-order-details-item-toggle .app-text-strong {
+  line-height: 1.2;
+}
+
+.app-checkout-rail__header {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-surface-muted) 34%, var(--app-surface) 66%) 0%,
+    color-mix(in srgb, var(--app-surface-muted) 16%, var(--app-surface) 84%) 100%
+  );
+}
+
+.app-checkout-rail__summary {
+  background: color-mix(in srgb, var(--app-surface-muted) 10%, transparent);
+}
+
+.app-checkout-rail__summary-row {
+  min-height: 1.35rem;
+}
+
+.app-checkout-rail__summary-section {
+  margin-top: 0.35rem;
+  padding-top: 0.75rem;
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 36%, transparent);
+}
+
+.app-checkout-rail__summary-section-label {
+  margin-bottom: 0.55rem;
+  color: var(--app-text-soft);
+}
+
+.app-checkout-rail__total-row {
+  margin-top: 0.15rem;
+}
+
+.app-checkout-rail__actions-shell {
+  display: grid;
+  gap: 0.7rem;
+}
+
+.app-checkout-rail__actions-label {
+  color: var(--app-text-soft);
+}
+
+.app-checkout-rail__actions {
+  gap: 0.55rem;
+}
+
+.app-checkout-rail__actions > :first-child {
+  min-height: 2.75rem;
+}
+
+.app-checkout-rail__actions > :not(:first-child) {
+  min-height: 2.45rem;
+}
+
+.app-checkout-choice-list > * + * {
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 54%, transparent);
+}
+
+.app-checkout-choice {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 1rem;
+  width: 100%;
+  background: var(--app-surface);
+  padding: 0.95rem 1rem;
+  text-align: left;
+  transition: background-color 160ms ease, border-color 160ms ease;
+}
+
+.app-checkout-choice:hover {
+  background: color-mix(in srgb, var(--app-surface-muted) 42%, var(--app-surface) 58%);
+}
+
+.app-checkout-choice--active {
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-surface) 90%);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--app-accent) 44%, transparent);
+}
+
+.app-checkout-choice__topline {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.65rem 1rem;
+}
+
+.app-checkout-choice__meta {
+  min-width: 6.5rem;
+  text-align: right;
+}
+
+.app-checkout-choice-panel {
+  padding: 0.95rem 1rem 1rem;
+}
+
+
 .app-measurements-workspace {
   display: block;
   min-width: 0;
@@ -1264,6 +1427,16 @@ textarea:focus-visible {
     text-align: right;
   }
 
+  .app-order-details-overview {
+    grid-template-columns: minmax(0, 1.2fr) minmax(15rem, 0.8fr);
+    align-items: start;
+  }
+
+  .app-order-details-scope__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+  }
+
   .app-measurements-layout {
     grid-template-columns: minmax(0, 1fr);
   }
@@ -1499,6 +1672,17 @@ textarea:focus-visible {
 
   .app-detail-hero__meta {
     text-align: right;
+  }
+
+  .app-order-details-overview {
+    grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.75fr);
+    gap: 1rem;
+  }
+
+  .app-order-details-scope__header {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 1rem;
   }
 
   .app-measurements-workspace__editor {
