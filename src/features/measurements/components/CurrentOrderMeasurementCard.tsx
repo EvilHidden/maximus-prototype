@@ -59,32 +59,11 @@ export function CurrentOrderMeasurementCard({
 
   return (
     <div>
-      <div className="mb-4">
-        <div className="app-text-overline">{orderContext ? "Current item" : "Current set"}</div>
-        <div className="app-text-value mt-1">{orderContext ? orderContext.title : currentSetTitle}</div>
-        <div className="app-text-caption mt-1">{orderContext ? orderContext.detail : currentSetDetail}</div>
-      </div>
-
-      <div className="mb-5 border-t border-b border-[var(--app-border)]/32 py-3">
-        {orderContext ? (
-          <>
-            <div className="app-text-overline">{orderContext.eyebrow}</div>
-            <div className="app-text-caption mt-1">{orderContext.note}</div>
-          </>
-        ) : (
-          <>
-            <div className="app-text-overline">Save status</div>
-            <div className="app-text-caption mt-1">{currentSetDetail}</div>
-          </>
-        )}
-
-        {orderContext ? (
-          <div className="mt-3 border-t border-[var(--app-border)]/38 pt-3">
-            <div className="app-text-overline">Current set</div>
-            <div className="app-text-strong mt-1">{currentSetTitle}</div>
-            <div className="app-text-caption mt-1">{currentSetDetail}</div>
-          </div>
-        ) : null}
+      <div className="mb-4 space-y-1.5">
+        <div className="app-text-overline">{orderContext ? orderContext.eyebrow : "Save status"}</div>
+        <div className="app-text-strong">{orderContext ? orderContext.title : currentSetTitle}</div>
+        <div className="app-text-caption">{orderContext ? orderContext.detail : currentSetDetail}</div>
+        {orderContext?.note ? <div className="app-text-caption">{orderContext.note}</div> : null}
       </div>
 
       <div className="mb-2 app-text-overline">Save current measurements</div>

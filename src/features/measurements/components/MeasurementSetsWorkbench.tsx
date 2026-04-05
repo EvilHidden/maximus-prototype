@@ -8,6 +8,9 @@ type MeasurementSetsWorkbenchProps = {
   linkedMeasurementSetId: string | null;
   measurementFields: string[];
   draftMeasurements: Record<string, string>;
+  comparisonValues: Record<string, string> | null;
+  enteredCount: number;
+  totalFields: number;
   activeField: string;
   onSelectField: (field: string) => void;
 };
@@ -18,6 +21,9 @@ export function MeasurementSetsWorkbench({
   linkedMeasurementSetId,
   measurementFields,
   draftMeasurements,
+  comparisonValues,
+  enteredCount,
+  totalFields,
   activeField,
   onSelectField,
 }: MeasurementSetsWorkbenchProps) {
@@ -33,7 +39,14 @@ export function MeasurementSetsWorkbench({
           <article key={selectedSet?.id ?? "draft"} className="app-measurements-set-panel">
             <div className="app-measurements-set-panel__head">
               <div className="min-w-0">
-                <div className="app-text-strong">{display?.title ?? "New set"}</div>
+                <div className="flex items-baseline justify-between gap-3">
+                  <div className="app-text-strong">{display?.title ?? "New set"}</div>
+                  <div className="app-measurements-set-sheet__row-value">
+                    <div className="app-text-caption text-right">
+                      {enteredCount}/{totalFields}
+                    </div>
+                  </div>
+                </div>
                 <div className="app-text-caption mt-1">
                   {display?.subline ?? "Tap a measurement to enter values for this new set."}
                 </div>
@@ -44,6 +57,8 @@ export function MeasurementSetsWorkbench({
               {measurementFields.map((field) => {
                 const rawValue = sourceValues[field]?.trim();
                 const displayValue = rawValue ? `${formatMeasurementDisplayValue(rawValue)} in` : "—";
+                const comparisonRawValue = comparisonValues?.[field]?.trim() ?? "";
+                const comparisonDisplayValue = comparisonRawValue ? `${formatMeasurementDisplayValue(comparisonRawValue)} in` : null;
                 const isActive = activeField === field;
 
                 return (
@@ -55,8 +70,15 @@ export function MeasurementSetsWorkbench({
                     aria-pressed={isActive}
                     aria-label={`${field} ${isDraftMode ? "for new set" : "from selected set"}`}
                   >
-                    <div className="app-text-caption">{field}</div>
-                    <div className="app-text-body text-right tabular-nums">{displayValue}</div>
+                    <div className="min-w-0">
+                      <div className="app-text-caption">{field}</div>
+                      {comparisonDisplayValue ? (
+                        <div className="app-text-caption mt-1">Last saved {comparisonDisplayValue}</div>
+                      ) : null}
+                    </div>
+                    <div className="app-measurements-set-sheet__row-value">
+                      <div className="app-text-body text-right tabular-nums">{displayValue}</div>
+                    </div>
                   </button>
                 );
               })}

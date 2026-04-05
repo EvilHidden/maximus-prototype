@@ -1,7 +1,6 @@
 import { Plus, Trash2 } from "lucide-react";
 import type { Customer, MeasurementSet } from "../../../types";
 import { ActionButton, EmptyState } from "../../../components/ui/primitives";
-import { MeasurementVersionPill } from "../../../components/ui/pills";
 import { getMeasurementSetDisplay } from "../selectors";
 
 type SavedMeasurementsRailProps = {
@@ -49,7 +48,7 @@ export function SavedMeasurementsRail({
       </div>
 
       {customerHistory.length > 0 ? (
-        <div className="space-y-1.5 text-sm">
+        <div className="app-measurements-rail__sets text-sm">
           {customerHistory.map((set) => {
             const display = getMeasurementSetDisplay(set);
             const isCurrent = linkedMeasurementSetId === set.id;
@@ -57,22 +56,18 @@ export function SavedMeasurementsRail({
             return (
               <div
                 key={set.id}
-                className={`rounded-[var(--app-radius-sm)] border border-[color:color-mix(in_srgb,var(--app-border)_60%,transparent)] px-3 py-2 transition ${
-                  isCurrent ? "bg-[color:color-mix(in_srgb,var(--app-surface-muted)_34%,transparent)]" : "bg-[var(--app-surface)]"
-                }`}
+                className={`app-measurements-rail__set ${isCurrent ? "app-measurements-rail__set--active" : ""}`}
               >
                 <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
                   <button onClick={() => onApplySet(set)} className="block w-full min-w-0 text-left">
-                    <div className="flex items-center justify-between gap-3">
-                      <div className="min-w-0 flex-1">
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center justify-between gap-3">
                         <div className="truncate app-text-strong">{display.title}</div>
-                        <div className="mt-1 space-y-0.5">
-                          {display.status ? <div className="app-text-caption">{display.status}</div> : null}
-                          {display.subline ? <div className="app-text-caption">{display.subline}</div> : null}
-                        </div>
+                        <div className="shrink-0 app-text-caption">{display.version}</div>
                       </div>
-                      <div className="shrink-0">
-                        <MeasurementVersionPill version={display.version} isCurrent={isCurrent} />
+                      <div className="mt-1 space-y-0.5">
+                        {display.subline ? <div className="app-text-caption">{display.subline}</div> : null}
+                        {display.status ? <div className="app-text-caption">{display.status}</div> : null}
                       </div>
                     </div>
                   </button>
@@ -81,7 +76,7 @@ export function SavedMeasurementsRail({
                       event.stopPropagation();
                       onDeleteSet(set.id);
                     }}
-                    className="mt-0.5 text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
+                    className="mt-0.5 text-[var(--app-text-soft)] transition hover:text-[var(--app-text)] focus-visible:outline-none focus-visible:text-[var(--app-text)]"
                     aria-label={`Delete ${display.version}`}
                   >
                     <Trash2 className="h-4 w-4" aria-hidden="true" />
