@@ -200,7 +200,7 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
           </div>
         </aside>
 
-        <main className="app-main h-full overflow-x-hidden overflow-y-auto">
+        <main className="app-main h-full overflow-x-hidden">
           {children}
         </main>
       </div>
