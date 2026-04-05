@@ -14,6 +14,7 @@ import { formatPickupSchedule, getCustomFulfillmentSummary } from "../selectors"
 import { PricingSummary as PricingSummaryPanel } from "./PricingSummary";
 
 type OrderBagProps = {
+  className?: string;
   customer: Customer | null;
   lineItems: OrderBagLineItem[];
   pricing: PricingSummary;
@@ -35,6 +36,7 @@ type OrderBagProps = {
 };
 
 export function OrderBag({
+  className,
   customer,
   lineItems,
   pricing,
@@ -67,7 +69,7 @@ export function OrderBag({
   };
 
   return (
-    <Surface tone="support" className="app-support-rail-fixed w-full p-3.5 app-order-bag">
+    <Surface tone="support" className={cx("app-support-rail-fixed w-full p-3.5 app-order-bag", className)}>
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <ShoppingBag aria-hidden="true" className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
@@ -112,96 +114,98 @@ export function OrderBag({
 
         <PanelSection title="Items" className="border-0 bg-transparent p-0">
           {lineItems.length > 0 ? (
-            <div className="app-order-bag__items">
-              {lineItems.map((item, index) => (
-                <div
-                  key={item.id}
-                  onClick={
-                    item.itemId
-                      ? () => {
-                          if (item.kind === "alteration" && item.editable) {
-                            onEditAlterationItem(item.itemId);
-                          }
+            <div className="app-order-bag__items-scroll">
+              <div className="app-order-bag__items">
+                {lineItems.map((item, index) => (
+                  <div
+                    key={item.id}
+                    onClick={
+                      item.itemId
+                        ? () => {
+                            if (item.kind === "alteration" && item.editable) {
+                              onEditAlterationItem(item.itemId);
+                            }
 
-                          if (item.kind === "custom") {
-                            onEditCustomItem(item.itemId);
+                            if (item.kind === "custom") {
+                              onEditCustomItem(item.itemId);
+                            }
                           }
-                        }
-                      : undefined
-                  }
-                  className={cx(
-                    "group rounded-[var(--app-radius-sm)] px-1 py-2.5",
-                    index > 0 && "border-t border-[var(--app-border-strong)]/42",
-                    item.itemId && "cursor-pointer transition-colors hover:bg-[var(--app-surface-muted)]/28",
-                  )}
-                >
-                  <div className="space-y-2 px-3">
-                    <div className="flex items-start justify-between gap-3">
-                      <div className="min-w-0 flex-1">
-                        <div className="flex flex-wrap items-center gap-2">
-                          <div className="app-text-overline inline-flex items-center whitespace-nowrap text-[var(--app-text-soft)]">
-                            {index + 1}. {item.kind === "custom" ? "Custom garment" : "Alteration"}
+                        : undefined
+                    }
+                    className={cx(
+                      "group rounded-[var(--app-radius-sm)] px-1 py-2.5",
+                      index > 0 && "border-t border-[var(--app-border-strong)]/42",
+                      item.itemId && "cursor-pointer transition-colors hover:bg-[var(--app-surface-muted)]/28",
+                    )}
+                  >
+                    <div className="space-y-2 px-3">
+                      <div className="flex items-start justify-between gap-3">
+                        <div className="min-w-0 flex-1">
+                          <div className="flex flex-wrap items-center gap-2">
+                            <div className="app-text-overline inline-flex items-center whitespace-nowrap text-[var(--app-text-soft)]">
+                              {index + 1}. {item.kind === "custom" ? "Custom garment" : "Alteration"}
+                            </div>
+                            {item.isRush ? (
+                              <StatusPill tone="danger" className="shrink-0 align-middle">
+                                Rush
+                              </StatusPill>
+                            ) : null}
                           </div>
-                          {item.isRush ? (
-                            <StatusPill tone="danger" className="shrink-0 align-middle">
-                              Rush
-                            </StatusPill>
+                          <div className="mt-0.75 app-text-strong leading-tight">{item.garmentLabel}</div>
+                        </div>
+                        <div className="flex min-w-[96px] shrink-0 flex-col items-end gap-1.5 text-right">
+                          <div className="app-text-strong">${item.amount.toFixed(2)}</div>
+                          {item.removable && item.itemId ? (
+                            <button
+                              type="button"
+                              onClick={(event) => {
+                                event.stopPropagation();
+                                onRequestRemoveItem(item.kind, item.itemId!);
+                              }}
+                              className="inline-flex min-h-7 items-center gap-1 rounded-[var(--app-radius-sm)] border border-transparent px-1.5 text-[11px] font-medium text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-danger-text)] focus-visible:bg-[var(--app-surface-muted)] focus-visible:text-[var(--app-danger-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus)]"
+                            >
+                              <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
+                              Remove
+                            </button>
                           ) : null}
                         </div>
-                        <div className="mt-0.75 app-text-strong leading-tight">{item.garmentLabel}</div>
                       </div>
-                      <div className="flex min-w-[96px] shrink-0 flex-col items-end gap-1.5 text-right">
-                        <div className="app-text-strong">${item.amount.toFixed(2)}</div>
-                        {item.removable && item.itemId ? (
-                          <button
-                          type="button"
-                          onClick={(event) => {
-                            event.stopPropagation();
-                            onRequestRemoveItem(item.kind, item.itemId!);
-                          }}
-                          className="inline-flex min-h-7 items-center gap-1 rounded-[var(--app-radius-sm)] border border-transparent px-1.5 text-[11px] font-medium text-[var(--app-text-muted)] transition hover:bg-[var(--app-surface-muted)] hover:text-[var(--app-danger-text)] focus-visible:bg-[var(--app-surface-muted)] focus-visible:text-[var(--app-danger-text)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus)]"
-                        >
-                          <Trash2 aria-hidden="true" className="h-3.5 w-3.5" />
-                          Remove
-                          </button>
-                        ) : null}
-                      </div>
-                    </div>
-                    {item.subtitle ? (
-                      item.kind === "custom" ? (
-                        <div className="space-y-1.25">
-                          {item.subtitle.split("\n").map((line, lineIndex) => {
-                            if (lineIndex === 0) {
+                      {item.subtitle ? (
+                        item.kind === "custom" ? (
+                          <div className="space-y-1.25">
+                            {item.subtitle.split("\n").map((line, lineIndex) => {
+                              if (lineIndex === 0) {
+                                return (
+                                  <div
+                                    key={`${item.id}-detail-${lineIndex}`}
+                                    className="app-text-body-muted leading-[1.5]"
+                                  >
+                                    {line}
+                                  </div>
+                                );
+                              }
+
+                              const detailLabel = lineIndex === 1 ? "Style" : lineIndex === 2 ? "Build" : "Mono";
+
                               return (
                                 <div
                                   key={`${item.id}-detail-${lineIndex}`}
-                                  className="app-text-body-muted leading-[1.5]"
+                                  className="grid grid-cols-[2.6rem_minmax(0,1fr)] items-start gap-2"
                                 >
-                                  {line}
+                                  <div className="app-text-overline pt-[0.08rem] text-[var(--app-text-soft)]">{detailLabel}</div>
+                                  <div className="app-text-caption leading-[1.55]">{line}</div>
                                 </div>
                               );
-                            }
-
-                            const detailLabel = lineIndex === 1 ? "Style" : lineIndex === 2 ? "Build" : "Mono";
-
-                            return (
-                              <div
-                                key={`${item.id}-detail-${lineIndex}`}
-                                className="grid grid-cols-[2.6rem_minmax(0,1fr)] items-start gap-2"
-                              >
-                                <div className="app-text-overline pt-[0.08rem] text-[var(--app-text-soft)]">{detailLabel}</div>
-                                <div className="app-text-caption leading-[1.55]">{line}</div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ) : (
-                        <div className="app-text-caption whitespace-pre-line leading-[1.55]">{item.subtitle}</div>
-                      )
-                    ) : null}
+                            })}
+                          </div>
+                        ) : (
+                          <div className="app-text-caption whitespace-pre-line leading-[1.55]">{item.subtitle}</div>
+                        )
+                      ) : null}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
           ) : (
             <EmptyState>No items added yet.</EmptyState>
