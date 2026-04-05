@@ -107,6 +107,59 @@ Do not invent local text stacks unless there is a strong reason.
 - Avoid “card for every thing.” If something is just metadata, present it as metadata.
 - Do not stack lifted cards inside other lifted cards when a bordered section on the page plane will do the job.
 
+## Responsive system
+
+The front-end now uses one explicit three-band viewport model:
+
+- mobile
+  - `0-767px`
+- landscape tablet
+  - `768-999px`
+- desktop
+  - `1000px+`
+
+The desktop band intentionally includes:
+
+- landscape iPad Air
+- landscape iPad Pro
+- full desktop widths
+
+Rule:
+
+- do not add a fourth product breakpoint casually
+- if a layout feels rough at `1000-1366px`, treat that as a narrow-desktop tuning problem inside the desktop band
+- use desktop sub-ranges only to rebalance:
+  - rail width
+  - internal grid ratios
+  - control density
+  - calendar/list density
+- do not use those sub-ranges to redefine navigation or invent a new shell
+
+Desktop-first behavior:
+
+- make the desktop shell correct first
+- then tune the same shell for narrow desktop
+- then simplify for landscape tablet and mobile
+
+Shell rules:
+
+- `app-page-with-support-rail` is the standard page frame when a screen has one main work surface plus one side context surface
+- screen-specific layout classes such as `app-measurements-layout` or `app-appointments-calendar-layout` should tune proportions, not reinvent the page grammar
+- `app-support-rail-fixed` should stay the standard attached support-pane behavior
+- mobile and tablet variants should simplify the shell, not create a second visual language
+
+Implementation bias:
+
+- prefer central CSS rules in `src/index.css` for shared breakpoint behavior
+- use inline breakpoint utilities in components only when the behavior is truly local and unlikely to repeat
+- when the same breakpoint pattern appears twice, centralize it
+
+WeWeb portability bias:
+
+- keep breakpoint intent semantic and predictable
+- avoid screen-only hacks that would be hard to reconstruct later in WeWeb
+- treat typography, spacing, surface roles, and shell behavior as portable system assets
+
 ## Calendar / table / list behavior
 
 - Do not let dense content destroy the shape of the layout.

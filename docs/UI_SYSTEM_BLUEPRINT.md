@@ -229,6 +229,60 @@ The app already has a good operational page grammar. Keep using it.
 - `app-support-rail`
   - saved context, summary, side actions, order bag
 
+### Viewport contract
+
+For portability, the app should behave as if it has three real viewport breakpoints:
+
+1. mobile
+   - `0-767px`
+2. landscape tablet
+   - `768-999px`
+3. desktop
+   - `1000px+`
+
+Important nuance:
+
+- the desktop breakpoint includes small landscape tablets, iPad Pro landscape, and full desktop widths
+- `1000-1366px` and `1367px+` are allowed as desktop tuning ranges
+- those ranges are not separate product breakpoints
+- they should only tune density and proportions inside the desktop shell
+
+That is the right portability shape for a later WeWeb rebuild:
+
+- one mobile layout family
+- one tablet shell family
+- one desktop shell family
+- optional desktop density variants, not extra navigation models
+
+### Responsive shell behavior
+
+The current shell contract should remain stable:
+
+- mobile
+  - mobile drawer/tabbar pattern
+  - stacked surfaces
+- landscape tablet
+  - tablet topbar
+  - reduced shell chrome
+  - simpler single-flow pages
+- desktop
+  - persistent sidebar
+  - `app-page-with-support-rail` or equivalent desktop work surface
+  - attached support rails instead of disconnected floating cards
+
+When a screen needs responsive tuning, prefer:
+
+- rail-width changes
+- internal grid ratio changes
+- tighter control spacing
+- denser but still readable table/calendar cells
+
+Avoid:
+
+- adding one-off breakpoints for a single screen
+- changing navigation structure inside a desktop tuning range
+- rebuilding a screen with a different visual language instead of tuning the existing shell
+
 ### Table structure
 
 - `app-table-shell`
@@ -279,11 +333,11 @@ The repo is already in a better state than a typical prototype:
 
 These are the main gaps this blueprint is meant to close:
 
-- repeated search and filter markup was still being rebuilt screen by screen
-- surface class names existed, but not as a documented reusable primitive layer
-- spacing was mostly implied by utilities instead of named token intent
-- the repo had a style guide, but not a portability-oriented system map
-- some semantic color usage had drifted into incorrect token references
+- some responsive shell decisions had become real patterns in code before they were written down clearly
+- desktop-band tuning rules were emerging screen by screen instead of being treated as one shared contract
+- repeated search and filter markup still appears in a few places as screen-local layout instead of fully standardized field/composition patterns
+- spacing and responsive density still mix system rules with one-off utilities in a few high-traffic screens
+- the repo had a portability-oriented system map, but not an explicit viewport contract for the future WeWeb rebuild
 
 ## Standardization rules
 
@@ -311,9 +365,10 @@ If none of those are true, keep it local.
 The next standardization steps should stay incremental:
 
 1. Keep moving repeated filter/search blocks onto shared field primitives.
-2. Standardize recurrent alert/callout boxes the same way we standardized pills.
-3. Continue replacing raw surface class strings with named `Surface` usage where it improves clarity.
-4. Keep selectors as the contract between raw data and rendered UI.
-5. When `WeWeb` work begins, port tokens, text roles, surfaces, pills, and field shells first.
+2. Keep documenting and centralizing shared responsive shell behavior in `src/index.css` instead of solving recurring layout problems screen by screen.
+3. Standardize recurrent alert/callout boxes the same way we standardized pills.
+4. Continue replacing raw surface class strings with named `Surface` usage where it improves clarity.
+5. Keep selectors as the contract between raw data and rendered UI.
+6. When `WeWeb` work begins, port tokens, text roles, surfaces, pills, field shells, and the three-band viewport contract first.
 
 That sequence gives us the highest leverage without pretending this prototype needs a full enterprise system today.
