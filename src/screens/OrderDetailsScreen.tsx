@@ -41,7 +41,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Needs review",
       tone: "warn" as const,
-      detail: "Pickup timing needs attention.",
+      detail: "Set pickup timing.",
     };
   }
 
@@ -49,7 +49,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Picked up",
       tone: "success" as const,
-      detail: "This handoff is already complete.",
+      detail: "Pickup completed.",
     };
   }
 
@@ -57,7 +57,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Ready",
       tone: "success" as const,
-      detail: "These pieces can be handed off now.",
+      detail: "Ready for pickup.",
     };
   }
 
@@ -65,7 +65,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Overdue",
       tone: "danger" as const,
-      detail: "This is past its ready time.",
+      detail: "Past ready time.",
     };
   }
 
@@ -73,7 +73,7 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
     return {
       label: "Due soon",
       tone: "warn" as const,
-      detail: "This is due within the next hour.",
+      detail: "Ready within 1 hour.",
     };
   }
 
@@ -86,22 +86,22 @@ function getGroupStatusDisplay(group: ReturnType<typeof getOpenOrderPickupGroups
 
 function getDetailsSubtitle(openOrder: OpenOrder, dueNow: number, remainingLater: number, hasReadyScopesToPickup: boolean) {
   if (hasReadyScopesToPickup && dueNow > 0 && remainingLater > 0) {
-    return "Review the order first. Only the ready pieces are due today, and the unfinished work keeps its balance on the order.";
+    return "Take payment for the ready pieces. The rest stays open.";
   }
 
   if (hasReadyScopesToPickup && dueNow > 0) {
-    return "Review the order first, then take payment for the pieces being collected today.";
+    return "Take payment for the ready pieces.";
   }
 
   if (hasReadyScopesToPickup) {
-    return "Everything being collected today is already paid. Review the handoff before you finish the pickup.";
+    return "Ready pieces are already paid.";
   }
 
   if (openOrder.balanceDue > 0) {
-    return "Review the order first, then decide whether payment happens now or later.";
+    return "Review the order and decide whether to take payment now.";
   }
 
-  return "Review the order details before you edit it or move it forward.";
+  return "Review the order before making changes.";
 }
 
 function getScopeLineItems(openOrder: OpenOrder, scope: OpenOrder["pickupSchedules"][number]["scope"]) {
@@ -145,17 +145,56 @@ function getCustomItemRows(item: OpenOrder["lineItems"][number]) {
 
 function getCollapsedItemSummary(item: OpenOrder["lineItems"][number]) {
   if (item.kind === "alteration") {
-    const services = item.components
-      .filter((component) => component.kind === "alteration_service")
-      .map((component) => component.value);
-
-    return services.join(" • ");
+    return "";
   }
 
   const wearer = item.components.find((component) => component.kind === "wearer")?.value;
   const measurements = item.components.find((component) => component.kind === "measurement_set")?.value;
 
   return [wearer, measurements].filter(Boolean).join(" • ");
+}
+
+function getOrderReceiptItems({
+  openOrder,
+}: {
+  openOrder: OpenOrder;
+}) {
+  const alterationSubtotal = openOrder.lineItems
+    .filter((item) => item.kind === "alteration")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const customSubtotal = openOrder.lineItems
+    .filter((item) => item.kind === "custom")
+    .reduce((sum, item) => sum + item.amount, 0);
+  const taxAmount = Math.max(openOrder.total - alterationSubtotal - customSubtotal, 0);
+  const isFullyPaid = openOrder.balanceDue <= 0;
+  const mixedAllocation = openOrder.orderType === "mixed" ? getMixedPaymentAllocation(openOrder) : null;
+  const customDepositDue = openOrder.orderType === "custom" ? customSubtotal * 0.5 : 0;
+  const depositPaid = openOrder.orderType === "mixed"
+    ? mixedAllocation?.depositPaid ?? 0
+    : openOrder.orderType === "custom"
+      ? Math.min(openOrder.totalCollected, customDepositDue)
+      : 0;
+  const depositDueRemaining = openOrder.orderType === "mixed"
+    ? Math.max((mixedAllocation?.depositDue ?? 0) - depositPaid, 0)
+    : openOrder.orderType === "custom"
+      ? Math.max(customDepositDue - depositPaid, 0)
+      : 0;
+  const showsDepositRow = true;
+
+  return [
+    ...(alterationSubtotal > 0 ? [{ label: "Alterations", value: formatCheckoutCurrency(alterationSubtotal) }] : []),
+    ...(customSubtotal > 0 ? [{ label: "Custom garments", value: formatCheckoutCurrency(customSubtotal) }] : []),
+    ...(taxAmount > 0 ? [{ label: "Tax", value: formatCheckoutCurrency(taxAmount) }] : []),
+    ...(showsDepositRow ? [{ label: "Deposit due", value: formatCheckoutCurrency(depositDueRemaining) }] : []),
+    ...(!isFullyPaid
+      ? [{
+          label: "Balance due",
+          value: formatCheckoutCurrency(openOrder.balanceDue),
+        }]
+      : []),
+    ...(isFullyPaid ? [{ label: "Balance due", value: formatCheckoutCurrency(0) }] : []),
+    { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
+  ];
 }
 
 export function OrderDetailsScreen({
@@ -232,19 +271,13 @@ export function OrderDetailsScreen({
   const pickupGroups = getOpenOrderPickupGroups(openOrder, {
     includePickedUp: openOrder.orderType === "mixed",
   });
-  const totalsItems = [
-    { label: "Collected", value: formatCheckoutCurrency(openOrder.totalCollected) },
-    {
-      label: hasReadyScopesToPickup && dueNow > 0
-        ? "Due today"
-        : dueNow <= 0 && openOrder.balanceDue > 0
-          ? "Open balance"
-          : "Balance due",
-      value: formatCheckoutCurrency(displayAmountNow),
-    },
-    ...(remainingLater > 0 ? [{ label: "Later after today", value: formatCheckoutCurrency(remainingLater) }] : []),
-    { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
-  ];
+  const totalsItems = getOrderReceiptItems({
+    openOrder,
+  });
+  const receiptChargeRowCount = [
+    openOrder.lineItems.some((item) => item.kind === "alteration"),
+    openOrder.lineItems.some((item) => item.kind === "custom"),
+  ].filter(Boolean).length;
 
   return (
     <div className="space-y-4">
@@ -275,7 +308,9 @@ export function OrderDetailsScreen({
                   <div className="app-text-overline">
                     {hasReadyScopesToPickup && dueNow > 0
                       ? "Due today"
-                      : dueNow <= 0 && openOrder.balanceDue > 0
+                      : openOrder.balanceDue <= 0
+                        ? "No balance due"
+                        : dueNow <= 0 && openOrder.balanceDue > 0
                         ? "Open balance"
                         : "Balance due"}
                   </div>
@@ -296,51 +331,36 @@ export function OrderDetailsScreen({
             />
           ) : null}
 
-          {showCheckoutCompletion ? (
-            <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-              <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/55 bg-[var(--app-surface-muted)]/22 px-4 py-3">
-                <div className="app-text-overline">Payment recorded</div>
-                <div className="app-text-body-muted mt-1">
-                  {hasReadyScopesToPickup
-                    ? remainingLater > 0
-                      ? `${formatCheckoutCurrency(dueNow)} is recorded for today's pickup. ${formatCheckoutCurrency(remainingLater)} stays on the unfinished part of the order.`
-                      : "Today's pickup balance is recorded. You can complete the handoff when the customer has everything."
-                    : "This payment is recorded on the order."}
-                </div>
-              </div>
-            </div>
-          ) : null}
-
           {hasReadyScopesToPickup && dueNow > 0 && remainingLater > 0 ? (
             <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
               <Callout
                 tone="warn"
-                title="Today’s payment is only for the ready pieces"
+                title="Only the ready pieces are due today"
               >
-                {formatCheckoutCurrency(dueNow)} is due now. The remaining {formatCheckoutCurrency(remainingLater)} stays with the part of the order still in progress.
+                Charge {formatCheckoutCurrency(dueNow)} today. The remaining {formatCheckoutCurrency(remainingLater)} stays with the work still in progress.
               </Callout>
             </div>
           ) : null}
 
           <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-            <div className="grid gap-4 min-[1000px]:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)]">
-              <div className="min-w-0">
+            <div className="app-order-details-overview">
+              <div className="min-w-0 app-order-details-overview__customer">
                 <div className="app-text-overline">Customer</div>
-                <div className="mt-2 app-text-strong">{openOrder.payerName}</div>
-                <div className="mt-2 space-y-1.5">
+                <div className="mt-2 app-order-details-overview__customer-name">{openOrder.payerName}</div>
+                <div className="mt-2 space-y-1.5 app-order-details-overview__customer-meta">
                   {checkoutCustomer?.phone ? <div className="app-text-caption">{checkoutCustomer.phone}</div> : null}
                   {checkoutCustomer?.email ? <div className="app-text-caption">{checkoutCustomer.email}</div> : null}
                   {checkoutCustomer?.address ? <div className="app-text-caption whitespace-pre-line">{checkoutCustomer.address}</div> : null}
                   {openOrder.payerCustomerId === null ? <div className="app-text-caption">Walk-in customer</div> : null}
                 </div>
               </div>
-              <div className="min-w-0">
+              <div className="min-w-0 app-order-details-overview__status app-order-details-overview__status--flat">
                 <div className="app-text-overline">Order status</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
                   {openOrder.balanceDue > 0 ? (
                     <StatusPill tone="warn">Balance due</StatusPill>
                   ) : (
-                    <div className="app-text-body font-medium text-[var(--app-text)]">Paid</div>
+                    <StatusPill tone="success">Paid</StatusPill>
                   )}
                 </div>
               </div>
@@ -348,7 +368,9 @@ export function OrderDetailsScreen({
           </div>
 
           <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
-            <div className="app-text-overline">Order items</div>
+            <div className="app-order-details-section-heading">
+              <div className="app-text-overline">Order items</div>
+            </div>
             <div className="mt-3 space-y-2.5">
               {pickupGroups.map((group, index) => {
                 const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
@@ -364,15 +386,17 @@ export function OrderDetailsScreen({
                   <div
                     key={group.key}
                     className={cx(
-                      "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-4 py-3",
+                      "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-4 py-3 app-order-details-scope",
                       index > 0 && "mt-3",
                     )}
                   >
-                    <div className="flex flex-wrap items-start justify-between gap-4">
+                    <div className="app-order-details-scope__header">
                       <div className="min-w-0 flex-1">
-                        <div className="app-text-strong">{getScopeLabel(group.scope)}</div>
-                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.82rem] text-[var(--app-text-soft)]">
+                        <div className="app-order-details-scope__title-row">
+                          <div className="app-text-strong">{getScopeLabel(group.scope)}</div>
                           <StatusPill tone={statusDisplay.tone}>{statusDisplay.label}</StatusPill>
+                        </div>
+                        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-2 text-[0.82rem] text-[var(--app-text-soft)] app-order-details-scope__meta">
                           <div className="inline-flex items-center gap-1.5">
                             <CalendarClock className="h-3.5 w-3.5" />
                             <span>{readyByDisplay}</span>
@@ -388,17 +412,17 @@ export function OrderDetailsScreen({
                           </div>
                         </div>
                       </div>
-                      <div className="text-left md:text-right">
-                        <div className="app-text-overline">Scope total</div>
+                      <div className="text-left md:text-right app-order-details-scope__total">
+                        <div className="app-text-overline">Subtotal</div>
                         <div className="mt-1 app-text-body font-semibold [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
                           {formatCheckoutCurrency(scopeAmount)}
                         </div>
                       </div>
                     </div>
 
-                    <div className="mt-4 border-t border-[var(--app-border)]/35 pt-3">
+                    <div className="mt-4 border-t border-[var(--app-border)]/35 pt-3 app-order-details-scope__items">
                       {scopeLineItems.length > 0 ? (
-                        <div className="divide-y divide-[var(--app-border)]/25">
+                        <div className="divide-y divide-[var(--app-border)]/25 app-order-details-scope__item-list">
                           {scopeLineItems.map((item) => {
                             const serviceRows = item.components.filter((component) => component.kind === "alteration_service");
                             const customRows = getCustomItemRows(item);
@@ -412,7 +436,7 @@ export function OrderDetailsScreen({
                                   type="button"
                                   onClick={() => toggleItemExpanded(item.id)}
                                   className={cx(
-                                    "flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface)]/65",
+                                    "flex w-full items-start justify-between gap-4 rounded-[var(--app-radius-sm)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface)]/65 app-order-details-item-toggle",
                                     isExpanded && "bg-[var(--app-surface)]/80",
                                   )}
                                 >
@@ -487,11 +511,13 @@ export function OrderDetailsScreen({
         </Surface>
 
         <div className="space-y-4">
-          <CheckoutSummaryRail
-            title="Payment summary"
-            subtitle={remainingLater > 0 ? "Due today and still open." : "Collected so far and still open."}
-            totalsItems={totalsItems}
-          >
+        <CheckoutSummaryRail
+          title="Order receipt"
+          subtitle=""
+          totalsItems={totalsItems}
+          summarySplitIndex={receiptChargeRowCount}
+          summarySplitLabel="Payment summary"
+        >
             {openOrder.balanceDue > 0 ? (
               <ActionButton
                 tone="primary"
@@ -501,7 +527,7 @@ export function OrderDetailsScreen({
                 }}
               >
                 <CreditCard className="h-4 w-4" />
-                <span>{hasReadyScopesToPickup ? "Take payment for ready pieces" : "Take payment"}</span>
+                <span>Take payment</span>
               </ActionButton>
             ) : hasReadyScopesToPickup ? (
               <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder.id)}>
