@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Ruler } from "lucide-react";
+import { ArrowLeft, Ruler } from "lucide-react";
 import type { Customer, MeasurementSet, OrderWorkflowState, Screen } from "../types";
 import { Callout, ModalShell, SectionHeader, ActionButton, Surface } from "../components/ui/primitives";
 import { ModalFooterActions, ModalSummaryCard } from "../components/ui/modalPatterns";
@@ -11,15 +11,13 @@ import { CustomerPickerModal } from "../features/order/modals/CustomerPickerModa
 import {
   getLinkedMeasurementSet,
   getMeasurementSetDisplay,
-  getMeasurementStatusModel,
 } from "../features/measurements/selectors";
 import { getOrderBagLineItems, getOrderType, getSummaryGuardrail } from "../features/order/selectors";
 import { formatMeasurementDisplayValue, formatMeasurementValue, parseMeasurementValue } from "../features/measurements/service";
-import { MeasurementFieldGrid } from "../features/measurements/components/MeasurementFieldGrid";
-import { MeasurementBodyMap } from "../features/measurements/components/MeasurementBodyMap";
 import { MeasurementValueEditor } from "../features/measurements/components/MeasurementValueEditor";
 import { SavedMeasurementsRail } from "../features/measurements/components/SavedMeasurementsRail";
 import { CurrentOrderMeasurementCard } from "../features/measurements/components/CurrentOrderMeasurementCard";
+import { MeasurementSetsWorkbench } from "../features/measurements/components/MeasurementSetsWorkbench";
 
 type MeasurementsScreenProps = {
   customers: Customer[];
@@ -47,41 +45,6 @@ const fractions = [
   { label: "¾", value: 0.75 },
   { label: "⅞", value: 0.875 },
 ];
-
-const measurementFieldSectionBlueprint = [
-  {
-    title: "Upper body",
-    fields: ["Back Length", "Shoulder", "Neck", "Chest", "Stomach", "Waist", "Seat"],
-  },
-  {
-    title: "Sleeves and cuffs",
-    fields: ["Bicep", "Sleeve Length", "Shirt Cuff Left", "Shirt Cuff Right"],
-  },
-  {
-    title: "Trouser and hem",
-    fields: ["Thigh", "Rise", "Bottom", "Length"],
-  },
-] as const;
-
-function buildMeasurementFieldSections(fieldNames: string[]) {
-  const remainingFields = new Set(fieldNames);
-  const sections: Array<{ title: string; fields: string[] }> = measurementFieldSectionBlueprint
-    .map((section) => {
-      const fields = section.fields.filter((field) => remainingFields.has(field));
-      fields.forEach((field) => remainingFields.delete(field));
-      return { title: section.title, fields };
-    })
-    .filter((section) => section.fields.length > 0);
-
-  if (remainingFields.size > 0) {
-    sections.push({
-      title: "Other",
-      fields: [...remainingFields],
-    });
-  }
-
-  return sections;
-}
 
 export function MeasurementsScreen({
   customers,
@@ -114,7 +77,6 @@ export function MeasurementsScreen({
 
   const customerHistory = selectedCustomer ? measurementSets.filter((set) => set.customerId === selectedCustomer.id) : [];
   const filteredCustomers = useMemo(() => filterCustomers(getActiveCustomers(customers), customerQuery), [customers, customerQuery]);
-  const fieldSections = useMemo(() => buildMeasurementFieldSections(measurementFields), [measurementFields]);
   const activeFieldValue = order.custom.draft.measurements[activeField] ?? "";
   const activeFieldHasValue = activeFieldValue.trim().length > 0;
   const parsedActiveValue = parseMeasurementValue(activeFieldValue);
@@ -131,7 +93,6 @@ export function MeasurementsScreen({
   const hasEnteredMeasurements = completedMeasurementCount > 0;
   const activeSet = getLinkedMeasurementSet(measurementSets, order.custom.draft.linkedMeasurementSetId);
   const activeSetDisplay = activeSet ? getMeasurementSetDisplay(activeSet) : null;
-  const status = getMeasurementStatusModel(activeSet, hasEnteredMeasurements);
   const pendingDeleteSet = pendingDeleteSetId ? measurementSets.find((set) => set.id === pendingDeleteSetId) ?? null : null;
   const payerCustomer = customers.find((customer) => customer.id === order.payerCustomerId) ?? null;
   const wearerCustomer = customers.find((customer) => customer.id === order.custom.draft.wearerCustomerId) ?? null;
@@ -198,112 +159,118 @@ export function MeasurementsScreen({
         <div className="app-page-with-support-rail app-measurements-layout">
           <Surface tone="work" className="overflow-hidden">
             <div className="app-measurements-workspace">
-              <div className="border-b border-[var(--app-border)]/40 px-4 py-4 app-measurements-workspace__fields">
-                <MeasurementFieldGrid
-                  fieldSections={fieldSections}
-                  activeField={activeField}
-                  values={order.custom.draft.measurements}
-                  onSelectField={setActiveField}
-                />
-              </div>
-
               <div className="px-4 py-4 app-measurements-workspace__editor">
-                <div className="flex h-full flex-col">
-                <section className="px-1 py-0.5">
-                  <div className="flex flex-wrap items-start justify-between gap-4">
-                    <div className="min-w-0">
-                      <div className="app-text-overline">Current field</div>
-                      <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] md:text-[1.45rem] min-[1000px]:text-[1.5rem]">
-                        {activeField || "Choose a field"}
-                      </div>
-                      <div className="app-text-caption mt-1">
-                        {activeFieldHasValue ? "Adjust the value below if it needs a change." : "Tap below to enter inches."}
-                      </div>
-                    </div>
-                    <div className="min-w-[152px] text-left md:text-right">
-                      <div className="app-text-overline">{activeFieldHasValue ? "Current value" : "Next step"}</div>
-                      {activeFieldHasValue ? (
-                        <div className="mt-1 text-[1.85rem] font-semibold tracking-[-0.05em] text-[var(--app-text)] md:text-[2.05rem] min-[1000px]:text-[2.25rem]">
-                          {formatMeasurementDisplayValue(activeFieldValue)} in
-                        </div>
-                      ) : (
-                        <div className="mt-1 text-[1rem] font-semibold leading-tight text-[var(--app-text-muted)]">
-                          Tap below
-                          <br />
-                          to enter inches
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                  <div className="mt-3.5 flex min-h-[260px] items-center justify-center border-b border-[var(--app-border)]/36 pb-4 md:min-h-[320px] min-[1000px]:min-h-[332px]">
-                    <MeasurementBodyMap activeField={activeField} />
-                  </div>
-                </section>
-
-                <section className="px-1 pt-3.5">
-                  <MeasurementValueEditor
-                    focusKey={activeField}
-                    value={activeFieldValue}
-                    fraction={parsedActiveValue.fraction}
-                    fractions={fractions}
-                    onChangeValue={(value) => onUpdateMeasurement(activeField, value)}
-                    onStepInches={(delta) => setActiveMeasurementValue(parsedActiveValue.inches + delta, parsedActiveValue.fraction)}
-                    onSetFraction={(value) => setActiveMeasurementValue(parsedActiveValue.inches, value)}
-                    onClear={() => onUpdateMeasurement(activeField, "")}
+                <div className="app-measurements-workbench">
+                  <MeasurementSetsWorkbench
+                    customer={selectedCustomer}
+                    customerHistory={customerHistory}
+                    linkedMeasurementSetId={order.custom.draft.linkedMeasurementSetId}
+                    measurementFields={measurementFields}
+                    draftMeasurements={order.custom.draft.measurements}
+                    activeField={activeField}
+                    onSelectField={setActiveField}
                   />
-                </section>
-                <section className="mt-auto px-1 pt-3.5">
-                  <div className="border-t border-[var(--app-border)]/36 pt-3.5">
-                    <div className="mb-2.5 app-text-overline">Move through measurements</div>
-                    <div className="grid gap-2 md:grid-cols-3">
-                      <ActionButton
-                        tone="secondary"
-                        className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"
-                        onClick={() => previousField && setActiveField(previousField)}
-                        disabled={!previousField}
-                      >
-                        <span className="flex flex-col items-start leading-tight">
-                          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">
-                            {previousField ? "Previous" : "Start"}
-                          </span>
-                          <span className="text-[0.94rem] font-medium tracking-[-0.01em] text-[var(--app-text)]">
-                            {previousField ?? "Top of list"}
-                          </span>
-                        </span>
-                      </ActionButton>
-                      <ActionButton
-                        tone="secondary"
-                        className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"
-                        onClick={() => nextField && setActiveField(nextField)}
-                        disabled={!nextField}
-                      >
-                        <span className="flex flex-col items-start leading-tight">
-                          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-[var(--app-text-soft)]">
-                            {nextField ? "Next" : "End"}
-                          </span>
-                          <span className="text-[0.94rem] font-medium tracking-[-0.01em] text-[var(--app-text)]">
-                            {nextField ?? "Last field"}
-                          </span>
-                        </span>
-                      </ActionButton>
-                      <ActionButton
-                        tone="primary"
-                        className="min-h-[3.4rem] px-3 py-2.5 text-left justify-start"
-                        onClick={() => nextIncompleteField && setActiveField(nextIncompleteField)}
-                        disabled={!nextIncompleteField}
-                      >
-                        <span className="flex flex-col items-start leading-tight">
-                          <span className="text-[0.68rem] font-semibold uppercase tracking-[0.12em] text-current opacity-80">
-                            {nextIncompleteField ? "Next missing" : "Complete"}
-                          </span>
-                          <span className="text-[0.94rem] font-medium tracking-[-0.01em] text-current">
-                            {nextIncompleteField ?? "All entered"}
-                          </span>
-                        </span>
-                      </ActionButton>
+
+                  <div className="app-measurements-workbench__editor">
+                    <div className="app-measurements-entry-dock">
+                      <section className="app-measurements-editor-head">
+                        <div className="min-w-0">
+                          <div className="app-text-overline">Current field</div>
+                          <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] md:text-[1.45rem] min-[1000px]:text-[1.5rem]">
+                            {activeField || "Choose a field"}
+                          </div>
+                          <div className="app-text-caption mt-1">
+                            {activeFieldHasValue ? "Adjust the value below or move straight to the next missing field." : "Tap any measurement on the left, then enter inches here."}
+                          </div>
+                        </div>
+
+                        <div className="app-measurements-editor-head__stats">
+                          <div className="app-measurements-editor-stat">
+                            <div className="app-text-overline">{activeFieldHasValue ? "Current value" : "Value"}</div>
+                            <div className="app-measurements-editor-stat__value">
+                              {activeFieldHasValue ? `${formatMeasurementDisplayValue(activeFieldValue)} in` : "Waiting"}
+                            </div>
+                          </div>
+                          <div className="app-measurements-editor-stat">
+                            <div className="app-text-overline">Entered</div>
+                            <div className="app-measurements-editor-stat__value">
+                              {completedMeasurementCount}/{measurementFields.length}
+                            </div>
+                          </div>
+                        </div>
+
+                        {orderContext ? (
+                          <div className="app-measurements-editor-head__action">
+                            <ActionButton
+                              tone="secondary"
+                              className="min-h-10 px-3 py-2 text-sm"
+                              onClick={() => onScreenChange("order")}
+                            >
+                              <ArrowLeft className="h-4 w-4" />
+                              Back to order
+                            </ActionButton>
+                          </div>
+                        ) : null}
+                      </section>
+
+                      <section className="app-measurements-entry-dock__body">
+                        <div className="app-measurements-entry-dock__pad">
+                          <MeasurementValueEditor
+                            focusKey={activeField}
+                            value={activeFieldValue}
+                            fraction={parsedActiveValue.fraction}
+                            fractions={fractions}
+                            onChangeValue={(value) => onUpdateMeasurement(activeField, value)}
+                            onStepInches={(delta) => setActiveMeasurementValue(parsedActiveValue.inches + delta, parsedActiveValue.fraction)}
+                            onSetFraction={(value) => setActiveMeasurementValue(parsedActiveValue.inches, value)}
+                            onClear={() => onUpdateMeasurement(activeField, "")}
+                          />
+                        </div>
+
+                        <aside className="app-measurements-entry-dock__aside">
+                          <div className="app-measurements-entry-dock__footer-meta">
+                            <div className="app-text-overline">Selection</div>
+                            <div className="app-text-strong mt-1">
+                              {activeField || "Choose a field"}
+                            </div>
+                            <div className="app-text-caption mt-1">
+                              {nextIncompleteField ? `Next missing: ${nextIncompleteField}` : "All measurements entered."}
+                            </div>
+                          </div>
+
+                          <div className="app-measurements-console__flow">
+                            <div className="app-text-overline">Quick move</div>
+                            <div className="app-measurements-console__flow-actions">
+                              <ActionButton
+                                tone="secondary"
+                                className="min-h-11 px-3 py-2.5 text-sm"
+                                onClick={() => previousField && setActiveField(previousField)}
+                                disabled={!previousField}
+                              >
+                                {previousField ? `Previous: ${previousField}` : "Start of list"}
+                              </ActionButton>
+                              <ActionButton
+                                tone="secondary"
+                                className="min-h-11 px-3 py-2.5 text-sm"
+                                onClick={() => nextField && setActiveField(nextField)}
+                                disabled={!nextField}
+                              >
+                                {nextField ? `Next: ${nextField}` : "Last field"}
+                              </ActionButton>
+                              <ActionButton
+                                tone="primary"
+                                className="min-h-11 px-3 py-2.5 text-sm"
+                                onClick={() => nextIncompleteField && setActiveField(nextIncompleteField)}
+                                disabled={!nextIncompleteField}
+                              >
+                                {nextIncompleteField ? "Jump to missing" : "All entered"}
+                              </ActionButton>
+                            </div>
+                          </div>
+                        </aside>
+                      </section>
                     </div>
                   </div>
-                </section>
                 </div>
               </div>
             </div>
