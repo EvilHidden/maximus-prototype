@@ -5,6 +5,7 @@ import type {
   AppointmentProfileFlag,
   AppointmentStatusKey,
   AppointmentTypeKey,
+  ClosedOrderDetail,
   ClosedOrderHistoryItem,
   Customer,
   CustomerOrder,
@@ -108,6 +109,10 @@ function getOrderLines(database: PrototypeDatabase, orderId: string) {
   return database.orderScopeLines.filter((line) => scopeIds.includes(line.scopeId));
 }
 
+function getOrderNumber(displayId: string) {
+  return Number.parseInt(displayId.replace(/\D/g, ""), 10);
+}
+
 function getScopeLines(database: PrototypeDatabase, scopeId: string) {
   return database.orderScopeLines.filter((line) => line.scopeId === scopeId);
 }
@@ -120,6 +125,19 @@ function getScopeLineComponents(database: PrototypeDatabase, lineId: string) {
 
 function getOrderTotal(database: PrototypeDatabase, orderId: string) {
   return getOrderLines(database, orderId).reduce((sum, line) => sum + line.quantity * line.unitPrice, 0);
+}
+
+function getOrderTimeline(database: PrototypeDatabase, orderId: string) {
+  return database.orderTimelineEvents
+    .filter((event) => event.orderId === orderId)
+    .sort((left, right) => new Date(left.occurredAt).getTime() - new Date(right.occurredAt).getTime())
+    .map((event) => ({
+      id: event.id,
+      type: event.type,
+      label: event.label,
+      occurredAt: event.occurredAt,
+      amount: event.amount,
+    }));
 }
 
 function getAlterationComponentDisplayValue(component: Pick<DbOrderScopeLineComponent, "value" | "numericValue">) {
@@ -168,6 +186,25 @@ function deriveOperationalStatus(order: DbOrder, scopes: DbOrderScope[]): OpenOr
   }
 
   return order.operationalStatus ?? "in_progress";
+}
+
+function getClosedAt(order: DbOrder, scopes: DbOrderScope[]) {
+  if (order.status === "complete" && order.completedAt) {
+    return order.completedAt;
+  }
+
+  if (order.status === "canceled" && order.canceledAt) {
+    return order.canceledAt;
+  }
+
+  if (order.status === "complete") {
+    return scopes
+      .map((scope) => scope.pickedUpAt)
+      .filter((value): value is string => Boolean(value))
+      .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? order.createdAt;
+  }
+
+  return order.createdAt;
 }
 
 function getOrderLabel(database: PrototypeDatabase, orderId: string) {
@@ -364,15 +401,12 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
         orderType: order.orderType,
         total,
       });
-      const completedAt = order.status === "complete"
-        ? scopes
-          .map((scope) => scope.pickedUpAt)
-          .filter((value): value is string => Boolean(value))
-          .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null
-        : null;
+      const closedAt = getClosedAt(order, scopes);
+      const completedAt = order.status === "complete" ? closedAt : null;
 
       return {
         id: order.displayId,
+        orderNumber: getOrderNumber(order.displayId),
         displayId: order.displayId,
         customerName: order.payerName,
         payerCustomerId: order.payerCustomerId,
@@ -389,12 +423,75 @@ export function adaptClosedOrderHistory(database: PrototypeDatabase): ClosedOrde
         collectedToday: payment.collectedToday,
         balanceDue: payment.balanceDue,
         createdAt: order.createdAt,
+        closedAt,
         completedAt,
         status: order.status === "canceled" ? "Canceled" : "Picked up",
         total: payment.total,
       };
     })
-    .sort((left, right) => new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime());
+    .sort((left, right) => {
+      const leftClosedAt = left.closedAt ? new Date(left.closedAt).getTime() : Number.NEGATIVE_INFINITY;
+      const rightClosedAt = right.closedAt ? new Date(right.closedAt).getTime() : Number.NEGATIVE_INFINITY;
+
+      if (leftClosedAt !== rightClosedAt) {
+        return rightClosedAt - leftClosedAt;
+      }
+
+      return new Date(right.createdAt).getTime() - new Date(left.createdAt).getTime();
+    });
+}
+
+export function adaptClosedOrderDetail(
+  database: PrototypeDatabase,
+  orderNumber: number | null,
+): ClosedOrderDetail | null {
+  if (orderNumber === null) {
+    return null;
+  }
+
+  const order = database.orders.find((candidate) => (
+    (candidate.status === "complete" || candidate.status === "canceled")
+    && getOrderNumber(candidate.displayId) === orderNumber
+  ));
+
+  if (!order) {
+    return null;
+  }
+
+  const scopes = database.orderScopes.filter((scope) => scope.orderId === order.id);
+  const lineItems = getOpenOrderLineItems(database, order.id);
+  const pickupSchedules = scopes.map((scope) => getOpenOrderPickup(database, order, scope));
+  const total = getOrderTotal(database, order.id);
+  const payment = getRecordedPaymentSummary({
+    payments: database.payments.filter((candidate) => candidate.orderId === order.id),
+    generatedAt: database.generatedAt,
+    orderType: order.orderType,
+    total,
+    lineItems,
+    pickupSchedules,
+  });
+
+  return {
+    id: orderNumber,
+    displayId: order.displayId,
+    payerCustomerId: order.payerCustomerId,
+    payerName: order.payerName,
+    orderType: order.orderType,
+    itemCount: lineItems.length,
+    lineItems,
+    itemSummary: lineItems.map((line) => line.title.replace(/^\d+\.\s*/, "")),
+    pickupSchedules,
+    paymentStatus: payment.paymentStatus,
+    paymentDueNow: payment.paymentDueNow,
+    totalCollected: payment.totalCollected,
+    collectedToday: payment.collectedToday,
+    balanceDue: payment.balanceDue,
+    total: payment.total,
+    createdAt: order.createdAt,
+    closedAt: getClosedAt(order, scopes),
+    status: order.status === "canceled" ? "Canceled" : "Picked up",
+    timeline: getOrderTimeline(database, order.id),
+  };
 }
 
 export function adaptAppointments(database: PrototypeDatabase): Appointment[] {
@@ -483,7 +580,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
       });
 
       const openOrder: OpenOrder = {
-        id: Number.parseInt(order.displayId.replace(/\D/g, ""), 10),
+        id: getOrderNumber(order.displayId),
         payerCustomerId: order.payerCustomerId,
         payerName: order.payerName,
         orderType: order.orderType,
@@ -500,16 +597,7 @@ export function adaptOpenOrders(database: PrototypeDatabase): OpenOrder[] {
         balanceDue: payment.balanceDue,
         total: payment.total,
         createdAt: order.createdAt,
-        timeline: database.orderTimelineEvents
-          .filter((event) => event.orderId === order.id)
-          .sort((left, right) => new Date(left.occurredAt).getTime() - new Date(right.occurredAt).getTime())
-          .map((event) => ({
-            id: event.id,
-            type: event.type,
-            label: event.label,
-            occurredAt: event.occurredAt,
-            amount: event.amount,
-          })),
+        timeline: getOrderTimeline(database, order.id),
       };
 
       return {

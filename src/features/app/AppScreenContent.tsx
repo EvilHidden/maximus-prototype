@@ -25,6 +25,7 @@ export function AppScreenContent({
   selectedCustomer,
   payerCustomer,
   checkoutOpenOrder,
+  checkoutClosedOrder,
   startWorkflow,
   openWorkflowAppointment,
   saveMeasurements,
@@ -135,6 +136,7 @@ export function AppScreenContent({
       <OrderDetailsScreen
         customers={customers}
         openOrder={checkoutOpenOrder}
+        closedOrder={checkoutClosedOrder}
         showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
         showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
         requestedCheckoutPaymentMode={state.checkoutRequestedPaymentMode}

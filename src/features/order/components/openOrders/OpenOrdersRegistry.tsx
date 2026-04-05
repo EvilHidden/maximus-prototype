@@ -102,7 +102,10 @@ export function OpenOrdersBody({
             </div>
           )
         ) : (
-          <ClosedOrdersSection filteredHistoryItems={filteredHistoryItems} />
+          <ClosedOrdersSection
+            filteredHistoryItems={filteredHistoryItems}
+            onOpenOrderDetails={onOpenOrderDetails}
+          />
         )
       ) : null}
 

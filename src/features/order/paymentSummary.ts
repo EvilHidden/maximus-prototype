@@ -42,6 +42,63 @@ function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
 
+function getPaymentRecencyKey(payment: DbPaymentRecord, fallbackIndex: number) {
+  if (payment.collectedAt) {
+    const collectedAt = new Date(payment.collectedAt).getTime();
+    if (!Number.isNaN(collectedAt)) {
+      return {
+        hasExplicitTimestamp: true,
+        timestamp: collectedAt,
+        fallbackIndex,
+      };
+    }
+  }
+
+  return {
+    hasExplicitTimestamp: false,
+    timestamp: Number.NEGATIVE_INFINITY,
+    fallbackIndex,
+  };
+}
+
+function getLatestRecordedPayment(payments: DbPaymentRecord[]) {
+  if (!payments.length) {
+    return null;
+  }
+
+  let latest: DbPaymentRecord | null = null;
+  let latestIndex = -1;
+
+  payments.forEach((candidate, candidateIndex) => {
+    if (!latest) {
+      latest = candidate;
+      latestIndex = candidateIndex;
+      return;
+    }
+
+    const latestRecency = getPaymentRecencyKey(latest, latestIndex);
+    const candidateRecency = getPaymentRecencyKey(candidate, candidateIndex);
+
+    if (latestRecency.hasExplicitTimestamp !== candidateRecency.hasExplicitTimestamp) {
+      if (candidateRecency.hasExplicitTimestamp) {
+        latest = candidate;
+        latestIndex = candidateIndex;
+      }
+      return;
+    }
+
+    if (candidateRecency.timestamp > latestRecency.timestamp || (
+      candidateRecency.timestamp === latestRecency.timestamp
+      && candidateRecency.fallbackIndex > latestRecency.fallbackIndex
+    )) {
+      latest = candidate;
+      latestIndex = candidateIndex;
+    }
+  });
+
+  return latest;
+}
+
 function getDraftOrderType(order: OrderWorkflowState): OrderType | null {
   const hasAlterations = order.alteration.items.length > 0;
   const hasCustom = order.custom.items.length > 0;
@@ -374,7 +431,7 @@ export function getRecordedPaymentSummary({
   lineItems?: OpenOrder["lineItems"];
   pickupSchedules?: OpenOrder["pickupSchedules"];
 }): PaymentSummary {
-  const latest = payments[payments.length - 1];
+  const latest = getLatestRecordedPayment(payments);
   const today = new Date(generatedAt);
   today.setHours(0, 0, 0, 0);
 

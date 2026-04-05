@@ -291,9 +291,11 @@ export type OpenOrder = {
 
 export type ClosedOrderHistoryItem = {
   id: string;
+  orderNumber?: number;
   customerName: string;
   label: string;
   createdAt: string;
+  closedAt: string | null;
   completedAt?: string | null;
   status: string;
   total: number;
@@ -310,6 +312,28 @@ export type ClosedOrderHistoryItem = {
   totalCollected?: number;
   collectedToday?: number;
   balanceDue?: number;
+};
+
+export type ClosedOrderDetail = {
+  id: number;
+  displayId: string;
+  payerCustomerId: string | null;
+  payerName: string;
+  orderType: OrderType;
+  itemCount: number;
+  lineItems: OrderBagLineItem[];
+  itemSummary: string[];
+  pickupSchedules: OpenOrderPickup[];
+  paymentStatus: OpenOrderPaymentStatus;
+  paymentDueNow: number;
+  totalCollected: number;
+  collectedToday: number;
+  balanceDue: number;
+  total: number;
+  createdAt: string;
+  closedAt: string | null;
+  status: string;
+  timeline: OrderTimelineItem[];
 };
 
 export type DraftOrderRecord = {
