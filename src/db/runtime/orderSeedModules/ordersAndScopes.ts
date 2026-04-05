@@ -34,7 +34,7 @@ function getSeedAlterationAssignee(scopeId: string) {
 }
 
 export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
-  return [
+  const orders: Array<Omit<DbOrder, "acceptedAt" | "startedAt" | "completedAt" | "canceledAt">> = [
     {
       id: "order-9001",
       displayId: "ORD-9001",
@@ -358,6 +358,40 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       holdUntilAllScopesReady: true,
     },
   ];
+
+  return orders.map((order) => ({
+    ...order,
+    acceptedAt: order.createdAt,
+    startedAt: null,
+    completedAt: null,
+    canceledAt: null,
+  }));
+}
+
+export function applySeedOrderLifecycleTimestamps(
+  orders: DbOrder[],
+  orderScopes: DbOrderScope[],
+): DbOrder[] {
+  return orders.map((order) => {
+    const scopes = orderScopes.filter((scope) => scope.orderId === order.id);
+    const startedAt = scopes
+      .flatMap((scope) => [scope.readyAt, scope.pickedUpAt])
+      .filter((value): value is string => Boolean(value))
+      .sort((left, right) => new Date(left).getTime() - new Date(right).getTime())[0] ?? null;
+    const completedAt = order.status === "complete"
+      ? scopes
+        .map((scope) => scope.pickedUpAt)
+        .filter((value): value is string => Boolean(value))
+        .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null
+      : null;
+
+    return {
+      ...order,
+      startedAt,
+      completedAt,
+      canceledAt: order.status === "canceled" ? order.canceledAt ?? order.createdAt : null,
+    };
+  });
 }
 
 export function createOrderScopes({ baseDate, liveReference }: RuntimeSeedDates): DbOrderScope[] {

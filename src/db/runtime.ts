@@ -6,6 +6,7 @@ import {
   createMeasurementSets,
 } from "./runtime/customerSeed";
 import {
+  applySeedOrderLifecycleTimestamps,
   createOrderTimelineEvents,
   createOrders,
   createOrderScopeLines,
@@ -66,8 +67,9 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const customerEvents = createCustomerEvents(seedDates);
   const measurementSets = createMeasurementSets();
   const normalizedCustomers = syncCustomerMeasurementStatuses(customers, measurementSets);
-  const orders = createOrders(seedDates);
+  const baseOrders = createOrders(seedDates);
   const orderScopes = createOrderScopes(seedDates);
+  const orders = applySeedOrderLifecycleTimestamps(baseOrders, orderScopes);
   const orderScopeLines = createOrderScopeLines(orders, orderScopes, measurementSets);
   const orderScopeLineComponents = createOrderScopeLineComponents(orderScopeLines, orderScopes);
   const pickupNotifications = createPickupNotifications(seedDates);

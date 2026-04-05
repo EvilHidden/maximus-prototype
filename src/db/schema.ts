@@ -103,6 +103,10 @@ export type DbOrder = {
   payerName: string;
   orderType: OrderType;
   createdAt: string;
+  acceptedAt: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  canceledAt: string | null;
   status: "open" | "partially_ready" | "partially_picked_up" | "complete" | "canceled";
   operationalStatus?: "accepted" | "in_progress";
   holdUntilAllScopesReady: boolean;
