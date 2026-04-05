@@ -132,7 +132,7 @@ export function MeasurementValueEditor({
             onClick={() => previousField && onSelectField(previousField)}
             disabled={!previousField}
           >
-            <span className="app-text-overline text-[0.62rem] leading-none">Previous</span>
+            <span className="app-text-overline block w-full text-left text-[0.62rem] leading-none">Previous</span>
             <span className="block w-full truncate text-sm leading-tight">
               {previousField ?? "Start of list"}
             </span>
@@ -143,7 +143,7 @@ export function MeasurementValueEditor({
             onClick={() => nextField && onSelectField(nextField)}
             disabled={!nextField}
           >
-            <span className="app-text-overline text-[0.62rem] leading-none">Next</span>
+            <span className="app-text-overline block w-full text-left text-[0.62rem] leading-none">Next</span>
             <span className="block w-full truncate text-sm leading-tight">
               {nextField ?? "Last field"}
             </span>
@@ -154,7 +154,7 @@ export function MeasurementValueEditor({
             onClick={() => nextIncompleteField && onSelectField(nextIncompleteField)}
             disabled={!nextIncompleteField}
           >
-            <span className="app-text-overline text-[0.62rem] leading-none">Jump to missing</span>
+            <span className="app-text-overline block w-full text-left text-[0.62rem] leading-none">Jump to missing</span>
             <span className="block w-full truncate text-sm leading-tight">
               {nextIncompleteField ?? "All entered"}
             </span>

@@ -30,7 +30,7 @@ export function SavedMeasurementsRail({
         <div className="app-text-caption mt-1 app-desktop-only">
           {customer ? `${customerHistory.length} saved ${customerHistory.length === 1 ? "set" : "sets"}` : "Choose a customer to review saved sets."}
         </div>
-        <div className="mt-2 flex items-center gap-2 app-measurements-sets__actions">
+        <div className="mt-2 app-measurements-sets__actions">
           <ActionButton
             tone={customer ? "secondary" : "primary"}
             className="app-hide-at-desktop min-h-9.5 flex-1 px-3 text-sm"
@@ -45,11 +45,13 @@ export function SavedMeasurementsRail({
           ) : null}
           <ActionButton
             tone="primary"
-            className="app-desktop-only inline-flex min-h-9.5 items-center gap-1.5 px-3 py-2 text-sm"
+            className="app-desktop-only app-measurements-sets__new-set-button min-h-9.5 text-sm"
             onClick={customer ? onStartNewSet : onOpenCustomerModal}
           >
-            <Plus className="h-3.5 w-3.5" />
-            New set
+            <span className="app-measurements-sets__new-set-content">
+              <Plus className="h-3.5 w-3.5" />
+              <span className="app-measurements-sets__new-set-label">New set</span>
+            </span>
           </ActionButton>
         </div>
       </div>
