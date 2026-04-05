@@ -77,12 +77,18 @@ export function AppointmentsMonthGrid({
   const dayCells = getMonthDays(anchorDate);
 
   return (
-    <Surface tone="work" className={compactShell ? "p-3.5" : "p-3.5 min-[1000px]:p-3"}>
-      <div className={compactShell ? "mb-3 flex flex-wrap items-start justify-between gap-2.5" : "mb-2 flex flex-wrap items-start justify-between gap-2.5 px-1"}>
+    <Surface tone="work" className={compactShell ? "app-appointments-calendar-surface p-3.5" : "app-appointments-calendar-surface p-3.5 min-[1000px]:p-3"}>
+      <div
+        className={
+          compactShell
+            ? "app-appointments-calendar__header mb-3 flex flex-wrap items-start justify-between gap-2.5"
+            : "app-appointments-calendar__header mb-2 flex flex-wrap items-start justify-between gap-2.5 px-1"
+        }
+      >
         <div>
           <div className="app-text-value">{monthLabel}</div>
         </div>
-        <div className="flex items-center gap-2">
+        <div className="app-appointments-calendar__toolbar flex items-center gap-2">
           <ActionButton
             tone="secondary"
             className="h-8.5 gap-1.5 px-3 py-0 text-xs"
@@ -106,8 +112,14 @@ export function AppointmentsMonthGrid({
           </ActionButton>
         </div>
       </div>
-      <div className={compactShell ? "" : "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)] min-[1000px]:p-1.5"}>
-        <div className={compactShell ? "grid grid-cols-7 gap-2" : "grid grid-cols-7 gap-2 min-[1000px]:gap-1.5"}>
+      <div
+        className={
+          compactShell
+            ? "app-appointments-calendar__shell"
+            : "app-appointments-calendar__shell rounded-[var(--app-radius-md)] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/72 p-2 shadow-[inset_0_1px_0_color-mix(in_srgb,var(--app-surface)_78%,transparent)] min-[1000px]:p-1.5"
+        }
+      >
+        <div className={compactShell ? "app-appointments-month-grid grid grid-cols-7 gap-2" : "app-appointments-month-grid grid grid-cols-7 gap-2 min-[1000px]:gap-1.5"}>
           {["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].map((dayLabel) => (
             <div key={dayLabel} className="app-text-overline px-2 py-1 text-center">
               {dayLabel}
