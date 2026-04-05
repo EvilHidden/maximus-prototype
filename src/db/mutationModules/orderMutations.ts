@@ -9,8 +9,9 @@ import {
   getPaymentAmountFromPolicy,
   getRecordedPaymentPolicy,
 } from "../../features/order/paymentSummary";
+import { buildOrderTimelineEvents, replaceOrderTimelineEvents } from "../orderTimeline";
 import { deserializeOrderWorkflowFromRecords, serializeOrderWorkflowToRecords } from "../orderWorkflowSerializer";
-import type { DbOrderScope, DbOrderTimelineEvent, DbPaymentRecord, PrototypeDatabase } from "../schema";
+import type { DbOrder, DbOrderScope, DbOrderTimelineEvent, DbPaymentRecord, PrototypeDatabase } from "../schema";
 import type { OrderMutationOptions } from "./shared";
 import {
   createDraftOrderRecord,
@@ -24,50 +25,6 @@ import {
 
 function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
-}
-
-function createTimelineEvent({
-  id,
-  orderId,
-  type,
-  label,
-  occurredAt,
-  amount = null,
-}: {
-  id: string;
-  orderId: string;
-  type: DbOrderTimelineEvent["type"];
-  label: string;
-  occurredAt: string;
-  amount?: number | null;
-}): DbOrderTimelineEvent {
-  return {
-    id,
-    orderId,
-    type,
-    label,
-    occurredAt,
-    amount,
-  };
-}
-
-function getTimelinePaymentLabel(payment: Pick<DbPaymentRecord, "allocation">) {
-  switch (payment.allocation) {
-    case "custom_deposit":
-      return "Deposit taken";
-    case "alteration_balance":
-      return "Alteration balance payment taken";
-    case "custom_balance":
-      return "Custom balance payment taken";
-    case "full_balance":
-      return "Payment taken";
-    default:
-      return "Payment taken";
-  }
-}
-
-function getScopeTimelineLabel(workflow: DbOrderScope["workflow"], suffix: "ready" | "picked up") {
-  return `${workflow === "alteration" ? "Alterations" : "Custom garments"} ${suffix}`;
 }
 
 function getScopeSubtotal(database: PrototypeDatabase, orderId: string, workflow: DbOrderScope["workflow"]) {
@@ -337,33 +294,11 @@ export function saveOrderWorkflowToDatabase(
   }
 
   if (!existingOrder) {
-    const occurredAt = toDateTimeString(now);
-    const timelineEvents: DbOrderTimelineEvent[] = [
-      createTimelineEvent({
-        id: `timeline-${serialized.orderRecord.id}-created`,
-        orderId: serialized.orderRecord.id,
-        type: "order_created",
-        label: "Order created",
-        occurredAt,
-      }),
-      createTimelineEvent({
-        id: `timeline-${serialized.orderRecord.id}-accepted`,
-        orderId: serialized.orderRecord.id,
-        type: "order_accepted",
-        label: "Order accepted",
-        occurredAt,
-      }),
-      ...serialized.paymentRecords
-        .filter((payment) => payment.status === "captured" && payment.collectedAt)
-        .map((payment) => createTimelineEvent({
-          id: `timeline-${payment.id}`,
-          orderId: payment.orderId,
-          type: "payment_captured",
-          label: getTimelinePaymentLabel(payment),
-          occurredAt: payment.collectedAt ?? occurredAt,
-          amount: payment.amount,
-        })),
-    ];
+    const timelineEvents: DbOrderTimelineEvent[] = buildOrderTimelineEvents(
+      serialized.orderRecord,
+      serialized.scopes,
+      serialized.paymentRecords,
+    );
 
     return {
       openOrderId: serialized.openOrderId,
@@ -420,7 +355,15 @@ export function saveOrderWorkflowToDatabase(
         ...database.payments.filter((payment) => payment.orderId !== existingOrder.id || payment.status === "captured"),
         ...serialized.paymentRecords,
       ],
-      orderTimelineEvents: [...database.orderTimelineEvents],
+      orderTimelineEvents: replaceOrderTimelineEvents(
+        database.orderTimelineEvents,
+        serialized.orderRecord,
+        serialized.scopes,
+        [
+          ...database.payments.filter((payment) => payment.orderId === existingOrder.id && payment.status === "captured"),
+          ...serialized.paymentRecords,
+        ],
+      ),
       generatedAt: toDateTimeString(now),
     },
   };
@@ -443,26 +386,26 @@ export function completeOpenOrderCheckout(
   }
 
   const newPayments = createCapturedPaymentRecords({ database, orderId, paymentMode, amount, now });
+  const nextPayments = [
+    ...database.payments,
+    ...newPayments,
+  ];
+  const order = database.orders.find((candidate) => candidate.id === orderId);
+  const scopes = database.orderScopes.filter((scope) => scope.orderId === orderId);
+
+  if (!order) {
+    return database;
+  }
 
   return {
     ...database,
-    payments: [
-      ...database.payments,
-      ...newPayments,
-    ],
-    orderTimelineEvents: [
-      ...database.orderTimelineEvents,
-      ...newPayments
-        .filter((payment) => payment.status === "captured" && payment.collectedAt)
-        .map((payment) => createTimelineEvent({
-          id: `timeline-${payment.id}`,
-          orderId: payment.orderId,
-          type: "payment_captured",
-          label: getTimelinePaymentLabel(payment),
-          occurredAt: payment.collectedAt ?? toDateTimeString(now),
-          amount: payment.amount,
-        })),
-    ],
+    payments: nextPayments,
+    orderTimelineEvents: replaceOrderTimelineEvents(
+      database.orderTimelineEvents,
+      order,
+      scopes,
+      nextPayments.filter((payment) => payment.orderId === orderId),
+    ),
     generatedAt: toDateTimeString(now),
   };
 }
@@ -477,28 +420,30 @@ export function startOpenOrderWork(
     return database;
   }
 
+  const nextOrders: DbOrder[] = database.orders.map((order) => (
+    order.id === orderId
+      ? {
+          ...order,
+          operationalStatus: "in_progress",
+          startedAt: order.startedAt ?? toDateTimeString(now),
+        }
+      : order
+  ));
+  const order = nextOrders.find((candidate) => candidate.id === orderId);
+
+  if (!order) {
+    return database;
+  }
+
   return {
     ...database,
-    orders: database.orders.map((order) => (
-      order.id === orderId
-        ? {
-            ...order,
-            operationalStatus: "in_progress",
-          }
-        : order
-    )),
-    orderTimelineEvents: database.orderTimelineEvents.some((event) => event.orderId === orderId && event.type === "order_started")
-      ? database.orderTimelineEvents
-      : [
-          ...database.orderTimelineEvents,
-          createTimelineEvent({
-            id: `timeline-${orderId}-started`,
-            orderId,
-            type: "order_started",
-            label: "Order started",
-            occurredAt: toDateTimeString(now),
-          }),
-        ],
+    orders: nextOrders,
+    orderTimelineEvents: replaceOrderTimelineEvents(
+      database.orderTimelineEvents,
+      order,
+      database.orderScopes.filter((scope) => scope.orderId === orderId),
+      database.payments.filter((payment) => payment.orderId === orderId),
+    ),
     generatedAt: toDateTimeString(now),
   };
 }
@@ -524,29 +469,30 @@ export function markOrderScopePickupReady(
     return database;
   }
 
+  const nextOrders: DbOrder[] = database.orders.map((order) => (
+    order.id === orderId
+      ? {
+          ...order,
+          status: deriveOrderStatus(nextScopes.filter((scope) => scope.orderId === orderId)),
+        }
+      : order
+  ));
+  const order = nextOrders.find((candidate) => candidate.id === orderId);
+
+  if (!order) {
+    return database;
+  }
+
   return {
     ...database,
     orderScopes: nextScopes,
-    orders: database.orders.map((order) => (
-      order.id === orderId
-        ? {
-            ...order,
-            status: deriveOrderStatus(nextScopes.filter((scope) => scope.orderId === orderId)),
-          }
-        : order
-    )),
-    orderTimelineEvents: database.orderTimelineEvents.some((event) => event.id === `timeline-${scopeId}-ready`)
-      ? database.orderTimelineEvents
-      : [
-          ...database.orderTimelineEvents,
-          createTimelineEvent({
-            id: `timeline-${scopeId}-ready`,
-            orderId,
-            type: "scope_ready",
-            label: getScopeTimelineLabel(nextScopes.find((scope) => scope.id === scopeId)?.workflow ?? "alteration", "ready"),
-            occurredAt: toDateTimeString(now),
-          }),
-        ],
+    orders: nextOrders,
+    orderTimelineEvents: replaceOrderTimelineEvents(
+      database.orderTimelineEvents,
+      order,
+      nextScopes.filter((scope) => scope.orderId === orderId),
+      database.payments.filter((payment) => payment.orderId === orderId),
+    ),
     generatedAt: toDateTimeString(now),
   };
 }
@@ -580,39 +526,25 @@ export function completeOpenOrderPickup(
       : scope
   ));
   const nextStatus = deriveOrderStatus(nextScopes.filter((scope) => scope.orderId === orderId));
-  const pickupEvents = readyScopeIds.map((scopeId) => {
-    const scope = nextScopes.find((candidate) => candidate.id === scopeId);
-    return createTimelineEvent({
-      id: `timeline-${scopeId}-picked-up`,
-      orderId,
-      type: "scope_picked_up",
-      label: getScopeTimelineLabel(scope?.workflow ?? "alteration", "picked up"),
-      occurredAt: toDateTimeString(now),
-    });
-  });
-  const completionEvents = nextStatus === "complete" && !database.orderTimelineEvents.some((event) => event.orderId === orderId && event.type === "order_complete")
-    ? [
-        createTimelineEvent({
-          id: `timeline-${orderId}-complete`,
-          orderId,
-          type: "order_complete",
-          label: "Order complete",
-          occurredAt: toDateTimeString(now),
-        }),
-      ]
-    : [];
+  const nextOrders: DbOrder[] = database.orders.map((order) => (
+    order.id === orderId
+      ? {
+          ...order,
+          status: nextStatus,
+          completedAt: nextStatus === "complete" ? (order.completedAt ?? toDateTimeString(now)) : order.completedAt,
+        }
+      : order
+  ));
+  const order = nextOrders.find((candidate) => candidate.id === orderId);
+
+  if (!order) {
+    return database;
+  }
 
   return {
     ...database,
     orderScopes: nextScopes,
-    orders: database.orders.map((order) => (
-      order.id === orderId
-        ? {
-            ...order,
-            status: nextStatus,
-          }
-        : order
-    )),
+    orders: nextOrders,
     pickupAppointments: database.pickupAppointments.map((appointment) => (
       readyScopeIds.includes(appointment.scopeId ?? "")
         ? {
@@ -621,11 +553,12 @@ export function completeOpenOrderPickup(
           }
         : appointment
     )),
-    orderTimelineEvents: [
-      ...database.orderTimelineEvents,
-      ...pickupEvents,
-      ...completionEvents,
-    ],
+    orderTimelineEvents: replaceOrderTimelineEvents(
+      database.orderTimelineEvents,
+      order,
+      nextScopes.filter((scope) => scope.orderId === orderId),
+      database.payments.filter((payment) => payment.orderId === orderId),
+    ),
     generatedAt: toDateTimeString(now),
   };
 }
@@ -640,16 +573,24 @@ export function cancelOpenOrder(
     return database;
   }
 
+  const nextOrders: DbOrder[] = database.orders.map((order) => (
+    order.id === orderId
+      ? {
+          ...order,
+          status: "canceled",
+          canceledAt: order.canceledAt ?? toDateTimeString(now),
+        }
+      : order
+  ));
+  const order = nextOrders.find((candidate) => candidate.id === orderId);
+
+  if (!order) {
+    return database;
+  }
+
   return {
     ...database,
-    orders: database.orders.map((order) => (
-      order.id === orderId
-        ? {
-            ...order,
-            status: "canceled",
-          }
-        : order
-    )),
+    orders: nextOrders,
     pickupAppointments: database.pickupAppointments.map((appointment) => (
       appointment.orderId === orderId
         ? {
@@ -667,16 +608,12 @@ export function cancelOpenOrder(
         : appointment
     )),
     payments: database.payments.filter((payment) => payment.orderId !== orderId || payment.status === "captured"),
-    orderTimelineEvents: [
-      ...database.orderTimelineEvents,
-      createTimelineEvent({
-        id: `timeline-${orderId}-canceled`,
-        orderId,
-        type: "order_canceled",
-        label: "Order canceled",
-        occurredAt: toDateTimeString(now),
-      }),
-    ],
+    orderTimelineEvents: replaceOrderTimelineEvents(
+      database.orderTimelineEvents,
+      order,
+      database.orderScopes.filter((scope) => scope.orderId === orderId),
+      database.payments.filter((payment) => payment.orderId === orderId && payment.status === "captured"),
+    ),
     generatedAt: toDateTimeString(now),
   };
 }

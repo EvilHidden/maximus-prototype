@@ -1,4 +1,8 @@
-export { createOrders, createOrderScopes } from "./orderSeedModules/ordersAndScopes";
+export {
+  applySeedOrderLifecycleTimestamps,
+  createOrders,
+  createOrderScopes,
+} from "./orderSeedModules/ordersAndScopes";
 export {
   createOrderScopeLineComponents,
   createOrderScopeLines,
