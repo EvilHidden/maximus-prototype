@@ -70,7 +70,7 @@ export function OrderBag({
 
   return (
     <Surface tone="support" className={cx("app-support-rail-fixed w-full p-3.5 app-order-bag", className)}>
-      <div className="mb-4 flex items-start justify-between gap-3">
+      <div className="app-order-bag__head mb-4 flex items-start justify-between gap-3">
         <div className="flex items-start gap-3">
           <ShoppingBag aria-hidden="true" className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
           <div>
@@ -93,7 +93,7 @@ export function OrderBag({
         ) : null}
       </div>
 
-      <SummaryStack className="space-y-4 text-sm">
+      <SummaryStack className="app-order-bag__stack space-y-4 text-sm">
         <PanelSection
           title="Paying customer"
           className="border-0 bg-transparent p-0"
@@ -101,7 +101,7 @@ export function OrderBag({
           <button
             type="button"
             onClick={onOpenCustomerModal}
-            className="flex w-full items-start gap-3 rounded-[var(--app-radius-md)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface-muted)]/24 focus-visible:bg-[var(--app-surface-muted)]/36 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus)]"
+            className="app-order-bag__customer-row flex w-full items-start gap-3 rounded-[var(--app-radius-md)] px-1 py-1.5 text-left transition hover:bg-[var(--app-surface-muted)]/24 focus-visible:bg-[var(--app-surface-muted)]/36 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--app-focus)]"
           >
             <UserRound aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
             <div className="min-w-0 flex-1">
@@ -133,13 +133,13 @@ export function OrderBag({
                         : undefined
                     }
                     className={cx(
-                      "group rounded-[var(--app-radius-sm)] px-1 py-2.5",
+                      "app-order-bag__item group rounded-[var(--app-radius-sm)] px-1 py-2.5",
                       index > 0 && "border-t border-[var(--app-border-strong)]/42",
                       item.itemId && "cursor-pointer transition-colors hover:bg-[var(--app-surface-muted)]/28",
                     )}
                   >
-                    <div className="space-y-2 px-3">
-                      <div className="flex items-start justify-between gap-3">
+                    <div className="app-order-bag__item-body space-y-2 px-3">
+                      <div className="app-order-bag__item-head flex items-start justify-between gap-3">
                         <div className="min-w-0 flex-1">
                           <div className="flex flex-wrap items-center gap-2">
                             <div className="app-text-overline inline-flex items-center whitespace-nowrap text-[var(--app-text-soft)]">
@@ -153,7 +153,7 @@ export function OrderBag({
                           </div>
                           <div className="mt-0.75 app-text-strong leading-tight">{item.garmentLabel}</div>
                         </div>
-                        <div className="flex min-w-[96px] shrink-0 flex-col items-end gap-1.5 text-right">
+                        <div className="app-order-bag__item-price flex min-w-[96px] shrink-0 flex-col items-end gap-1.5 text-right">
                           <div className="app-text-strong">${item.amount.toFixed(2)}</div>
                           {item.removable && item.itemId ? (
                             <button
@@ -331,9 +331,10 @@ export function OrderBag({
           <EmptyState>No summary yet.</EmptyState>
         )}
 
-        <div className="grid grid-cols-1 gap-2 border-t border-[var(--app-border-strong)]/50 pt-3">
+        <div className="app-order-bag__footer grid grid-cols-1 gap-2 border-t border-[var(--app-border-strong)]/50 pt-3">
           <ActionButton
             tone="primary"
+            className="app-order-bag__continue"
             onClick={() => {
               if (continueDisabled) {
                 if (continueDisabledReason && onShowDisabledReason) {

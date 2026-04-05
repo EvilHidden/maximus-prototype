@@ -20,14 +20,12 @@ export function WorkflowSelector({
       key: "alteration" as const,
       icon: Scissors,
       title: "Alterations",
-      subtitle: "Garment and services",
       enabled: hasAlterationContent,
     },
     {
       key: "custom" as const,
       icon: Shirt,
       title: "Custom garment",
-      subtitle: "Measurements and style",
       enabled: hasCustomContent,
     },
   ];
@@ -37,7 +35,6 @@ export function WorkflowSelector({
       <div className="mb-2.5 flex items-baseline justify-between gap-3">
         <div>
           <div className="app-text-overline text-[var(--app-text-soft)]">Service type</div>
-          <div className="app-text-caption mt-1">Choose the workstream you’re building right now.</div>
         </div>
         {activeWorkflow ? (
           <div className="app-order-builder-selector__active-label">
@@ -75,9 +72,7 @@ export function WorkflowSelector({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className={cx("app-text-strong", !isActive && "text-[var(--app-text-muted)]")}>{option.title}</div>
-                  <div className="app-text-caption mt-1">{option.subtitle}</div>
                 </div>
-                {isActive ? <div className="app-text-overline text-[var(--app-text-soft)]">Active</div> : null}
               </div>
             </button>
           );
