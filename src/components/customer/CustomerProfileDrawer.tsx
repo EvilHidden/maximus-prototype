@@ -1,8 +1,8 @@
 import { useState } from "react";
-import { Archive, ArrowRight, CalendarDays, MessageSquare, PencilRuler, Ruler, User } from "lucide-react";
+import { Archive, ArrowRight, CalendarDays, MapPin, MessageSquare, PencilRuler, Phone, Ruler, User } from "lucide-react";
 import type { Customer, CustomerOrder, MeasurementSet, PickupLocation, Screen, ServiceAppointmentType } from "../../types";
 import { ActionButton, Callout, ModalShell, StatusPill } from "../ui/primitives";
-import { ModalFooterActions, ModalSummaryCard } from "../ui/modalPatterns";
+import { ModalFooterActions, ModalMetaRow, ModalSectionHeading, ModalSummaryCard } from "../ui/modalPatterns";
 import { MeasurementStatusPill, OrderStatusPill, VipPill } from "../ui/pills";
 import { formatCustomerOrderDate, formatCustomerOrderTotal } from "../../features/customer/selectors";
 import {
@@ -47,14 +47,14 @@ function ToolTile({
     <button
       onClick={onClick}
       disabled={disabled}
-      className={`flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border px-3 py-3 text-left transition ${
+      className={`app-customer-rail__tool-tile flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border px-3 py-2.5 text-left transition ${
         disabled
           ? "cursor-not-allowed border-[var(--app-border)]/25 bg-[var(--app-surface-muted)]/35 opacity-65"
           : "border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/85 hover:border-[var(--app-border-strong)] hover:bg-[var(--app-surface-muted)]"
       }`}
     >
       <div className="flex min-w-0 items-center gap-3">
-        <div className="app-icon-chip">
+        <div className="app-icon-chip app-customer-rail__tool-icon">
           <Icon className="h-4 w-4" />
         </div>
         <div className="min-w-0">
@@ -64,26 +64,6 @@ function ToolTile({
       </div>
       <ArrowRight className="h-4 w-4 shrink-0 text-[var(--app-text-soft)]" />
     </button>
-  );
-}
-
-function SectionHeading({
-  title,
-  subtitle,
-  meta,
-}: {
-  title: string;
-  subtitle: string;
-  meta?: string;
-}) {
-  return (
-    <div className="flex items-center justify-between gap-3">
-      <div>
-        <div className="app-text-value">{title}</div>
-        <div className="app-text-caption mt-1">{subtitle}</div>
-      </div>
-      {meta ? <div className="app-text-overline">{meta}</div> : null}
-    </div>
   );
 }
 
@@ -97,15 +77,22 @@ function RailEmptyState({ message }: { message: string }) {
 
 function RecentOrderRow({ order }: { order: CustomerOrder }) {
   return (
-    <div className="grid grid-cols-[minmax(0,1fr)_auto] gap-3 py-3.5">
+    <div className="app-customer-rail__order-row">
       <div className="min-w-0">
-        <div className="flex min-w-0 items-center gap-2">
+        <div className="flex min-w-0 items-start justify-between gap-3">
           <div className="app-text-body truncate font-medium">{order.label}</div>
-          <OrderStatusPill status={order.status} />
+          <div className="app-text-body shrink-0 text-right font-medium">{formatCustomerOrderTotal(order.total)}</div>
         </div>
-        <div className="app-text-caption mt-1 truncate">{`${order.id} • ${formatCustomerOrderDate(order.createdAt)}`}</div>
+        <div className="mt-1.5 flex min-w-0 items-center justify-between gap-3">
+          <div className="flex min-w-0 flex-wrap items-center gap-2">
+            <div className="app-text-caption">{formatCustomerOrderDate(order.createdAt)}</div>
+            <div className="app-text-caption text-[var(--app-text-soft)]">{order.id}</div>
+          </div>
+          <div className="shrink-0">
+            <OrderStatusPill status={order.status} />
+          </div>
+        </div>
       </div>
-      <div className="app-text-body self-start shrink-0 text-right font-medium">{formatCustomerOrderTotal(order.total)}</div>
     </div>
   );
 }
@@ -113,16 +100,16 @@ function RecentOrderRow({ order }: { order: CustomerOrder }) {
 function getMeasurementHistoryContent(set: MeasurementSet) {
   if (set.takenAt) {
     return {
+      title: set.note || "Measurement set",
       date: set.takenAt,
-      detail: set.note,
     };
   }
 
   const [firstSegment, ...rest] = set.note.split(" • ");
 
   return {
+    title: rest.join(" • ") || "Measurement set",
     date: firstSegment || "Date not recorded",
-    detail: rest.join(" • "),
   };
 }
 
@@ -133,22 +120,21 @@ function MeasurementHistoryRow({
   set: MeasurementSet;
   isLast: boolean;
 }) {
-  const { date, detail } = getMeasurementHistoryContent(set);
+  const { title, date } = getMeasurementHistoryContent(set);
 
   return (
-    <div className="grid grid-cols-[18px_minmax(0,1fr)] gap-3 pb-4 last:pb-0">
+    <div className="app-customer-rail__measurement-row grid grid-cols-[18px_minmax(0,1fr)] gap-3 last:pb-0">
       <div className="relative flex justify-center">
-        {!isLast ? <div className="absolute top-3 h-[calc(100%+1rem)] w-px bg-[var(--app-border)]/35" /> : null}
-        <div className="mt-1 h-3 w-3 rounded-full border border-[var(--app-border-strong)]/40 bg-[var(--app-surface)]" />
+        {!isLast ? <div className="app-customer-rail__measurement-line absolute top-3 h-[calc(100%+0.85rem)] w-px" /> : null}
+        <div className="app-customer-rail__measurement-dot mt-1 h-3 w-3 rounded-full" />
       </div>
       <div className="min-w-0">
         <div className="min-w-0">
           <div className="flex items-center justify-between gap-3">
-            <div className="app-text-body truncate font-medium">{set.label}</div>
+            <div className="app-text-body truncate font-medium">{title}</div>
             {set.suggested ? <StatusPill tone="success">Suggested</StatusPill> : null}
           </div>
-          <div className="app-text-body mt-1 font-medium">{date}</div>
-          {detail ? <div className="app-text-caption mt-1">{detail}</div> : null}
+          <div className="app-text-caption mt-1">{date}</div>
         </div>
       </div>
     </div>
@@ -174,150 +160,162 @@ export function CustomerProfileDrawer({
   const [appointmentComposerQuery, setAppointmentComposerQuery] = useState("");
   const [appointmentComposerState, setAppointmentComposerState] = useState<AppointmentComposerState>(() => createEmptyAppointmentComposerState(pickupLocations));
   const archived = customer?.archived ?? false;
+  const customerLocation = customer?.preferredLocation ?? "No preferred location";
+  const customerEmail = customer?.email || "No email on file";
+  const customerPhone = customer?.phone || "No phone on file";
 
   return (
     <div className="fixed inset-0 z-40">
       <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
-      <div className="absolute right-0 top-0 flex h-full w-[460px] flex-col border-l border-[var(--app-border)] bg-[var(--app-surface)] shadow-[var(--app-shadow-lg)]">
-        <div className="flex-1 overflow-auto p-4">
-        <div className="border-b border-[var(--app-border)]/45 pb-5">
-          <div className="flex items-start justify-between gap-3">
-            <div className="flex min-w-0 items-start gap-3">
-              <div className="app-icon-chip mt-0.5">
-                <User className="h-4 w-4" />
-              </div>
-              <div className="min-w-0">
-                <div className="flex items-center gap-2">
-                  <div className="app-text-value truncate">{customer?.name ?? "Select customer"}</div>
-                  {customer?.isVip ? <VipPill /> : null}
-                  {archived ? <StatusPill>Archived</StatusPill> : null}
-                </div>
-                <div className="app-text-body-muted mt-1">{customer?.phone ?? "No phone on file"}</div>
-              </div>
-            </div>
-            <div className="flex items-center gap-2">
-              <ActionButton tone="secondary" onClick={onClose} className="min-h-12 px-4 py-2.5 text-sm">
+      <div className="app-customer-rail absolute right-0 top-0 flex h-full w-full max-w-[30rem] flex-col border-l border-[var(--app-border)]/70 shadow-[var(--app-shadow-lg)]">
+      <div className="app-customer-rail__scroll flex-1 overflow-auto p-3.5">
+          <div className="space-y-3">
+            <div className="app-customer-rail__topbar">
+              <ActionButton tone="secondary" onClick={onClose} className="min-h-9 px-3 py-1.5 text-sm">
                 Close
               </ActionButton>
             </div>
-          </div>
 
-          <div className="mt-4 grid gap-4 sm:grid-cols-2">
-            <div>
-              <div className="app-text-overline">Measurements</div>
-              <div className="mt-2">
-                {customer ? <MeasurementStatusPill status={customer.measurementsStatus} showIcon /> : <StatusPill>Unknown</StatusPill>}
+            <div className="app-customer-rail__hero">
+              <div className="app-customer-rail__identity">
+                <div className="flex items-start gap-3">
+                  <div className="app-icon-chip mt-0.5 hidden sm:flex">
+                    <User className="h-4 w-4" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <div className="flex min-w-0 items-center gap-2">
+                      <div className="app-customer-rail__name truncate">{customer?.name ?? "Select customer"}</div>
+                      {customer?.isVip ? <VipPill /> : null}
+                      {archived ? <StatusPill>Archived</StatusPill> : null}
+                    </div>
+                    <div className="app-text-body-muted mt-1">{customerEmail}</div>
+                  </div>
+                </div>
+                <ModalMetaRow
+                  className="mt-3"
+                  items={[
+                    { icon: Phone, content: customerPhone },
+                    { icon: MapPin, content: customerLocation },
+                    { icon: MapPin, content: customer?.address || "No address on file" },
+                  ]}
+                />
+              </div>
+
+              <div className="app-customer-rail__stats mt-3">
+                <div className="app-customer-rail__stat">
+                  <div className="app-text-overline">Measurements</div>
+                  <div className="mt-2">
+                    {customer ? <MeasurementStatusPill status={customer.measurementsStatus} showIcon /> : <StatusPill>Unknown</StatusPill>}
+                  </div>
+                </div>
+                <div className="app-customer-rail__stat">
+                  <div className="app-text-overline">Last visit</div>
+                  <div className={hasVisitHistory ? "app-text-body mt-2 font-medium" : "app-text-caption mt-2"}>
+                    {hasVisitHistory ? customer?.lastVisit : "No visit history yet"}
+                  </div>
+                </div>
+              </div>
+
+              <div className="app-customer-rail__notes mt-3">
+                <div className="app-text-overline">Notes</div>
+                <div className="app-text-body-muted mt-2">{customer?.notes ?? "No notes yet."}</div>
               </div>
             </div>
-            <div>
-              <div className="app-text-overline">Last visit</div>
-              <div className={hasVisitHistory ? "app-text-body mt-2 font-medium" : "app-text-caption mt-2"}>
-                {hasVisitHistory ? customer?.lastVisit : "No visit history yet"}
+
+            <section className="app-customer-rail__section app-customer-rail__section--flush">
+              <ModalSectionHeading
+                className="app-customer-rail__section-heading"
+                title={<span className="app-customer-rail__section-title">Quick actions</span>}
+                description="Most common customer-service actions."
+              />
+
+              <div className="space-y-1.5">
+                <ToolTile
+                  icon={User}
+                  label="New Order"
+                  subtitle={archived ? "Archived profiles are historical only." : "Start a new order for this customer."}
+                  disabled={archived}
+                  onClick={archived ? undefined : () => {
+                    onClose();
+                    if (customer) {
+                      onStartOrderForCustomer(customer.id);
+                    }
+                  }}
+                />
+                <ToolTile
+                  icon={CalendarDays}
+                  label="New Appointment"
+                  subtitle={archived ? "Archived profiles are view-only." : "Book a new visit for this customer."}
+                  disabled={archived}
+                  onClick={archived ? undefined : () => {
+                    if (customer) {
+                      setAppointmentComposerQuery("");
+                      setAppointmentComposerState({
+                        ...createEmptyAppointmentComposerState(pickupLocations),
+                        customerId: customer.id,
+                      });
+                      setAppointmentComposerOpen(true);
+                    }
+                  }}
+                />
+                <ToolTile
+                  icon={Ruler}
+                  label="Open Measurements"
+                  subtitle={archived ? "Archived profiles are view-only." : "Review or update saved measurement sets."}
+                  disabled={archived}
+                  onClick={archived ? undefined : () => {
+                    onClose();
+                    onScreenChange("measurements");
+                  }}
+                />
+                <ToolTile
+                  icon={PencilRuler}
+                  label="Add New Measurement Set"
+                  subtitle={archived ? "Archived profiles are view-only." : "Capture a fresh measurement profile."}
+                  disabled={archived}
+                  onClick={archived ? undefined : () => {
+                    onClose();
+                    onScreenChange("measurements");
+                  }}
+                />
+                <ToolTile icon={MessageSquare} label="Message Customer" subtitle="Prepare outreach or follow-up." />
               </div>
-            </div>
-          </div>
+            </section>
 
-          <div className="mt-4">
-            <div className="app-text-overline">Notes</div>
-            <div className="app-text-body-muted mt-2">{customer?.notes ?? "No notes yet."}</div>
-          </div>
-        </div>
+            <section className="app-customer-rail__section">
+              <ModalSectionHeading
+                className="app-customer-rail__section-heading"
+                title={<span className="app-customer-rail__section-title">Recent orders</span>}
+                action={<div className="app-customer-rail__section-count whitespace-nowrap">{orders.length} orders</div>}
+              />
 
-        <div className="mt-6">
-          <SectionHeading
-            title="Quick actions"
-            subtitle="Most common customer-service actions."
-          />
-
-          <div className="mt-3 space-y-2">
-            <ToolTile
-              icon={User}
-              label="New Order"
-              subtitle={archived ? "Archived profiles are historical only." : "Start a new order for this customer."}
-              disabled={archived}
-              onClick={archived ? undefined : () => {
-                onClose();
-                if (customer) {
-                  onStartOrderForCustomer(customer.id);
-                }
-              }}
-            />
-            <ToolTile
-              icon={CalendarDays}
-              label="New Appointment"
-              subtitle={archived ? "Archived profiles are view-only." : "Book a new visit for this customer."}
-              disabled={archived}
-              onClick={archived ? undefined : () => {
-                if (customer) {
-                  setAppointmentComposerQuery("");
-                  setAppointmentComposerState({
-                    ...createEmptyAppointmentComposerState(pickupLocations),
-                    customerId: customer.id,
-                  });
-                  setAppointmentComposerOpen(true);
-                }
-              }}
-            />
-            <ToolTile
-              icon={Ruler}
-              label="Open Measurements"
-              subtitle={archived ? "Archived profiles are view-only." : "Review or update saved measurement sets."}
-              disabled={archived}
-              onClick={archived ? undefined : () => {
-                onClose();
-                onScreenChange("measurements");
-              }}
-            />
-            <ToolTile
-              icon={PencilRuler}
-              label="Add New Measurement Set"
-              subtitle={archived ? "Archived profiles are view-only." : "Capture a fresh measurement profile."}
-              disabled={archived}
-              onClick={archived ? undefined : () => {
-                onClose();
-                onScreenChange("measurements");
-              }}
-            />
-            <ToolTile icon={MessageSquare} label="Message Customer" subtitle="Prepare outreach or follow-up." />
-          </div>
-        </div>
-
-        <div className="mt-6 border-t border-[var(--app-border)]/45 pt-5">
-          <SectionHeading
-            title="Recent orders"
-            subtitle="Current and recent work tied to this customer."
-            meta={`${orders.length} orders`}
-          />
-
-          <div className="mt-3 divide-y divide-[var(--app-border)]/28">
-            {orders.length ? orders.map((order) => <RecentOrderRow key={order.id} order={order} />) : <RailEmptyState message="No recent orders for this profile yet." />}
-          </div>
-        </div>
-
-        <div className="mt-6 border-t border-[var(--app-border)]/45 pt-5">
-          <SectionHeading
-            title="Measurement history"
-            subtitle="Saved versions available for fittings and custom work."
-            meta={`${measurementSets.length} saved`}
-          />
-          <div className="mt-4">
-            {measurementSets.length ? (
-              <div>
-                {measurementSets.map((set, index) => (
-                  <MeasurementHistoryRow
-                    key={set.id}
-                    set={set}
-                    isLast={index === measurementSets.length - 1}
-                  />
-                ))}
+              <div className="app-customer-rail__order-list divide-y divide-[var(--app-border)]/28">
+                {orders.length ? orders.map((order) => <RecentOrderRow key={order.id} order={order} />) : <RailEmptyState message="No recent orders for this profile yet." />}
               </div>
-            ) : (
-              <RailEmptyState message="No saved measurement sets on file yet." />
-            )}
+            </section>
+
+            <section className="app-customer-rail__section">
+              <ModalSectionHeading
+                className="app-customer-rail__section-heading"
+                title={<span className="app-customer-rail__section-title">Measurement history</span>}
+                action={<div className="app-customer-rail__section-count whitespace-nowrap">{measurementSets.length} saved</div>}
+              />
+
+              <div className="app-customer-rail__history pt-0.5">
+                {measurementSets.length ? (
+                  <div>
+                    {measurementSets.map((set, index) => (
+                      <MeasurementHistoryRow key={set.id} set={set} isLast={index === measurementSets.length - 1} />
+                    ))}
+                  </div>
+                ) : (
+                  <RailEmptyState message="No saved measurement sets on file yet." />
+                )}
+              </div>
+            </section>
           </div>
         </div>
-        </div>
-        <div className="border-t border-[var(--app-border)]/45 bg-[var(--app-surface-muted)]/75 p-4">
+        <div className="app-customer-rail__footer px-3.5 py-3">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="app-text-overline">Profile actions</div>
@@ -327,7 +325,7 @@ export function CustomerProfileDrawer({
             </div>
             <div className="flex items-center gap-2">
               {!archived ? (
-                <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-12 px-4 py-2.5 text-sm">
+                <ActionButton tone="secondary" onClick={onEditCustomer} className="min-h-11 px-4 py-2.5 text-sm">
                   Edit
                 </ActionButton>
               ) : null}
@@ -335,7 +333,7 @@ export function CustomerProfileDrawer({
                 <ActionButton
                   tone="danger"
                   onClick={() => setConfirmDeleteOpen(true)}
-                  className="min-h-12 px-4 py-2.5 text-sm"
+                  className="min-h-11 px-4 py-2.5 text-sm"
                 >
                   <Archive className="h-4 w-4" />
                   Archive
