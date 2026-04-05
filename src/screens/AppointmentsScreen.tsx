@@ -273,7 +273,7 @@ export function AppointmentsScreen({
 
       {viewMode === "calendar" ? (
         <div className="hidden md:block">
-          <div className="app-page-with-support-rail">
+          <div className="app-page-with-support-rail app-appointments-calendar-layout">
             <AppointmentsCalendar
               anchorDate={anchorDate}
               monthLabel={monthLabel}

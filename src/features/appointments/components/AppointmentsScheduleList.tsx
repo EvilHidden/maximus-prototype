@@ -44,7 +44,7 @@ export function AppointmentsScheduleList({
       className="mb-2 border-b border-[var(--app-border)]/40 pb-2"
       meta={
         selectedDateKey && showShowAllButton ? (
-          <div className="w-[96px] shrink-0 text-right">
+          <div className="app-appointments-schedule-list__show-all w-[96px] shrink-0 text-right">
             <ActionButton
               tone="quiet"
               className="whitespace-nowrap px-2.5 py-1.5 text-xs"
@@ -76,7 +76,7 @@ export function AppointmentsScheduleList({
                 key={appointment.id}
                 className="border-b border-[var(--app-border)]/50 py-2.5 last:border-b-0"
               >
-                <div className="grid grid-cols-[72px_minmax(0,1fr)_auto] gap-2">
+                <div className="app-appointments-schedule-row grid grid-cols-[72px_minmax(0,1fr)_auto] gap-2">
                   <div className="pt-0.5">
                     {showDateInRow ? <div className="app-text-caption">{getAppointmentDateLabel(appointment)}</div> : null}
                     <div className="app-text-strong mt-1">{getAppointmentTimeLabel(appointment)}</div>
@@ -121,7 +121,11 @@ export function AppointmentsScheduleList({
   }
 
   return (
-    <Surface tone={tone} as="aside" className={cx("app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}>
+    <Surface
+      tone={tone}
+      as="aside"
+      className={cx("app-appointments-schedule-rail app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}
+    >
       {content}
     </Surface>
   );

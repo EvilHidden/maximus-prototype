@@ -323,6 +323,10 @@ textarea:focus-visible {
   gap: 1rem;
 }
 
+.app-appointments-calendar-layout {
+  align-items: start;
+}
+
 .app-support-rail-fixed {
   width: 100%;
 }
@@ -567,6 +571,15 @@ textarea:focus-visible {
   gap: 0.8rem;
 }
 
+.app-appointments-calendar__toolbar {
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.app-appointments-month-grid {
+  min-width: 0;
+}
+
 .app-order-builder-layout__main {
   min-width: 0;
 }
@@ -664,7 +677,7 @@ textarea:focus-visible {
 
 .app-measurements-set-sheet__row {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) max-content;
   align-items: center;
   gap: 0.8rem;
   width: 100%;
@@ -698,7 +711,8 @@ textarea:focus-visible {
   display: grid;
   justify-items: end;
   gap: 0.15rem;
-  min-width: 6rem;
+  min-width: 0;
+  white-space: nowrap;
 }
 
 .app-measurements-set-board {
@@ -1467,30 +1481,78 @@ textarea:focus-visible {
 }
 
 @media (min-width: 1000px) and (max-width: 1366px) {
+  .app-appointments-calendar-layout {
+    grid-template-columns: minmax(0, 1fr) clamp(15.5rem, 27.5vw, var(--app-support-rail-width-tablet));
+    gap: 0.75rem;
+  }
+
+  .app-appointments-calendar-layout .app-support-rail-fixed {
+    min-width: clamp(15.5rem, 27.5vw, var(--app-support-rail-width-tablet));
+    max-width: clamp(15.5rem, 27.5vw, var(--app-support-rail-width-tablet));
+  }
+
+  .app-appointments-calendar__header {
+    gap: 0.65rem;
+  }
+
+  .app-appointments-calendar__toolbar {
+    gap: 0.45rem;
+  }
+
+  .app-appointments-calendar__shell {
+    padding: 0.35rem;
+  }
+
+  .app-appointments-month-grid {
+    gap: 0.35rem;
+  }
+
+  .app-appointments-month-grid > .app-text-overline {
+    padding-inline: 0.35rem;
+  }
+
+  .app-appointments-schedule-rail {
+    padding-inline: 0.7rem;
+  }
+
+  .app-appointments-schedule-list__show-all {
+    width: 4.75rem;
+  }
+
+  .app-appointments-schedule-row {
+    grid-template-columns: 3.8rem minmax(0, 1fr) auto;
+    gap: 0.55rem;
+  }
+
   .app-measurements-layout {
-    grid-template-columns: minmax(0, 1fr) var(--app-support-rail-width);
+    grid-template-columns: minmax(0, 1fr) clamp(16rem, 29vw, var(--app-support-rail-width));
   }
 
   .app-measurements-layout .app-support-rail-fixed {
     position: sticky;
     top: 0;
-    min-width: var(--app-support-rail-width);
-    max-width: var(--app-support-rail-width);
+    min-width: clamp(16rem, 29vw, var(--app-support-rail-width));
+    max-width: clamp(16rem, 29vw, var(--app-support-rail-width));
   }
 
   .app-measurements-workspace__editor {
-    padding: 0.8rem 0.8rem 0.85rem;
+    padding: 0.7rem 0.7rem 0.8rem;
   }
 
   .app-measurements-workbench {
-    grid-template-columns: minmax(12rem, 0.72fr) minmax(17rem, 1.28fr);
-    gap: 0.85rem;
+    grid-template-columns: minmax(10.75rem, 0.64fr) minmax(18rem, 1.36fr);
+    gap: 0.7rem;
     min-height: clamp(30rem, calc(100vh - 15rem), 40rem);
     overflow: hidden;
   }
 
   .app-measurements-workbench__editor {
-    padding-left: 0.85rem;
+    padding-left: 0.7rem;
+  }
+
+  .app-measurements-set-board {
+    overflow: hidden;
+    padding-right: 0.35rem;
   }
 
   .app-measurements-pad__hero {
@@ -1498,8 +1560,13 @@ textarea:focus-visible {
     align-items: end;
   }
 
+  .app-measurements-pad__hero-value {
+    min-width: 9.75rem;
+  }
+
   .app-measurements-pad__main {
     grid-template-columns: 1fr;
+    gap: 0.8rem;
   }
 
   .app-measurements-console__flow-actions {
@@ -1510,6 +1577,16 @@ textarea:focus-visible {
   .app-measurements-set-sheet {
     grid-template-columns: 1fr;
     gap: 0.4rem;
+    padding-right: 0.3rem;
+  }
+
+  .app-measurements-set-sheet__row {
+    gap: 0.25rem;
+    padding-inline: 0.5rem;
+  }
+
+  .app-measurements-set-sheet__row-value {
+    min-width: 0;
   }
 
   .app-measurements-pad__manual-input {
