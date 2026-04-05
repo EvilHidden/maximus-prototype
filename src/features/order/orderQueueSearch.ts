@@ -99,6 +99,12 @@ export type OpenOrderFilterOptions = {
   locationFilter: PickupLocation | "all";
 };
 
+export type ClosedOrderFilterOptions = {
+  query: string;
+  typeFilter: OpenOrder["orderType"] | "all";
+  locationFilter: PickupLocation | "all";
+};
+
 export function getOrderQueueCounts(openOrders: OpenOrder[], options: { now?: Date } = {}) {
   const now = options.now ?? new Date();
   const queueKeys: OrdersQueueKey[] = [
@@ -155,11 +161,33 @@ export function filterOpenOrders(
   }));
 }
 
-export function filterClosedOrderHistory(historyItems: ClosedOrderHistoryItem[], query: string) {
-  const normalizedQuery = normalizeSearchValue(query);
-  if (!normalizedQuery) {
-    return historyItems;
+function closedOrderMatchesLocation(order: ClosedOrderHistoryItem, locationFilter: PickupLocation | "all") {
+  if (locationFilter === "all") {
+    return true;
   }
 
-  return historyItems.filter((order) => getClosedOrderSearchText(order).includes(normalizedQuery));
+  return (order.pickupSchedules ?? []).some((pickup) => pickup.pickupLocation === locationFilter);
+}
+
+export function filterClosedOrderHistory(
+  historyItems: ClosedOrderHistoryItem[],
+  { query, typeFilter, locationFilter }: ClosedOrderFilterOptions,
+) {
+  const normalizedQuery = normalizeSearchValue(query);
+
+  return historyItems.filter((order) => {
+    if (typeFilter !== "all" && order.orderType !== typeFilter) {
+      return false;
+    }
+
+    if (!closedOrderMatchesLocation(order, locationFilter)) {
+      return false;
+    }
+
+    if (!normalizedQuery) {
+      return true;
+    }
+
+    return getClosedOrderSearchText(order).includes(normalizedQuery);
+  });
 }

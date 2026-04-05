@@ -75,7 +75,7 @@ export function getPickupStatusSummary(pickup: OpenOrder["pickupSchedules"][numb
 }
 
 export function getOpenOrderPickupGroups(
-  openOrder: OpenOrder,
+  openOrder: Pick<OpenOrder, "orderType" | "pickupSchedules">,
   options: {
     includePickedUp?: boolean;
     scopes?: OpenOrder["pickupSchedules"][number]["scope"][];
@@ -164,7 +164,7 @@ export function getPickupAppointmentConfirmationState(appointment: Appointment) 
   };
 }
 
-export function getOpenOrderLocationSummary(openOrder: OpenOrder) {
+export function getOpenOrderLocationSummary(openOrder: Pick<OpenOrder, "pickupSchedules">) {
   const uniqueLocations = [...new Set(openOrder.pickupSchedules.map((pickup) => pickup.pickupLocation).filter(Boolean))];
   return uniqueLocations.join(" • ");
 }

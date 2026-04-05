@@ -1,6 +1,6 @@
 import { CalendarClock, ChevronDown, ClipboardList, CreditCard, MapPin } from "lucide-react";
 import { useEffect, useMemo, useState } from "react";
-import type { CheckoutPaymentMode, Customer, OpenOrder, OrderTimelineItem, Screen } from "../types";
+import type { CheckoutPaymentMode, ClosedOrderDetail, Customer, OpenOrder, OrderTimelineItem, Screen } from "../types";
 import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import {
   getMixedPaymentAllocation,
@@ -20,6 +20,7 @@ import { ConfirmCheckoutModal } from "../features/order/modals/ConfirmCheckoutMo
 type OrderDetailsScreenProps = {
   customers: Customer[];
   openOrder: OpenOrder | null;
+  closedOrder: ClosedOrderDetail | null;
   showAcceptedConfirmation: boolean;
   showCheckoutCompletion: boolean;
   requestedCheckoutPaymentMode: Exclude<CheckoutPaymentMode, "none"> | null;
@@ -104,8 +105,11 @@ function getDetailsSubtitle(openOrder: OpenOrder, dueNow: number, remainingLater
   return "Review the order before making changes.";
 }
 
-function getScopeLineItems(openOrder: OpenOrder, scope: OpenOrder["pickupSchedules"][number]["scope"]) {
-  return openOrder.lineItems.filter((item) => item.kind === scope);
+function getScopeLineItems(
+  order: Pick<OpenOrder, "lineItems">,
+  scope: OpenOrder["pickupSchedules"][number]["scope"],
+) {
+  return order.lineItems.filter((item) => item.kind === scope);
 }
 
 function formatScopeReadyBy(pickup: OpenOrder["pickupSchedules"][number] | null) {
@@ -155,28 +159,28 @@ function getCollapsedItemSummary(item: OpenOrder["lineItems"][number]) {
 }
 
 function getOrderReceiptItems({
-  openOrder,
+  order,
 }: {
-  openOrder: OpenOrder;
+  order: Pick<OpenOrder, "lineItems" | "total" | "orderType" | "totalCollected" | "balanceDue">;
 }) {
-  const alterationSubtotal = openOrder.lineItems
+  const alterationSubtotal = order.lineItems
     .filter((item) => item.kind === "alteration")
     .reduce((sum, item) => sum + item.amount, 0);
-  const customSubtotal = openOrder.lineItems
+  const customSubtotal = order.lineItems
     .filter((item) => item.kind === "custom")
     .reduce((sum, item) => sum + item.amount, 0);
-  const taxAmount = Math.max(openOrder.total - alterationSubtotal - customSubtotal, 0);
-  const isFullyPaid = openOrder.balanceDue <= 0;
-  const mixedAllocation = openOrder.orderType === "mixed" ? getMixedPaymentAllocation(openOrder) : null;
-  const customDepositDue = openOrder.orderType === "custom" ? customSubtotal * 0.5 : 0;
-  const depositPaid = openOrder.orderType === "mixed"
+  const taxAmount = Math.max(order.total - alterationSubtotal - customSubtotal, 0);
+  const isFullyPaid = order.balanceDue <= 0;
+  const mixedAllocation = order.orderType === "mixed" ? getMixedPaymentAllocation(order) : null;
+  const customDepositDue = order.orderType === "custom" ? customSubtotal * 0.5 : 0;
+  const depositPaid = order.orderType === "mixed"
     ? mixedAllocation?.depositPaid ?? 0
-    : openOrder.orderType === "custom"
-      ? Math.min(openOrder.totalCollected, customDepositDue)
+    : order.orderType === "custom"
+      ? Math.min(order.totalCollected, customDepositDue)
       : 0;
-  const depositDueRemaining = openOrder.orderType === "mixed"
+  const depositDueRemaining = order.orderType === "mixed"
     ? Math.max((mixedAllocation?.depositDue ?? 0) - depositPaid, 0)
-    : openOrder.orderType === "custom"
+    : order.orderType === "custom"
       ? Math.max(customDepositDue - depositPaid, 0)
       : 0;
   const showsDepositRow = true;
@@ -189,11 +193,11 @@ function getOrderReceiptItems({
     ...(!isFullyPaid
       ? [{
           label: "Balance due",
-          value: formatCheckoutCurrency(openOrder.balanceDue),
+          value: formatCheckoutCurrency(order.balanceDue),
         }]
       : []),
     ...(isFullyPaid ? [{ label: "Balance due", value: formatCheckoutCurrency(0) }] : []),
-    { label: "Total", value: formatCheckoutCurrency(openOrder.total) },
+    { label: "Total", value: formatCheckoutCurrency(order.total) },
   ];
 }
 
@@ -206,9 +210,19 @@ function getTimelineTimestamp(occurredAt: OrderTimelineItem["occurredAt"]) {
   }).format(new Date(occurredAt));
 }
 
+function getOrderHeaderTimestamp(value: string) {
+  return new Intl.DateTimeFormat("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  }).format(new Date(value));
+}
+
 export function OrderDetailsScreen({
   customers,
   openOrder,
+  closedOrder,
   showAcceptedConfirmation,
   showCheckoutCompletion,
   requestedCheckoutPaymentMode,
@@ -225,9 +239,11 @@ export function OrderDetailsScreen({
   const [expandedItemIds, setExpandedItemIds] = useState<string[]>([]);
   const [selectedCheckoutPaymentMode, setSelectedCheckoutPaymentMode] = useState<Exclude<CheckoutPaymentMode, "none">>("minimum_due");
 
+  const detailOrder = openOrder ?? closedOrder;
+  const isClosedDetail = Boolean(closedOrder && !openOrder);
   const checkoutCustomer = useMemo(
-    () => (openOrder ? customers.find((customer) => customer.id === openOrder.payerCustomerId) ?? null : null),
-    [customers, openOrder],
+    () => (detailOrder ? customers.find((customer) => customer.id === detailOrder.payerCustomerId) ?? null : null),
+    [customers, detailOrder],
   );
 
   const toggleItemExpanded = (itemId: string) => {
@@ -247,7 +263,7 @@ export function OrderDetailsScreen({
     setCheckoutConfirmOpen(true);
   }, [openOrder, requestedCheckoutPaymentMode, showAcceptedConfirmation]);
 
-  if (!openOrder) {
+  if (!detailOrder) {
     return (
       <div className="space-y-4">
         <SectionHeader
@@ -269,25 +285,32 @@ export function OrderDetailsScreen({
     );
   }
 
-  const hasReadyScopesToPickup = hasReadyScopesForPickup(openOrder);
-  const mixedAllocation = openOrder.orderType === "mixed" && !hasReadyScopesToPickup
-    ? getMixedPaymentAllocation(openOrder)
+  const hasReadyScopesToPickup = hasReadyScopesForPickup(detailOrder);
+  const mixedAllocation = detailOrder.orderType === "mixed" && !hasReadyScopesToPickup
+    ? getMixedPaymentAllocation(detailOrder)
     : null;
-  const dueNow = openOrder.paymentDueNow;
-  const remainingLater = dueNow < openOrder.balanceDue ? openOrder.balanceDue - dueNow : 0;
-  const displayAmountNow = openOrder.balanceDue > 0 && dueNow <= 0 ? openOrder.balanceDue : dueNow;
-  const checkoutSubtitle = getDetailsSubtitle(openOrder, dueNow, remainingLater, hasReadyScopesToPickup);
-  const pickupGroups = getOpenOrderPickupGroups(openOrder, {
-    includePickedUp: openOrder.orderType === "mixed",
+  const dueNow = detailOrder.paymentDueNow;
+  const remainingLater = dueNow < detailOrder.balanceDue ? detailOrder.balanceDue - dueNow : 0;
+  const displayAmountNow = detailOrder.balanceDue > 0 && dueNow <= 0 ? detailOrder.balanceDue : dueNow;
+  const checkoutSubtitle = isClosedDetail
+    ? "Review the final receipt and lifecycle history for this closed order."
+    : getDetailsSubtitle(openOrder!, dueNow, remainingLater, hasReadyScopesToPickup);
+  const pickupGroups = getOpenOrderPickupGroups(detailOrder, {
+    includePickedUp: isClosedDetail || detailOrder.orderType === "mixed",
   });
   const totalsItems = getOrderReceiptItems({
-    openOrder,
+    order: detailOrder,
   });
   const receiptChargeRowCount = [
-    openOrder.lineItems.some((item) => item.kind === "alteration"),
-    openOrder.lineItems.some((item) => item.kind === "custom"),
+    detailOrder.lineItems.some((item) => item.kind === "alteration"),
+    detailOrder.lineItems.some((item) => item.kind === "custom"),
   ].filter(Boolean).length;
-  const timeline = openOrder.timeline ?? [];
+  const timeline = detailOrder.timeline ?? [];
+  const headerSubtitle = [
+    getOpenOrderTypeLabel(detailOrder.orderType),
+    `Created ${getOrderHeaderTimestamp(detailOrder.createdAt)}`,
+    isClosedDetail && closedOrder?.closedAt ? `Closed ${getOrderHeaderTimestamp(closedOrder.closedAt)}` : null,
+  ].filter(Boolean).join(" • ");
 
   return (
     <div className="space-y-4">
@@ -306,21 +329,18 @@ export function OrderDetailsScreen({
         <Surface tone="work" className="overflow-hidden">
           <div className="px-4 py-4">
             <SurfaceHeader
-              title={`Order #${openOrder.id}`}
-              subtitle={`${getOpenOrderTypeLabel(openOrder.orderType)} • Created ${new Intl.DateTimeFormat("en-US", {
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "2-digit",
-              }).format(new Date(openOrder.createdAt))}`}
+              title={`Order #${detailOrder.id}`}
+              subtitle={headerSubtitle}
               meta={(
                 <div className="app-detail-hero__meta text-left md:text-right">
                   <div className="app-text-overline">
-                    {hasReadyScopesToPickup && dueNow > 0
+                    {isClosedDetail
+                      ? closedOrder!.status
+                      : hasReadyScopesToPickup && dueNow > 0
                       ? "Due today"
-                      : openOrder.balanceDue <= 0
+                      : detailOrder.balanceDue <= 0
                         ? "No balance due"
-                        : dueNow <= 0 && openOrder.balanceDue > 0
+                        : dueNow <= 0 && detailOrder.balanceDue > 0
                         ? "Open balance"
                         : "Balance due"}
                   </div>
@@ -332,7 +352,7 @@ export function OrderDetailsScreen({
             />
           </div>
 
-          {showAcceptedConfirmation ? (
+          {!isClosedDetail && showAcceptedConfirmation ? (
             <CheckoutAcceptedBanner
               openOrderId={openOrder.id}
               payerName={openOrder.payerName}
@@ -341,7 +361,7 @@ export function OrderDetailsScreen({
             />
           ) : null}
 
-          {hasReadyScopesToPickup && dueNow > 0 && remainingLater > 0 ? (
+          {!isClosedDetail && hasReadyScopesToPickup && dueNow > 0 && remainingLater > 0 ? (
             <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
               <Callout
                 tone="warn"
@@ -356,18 +376,20 @@ export function OrderDetailsScreen({
             <div className="app-order-details-overview">
               <div className="min-w-0 app-order-details-overview__customer">
                 <div className="app-text-overline">Customer</div>
-                <div className="mt-2 app-order-details-overview__customer-name">{openOrder.payerName}</div>
+                <div className="mt-2 app-order-details-overview__customer-name">{detailOrder.payerName}</div>
                 <div className="mt-2 space-y-1.5 app-order-details-overview__customer-meta">
                   {checkoutCustomer?.phone ? <div className="app-text-caption">{checkoutCustomer.phone}</div> : null}
                   {checkoutCustomer?.email ? <div className="app-text-caption">{checkoutCustomer.email}</div> : null}
                   {checkoutCustomer?.address ? <div className="app-text-caption whitespace-pre-line">{checkoutCustomer.address}</div> : null}
-                  {openOrder.payerCustomerId === null ? <div className="app-text-caption">Walk-in customer</div> : null}
+                  {detailOrder.payerCustomerId === null ? <div className="app-text-caption">Walk-in customer</div> : null}
                 </div>
               </div>
               <div className="min-w-0 app-order-details-overview__status app-order-details-overview__status--flat">
                 <div className="app-text-overline">Order status</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {openOrder.balanceDue > 0 ? (
+                  {isClosedDetail ? (
+                    <StatusPill tone={closedOrder!.status === "Canceled" ? "danger" : "success"}>{closedOrder!.status}</StatusPill>
+                  ) : detailOrder.balanceDue > 0 ? (
                     <StatusPill tone="warn">Balance due</StatusPill>
                   ) : (
                     <StatusPill tone="success">Paid</StatusPill>
@@ -383,9 +405,9 @@ export function OrderDetailsScreen({
             </div>
             <div className="mt-3 space-y-2.5">
               {pickupGroups.map((group, index) => {
-                const representativePickup = openOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
+                const representativePickup = detailOrder.pickupSchedules.find((pickup) => pickup.id === group.pickupIds[0]) ?? null;
                 const statusDisplay = getGroupStatusDisplay(group, representativePickup);
-                const scopeLineItems = getScopeLineItems(openOrder, group.scope);
+                const scopeLineItems = getScopeLineItems(detailOrder, group.scope);
                 const scopeAmount = scopeLineItems.reduce((sum, item) => sum + item.amount, 0);
                 const readyByLabel = formatScopeReadyBy(representativePickup);
                 const readyByDisplay = readyByLabel === "Timing needed" || readyByLabel.startsWith("Event due")
@@ -527,12 +549,17 @@ export function OrderDetailsScreen({
             totalsItems={totalsItems}
             summarySplitIndex={receiptChargeRowCount}
             summarySplitLabel="Payment summary"
+            actionsLabel={isClosedDetail ? "Archive view" : "Order actions"}
           >
-            {openOrder.balanceDue > 0 ? (
+            {isClosedDetail ? (
+              <div className="app-text-caption leading-relaxed text-[var(--app-text-soft)]">
+                Closed orders are read-only. Use this view to confirm the final receipt, pickup details, and lifecycle history.
+              </div>
+            ) : detailOrder.balanceDue > 0 ? (
               <ActionButton
                 tone="primary"
                 onClick={() => {
-                  setSelectedCheckoutPaymentMode(openOrder.paymentDueNow <= 0 ? "full_balance" : "minimum_due");
+                  setSelectedCheckoutPaymentMode(detailOrder.paymentDueNow <= 0 ? "full_balance" : "minimum_due");
                   setCheckoutConfirmOpen(true);
                 }}
               >
@@ -540,25 +567,27 @@ export function OrderDetailsScreen({
                 <span>Take payment</span>
               </ActionButton>
             ) : hasReadyScopesToPickup ? (
-              <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder.id)}>
+              <ActionButton tone="primary" onClick={() => onCompleteOpenOrderPickup(openOrder!.id)}>
                 Complete pickup
               </ActionButton>
             ) : (
-              <ActionButton tone="primary" onClick={() => onEditOpenOrder(openOrder.id)}>
+              <ActionButton tone="primary" onClick={() => onEditOpenOrder(openOrder!.id)}>
                 Edit order
               </ActionButton>
             )}
-            {openOrder.balanceDue > 0 || hasReadyScopesToPickup ? (
-              <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder.id)}>
+            {!isClosedDetail && (detailOrder.balanceDue > 0 || hasReadyScopesToPickup) ? (
+              <ActionButton tone="secondary" onClick={() => onEditOpenOrder(openOrder!.id)}>
                 Edit order
               </ActionButton>
             ) : null}
             <ActionButton tone="secondary" onClick={() => onScreenChange("openOrders")}>
               Back to orders
             </ActionButton>
-            <ActionButton tone="secondary" onClick={() => setCancelConfirmOpen(true)}>
-              Cancel order
-            </ActionButton>
+            {!isClosedDetail ? (
+              <ActionButton tone="secondary" onClick={() => setCancelConfirmOpen(true)}>
+                Cancel order
+              </ActionButton>
+            ) : null}
           </CheckoutSummaryRail>
 
           <div className="border-t border-[var(--app-border)]/35 pt-3">
@@ -599,7 +628,7 @@ export function OrderDetailsScreen({
         </div>
       </div>
 
-      {checkoutConfirmOpen ? (
+      {!isClosedDetail && checkoutConfirmOpen && openOrder ? (
         <ConfirmCheckoutModal
           openOrder={openOrder}
           minimumAmountDue={dueNow}
@@ -625,7 +654,7 @@ export function OrderDetailsScreen({
         />
       ) : null}
 
-      {cancelConfirmOpen ? (
+      {!isClosedDetail && cancelConfirmOpen && openOrder ? (
         <ConfirmCancelOrderModal
           openOrder={openOrder}
           onClose={() => setCancelConfirmOpen(false)}

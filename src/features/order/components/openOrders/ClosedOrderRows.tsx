@@ -1,5 +1,7 @@
 import { MapPin } from "lucide-react";
+import type { KeyboardEvent } from "react";
 import type { ClosedOrderHistoryItem } from "../../../../types";
+import { RowChevronAffordance, cx } from "../../../../components/ui/primitives";
 import { OpenOrdersTotalSection } from "./OpenOrdersRowSections";
 import {
   getClosedOrderCompletedLabel,
@@ -9,14 +11,37 @@ import {
   getOrdersStatusTextClassName,
 } from "./openOrdersFormatting";
 
-export function ClosedOrderRow({ order }: { order: ClosedOrderHistoryItem }) {
+export function ClosedOrderRow({
+  order,
+  onOpenOrderDetails,
+}: {
+  order: ClosedOrderHistoryItem;
+  onOpenOrderDetails: (openOrderId: number) => void;
+}) {
   const pickupSummary = getCompactPickupScheduleSummary(order.pickupSchedules ?? []);
   const locationSummary = getPickupLocationSummary(order.pickupSchedules ?? []);
   const itemSummary = order.itemSummary?.join(", ") || order.label;
-  const completedLabel = getClosedOrderCompletedLabel(order.completedAt ?? order.pickupSchedules?.[0]?.pickedUpAt);
+  const completedLabel = getClosedOrderCompletedLabel(order.closedAt);
+  const handleOpen = () => {
+    if (typeof order.orderNumber === "number") {
+      onOpenOrderDetails(order.orderNumber);
+    }
+  };
+  const handleRowKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      handleOpen();
+    }
+  };
 
   return (
-    <>
+    <div
+      className={cx("group relative cursor-pointer pr-12 min-[1000px]:pr-14")}
+      role="button"
+      tabIndex={0}
+      onClick={handleOpen}
+      onKeyDown={handleRowKeyDown}
+    >
       <div className="min-w-0">
         <div className="app-text-overline min-[1000px]:hidden">Customer</div>
         <div className="app-text-strong">{order.payerName ?? order.customerName}</div>
@@ -46,6 +71,7 @@ export function ClosedOrderRow({ order }: { order: ClosedOrderHistoryItem }) {
         {completedLabel ? <div className="app-text-caption mt-1">{completedLabel}</div> : null}
       </div>
       <OpenOrdersTotalSection total={order.total} balanceDue={order.balanceDue ?? 0} />
-    </>
+      <RowChevronAffordance />
+    </div>
   );
 }

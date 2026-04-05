@@ -69,8 +69,8 @@ export function useOpenOrdersView(
   );
 
   const filteredHistoryItems = useMemo(
-    () => filterClosedOrderHistory([...closedOrderHistory], query),
-    [closedOrderHistory, query],
+    () => filterClosedOrderHistory([...closedOrderHistory], { query, typeFilter, locationFilter }),
+    [closedOrderHistory, locationFilter, query, typeFilter],
   );
 
   const queuesSubtitle =

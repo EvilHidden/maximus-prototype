@@ -1,6 +1,7 @@
 import { useMemo, useReducer } from "react";
 import {
   adaptAppointments,
+  adaptClosedOrderDetail,
   adaptClosedOrderHistory,
   adaptCustomerOrders,
   adaptCustomers,
@@ -47,6 +48,10 @@ export function useAppController() {
     () => openOrders.find((openOrder) => openOrder.id === state.checkoutOpenOrderId) ?? null,
     [openOrders, state.checkoutOpenOrderId],
   );
+  const checkoutClosedOrder = useMemo(
+    () => adaptClosedOrderDetail(state.database, state.checkoutOpenOrderId),
+    [state.checkoutOpenOrderId, state.database],
+  );
 
   const { measurementSets, saveMeasurements, startNewMeasurementSet, deleteMeasurementSet } = useMeasurementSetManager({
     measurementSets: derivedMeasurementSets,
@@ -74,6 +79,7 @@ export function useAppController() {
     selectedCustomer,
     payerCustomer,
     checkoutOpenOrder,
+    checkoutClosedOrder,
     startWorkflow,
     openWorkflowAppointment,
     saveMeasurements,

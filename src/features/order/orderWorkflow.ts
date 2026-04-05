@@ -513,6 +513,7 @@ export function getClosedOrderHistory(
         customerName,
         label: order.label,
         createdAt: order.createdAt,
+        closedAt: order.createdAt,
         status: order.status,
         total: order.total,
       }));

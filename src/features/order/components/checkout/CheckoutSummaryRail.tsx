@@ -11,6 +11,7 @@ type CheckoutSummaryRailProps = {
   totalsItems: SummaryItem[];
   summarySplitIndex?: number;
   summarySplitLabel?: string;
+  actionsLabel?: string;
   children: React.ReactNode;
 };
 
@@ -20,6 +21,7 @@ export function CheckoutSummaryRail({
   totalsItems,
   summarySplitIndex,
   summarySplitLabel = "Summary",
+  actionsLabel = "Order actions",
   children,
 }: CheckoutSummaryRailProps) {
   const totalItem = totalsItems[totalsItems.length - 1] ?? null;
@@ -83,7 +85,7 @@ export function CheckoutSummaryRail({
       </div>
 
       <div className="border-t border-[var(--app-border)]/40 px-4 py-3 app-checkout-rail__actions-shell">
-        <div className="app-text-overline app-checkout-rail__actions-label">Order actions</div>
+        <div className="app-text-overline app-checkout-rail__actions-label">{actionsLabel}</div>
         <div className="grid gap-2 app-checkout-rail__actions [&>*]:w-full">{children}</div>
       </div>
     </Surface>

@@ -6,8 +6,10 @@ import { ClosedOrdersColumnHeader, CLOSED_ORDER_ROW_GRID_CLASS, OrdersSectionHea
 
 export function ClosedOrdersSection({
   filteredHistoryItems,
+  onOpenOrderDetails,
 }: {
   filteredHistoryItems: ClosedOrderHistoryItem[];
+  onOpenOrderDetails: (openOrderId: number) => void;
 }) {
   if (!filteredHistoryItems.length) {
     return (
@@ -19,7 +21,7 @@ export function ClosedOrdersSection({
         />
         <div className="border-t border-[var(--app-border)]/45">
           <EmptyState className="rounded-none border-0 bg-transparent shadow-none">
-            No closed orders match this search.
+            No closed orders match this search and filter set.
           </EmptyState>
         </div>
       </div>
@@ -41,7 +43,7 @@ export function ClosedOrdersSection({
             className={openOrdersSectionClassName(index > 0)}
           >
             <div className={CLOSED_ORDER_ROW_GRID_CLASS}>
-              <ClosedOrderRow order={order} />
+              <ClosedOrderRow order={order} onOpenOrderDetails={onOpenOrderDetails} />
             </div>
           </div>
         ))}
