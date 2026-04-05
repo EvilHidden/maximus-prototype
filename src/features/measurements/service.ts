@@ -11,6 +11,24 @@ const fractionLabelMap = new Map<number, string>([
   [0.875, "⅞"],
 ]);
 
+const measurementRangeLabelMap: Record<string, string> = {
+  "Back Length": "Usually 14-22 in",
+  Shoulder: "Usually 14-22 in",
+  Neck: "Usually 12-20 in",
+  Chest: "Usually 30-60 in",
+  Stomach: "Usually 28-60 in",
+  Waist: "Usually 24-54 in",
+  Seat: "Usually 30-60 in",
+  Bicep: "Usually 10-22 in",
+  "Sleeve Length": "Usually 20-38 in",
+  Thigh: "Usually 15-35 in",
+  Rise: "Usually 8-18 in",
+  Bottom: "Usually 6-18 in",
+  Length: "Usually 28-52 in",
+  "Shirt Cuff Left": "Usually 6-15 in",
+  "Shirt Cuff Right": "Usually 6-15 in",
+};
+
 export function createEmptyMeasurementValues() {
   return createSeedMeasurementValueMap();
 }
@@ -51,4 +69,8 @@ export function formatMeasurementDisplayValue(value: string) {
   }
 
   return `${inches} ${fractionLabel}`;
+}
+
+export function getMeasurementRangeLabel(field: string) {
+  return measurementRangeLabelMap[field] ?? null;
 }

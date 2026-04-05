@@ -577,37 +577,18 @@ textarea:focus-visible {
 
 .app-measurements-workspace {
   display: block;
+  min-width: 0;
 }
 
 .app-measurements-workbench {
   display: grid;
   gap: 1rem;
   align-items: start;
+  min-width: 0;
 }
 
 .app-measurements-workbench__editor {
   min-width: 0;
-}
-
-.app-measurements-editor-head {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  gap: 0.9rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 36%, transparent);
-  padding-bottom: 0.95rem;
-}
-
-.app-measurements-editor-head__stats {
-  display: grid;
-  gap: 0.65rem;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.app-measurements-editor-head__action {
-  display: flex;
-  justify-content: flex-start;
-  grid-column: 1 / -1;
 }
 
 .app-measurements-editor-stat {
@@ -626,54 +607,6 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 
-.app-measurement-field-grid {
-  display: grid;
-  gap: 0.95rem;
-}
-
-.app-measurement-field-grid__section {
-  min-width: 0;
-}
-
-.app-measurements-entry-dock {
-  display: grid;
-  gap: 1rem;
-  min-width: 0;
-}
-
-.app-measurements-entry-dock__body {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 1rem;
-  align-items: start;
-}
-
-.app-measurements-entry-dock__pad {
-  min-width: 0;
-  border-top: 1px solid color-mix(in srgb, var(--app-border) 34%, transparent);
-  padding-top: 1rem;
-}
-
-.app-measurements-entry-dock__aside {
-  display: grid;
-  gap: 0.85rem;
-  align-content: start;
-  border-top: 1px solid color-mix(in srgb, var(--app-border) 34%, transparent);
-  padding-top: 0.95rem;
-}
-
-.app-measurements-entry-dock__footer-meta {
-  border: 1px solid color-mix(in srgb, var(--app-border) 32%, transparent);
-  border-radius: var(--app-radius-md);
-  background: color-mix(in srgb, var(--app-surface-muted) 24%, transparent);
-  padding: 0.85rem 0.9rem;
-}
-
-.app-measurements-console__flow {
-  display: grid;
-  gap: 0.65rem;
-}
-
 .app-measurements-console__flow-actions {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(8.75rem, 1fr));
@@ -686,22 +619,49 @@ textarea:focus-visible {
   overflow: hidden;
 }
 
+.app-measurements-rail__sets {
+  display: grid;
+  gap: 0.45rem;
+}
+
+.app-measurements-rail__set {
+  border: 1px solid color-mix(in srgb, var(--app-border) 60%, transparent);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
+  padding: 0.65rem 0.75rem;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease;
+}
+
+.app-measurements-rail__set:hover {
+  border-color: color-mix(in srgb, var(--app-border-strong) 48%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 22%, transparent);
+}
+
+.app-measurements-rail__set--active {
+  border-color: color-mix(in srgb, var(--app-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 9%, transparent);
+}
+
 .app-measurements-set-sheet {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
-  gap: 0.35rem 1rem;
+  grid-template-columns: 1fr;
+  gap: 0.45rem;
   padding-top: 0.2rem;
+  min-height: 0;
 }
 
 .app-measurements-set-sheet__row {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
-  align-items: baseline;
-  gap: 0.5rem;
+  align-items: center;
+  gap: 0.8rem;
   width: 100%;
-  border: 1px solid transparent;
+  border: 1px solid color-mix(in srgb, var(--app-border) 30%, transparent);
   border-radius: var(--app-radius-sm);
-  padding: 0.45rem 0.55rem;
+  background: color-mix(in srgb, var(--app-surface-muted) 18%, transparent);
+  padding: 0.7rem 0.75rem;
   text-align: left;
   transition:
     border-color 160ms ease,
@@ -710,8 +670,8 @@ textarea:focus-visible {
 }
 
 .app-measurements-set-sheet__row:hover {
-  border-color: color-mix(in srgb, var(--app-border) 52%, transparent);
-  background: color-mix(in srgb, var(--app-surface-muted) 24%, transparent);
+  border-color: color-mix(in srgb, var(--app-border) 56%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 28%, transparent);
 }
 
 .app-measurements-set-sheet__row:focus-visible {
@@ -724,15 +684,24 @@ textarea:focus-visible {
   background: color-mix(in srgb, var(--app-accent) 10%, transparent);
 }
 
+.app-measurements-set-sheet__row-value {
+  display: grid;
+  justify-items: end;
+  gap: 0.15rem;
+  min-width: 6rem;
+}
+
 .app-measurements-set-board {
   min-width: 0;
   padding: 0;
+  min-height: 0;
 }
 
 .app-measurements-set-board__grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: 0.5rem;
+  min-height: 0;
 }
 
 .app-measurements-set-board__empty {
@@ -744,6 +713,9 @@ textarea:focus-visible {
 
 .app-measurements-set-panel {
   padding: 0;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
+  min-height: 0;
 }
 
 .app-measurements-set-panel__head {
@@ -751,53 +723,187 @@ textarea:focus-visible {
   align-items: start;
   justify-content: flex-start;
   gap: 0.75rem;
-  margin-bottom: 0.75rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 32%, transparent);
-  padding-bottom: 0.6rem;
+  margin-bottom: 0.95rem;
+  max-width: 34rem;
 }
 
-.app-measurements-value-editor {
+.app-measurements-pad {
   display: grid;
-  gap: 0.85rem;
+  gap: 1rem;
 }
 
-.app-measurements-value-editor__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
+.app-measurements-pad__hero {
+  display: grid;
+  gap: 0.9rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--app-border) 36%, transparent);
+  padding-bottom: 0.95rem;
+}
+
+.app-measurements-pad__hero-caption {
+  min-height: 1rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  text-align: right;
+}
+
+.app-measurements-pad__hero-value {
+  display: grid;
+  align-content: start;
+  justify-items: end;
+  min-width: 12rem;
+  text-align: right;
+}
+
+.app-measurements-pad__hero-value-number {
+  font-size: clamp(2.15rem, 4vw, 3.8rem);
+  font-weight: 700;
+  letter-spacing: -0.06em;
+  line-height: 0.95;
+  color: var(--app-text);
+  white-space: nowrap;
+}
+
+.app-measurements-pad__main {
+  display: grid;
+  gap: 1rem;
+}
+
+.app-measurements-pad__quick-move {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.app-measurements-pad__entry {
+  display: grid;
+  gap: 0.95rem;
+  min-width: 0;
+}
+
+.app-measurements-pad__display {
+  display: grid;
   gap: 0.75rem;
+  grid-template-columns: 1fr;
 }
 
-.app-measurements-value-editor__body {
+.app-measurements-pad__display-card,
+.app-measurements-pad__assist-block {
+  border: 1px solid color-mix(in srgb, var(--app-border) 32%, transparent);
+  border-radius: var(--app-radius-md);
+  background: color-mix(in srgb, var(--app-surface-muted) 24%, transparent);
+  padding: 0.85rem 0.9rem;
+}
+
+.app-measurements-pad__display-meta {
+  margin-top: 0.55rem;
+  font-size: 1.05rem;
+  font-weight: 600;
+  color: var(--app-text);
+}
+
+.app-measurements-pad__input-mode {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) 4.5rem;
+  gap: 0.6rem;
+}
+
+.app-measurements-pad__mode-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.app-measurements-pad__mode-button,
+.app-measurements-pad__clear-button {
+  display: inline-flex;
+  min-height: 2.4rem;
+  align-items: center;
+  gap: 0.4rem;
+  border: 1px solid color-mix(in srgb, var(--app-border) 60%, transparent);
+  border-radius: var(--app-radius-sm);
+  background: color-mix(in srgb, var(--app-surface-muted) 18%, transparent);
+  padding: 0 0.8rem;
+  font-size: 0.83rem;
+  font-weight: 600;
+  color: var(--app-text-soft);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
+}
+
+.app-measurements-pad__mode-button:hover,
+.app-measurements-pad__clear-button:hover {
+  border-color: color-mix(in srgb, var(--app-border-strong) 48%, transparent);
+  color: var(--app-text);
+}
+
+.app-measurements-pad__mode-button--active {
+  border-color: color-mix(in srgb, var(--app-accent) 55%, transparent);
+  background: color-mix(in srgb, var(--app-accent) 10%, transparent);
+  color: var(--app-text);
+}
+
+.app-measurements-pad__manual-input {
+  min-height: 4.4rem;
+  padding-inline: 1rem;
+  text-align: center;
+  font-size: 2.3rem;
+  font-weight: 650;
+  line-height: 1;
+  letter-spacing: -0.06em;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-measurements-pad__keypad {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 4.4rem;
   gap: 0.7rem;
   align-items: stretch;
 }
 
-.app-measurements-value-editor__input {
-  min-height: 5.8rem;
-  height: 100%;
-  padding-inline: 1rem;
-  text-align: center;
-  font-size: 3.4rem;
-  font-weight: 600;
-  line-height: 1;
-  letter-spacing: -0.08em;
-  font-variant-numeric: tabular-nums;
+.app-measurements-pad__digits {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.55rem;
 }
 
-.app-measurements-value-editor__input::placeholder {
-  font-size: 1rem;
-  font-weight: 500;
-  letter-spacing: normal;
-  color: var(--app-text-soft);
+.app-measurements-pad__digit {
+  display: inline-flex;
+  min-height: 3.25rem;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid color-mix(in srgb, var(--app-border) 60%, transparent);
+  border-radius: var(--app-radius-sm);
+  background: var(--app-surface);
+  font-size: 1.1rem;
+  font-weight: 650;
+  color: var(--app-text);
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease;
 }
 
-.app-measurements-value-editor__stepper {
+.app-measurements-pad__digit:hover {
+  border-color: color-mix(in srgb, var(--app-border-strong) 56%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 22%, transparent);
+}
+
+.app-measurements-pad__digit--wide {
+  grid-column: span 2;
+}
+
+.app-measurements-pad__steps {
   display: grid;
   grid-template-rows: repeat(2, minmax(0, 1fr));
-  gap: 0.7rem;
+  gap: 0.55rem;
+}
+
+.app-measurements-pad__assist {
+  display: grid;
+  gap: 0.75rem;
+  align-content: start;
 }
 
 .app-measurements-value-editor__fractions {
@@ -935,11 +1041,6 @@ textarea:focus-visible {
     padding: 0.85rem 0.8rem;
   }
 
-  .app-measurements-editor-head {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-  }
-
   .app-measurements-workbench {
     grid-template-columns: 1fr;
   }
@@ -964,6 +1065,15 @@ textarea:focus-visible {
   }
 
   .app-measurements-set-sheet {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-measurements-pad__hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .app-measurements-pad__main {
     grid-template-columns: 1fr;
   }
 
@@ -1160,14 +1270,29 @@ textarea:focus-visible {
   }
 
   .app-measurements-workbench {
-    grid-template-columns: minmax(0, 1.18fr) minmax(20rem, 0.92fr);
-    align-items: start;
+    grid-template-columns: minmax(0, 1.14fr) minmax(20rem, 0.96fr);
+    align-items: stretch;
     gap: 1.1rem;
+    min-height: clamp(32rem, calc(100vh - 15.5rem), 44rem);
+    overflow: hidden;
   }
 
   .app-measurements-workbench__editor {
     border-left: 1px solid color-mix(in srgb, var(--app-border) 32%, transparent);
     padding-left: 1.1rem;
+    align-self: stretch;
+    position: sticky;
+    top: 0;
+  }
+
+  .app-measurements-set-board {
+    align-self: stretch;
+    overflow: hidden;
+  }
+
+  .app-measurements-set-sheet {
+    overflow-y: auto;
+    padding-right: 0.2rem;
   }
 
   .app-order-bag,
@@ -1285,25 +1410,24 @@ textarea:focus-visible {
   }
 
   .app-measurements-workbench {
-    grid-template-columns: minmax(0, 1.12fr) minmax(24rem, 0.96fr);
+    grid-template-columns: minmax(0, 1.05fr) minmax(26rem, 1fr);
     gap: 1.35rem;
+    min-height: clamp(34rem, calc(100vh - 16rem), 46rem);
+    overflow: hidden;
   }
 
-  .app-measurements-entry-dock__body {
-    grid-template-columns: minmax(0, 1fr) minmax(13rem, 0.74fr);
-    gap: 1rem;
-  }
-
-  .app-measurements-entry-dock__aside {
-    border-top: 0;
-    border-left: 1px solid color-mix(in srgb, var(--app-border) 32%, transparent);
-    padding-top: 0;
-    padding-left: 1rem;
-    min-height: 100%;
+  .app-measurements-pad__hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
   }
 
   .app-measurements-set-sheet {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .app-measurements-pad__main {
+    grid-template-columns: minmax(0, 1.08fr) minmax(14rem, 0.82fr);
+    gap: 1rem;
   }
 }
 
@@ -1323,32 +1447,24 @@ textarea:focus-visible {
     padding: 0.8rem 0.8rem 0.85rem;
   }
 
-  .app-measurements-editor-head {
-    grid-template-columns: minmax(0, 1fr);
-    align-items: start;
-    gap: 0.8rem;
-  }
-
-  .app-measurements-editor-head__stats {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-
-  .app-measurements-editor-head__action {
-    justify-content: flex-start;
-    grid-column: 1 / -1;
-  }
-
-  .app-measurements-entry-dock {
-    gap: 0.85rem;
-  }
-
   .app-measurements-workbench {
-    grid-template-columns: minmax(0, 1.08fr) minmax(17.75rem, 0.92fr);
+    grid-template-columns: minmax(0, 1.1fr) minmax(18.5rem, 0.9fr);
     gap: 0.95rem;
+    min-height: clamp(30rem, calc(100vh - 15rem), 40rem);
+    overflow: hidden;
   }
 
   .app-measurements-workbench__editor {
     padding-left: 0.95rem;
+  }
+
+  .app-measurements-pad__hero {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+  }
+
+  .app-measurements-pad__main {
+    grid-template-columns: 1fr;
   }
 
   .app-measurements-console__flow-actions {
@@ -1361,9 +1477,9 @@ textarea:focus-visible {
     gap: 0.4rem;
   }
 
-  .app-measurements-value-editor__input {
-    min-height: 5.3rem;
-    font-size: 3rem;
+  .app-measurements-pad__manual-input {
+    min-height: 4rem;
+    font-size: 2rem;
   }
 }
 
