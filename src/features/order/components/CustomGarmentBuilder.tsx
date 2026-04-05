@@ -92,7 +92,7 @@ function MaterialField({
   onSkuChange: (value: string | null) => void;
 }) {
   return (
-    <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/52 bg-[var(--app-surface)]/52 p-3">
+    <div className="app-custom-builder__material-card rounded-[var(--app-radius-md)] border border-[var(--app-border)]/52 bg-[var(--app-surface)]/52 p-3">
       <div className="flex items-baseline justify-between gap-3">
         <FieldLabel>{label}</FieldLabel>
         <span className="app-text-caption text-[var(--app-text-soft)]">SKU required</span>
@@ -126,23 +126,23 @@ function MaterialField({
               </div>
             </div>
             {match.composition || match.yarn || match.weight ? (
-              <div className="grid gap-2.5 sm:grid-cols-3">
+                <div className="app-custom-builder__material-meta grid gap-2.5 sm:grid-cols-3">
                 {match.composition ? (
-                  <div className="min-w-0">
-                    <div className="app-text-overline">Composition</div>
-                    <div className="app-text-caption mt-0.5">{match.composition}</div>
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Composition</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.composition}</div>
                   </div>
                 ) : null}
                 {match.yarn ? (
-                  <div className="min-w-0">
-                    <div className="app-text-overline">Yarn</div>
-                    <div className="app-text-caption mt-0.5">{match.yarn}</div>
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Yarn</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.yarn}</div>
                   </div>
                 ) : null}
                 {match.weight ? (
-                  <div className="min-w-0">
-                    <div className="app-text-overline">Weight</div>
-                    <div className="app-text-caption mt-0.5">{match.weight}</div>
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Weight</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.weight}</div>
                   </div>
                 ) : null}
               </div>
@@ -163,25 +163,32 @@ function ChoiceGrid({
   selectedValue,
   onSelect,
   columnsClassName,
+  mobileClassName,
+  mobileOptionClassName,
   showSelectedLabel = false,
 }: {
   options: string[];
   selectedValue: string | null;
   onSelect: (value: string) => void;
   columnsClassName?: string;
+  mobileClassName?: string;
+  mobileOptionClassName?: string;
   showSelectedLabel?: boolean;
 }) {
   return (
-    <div className={cx("grid gap-2 md:grid-cols-3", columnsClassName)}>
+    <div className={cx("grid gap-2 md:grid-cols-3", mobileClassName, columnsClassName)}>
       {options.map((option) => {
         const isSelected = selectedValue === option;
 
         return (
           <button
             key={option}
+            type="button"
             onClick={() => onSelect(option)}
             className={cx(
               "min-h-11 rounded-[var(--app-radius-md)] border px-3.5 py-2.5 text-left transition",
+              mobileOptionClassName,
+              isSelected && "app-custom-builder__garment-option--active",
               isSelected && "app-workflow-toggle--active",
               !isSelected &&
                 "border-[var(--app-border)]/55 bg-[var(--app-surface)]/34 text-[var(--app-text)] hover:bg-[var(--app-surface)]/48",
@@ -216,6 +223,7 @@ function VerticalOptionList({
         return (
           <button
             key={option}
+            type="button"
             onClick={() => onSelect(option)}
             className={cx(
               "flex min-h-11 w-full items-center justify-between rounded-[var(--app-radius-md)] border px-3.5 py-2.5 text-left transition",
@@ -281,7 +289,7 @@ export function CustomGarmentBuilder({
     showValidation &&
     (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
   const stageShellClassName =
-    "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/56 bg-[color-mix(in_srgb,var(--app-surface-muted)_38%,var(--app-surface))] px-5 py-5";
+    "app-custom-builder__stage rounded-[var(--app-radius-md)] border border-[var(--app-border)]/56 bg-[color-mix(in_srgb,var(--app-surface-muted)_38%,var(--app-surface))] px-5 py-5";
   const getMaterialMatch = (kind: "fabric" | "buttons" | "lining" | "threads", sku: string | null) => {
     if (!sku) {
       return null;
@@ -292,11 +300,11 @@ export function CustomGarmentBuilder({
 
   return (
     <>
-      <section>
+      <section className="app-custom-builder min-w-0">
         <SectionHeader
           icon={Shirt}
           title={isEditing ? "Edit item" : "Custom garment"}
-          subtitle={isEditing ? "Update wearer, measurements, and build details" : "Choose the garment and set the build details"}
+          subtitle={isEditing ? "Update wearer and build details" : "Choose garment and build details"}
         />
 
         {showValidationBanner ? (
@@ -329,18 +337,20 @@ export function CustomGarmentBuilder({
 
               <div
                 className={cx(
-                  "pb-4.5",
+                  "app-custom-builder__gender-section pb-4.5",
                   showValidation && missingGender && "rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/18 px-4 py-4",
                 )}
               >
                 <div className="app-text-overline text-[var(--app-text-soft)]">Cut</div>
-                <div className="mt-3 grid grid-cols-2 gap-2">
+                <div className="app-custom-builder__gender-grid mt-3 grid grid-cols-2 gap-2">
                   {(["male", "female"] as const).map((gender) => (
                     <button
                       key={gender}
+                      type="button"
                       onClick={() => onSelectGender(gender)}
                       className={cx(
-                        "min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-[background-color,border-color,color,box-shadow]",
+                        "app-custom-builder__gender-button min-h-12 rounded-[var(--app-radius-md)] border px-4 py-3 text-left transition-[background-color,border-color,color,box-shadow]",
+                        selectedGender === gender && "app-custom-builder__gender-button--active",
                         selectedGender === gender
                           ? "border border-[var(--app-border-strong)] bg-[var(--app-surface-muted)]/48 text-[var(--app-text)] shadow-[var(--app-shadow-xs)]"
                           : "border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/20 text-[var(--app-text-muted)] hover:bg-[var(--app-surface)] hover:text-[var(--app-text)]",
@@ -357,7 +367,7 @@ export function CustomGarmentBuilder({
                 {selectedGender ? (
                   <div
                     className={cx(
-                      "mt-3",
+                      "app-custom-builder__garment-section mt-3",
                       showValidation && missingGarment && "rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/18 px-4 py-4",
                     )}
                   >
@@ -365,6 +375,8 @@ export function CustomGarmentBuilder({
                       options={garmentOptions}
                       selectedValue={selectedGarment}
                       onSelect={onSelectGarment}
+                      mobileClassName="app-custom-builder__garment-grid"
+                      mobileOptionClassName="app-custom-builder__garment-option"
                       columnsClassName="md:grid-cols-2 xl:grid-cols-3"
                     />
                   </div>
@@ -389,10 +401,10 @@ export function CustomGarmentBuilder({
               <StageLabel>Build details</StageLabel>
 
               {showConfiguration ? (
-                <div className="space-y-5">
+                <div className="app-custom-builder__build-stack space-y-5">
                   <div>
-                    <GroupLabel title="Materials" subtitle="Enter each material SKU to pull its catalog metadata." />
-                    <div className="mt-3 grid gap-3 lg:grid-cols-2">
+                    <GroupLabel title="Materials" subtitle="Enter material SKUs." />
+                    <div className="app-custom-builder__materials-grid mt-3 grid gap-3 lg:grid-cols-2">
                       <MaterialField
                         label="Fabric"
                         skuValue={fabricSku}
@@ -420,13 +432,13 @@ export function CustomGarmentBuilder({
                     </div>
                   </div>
 
-                  <div className="border-t border-[var(--app-border-strong)]/44 pt-5">
-                    <div className="grid gap-5 xl:grid-cols-[0.76fr_1fr]">
-                      <div className="space-y-5">
+                  <div className="app-custom-builder__style-shell border-t border-[var(--app-border-strong)]/44 pt-5">
+                    <div className="app-custom-builder__style-grid grid gap-5 xl:grid-cols-[0.76fr_1fr]">
+                      <div className="app-custom-builder__style-primary space-y-5">
                         {showJacketStyleOptions ? (
                           <>
                             <div>
-                              <GroupLabel title="Construction" subtitle="Pick the internal structure first." />
+                              <GroupLabel title="Construction" subtitle="Pick structure." />
                               <div className="mt-3">
                                 <VerticalOptionList
                                   options={canvasOptions}
@@ -437,7 +449,7 @@ export function CustomGarmentBuilder({
                             </div>
 
                             <div>
-                              <GroupLabel title="Lapel" subtitle="Choose the front shape." />
+                              <GroupLabel title="Lapel" subtitle="Choose front shape." />
                               <div className="mt-3">
                                 <ChoiceGrid
                                   options={lapelOptions}
@@ -450,15 +462,15 @@ export function CustomGarmentBuilder({
                           </>
                         ) : (
                           <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/48 bg-[var(--app-surface)]/46 p-3.5">
-                            <GroupLabel title="Style details" subtitle="No additional jacket styling is needed for this garment." />
+                            <GroupLabel title="Style details" subtitle="No jacket styling needed." />
                           </div>
                         )}
                       </div>
 
-                      <div className="space-y-5 border-t border-[var(--app-border-strong)]/44 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
+                      <div className="app-custom-builder__style-secondary space-y-5 border-t border-[var(--app-border-strong)]/44 pt-5 xl:border-l xl:border-t-0 xl:pl-5 xl:pt-0">
                         {showJacketStyleOptions ? (
                           <div>
-                            <GroupLabel title="Pockets" subtitle="Choose the exterior pocket treatment." />
+                            <GroupLabel title="Pockets" subtitle="Choose pocket treatment." />
                             <div className="mt-3">
                               <VerticalOptionList
                                 options={pocketTypeOptions}
@@ -471,9 +483,9 @@ export function CustomGarmentBuilder({
                       </div>
                     </div>
 
-                    <div className="mt-5 border-t border-[var(--app-border-strong)]/44 pt-5">
+                    <div className="app-custom-builder__monograms mt-5 border-t border-[var(--app-border-strong)]/44 pt-5">
                       <GroupLabel title="Monograms" />
-                      <div className="mt-3 grid gap-3 sm:grid-cols-3">
+                      <div className="app-custom-builder__monogram-grid mt-3 grid gap-3 sm:grid-cols-3">
                         {[
                           { key: "Left", value: monogramLeft, setter: (value: string) => onSetConfiguration({ monogramLeft: value }) },
                           { key: "Center", value: monogramCenter, setter: (value: string) => onSetConfiguration({ monogramCenter: value }) },
@@ -503,41 +515,41 @@ export function CustomGarmentBuilder({
         </div>
       </section>
 
-      <div className="app-order-builder-workspace__footer mt-4 space-y-3">
-        <div className="flex items-end gap-4">
-          <div className="min-w-[9.5rem] shrink-0">
+      <div className="app-order-builder-workspace__footer app-custom-builder__footer mt-4 space-y-3">
+        <div className="app-custom-builder__footer-summary flex items-end gap-4">
+          <div className="app-custom-builder__footer-label min-w-[9.5rem] shrink-0">
             <div className="app-text-body font-medium">{isEditing ? "Current garment" : "Ready to add"}</div>
           </div>
-          <div className="app-text-body-muted min-w-[14rem] flex-1 whitespace-normal break-words text-right">
+          <div className="app-custom-builder__footer-detail app-text-body-muted min-w-[14rem] flex-1 whitespace-normal break-words text-right">
             {summaryParts.length > 0 ? (
               <span className="font-semibold text-[var(--app-text)]">{summaryParts.join(" • ")}</span>
             ) : null}
           </div>
         </div>
-        <div className="flex items-center gap-2.5">
+        <div className="app-custom-builder__footer-actions flex items-center gap-2.5">
           <ActionButton
             tone={isRush ? "danger" : "secondary"}
             className={cx(
-              "min-h-10 px-4 py-2 text-sm shrink-0",
+              "app-custom-builder__rush-button min-h-10 px-4 py-2 text-sm shrink-0",
               isRush && "shadow-[inset_0_0_0_1px_var(--app-danger-border)]",
             )}
             onClick={() => onSetConfiguration({ isRush: !isRush })}
           >
             {isRush ? "Rushing" : "Rush item"}
           </ActionButton>
-          <div className="ml-auto flex items-center gap-2.5">
-            <div className="text-right">
+          <div className="app-custom-builder__footer-cta ml-auto flex items-center gap-2.5">
+            <div className="app-custom-builder__subtotal text-right">
               <div className="app-text-overline">Subtotal</div>
               <div className="app-text-strong mt-0.5">${currentSubtotal.toFixed(2)}</div>
             </div>
             {isEditing ? (
-              <ActionButton tone="secondary" className="min-h-10 px-4 py-2 text-sm" onClick={onCancelEdit}>
+              <ActionButton tone="secondary" className="app-custom-builder__secondary-action min-h-10 px-4 py-2 text-sm" onClick={onCancelEdit}>
                 Cancel edit
               </ActionButton>
             ) : null}
             <ActionButton
               tone="primary"
-              className="min-h-10 min-w-[160px] px-4 py-2 text-sm"
+              className="app-custom-builder__primary-action min-h-10 min-w-[160px] px-4 py-2 text-sm"
               onClick={() => {
                 if (!canAddToOrder) {
                   if (addDisabledReason && onShowDisabledReason) {

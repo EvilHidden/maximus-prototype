@@ -490,6 +490,27 @@ textarea:focus-visible {
     border-top-color: color-mix(in srgb, var(--app-border) 32%, transparent);
   }
 
+  .app-alteration-builder__garments,
+  .app-alteration-builder__services {
+    min-width: 0;
+  }
+
+  .app-alteration-builder__services {
+    padding: 0.8rem 0.75rem;
+  }
+
+  .app-alteration-builder__services-head {
+    gap: 0.5rem;
+  }
+
+  .app-alteration-builder__service-grid {
+    gap: 0.55rem;
+  }
+
+  .app-alteration-builder__service-card {
+    min-width: 0;
+  }
+
 }
 
 .app-home-schedule-row__time {
@@ -2289,6 +2310,338 @@ textarea:focus-visible {
 @media (max-width: 639px) {
   .app-customer-rail__scroll {
     padding-bottom: calc(var(--app-bottom-nav-height) + 0.8rem);
+  }
+}
+
+@media (max-width: 767px) {
+  .app-order-builder-workspace__body {
+    gap: 1rem;
+    padding: 0.85rem 0.75rem 0.95rem;
+  }
+
+  .app-alteration-builder__services {
+    padding: 0.75rem 0.65rem;
+  }
+
+  .app-alteration-builder__services-head {
+    gap: 0.45rem;
+    padding-inline: 0.05rem;
+  }
+
+  .app-alteration-builder__footer {
+    gap: 0.8rem;
+    padding: 0.85rem 0.75rem;
+  }
+
+  .app-alteration-builder__footer-summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  .app-alteration-builder__footer-label,
+  .app-alteration-builder__footer-detail {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .app-alteration-builder__footer-detail {
+    text-align: left;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .app-alteration-builder__footer-actions {
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .app-alteration-builder__rush-button {
+    min-width: 0;
+    padding-inline: 0.9rem;
+  }
+
+  .app-alteration-builder__footer-cta {
+    margin-left: 0;
+    min-width: 0;
+    flex: 1;
+    gap: 0.55rem;
+    justify-content: flex-end;
+  }
+
+  .app-alteration-builder__subtotal {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .app-alteration-builder__secondary-action,
+  .app-alteration-builder__primary-action {
+    min-width: 0;
+  }
+
+  .app-alteration-builder__primary-action {
+    padding-inline: 0.95rem;
+  }
+
+  .app-custom-builder,
+  .app-custom-builder__footer,
+  .app-custom-builder__footer-summary,
+  .app-custom-builder__footer-actions,
+  .app-custom-builder__footer-cta {
+    min-width: 0;
+  }
+
+  .app-custom-builder__footer {
+    gap: 0.8rem;
+    padding: 0.85rem 0.75rem;
+  }
+
+  .app-custom-builder__footer-summary {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.35rem;
+  }
+
+  .app-custom-builder__footer-label,
+  .app-custom-builder__footer-detail {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .app-custom-builder__footer-detail {
+    text-align: left;
+    font-size: 0.82rem;
+    line-height: 1.45;
+  }
+
+  .app-custom-builder__footer-actions {
+    align-items: stretch;
+    gap: 0.55rem;
+  }
+
+  .app-custom-builder__rush-button {
+    min-width: 0;
+    padding-inline: 0.9rem;
+  }
+
+  .app-custom-builder__footer-cta {
+    margin-left: 0;
+    flex: 1;
+    gap: 0.55rem;
+    justify-content: flex-end;
+  }
+
+  .app-custom-builder__subtotal {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .app-custom-builder__secondary-action,
+  .app-custom-builder__primary-action {
+    min-width: 0;
+  }
+
+  .app-custom-builder__primary-action {
+    padding-inline: 0.95rem;
+  }
+
+  .app-custom-measurements-card {
+    min-width: 0;
+  }
+
+  .app-custom-measurements-card__head {
+    margin-bottom: 0.7rem;
+    gap: 0.7rem;
+  }
+
+  .app-custom-measurements-card__panel {
+    padding-inline: 0.8rem;
+  }
+
+  .app-custom-measurements-card__section {
+    padding-block: 0.75rem;
+  }
+
+  .app-custom-measurements-card__row {
+    gap: 0.65rem;
+    padding-inline: 0;
+    padding-block: 0;
+  }
+
+  .app-custom-measurements-card__actions {
+    gap: 0.45rem;
+  }
+
+  .app-custom-measurements-card__button {
+    min-height: 2.25rem;
+    padding-inline: 0.75rem;
+    padding-block: 0.45rem;
+    font-size: 0.78rem;
+  }
+
+  .app-custom-measurements-card__alert {
+    padding: 0.8rem 0.85rem;
+  }
+
+  .app-custom-builder__gender-section {
+    padding-bottom: 0.85rem;
+  }
+
+  .app-custom-builder__stage {
+    padding: 0.9rem 0.85rem;
+  }
+
+  .app-custom-builder__gender-grid {
+    gap: 0.55rem;
+  }
+
+  .app-custom-builder__gender-button {
+    min-height: 2.7rem;
+    padding: 0.65rem 0.85rem;
+  }
+
+  .app-custom-builder__gender-button--active {
+    border-color: color-mix(in srgb, var(--app-accent) 54%, var(--app-border-strong));
+    background: color-mix(in srgb, var(--app-accent) 9%, var(--app-surface));
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, white 28%, transparent),
+      var(--app-shadow-xs);
+  }
+
+  .app-custom-builder__garment-section {
+    margin-top: 0.65rem;
+  }
+
+  .app-custom-builder__garment-grid {
+    gap: 0.55rem;
+  }
+
+  .app-custom-builder__garment-option {
+    min-height: 2.8rem;
+    border-color: color-mix(in srgb, var(--app-border) 78%, transparent);
+    background: color-mix(in srgb, var(--app-surface) 96%, var(--app-surface-muted));
+    padding: 0.7rem 0.9rem;
+    box-shadow: var(--app-shadow-xs);
+  }
+
+  .app-custom-builder__garment-option--active {
+    border-color: color-mix(in srgb, var(--app-accent) 56%, var(--app-border-strong));
+    background: color-mix(in srgb, var(--app-accent) 10%, var(--app-surface));
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, white 30%, transparent),
+      var(--app-shadow-sm);
+  }
+
+  .app-custom-builder__build-stack {
+    gap: 1rem;
+  }
+
+  .app-custom-builder__materials-grid {
+    gap: 0.7rem;
+  }
+
+  .app-custom-builder__material-card {
+    padding: 0.75rem;
+  }
+
+  .app-custom-builder__material-card .app-input {
+    min-height: 2.7rem;
+  }
+
+  .app-custom-builder__material-meta {
+    gap: 0.45rem;
+    grid-template-columns: 1fr;
+  }
+
+  .app-custom-builder__material-meta-item {
+    display: grid;
+    grid-template-columns: 5.25rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 0.45rem 0.55rem;
+  }
+
+  .app-custom-builder__material-meta-label {
+    white-space: nowrap;
+  }
+
+  .app-custom-builder__material-meta-value {
+    margin-top: 0 !important;
+  }
+
+  .app-custom-builder__style-shell {
+    padding-top: 1rem;
+  }
+
+  .app-custom-builder__style-grid,
+  .app-custom-builder__style-primary,
+  .app-custom-builder__style-secondary {
+    gap: 1rem;
+  }
+
+  .app-custom-builder__style-secondary {
+    padding-top: 1rem;
+  }
+
+  .app-custom-builder__monograms {
+    margin-top: 1rem;
+    padding-top: 1rem;
+  }
+
+  .app-custom-builder__monogram-grid {
+    gap: 0.7rem;
+  }
+
+  .app-custom-builder__monogram-grid .app-input {
+    min-height: 2.7rem;
+  }
+
+  .app-order-bag {
+    padding: 0.85rem 0.8rem;
+  }
+
+  .app-order-bag__head {
+    margin-bottom: 0.85rem;
+  }
+
+  .app-order-bag__stack {
+    gap: 0.9rem;
+  }
+
+  .app-order-bag__customer-row {
+    gap: 0.65rem;
+    padding-inline: 0;
+    padding-block: 0.2rem;
+  }
+
+  .app-order-bag__items-scroll {
+    padding-right: 0;
+  }
+
+  .app-order-bag__item {
+    padding-block: 0.7rem;
+    padding-inline: 0;
+  }
+
+  .app-order-bag__item-body {
+    gap: 0.45rem;
+    padding-inline: 0;
+  }
+
+  .app-order-bag__item-head {
+    gap: 0.65rem;
+  }
+
+  .app-order-bag__item-price {
+    min-width: 4.6rem;
+    gap: 0.55rem;
+  }
+
+  .app-order-bag__footer {
+    padding-top: 0.8rem;
+  }
+
+  .app-order-bag__continue {
+    min-height: 2.7rem;
   }
 }
 
