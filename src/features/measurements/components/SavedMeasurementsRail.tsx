@@ -57,34 +57,36 @@ export function SavedMeasurementsRail({
             return (
               <div
                 key={set.id}
-                className={`grid grid-cols-[minmax(0,1fr)_auto] items-center gap-3 rounded-[var(--app-radius-sm)] border border-[color:color-mix(in_srgb,var(--app-border)_60%,transparent)] px-3 py-2 transition ${
+                className={`rounded-[var(--app-radius-sm)] border border-[color:color-mix(in_srgb,var(--app-border)_60%,transparent)] px-3 py-2 transition ${
                   isCurrent ? "bg-[color:color-mix(in_srgb,var(--app-surface-muted)_34%,transparent)]" : "bg-[var(--app-surface)]"
                 }`}
               >
-                <button onClick={() => onApplySet(set)} className="block w-full min-w-0 text-left">
-                  <div className="flex items-center justify-between gap-3">
-                    <div className="min-w-0 flex-1">
-                      <div className="truncate app-text-strong">{display.title}</div>
-                      <div className="mt-1 flex items-center gap-2">
-                        {display.status ? <span className="app-text-caption">{display.status}</span> : null}
-                        {display.subline ? <span className="app-text-caption">{display.subline}</span> : null}
+                <div className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3">
+                  <button onClick={() => onApplySet(set)} className="block w-full min-w-0 text-left">
+                    <div className="flex items-center justify-between gap-3">
+                      <div className="min-w-0 flex-1">
+                        <div className="truncate app-text-strong">{display.title}</div>
+                        <div className="mt-1 space-y-0.5">
+                          {display.status ? <div className="app-text-caption">{display.status}</div> : null}
+                          {display.subline ? <div className="app-text-caption">{display.subline}</div> : null}
+                        </div>
+                      </div>
+                      <div className="shrink-0">
+                        <MeasurementVersionPill version={display.version} isCurrent={isCurrent} />
                       </div>
                     </div>
-                    <div className="shrink-0">
-                      <MeasurementVersionPill version={display.version} isCurrent={isCurrent} />
-                    </div>
-                  </div>
-                </button>
-                <button
-                  onClick={(event) => {
-                    event.stopPropagation();
-                    onDeleteSet(set.id);
-                  }}
-                  className="text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
-                  aria-label={`Delete ${display.version}`}
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                  </button>
+                  <button
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      onDeleteSet(set.id);
+                    }}
+                    className="mt-0.5 text-[var(--app-text-soft)] transition hover:text-[var(--app-text)]"
+                    aria-label={`Delete ${display.version}`}
+                  >
+                    <Trash2 className="h-4 w-4" aria-hidden="true" />
+                  </button>
+                </div>
               </div>
             );
           })}

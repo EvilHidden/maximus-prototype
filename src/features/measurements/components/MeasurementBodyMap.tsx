@@ -10,7 +10,7 @@ export function MeasurementBodyMap({ activeField }: MeasurementBodyMapProps) {
   const guideWidth = (fields: string[]) => (fields.includes(activeField) ? 1.6 : 1);
 
   return (
-    <div className="relative h-[402px] w-[304px]">
+    <div className="relative h-[300px] w-[228px] md:h-[332px] md:w-[250px] min-[1000px]:h-[402px] min-[1000px]:w-[304px]">
       <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 320" fill="none" className="h-full w-full" aria-hidden="true">
         <g stroke={baseStroke} strokeWidth="1.2" strokeLinecap="round" strokeLinejoin="round">
           <path

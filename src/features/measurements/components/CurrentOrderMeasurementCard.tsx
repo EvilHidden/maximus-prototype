@@ -60,21 +60,20 @@ export function CurrentOrderMeasurementCard({
   return (
     <div>
       <div className="mb-4">
-        <div className="app-text-overline">Active order</div>
-        <div className="app-text-value mt-1">{orderContext ? "Current item" : "No active order"}</div>
+        <div className="app-text-overline">{orderContext ? "Current item" : "Current set"}</div>
+        <div className="app-text-value mt-1">{orderContext ? orderContext.title : currentSetTitle}</div>
+        <div className="app-text-caption mt-1">{orderContext ? orderContext.detail : currentSetDetail}</div>
       </div>
 
       <div className="mb-5 border-t border-b border-[var(--app-border)]/32 py-3">
         {orderContext ? (
           <>
             <div className="app-text-overline">{orderContext.eyebrow}</div>
-            <div className="app-text-strong mt-1">{orderContext.title}</div>
-            <div className="app-text-caption mt-1">{orderContext.detail}</div>
+            <div className="app-text-caption mt-1">{orderContext.note}</div>
           </>
         ) : (
           <>
-            <div className="app-text-overline">Current set</div>
-            <div className="app-text-strong mt-1">{currentSetTitle}</div>
+            <div className="app-text-overline">Save status</div>
             <div className="app-text-caption mt-1">{currentSetDetail}</div>
           </>
         )}
