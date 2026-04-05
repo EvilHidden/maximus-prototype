@@ -1,4 +1,4 @@
-import { Keyboard, Minus, Plus, X } from "lucide-react";
+import { Delete, Keyboard, Minus, Plus, X } from "lucide-react";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ActionButton } from "../../../components/ui/primitives";
 import {
@@ -17,6 +17,7 @@ type MeasurementValueEditorProps = {
   activeField: string;
   value: string;
   lastSavedValue: string | null;
+  hasUnsavedChange: boolean;
   previousField: string | null;
   nextField: string | null;
   nextIncompleteField: string | null;
@@ -35,6 +36,7 @@ export function MeasurementValueEditor({
   activeField,
   value,
   lastSavedValue,
+  hasUnsavedChange,
   previousField,
   nextField,
   nextIncompleteField,
@@ -108,17 +110,16 @@ export function MeasurementValueEditor({
       <div className="app-measurements-pad__hero">
         <div className="min-w-0">
           <div className="mt-1 text-[1.3rem] font-semibold tracking-[-0.03em] text-[var(--app-text)] md:text-[1.45rem] app-measurements-pad__hero-field">
-            {activeField || "Choose a field"}
+            <span>{activeField || "Choose a field"}</span>
+            {hasUnsavedChange ? <span className="app-measurements-draft-pill">Edited</span> : null}
           </div>
         </div>
 
         <div className="app-measurements-pad__hero-value">
-          <div className="app-measurements-pad__hero-value-number">{displayValue}</div>
-          {lastSavedDisplayValue ? (
-            <div className="app-text-caption mt-2 app-measurements-pad__hero-caption">
-              Last saved {lastSavedDisplayValue}
-            </div>
-          ) : null}
+          <div className={`app-measurements-pad__hero-value-number ${hasUnsavedChange ? "app-measurements-pad__hero-value-number--edited" : ""}`}>{displayValue}</div>
+          <div className={`app-text-caption mt-2 app-measurements-pad__hero-caption ${lastSavedDisplayValue && hasUnsavedChange ? "" : "app-measurements-pad__hero-caption--hidden"}`}>
+            {lastSavedDisplayValue && hasUnsavedChange ? `Was ${lastSavedDisplayValue}` : "\u00A0"}
+          </div>
         </div>
 
       </div>
@@ -133,8 +134,8 @@ export function MeasurementValueEditor({
             disabled={!previousField}
           >
             <span className="app-text-overline block w-full text-left text-[0.62rem] leading-none">Previous</span>
-            <span className="block w-full truncate text-sm leading-tight">
-              {previousField ?? "Start of list"}
+            <span className="block w-full text-sm leading-[1.15] whitespace-normal break-words">
+              {previousField ?? "\u00A0"}
             </span>
           </ActionButton>
           <ActionButton
@@ -144,8 +145,8 @@ export function MeasurementValueEditor({
             disabled={!nextField}
           >
             <span className="app-text-overline block w-full text-left text-[0.62rem] leading-none">Next</span>
-            <span className="block w-full truncate text-sm leading-tight">
-              {nextField ?? "Last field"}
+            <span className="block w-full text-sm leading-[1.15] whitespace-normal break-words">
+              {nextField ?? "\u00A0"}
             </span>
           </ActionButton>
           <ActionButton
@@ -155,7 +156,7 @@ export function MeasurementValueEditor({
             disabled={!nextIncompleteField}
           >
             <span className="app-text-overline block w-full text-left text-[0.62rem] leading-none">Jump to missing</span>
-            <span className="block w-full truncate text-sm leading-tight">
+            <span className="block w-full text-sm leading-[1.15] whitespace-normal break-words">
               {nextIncompleteField ?? "All entered"}
             </span>
           </ActionButton>
@@ -223,7 +224,7 @@ export function MeasurementValueEditor({
                   0
                 </button>
                 <button type="button" className="app-measurements-pad__digit" onClick={removeLastDigit}>
-                  <X className="h-4.5 w-4.5" aria-hidden="true" />
+                  <Delete className="h-4.5 w-4.5" aria-hidden="true" />
                   <span className="sr-only">Delete last digit</span>
                 </button>
               </div>
