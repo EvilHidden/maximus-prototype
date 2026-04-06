@@ -3092,6 +3092,83 @@ textarea:focus-visible {
   }
 }
 
+.app-custom-builder__material-field {
+  position: relative;
+}
+
+.app-custom-builder__material-input-shell {
+  position: relative;
+}
+
+.app-custom-builder__material-input-icon {
+  position: absolute;
+  left: 0.9rem;
+  top: 50%;
+  z-index: 1;
+  translate: 0 -50%;
+  color: var(--app-text-soft);
+  pointer-events: none;
+}
+
+.app-custom-builder__material-input {
+  padding-left: 2.5rem;
+  font-size: 0.88rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-custom-builder__material-suggestions {
+  display: grid;
+  gap: 0;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--app-border-strong) 30%, transparent);
+  border-radius: calc(var(--app-radius-md) - 2px);
+  background: color-mix(in srgb, var(--app-surface) 94%, white 6%);
+  box-shadow: var(--app-shadow-sm);
+}
+
+.app-custom-builder__material-suggestion {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.8rem 0.9rem;
+  text-align: left;
+  transition: background-color 160ms ease;
+}
+
+.app-custom-builder__material-suggestion + .app-custom-builder__material-suggestion {
+  border-top: 1px solid color-mix(in srgb, var(--app-border) 42%, transparent);
+}
+
+.app-custom-builder__material-suggestion:hover {
+  background: color-mix(in srgb, var(--app-surface-muted) 52%, var(--app-surface));
+}
+
+.app-custom-builder__material-suggestion--active {
+  background: color-mix(in srgb, var(--app-accent) 10%, var(--app-surface) 90%);
+}
+
+.app-custom-builder__material-suggestion-swatch {
+  height: 1.8rem;
+  width: 1.8rem;
+  flex-shrink: 0;
+  border: 1px solid color-mix(in srgb, var(--app-border) 65%, transparent);
+  border-radius: var(--app-radius-sm);
+}
+
+.app-custom-builder__material-sku {
+  color: var(--app-text-soft);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  line-height: 1.2;
+  text-transform: uppercase;
+  font-variant-numeric: tabular-nums;
+}
+
 @media (min-width: 640px) {
   .app-customer-rail__stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
