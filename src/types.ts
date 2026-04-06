@@ -119,15 +119,21 @@ export type OrderLineComponentKind =
   | "alteration_service"
   | "wearer"
   | "measurement_set"
+  | "catalog_variation"
   | "pricing_tier"
   | "fabric_sku"
+  | "fabric_book"
+  | "fabric_mill"
   | "fabric"
   | "buttons_sku"
   | "buttons"
   | "lining_sku"
   | "lining"
+  | "lining_option"
   | "threads_sku"
   | "threads"
+  | "catalog_option"
+  | "catalog_modifier"
   | "canvas"
   | "lapel"
   | "pocket_type"
@@ -213,6 +219,8 @@ export type CustomGarmentDraft = {
   gender: CustomGarmentGender | null;
   wearerCustomerId: string | null;
   isRush: boolean;
+  variationId?: string | null;
+  variationLabel?: string | null;
   selectedGarment: string | null;
   pricingTierKey: string | null;
   linkedMeasurementSetId: string | null;
@@ -220,6 +228,7 @@ export type CustomGarmentDraft = {
   fabricSku: string | null;
   buttonsSku: string | null;
   liningSku: string | null;
+  customLiningRequested: boolean;
   threadsSku: string | null;
   monogramLeft: string;
   monogramCenter: string;

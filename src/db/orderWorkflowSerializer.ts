@@ -11,7 +11,9 @@ import type {
 } from "../types";
 import { getCheckoutCollectionAmount } from "../features/order/paymentSummary";
 import { getPricingSummary } from "../features/order/orderPricing";
-import { getAlterationServicePrice, getCustomGarmentPrice } from "./pricing";
+import { findFabricMaterialOptionBySku, getAlterationServicePrice, getCustomGarmentPrice } from "./pricing";
+import type { CustomPricingTierDefinition, JacketCanvas } from "./customPricingCatalog";
+import type { MaterialOption } from "./referenceData";
 import type {
   DbCustomerEvent,
   DbLocation,
@@ -47,8 +49,13 @@ type SerializeOrderWorkflowArgs = {
   order: OrderWorkflowState;
   customers: Customer[];
   locations: DbLocation[];
-  customPricingTiers: PrototypeDatabase["customPricingTiers"];
+  customPricingTiers: CustomPricingTierDefinition[];
+  fabricOptions: MaterialOption[];
+  catalogVariations: PrototypeDatabase["catalogVariations"];
+  catalogVariationTierPrices: PrototypeDatabase["catalogVariationTierPrices"];
   organizationSettings: PrototypeDatabase["organizationSettings"];
+  jacketCanvasSurcharges: Record<JacketCanvas, number>;
+  customLiningSurchargeAmount: number;
   paymentMode: CheckoutPaymentMode;
   orderSequence: number;
   now: Date;
@@ -285,7 +292,12 @@ export function serializeOrderWorkflowToRecords({
   customers,
   locations,
   customPricingTiers,
+  fabricOptions,
+  catalogVariations,
+  catalogVariationTierPrices,
   organizationSettings,
+  jacketCanvasSurcharges,
+  customLiningSurchargeAmount,
   paymentMode,
   orderSequence,
   now,
@@ -397,7 +409,8 @@ export function serializeOrderWorkflowToRecords({
 
     matchingCustomItems.forEach((item, itemIndex) => {
       const lineId = `${scopeId}-line-${itemIndex + 1}`;
-      const garmentLabel = item.selectedGarment ?? "Custom garment";
+      const garmentLabel = getVariationLabel(item);
+      const matchedFabric = findFabricMaterialOptionBySku(item.fabricSku, fabricOptions);
       scopeLines.push({
         id: lineId,
         scopeId,
@@ -406,7 +419,11 @@ export function serializeOrderWorkflowToRecords({
         quantity: 1,
         unitPrice: getCustomGarmentPrice(item, {
           pricingTiers: customPricingTiers,
-          jacketCanvasSurcharges: organizationSettings.jacketCanvasSurcharges,
+          fabricOptions,
+          catalogVariations,
+          catalogVariationTierPrices,
+          jacketCanvasSurcharges,
+          customLiningSurchargeAmount,
         }),
         isRush: item.isRush,
         wearerCustomerId: item.wearerCustomerId,
@@ -417,6 +434,14 @@ export function serializeOrderWorkflowToRecords({
       });
 
       const components = [
+        createLineComponent(
+          lineId,
+          "catalog_variation",
+          "Variation",
+          garmentLabel,
+          0,
+          { referenceId: item.variationId ?? null },
+        ),
         createLineComponent(lineId, "wearer", "Wearer", getWearerName(item.wearerCustomerId, customers, item.wearerName), 1),
         item.linkedMeasurementLabel
           ? createLineComponent(lineId, "measurement_set", "Measurements", item.linkedMeasurementLabel, 2)
@@ -432,12 +457,24 @@ export function serializeOrderWorkflowToRecords({
             )
           : null,
         item.fabricSku ? createLineComponent(lineId, "fabric_sku", "Fabric SKU", item.fabricSku, 4) : null,
+        matchedFabric?.millLabel
+          ? createLineComponent(lineId, "fabric_book", "Book", matchedFabric.millLabel, 5)
+          : null,
+        matchedFabric?.manufacturer
+          ? createLineComponent(lineId, "fabric_mill", "Mill", matchedFabric.manufacturer, 6)
+          : null,
         item.buttonsSku ? createLineComponent(lineId, "buttons_sku", "Buttons SKU", item.buttonsSku, 6) : null,
         item.liningSku ? createLineComponent(lineId, "lining_sku", "Lining SKU", item.liningSku, 8) : null,
+        item.customLiningRequested
+          ? createLineComponent(lineId, "catalog_modifier", "Modifier", "Custom printed lining", 9, { referenceId: "custom_printed" })
+          : null,
         item.threadsSku ? createLineComponent(lineId, "threads_sku", "Threads SKU", item.threadsSku, 10) : null,
-        item.canvas ? createLineComponent(lineId, "canvas", "Canvas", item.canvas, 11) : null,
-        item.lapel ? createLineComponent(lineId, "lapel", "Lapel", item.lapel, 12) : null,
-        item.pocketType ? createLineComponent(lineId, "pocket_type", "Pockets", item.pocketType, 13) : null,
+        item.canvas ? createLineComponent(lineId, "catalog_modifier", "Modifier", `${item.canvas} canvas`, 11, { referenceId: item.canvas }) : null,
+        item.canvas ? createLineComponent(lineId, "canvas", "Canvas", item.canvas, 12) : null,
+        item.lapel ? createLineComponent(lineId, "catalog_option", "Option", `Lapel: ${item.lapel}`, 13, { referenceId: item.lapel }) : null,
+        item.lapel ? createLineComponent(lineId, "lapel", "Lapel", item.lapel, 14) : null,
+        item.pocketType ? createLineComponent(lineId, "catalog_option", "Option", `Pockets: ${item.pocketType}`, 15, { referenceId: item.pocketType }) : null,
+        item.pocketType ? createLineComponent(lineId, "pocket_type", "Pockets", item.pocketType, 16) : null,
         item.monogramLeft ? createLineComponent(lineId, "monogram", "Monogram left", item.monogramLeft, 14) : null,
         item.monogramCenter ? createLineComponent(lineId, "monogram", "Monogram center", item.monogramCenter, 15) : null,
         item.monogramRight ? createLineComponent(lineId, "monogram", "Monogram right", item.monogramRight, 16) : null,
@@ -477,9 +514,13 @@ export function serializeOrderWorkflowToRecords({
 
   const pricingConfig = {
     pricingTiers: customPricingTiers,
+    fabricOptions,
+    catalogVariations,
+    catalogVariationTierPrices,
     taxRate: organizationSettings.taxRate,
     customDepositRate: organizationSettings.customDepositRate,
-    jacketCanvasSurcharges: organizationSettings.jacketCanvasSurcharges,
+    jacketCanvasSurcharges,
+    customLiningSurchargeAmount,
   };
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order, pricingConfig);
   const pricingSummary = getPricingSummary(order, pricingConfig);
@@ -503,7 +544,11 @@ export function serializeOrderWorkflowToRecords({
       pricingSummary.total,
       order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item, {
         pricingTiers: customPricingTiers,
-        jacketCanvasSurcharges: organizationSettings.jacketCanvasSurcharges,
+        fabricOptions,
+        catalogVariations,
+        catalogVariationTierPrices,
+        jacketCanvasSurcharges,
+        customLiningSurchargeAmount,
       }), 0),
       organizationSettings.customDepositRate,
       now,
@@ -520,6 +565,8 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
     gender: null,
     wearerCustomerId: null,
     isRush: false,
+    variationId: null,
+    variationLabel: null,
     selectedGarment: null,
     pricingTierKey: null,
     linkedMeasurementSetId: null,
@@ -527,6 +574,7 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
     fabricSku: null,
     buttonsSku: null,
     liningSku: null,
+    customLiningRequested: false,
     threadsSku: null,
     monogramLeft: "",
     monogramCenter: "",
@@ -536,6 +584,10 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
     canvas: null,
     referencePhotoIds: [],
   };
+}
+
+function getVariationLabel(item: Pick<CustomGarmentDraft, "variationLabel" | "selectedGarment">) {
+  return item.variationLabel ?? item.selectedGarment ?? "Custom garment";
 }
 
 function getCustomGenderForGarment(
@@ -650,6 +702,8 @@ export function deserializeOrderWorkflowFromRecords(
           gender: getCustomGenderForGarment(database, line.garmentLabel),
           wearerCustomerId: line.wearerCustomerId,
           isRush: line.isRush,
+          variationId: components.find((component) => component.kind === "catalog_variation")?.referenceId ?? null,
+          variationLabel: components.find((component) => component.kind === "catalog_variation")?.value ?? line.garmentLabel,
           selectedGarment: line.garmentLabel,
           pricingTierKey: components.find((component) => component.kind === "pricing_tier")?.referenceId ?? null,
           linkedMeasurementSetId: line.measurementSetId,
@@ -660,6 +714,9 @@ export function deserializeOrderWorkflowFromRecords(
           fabricSku: getComponentValue(components, "fabric_sku", "") || null,
           buttonsSku: getComponentValue(components, "buttons_sku", "") || null,
           liningSku: getComponentValue(components, "lining_sku", "") || null,
+          customLiningRequested: components.some((component) => (
+            (component.kind === "catalog_modifier" && component.referenceId === "custom_printed") || component.kind === "lining_option"
+          )),
           threadsSku: getComponentValue(components, "threads_sku", "") || null,
           monogramLeft: getMonogramValue(components, "left"),
           monogramCenter: getMonogramValue(components, "center"),

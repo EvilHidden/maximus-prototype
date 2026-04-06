@@ -15,7 +15,7 @@ import type {
   Screen,
   WorkflowMode,
 } from "../types";
-import type { DbCustomPricingTier, PrototypeDatabase } from "../db/schema";
+import type { PrototypeDatabase } from "../db/schema";
 
 export type AppState = {
   screen: Screen;
@@ -108,7 +108,14 @@ export type UpdateMeasurementFieldPayload = {
 
 export type UpdateCustomPricingTierPayload = {
   tierKey: string;
-  patch: Partial<Pick<DbCustomPricingTier, "label" | "isActive">>;
+  patch: Partial<Pick<PrototypeDatabase["pricingTiers"][number], "label" | "isActive" | "floorPrice">>;
+};
+
+export type UpdateGarmentSurchargeRulePayload = {
+  programKey: PrototypeDatabase["garmentSurchargeRules"][number]["programKey"];
+  kind: PrototypeDatabase["garmentSurchargeRules"][number]["kind"];
+  optionValue: PrototypeDatabase["garmentSurchargeRules"][number]["optionValue"];
+  patch: Partial<Pick<PrototypeDatabase["garmentSurchargeRules"][number], "label" | "amount" | "isActive">>;
 };
 
 export type AppAction =
@@ -151,7 +158,13 @@ export type AppAction =
   | { type: "addAlterationServiceDefinition"; payload: AddAlterationServiceDefinitionPayload }
   | { type: "updateAlterationServiceDefinition"; payload: UpdateAlterationServiceDefinitionPayload }
   | { type: "updateCustomPricingTier"; payload: UpdateCustomPricingTierPayload }
-  | { type: "updateCustomPricingTierGarmentPrice"; tierKey: string; garment: keyof DbCustomPricingTier["basePrices"]; price: number }
+  | {
+      type: "updateCustomPricingTierGarmentPrice";
+      tierKey: string;
+      garment: PrototypeDatabase["garmentBasePrices"][number]["garmentLabel"];
+      price: number;
+    }
+  | { type: "updateGarmentSurchargeRule"; payload: UpdateGarmentSurchargeRulePayload }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationServiceDefinition }
   | { type: "setAlterationModifierAdjustment"; modifierId: string; deltaInches: number | null }

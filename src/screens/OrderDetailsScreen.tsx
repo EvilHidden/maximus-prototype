@@ -278,16 +278,22 @@ function getDraftReceiptItems(order: OrderWorkflowState, referenceData: AppRefer
   const pricing = getPricingSummary(order, {
     pricingTiers: referenceData.customPricingTiers,
     fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: referenceData.catalogVariations,
+    catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
     taxRate: referenceData.taxRate,
     customDepositRate: referenceData.customDepositRate,
     jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
   });
   const paymentPolicy = getDraftPaymentPolicy(order, {
     pricingTiers: referenceData.customPricingTiers,
     fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: referenceData.catalogVariations,
+    catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
     taxRate: referenceData.taxRate,
     customDepositRate: referenceData.customDepositRate,
     jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
   });
 
   return [
@@ -353,19 +359,35 @@ export function OrderDetailsScreen({
     () => (activeDraftOrder ? getOrderBagLineItems(activeDraftOrder, customers, {
       customPricingTiers: referenceData.customPricingTiers,
       jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+      customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
+      fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+      catalogVariations: referenceData.catalogVariations,
+      catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
     }) : []),
-    [activeDraftOrder, customers, referenceData.customPricingTiers, referenceData.jacketCanvasSurcharges],
+    [
+      activeDraftOrder,
+      customers,
+      referenceData.customPricingTiers,
+      referenceData.jacketCanvasSurcharges,
+      referenceData.customLiningSurchargeAmount,
+      referenceData.customMaterialOptionsByKind.fabric,
+      referenceData.catalogVariations,
+      referenceData.catalogVariationTierPrices,
+    ],
   );
   const draftOrderType = activeDraftOrder ? getOrderType(activeDraftOrder) : null;
   const draftPickupRequired = activeDraftOrder ? getPickupRequired(activeDraftOrder) : false;
   const draftSummaryGuardrail = activeDraftOrder ? getSummaryGuardrail(activeDraftOrder, payerCustomer) : null;
   const draftPaymentPolicy = activeDraftOrder
-    ? getDraftPaymentPolicy(activeDraftOrder, {
+      ? getDraftPaymentPolicy(activeDraftOrder, {
         pricingTiers: referenceData.customPricingTiers,
         fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+        catalogVariations: referenceData.catalogVariations,
+        catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
         taxRate: referenceData.taxRate,
         customDepositRate: referenceData.customDepositRate,
         jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+        customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
       })
     : null;
   const draftPickupSummary = activeDraftOrder ? getDraftPickupSummary(activeDraftOrder) : "";

@@ -1,19 +1,21 @@
 import type { CustomPricingMatchStatus } from "../types";
 import {
-  customPricingTierCatalog,
-  defaultJacketCanvasSurcharges,
+  getPricingProgramKeyForGarment,
+  supportsCustomLiningSurcharge,
   supportsJacketConstruction,
   type CustomPricingTierDefinition,
   type JacketCanvas,
-  type JacketCanvasSurcharges,
 } from "./customPricingCatalog";
-import { defaultMaterialOptionsByKind, type MaterialOption } from "./referenceData";
+import { type MaterialOption } from "./referenceData";
 
 type CustomPricingInput = {
+  variationId?: string | null;
+  variationLabel?: string | null;
   selectedGarment: string | null;
   canvas?: string | null;
   fabricSku?: string | null;
   pricingTierKey?: string | null;
+  customLiningRequested?: boolean;
 };
 
 export type CustomPricingMatch = {
@@ -34,9 +36,21 @@ export type CustomPricingResult = {
 export type PricingComputationConfig = {
   pricingTiers?: CustomPricingTierDefinition[];
   fabricOptions?: MaterialOption[];
+  catalogVariations?: Array<{
+    id: string;
+    label: string;
+    fallbackAmount: number;
+  }>;
+  catalogVariationTierPrices?: Array<{
+    variationId: string;
+    tierKey: string;
+    amount: number;
+    isActive?: boolean;
+  }>;
   taxRate?: number;
   customDepositRate?: number;
-  jacketCanvasSurcharges?: JacketCanvasSurcharges;
+  jacketCanvasSurcharges?: Record<JacketCanvas, number>;
+  customLiningSurchargeAmount?: number;
 };
 
 export const DEFAULT_TAX_RATE = 0.08875;
@@ -48,7 +62,7 @@ function normalizeSku(value: string | null | undefined) {
 
 function getPricingTierByKey(
   key: string | null | undefined,
-  pricingTiers: CustomPricingTierDefinition[] = customPricingTierCatalog,
+  pricingTiers: CustomPricingTierDefinition[] = [],
 ) {
   if (!key) {
     return null;
@@ -57,9 +71,13 @@ function getPricingTierByKey(
   return pricingTiers.find((tier) => tier.key === key) ?? null;
 }
 
+function getSelectedVariationLabel(input: CustomPricingInput) {
+  return input.variationLabel ?? input.selectedGarment ?? null;
+}
+
 export function findFabricMaterialOptionBySku(
   sku: string | null | undefined,
-  fabricOptions: MaterialOption[] = defaultMaterialOptionsByKind.fabric,
+  fabricOptions: MaterialOption[] = [],
 ) {
   const normalizedSku = normalizeSku(sku);
   if (!normalizedSku) {
@@ -71,9 +89,20 @@ export function findFabricMaterialOptionBySku(
 
 export function resolvePricingTierKeyForFabricSku(
   sku: string | null | undefined,
-  fabricOptions: MaterialOption[] = defaultMaterialOptionsByKind.fabric,
+  fabricOptions: MaterialOption[] = [],
+  selectedGarment: string | null = null,
 ) {
-  return findFabricMaterialOptionBySku(sku, fabricOptions)?.pricingTierKey ?? null;
+  const fabricOption = findFabricMaterialOptionBySku(sku, fabricOptions);
+  if (!fabricOption) {
+    return null;
+  }
+
+  const programKey = getPricingProgramKeyForGarment(selectedGarment);
+  if (programKey && fabricOption.programKey && fabricOption.programKey !== programKey) {
+    return null;
+  }
+
+  return fabricOption.pricingTierKey ?? null;
 }
 
 function createMatch(
@@ -95,18 +124,23 @@ function createMatch(
 
 export function resolveCustomPricingMatch(
   input: CustomPricingInput,
-  pricingTiers: CustomPricingTierDefinition[] = customPricingTierCatalog,
-  fabricOptions: MaterialOption[] = defaultMaterialOptionsByKind.fabric,
+  pricingTiers: CustomPricingTierDefinition[] = [],
+  fabricOptions: MaterialOption[] = [],
 ): CustomPricingMatch {
+  const programKey = getPricingProgramKeyForGarment(getSelectedVariationLabel(input));
   const directTier = getPricingTierByKey(input.pricingTierKey, pricingTiers);
-  if (directTier) {
+  if (directTier && (!programKey || directTier.programKey === programKey)) {
     const fabricOption = findFabricMaterialOptionBySku(input.fabricSku, fabricOptions);
     return createMatch("matched", directTier, "pricing_tier", fabricOption);
   }
 
   const fabricOption = findFabricMaterialOptionBySku(input.fabricSku, fabricOptions);
-  const resolvedTier = getPricingTierByKey(fabricOption?.pricingTierKey, pricingTiers);
-  if (resolvedTier) {
+  if (!fabricOption || (programKey && fabricOption.programKey && fabricOption.programKey !== programKey)) {
+    return createMatch("unmatched", null, "none");
+  }
+
+  const resolvedTier = getPricingTierByKey(fabricOption.pricingTierKey ?? null, pricingTiers);
+  if (resolvedTier && (!programKey || resolvedTier.programKey === programKey)) {
     return createMatch("matched", resolvedTier, "fabric_sku", fabricOption);
   }
 
@@ -114,7 +148,7 @@ export function resolveCustomPricingMatch(
 }
 
 function getCanvasPrice(
-  surcharges: JacketCanvasSurcharges,
+  surcharges: Record<JacketCanvas, number>,
   canvas: string | null | undefined,
   garment: string | null,
 ) {
@@ -126,12 +160,43 @@ function getCanvasPrice(
   return surcharges[normalizedCanvas] ?? 0;
 }
 
+function getCustomLiningPrice(amount: number, requested: boolean | undefined, garment: string | null) {
+  if (!requested || !supportsCustomLiningSurcharge(garment)) {
+    return 0;
+  }
+
+  return amount;
+}
+
 function getBaseGarmentPrice(tier: CustomPricingTierDefinition, garment: string | null) {
   if (!garment) {
     return 0;
   }
 
   return tier.basePrices[garment as keyof typeof tier.basePrices] ?? getLegacyCustomGarmentPrice(garment);
+}
+
+function getCatalogVariationBasePrice(
+  input: CustomPricingInput,
+  tier: CustomPricingTierDefinition | null,
+  config: Pick<PricingComputationConfig, "catalogVariations" | "catalogVariationTierPrices">,
+) {
+  const variationLabel = getSelectedVariationLabel(input);
+  const variation = config.catalogVariations?.find((candidate) => (
+    (input.variationId && candidate.id === input.variationId) || candidate.label === variationLabel
+  )) ?? null;
+
+  if (!variation) {
+    return tier ? getBaseGarmentPrice(tier, variationLabel) : getLegacyCustomGarmentPrice(variationLabel);
+  }
+
+  if (!tier) {
+    return variation.fallbackAmount;
+  }
+
+  return config.catalogVariationTierPrices?.find((price) => (
+    (price.isActive ?? true) && price.variationId === variation.id && price.tierKey === tier.key
+  ))?.amount ?? variation.fallbackAmount;
 }
 
 export function supportsCanvasPricing(garment: string | null) {
@@ -141,6 +206,10 @@ export function supportsCanvasPricing(garment: string | null) {
 export function getLegacyCustomGarmentPrice(garment: string | null) {
   if (!garment) {
     return 0;
+  }
+
+  if (garment === "Shirt") {
+    return 200;
   }
 
   if (garment === "Three-piece suit" || garment === "Three-piece tuxedo") {
@@ -156,38 +225,44 @@ export function roundCurrency(value: number) {
 
 export function getCustomGarmentPricingResult(
   input: string | null | CustomPricingInput,
-  config: Pick<PricingComputationConfig, "pricingTiers" | "fabricOptions" | "jacketCanvasSurcharges"> = {},
+  config: Pick<
+    PricingComputationConfig,
+    "pricingTiers" | "fabricOptions" | "catalogVariations" | "catalogVariationTierPrices" | "jacketCanvasSurcharges" | "customLiningSurchargeAmount"
+  > = {},
 ): CustomPricingResult {
   const normalizedInput =
     typeof input === "string" || input === null
       ? { selectedGarment: input as string | null }
       : input;
 
-  const pricingTiers = config.pricingTiers ?? customPricingTierCatalog;
-  const fabricOptions = config.fabricOptions ?? defaultMaterialOptionsByKind.fabric;
-  const surcharges = config.jacketCanvasSurcharges ?? defaultJacketCanvasSurcharges;
+  const pricingTiers = config.pricingTiers ?? [];
+  const fabricOptions = config.fabricOptions ?? [];
+  const surcharges = config.jacketCanvasSurcharges ?? { Fused: 0, Half: 100, Full: 200 };
+  const customLiningSurchargeAmount = config.customLiningSurchargeAmount ?? 200;
   const match = resolveCustomPricingMatch(normalizedInput, pricingTiers, fabricOptions);
   const tier = match.key ? getPricingTierByKey(match.key, pricingTiers) : null;
+  const selectedVariationLabel = getSelectedVariationLabel(normalizedInput);
+  const canvasPrice = getCanvasPrice(surcharges, normalizedInput.canvas, selectedVariationLabel);
+  const customLiningPrice = getCustomLiningPrice(
+    customLiningSurchargeAmount,
+    normalizedInput.customLiningRequested,
+    selectedVariationLabel,
+  );
 
-  if (!tier) {
-    return {
-      price: getLegacyCustomGarmentPrice(normalizedInput.selectedGarment),
-      match,
-    };
-  }
-
-  const basePrice = getBaseGarmentPrice(tier, normalizedInput.selectedGarment);
-  const canvasPrice = getCanvasPrice(surcharges, normalizedInput.canvas, normalizedInput.selectedGarment);
+  const basePrice = getCatalogVariationBasePrice(normalizedInput, tier, config);
 
   return {
-    price: roundCurrency(basePrice + canvasPrice),
+    price: roundCurrency(basePrice + canvasPrice + customLiningPrice),
     match,
   };
 }
 
 export function getCustomGarmentPrice(
   input: string | null | CustomPricingInput,
-  config: Pick<PricingComputationConfig, "pricingTiers" | "fabricOptions" | "jacketCanvasSurcharges"> = {},
+  config: Pick<
+    PricingComputationConfig,
+    "pricingTiers" | "fabricOptions" | "catalogVariations" | "catalogVariationTierPrices" | "jacketCanvasSurcharges" | "customLiningSurchargeAmount"
+  > = {},
 ) {
   return getCustomGarmentPricingResult(input, config).price;
 }

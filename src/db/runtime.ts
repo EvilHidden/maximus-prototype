@@ -1,5 +1,18 @@
 import type { PrototypeDatabase } from "./schema";
-import { createDefaultCustomPricingTiers, defaultJacketCanvasSurcharges } from "./customPricingCatalog";
+import {
+  createDefaultCatalogItems,
+  createDefaultCatalogModifierGroups,
+  createDefaultCatalogModifierOptions,
+  createDefaultCatalogOptionGroups,
+  createDefaultCatalogVariationTierPrices,
+  createDefaultCatalogVariations,
+  createDefaultFabricCatalogItems,
+  createDefaultGarmentBasePrices,
+  createDefaultGarmentSurchargeRules,
+  createDefaultMillBooks,
+  createDefaultPricingPrograms,
+  createDefaultPricingTiers,
+} from "./customPricingCatalog";
 import {
   createCustomerEvents,
   createCustomers,
@@ -61,7 +74,18 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const locations = createLocations();
   const staffMembers = createStaffMembers();
   const alterationServiceDefinitions = createAlterationServiceDefinitions();
-  const customPricingTiers = createDefaultCustomPricingTiers();
+  const catalogItems = createDefaultCatalogItems();
+  const catalogVariations = createDefaultCatalogVariations();
+  const catalogOptionGroups = createDefaultCatalogOptionGroups();
+  const catalogModifierGroups = createDefaultCatalogModifierGroups();
+  const catalogModifierOptions = createDefaultCatalogModifierOptions();
+  const catalogVariationTierPrices = createDefaultCatalogVariationTierPrices();
+  const pricingPrograms = createDefaultPricingPrograms();
+  const pricingTiers = createDefaultPricingTiers();
+  const millBooks = createDefaultMillBooks();
+  const fabricCatalogItems = createDefaultFabricCatalogItems();
+  const garmentBasePrices = createDefaultGarmentBasePrices();
+  const garmentSurchargeRules = createDefaultGarmentSurchargeRules();
   const customGarmentDefinitions = createCustomGarmentDefinitions();
   const styleOptionDefinitions = createStyleOptionDefinitions();
   const measurementFieldDefinitions = createMeasurementFieldDefinitions();
@@ -89,12 +113,22 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
       defaultLocationId: locations[0]?.id ?? "loc_fifth_avenue",
       taxRate: 0.08875,
       customDepositRate: 0.5,
-      jacketCanvasSurcharges: defaultJacketCanvasSurcharges,
     },
     locations,
     staffMembers,
     alterationServiceDefinitions,
-    customPricingTiers,
+    catalogItems,
+    catalogVariations,
+    catalogOptionGroups,
+    catalogModifierGroups,
+    catalogModifierOptions,
+    catalogVariationTierPrices,
+    pricingPrograms,
+    pricingTiers,
+    millBooks,
+    fabricCatalogItems,
+    garmentBasePrices,
+    garmentSurchargeRules,
     customGarmentDefinitions,
     styleOptionDefinitions,
     measurementFieldDefinitions,

@@ -1,5 +1,6 @@
 import type { PrototypeDatabase } from "../../db/schema";
 import { customPricingGarments } from "../../db/customPricingCatalog";
+import { createReferenceData } from "../../db/referenceData";
 
 export function getSortedMeasurementFields(database: PrototypeDatabase) {
   return database.measurementFieldDefinitions
@@ -32,7 +33,13 @@ export function getCustomPricingGarments(database: PrototypeDatabase) {
 }
 
 export function getSortedCustomPricingTiers(database: PrototypeDatabase) {
-  return database.customPricingTiers
+  return createReferenceData(database).customPricingTiers
     .slice()
-    .sort((left, right) => left.sortOrder - right.sortOrder);
+    .sort((left, right) => {
+      if (left.programKey !== right.programKey) {
+        return left.programKey.localeCompare(right.programKey);
+      }
+
+      return left.sortOrder - right.sortOrder;
+    });
 }
