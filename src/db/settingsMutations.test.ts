@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createPrototypeDatabase } from "./runtime";
 import {
   addMeasurementFieldDefinition,
+  updateCatalogModifierOption,
   updateCustomPricingTierGarmentPrice,
   updateLocationRecord,
   updateMeasurementFieldDefinition,
@@ -47,5 +48,17 @@ describe("settings mutations", () => {
     }, {
       pricingTiers: referenceData.customPricingTiers,
     })).toBe(1777);
+  });
+
+  it("uses updated catalog modifier values for surcharge pricing", () => {
+    const database = createPrototypeDatabase(new Date("2026-04-05T12:00:00.000Z"));
+    const fullCanvasOption = database.catalogModifierOptions.find((option) => option.optionValue === "Full");
+    expect(fullCanvasOption).toBeTruthy();
+
+    const updatedDatabase = updateCatalogModifierOption(database, fullCanvasOption!.id, { amount: 275, label: "Full canvas upgrade" });
+    const referenceData = createReferenceData(updatedDatabase);
+
+    expect(referenceData.jacketCanvasSurcharges.Full).toBe(275);
+    expect(referenceData.catalogModifierOptions.find((option) => option.id === fullCanvasOption!.id)?.label).toBe("Full canvas upgrade");
   });
 });

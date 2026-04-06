@@ -10,6 +10,8 @@ function createPricingConfig() {
   return {
     pricingTiers: referenceData.customPricingTiers,
     fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: referenceData.catalogVariations,
+    catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
     jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
     customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
   };

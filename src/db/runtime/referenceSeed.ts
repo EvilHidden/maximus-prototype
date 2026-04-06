@@ -4,7 +4,6 @@ import type {
   DbMeasurementFieldDefinition,
   DbStyleOptionDefinition,
 } from "../schema";
-import { supportsJacketConstruction } from "../customPricingCatalog";
 
 function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
@@ -163,7 +162,6 @@ export function createCustomGarmentDefinitions(): DbCustomGarmentDefinition[] {
     id: `custom_garment_${gender}_${slugify(label)}`,
     gender,
     label,
-    jacketBased: supportsJacketConstruction(label),
   }));
 }
 

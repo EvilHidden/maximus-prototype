@@ -21,8 +21,6 @@ type CustomGarmentBuilderProps = {
   catalogVariations: CatalogVariationView[];
   catalogVariationTierPrices: CatalogVariationTierPriceView[];
   jacketCanvasSurcharges: Record<JacketCanvas, number>;
-  jacketBasedCustomGarments: Set<string>;
-  customLiningEligibleGarments: Set<string>;
   customLiningSurchargeAmount: number;
   lapelOptions: string[];
   pocketTypeOptions: string[];
@@ -390,8 +388,6 @@ export function CustomGarmentBuilder({
   catalogVariations,
   catalogVariationTierPrices,
   jacketCanvasSurcharges,
-  jacketBasedCustomGarments,
-  customLiningEligibleGarments,
   customLiningSurchargeAmount,
   lapelOptions,
   pocketTypeOptions,
@@ -432,8 +428,12 @@ export function CustomGarmentBuilder({
 }: CustomGarmentBuilderProps) {
   const garmentOptions = selectedGender ? garmentOptionsByGender[selectedGender] : [];
   const showConfiguration = Boolean(selectedGarment);
-  const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
-  const showCustomLiningOption = selectedGarment ? customLiningEligibleGarments.has(selectedGarment) : false;
+  const selectedVariation = useMemo(
+    () => catalogVariations.find((variation) => variation.label === selectedGarment) ?? null,
+    [catalogVariations, selectedGarment],
+  );
+  const showJacketStyleOptions = selectedVariation?.supportsCanvas ?? false;
+  const showCustomLiningOption = selectedVariation?.supportsCustomLining ?? false;
   const selectedProgramKey = getPricingProgramKeyForGarment(selectedGarment);
   const compatibleFabricOptions = useMemo(() => {
     if (!selectedProgramKey) {

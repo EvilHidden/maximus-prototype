@@ -48,7 +48,7 @@ function getCustomDraftReady(order: OrderWorkflowState) {
     return false;
   }
 
-  if (isJacketBasedCustomGarment(draft.variationLabel ?? draft.selectedGarment, seedReferenceData.jacketBasedCustomGarments)) {
+  if (isJacketBasedCustomGarment(draft.variationLabel ?? draft.selectedGarment, seedReferenceData.catalogVariations)) {
     return Boolean(draft.pocketType && draft.lapel && draft.canvas);
   }
 
@@ -56,7 +56,7 @@ function getCustomDraftReady(order: OrderWorkflowState) {
 }
 
 function getStyleSummary(garment: string | null, lapel: string | null, pocketType: string | null, canvas: string | null) {
-  if (!isJacketBasedCustomGarment(garment, seedReferenceData.jacketBasedCustomGarments)) {
+  if (!isJacketBasedCustomGarment(garment, seedReferenceData.catalogVariations)) {
     return [];
   }
 

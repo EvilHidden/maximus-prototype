@@ -133,12 +133,16 @@ They should also remain expressive enough to carry normalized scheduling metadat
   - custom garment definitions
   - style options
   - measurement field definitions
+  - catalog items
+  - catalog variations
+  - catalog option groups
+  - catalog modifier groups
+  - catalog modifier options
+  - catalog variation tier prices
   - pricing programs
   - pricing tiers
   - mill books
   - fabric SKU catalog items
-  - garment base prices
-  - garment surcharge rules
 
 These now live under `src/db/` so operational lookup data is sourced from the same canonical layer as business records.
 
@@ -147,8 +151,24 @@ Note:
 - they are still intentionally static/seed-backed, not operator-editable CRUD entities yet
 
 ### Pricing catalog hierarchy
-- Custom pricing is now modeled as a normalized catalog instead of a flat tier list.
-- The prototype hierarchy is:
+- Custom pricing is modeled in two layers:
+  - a sellable catalog layer that mirrors Square's mental model
+  - an internal fabric-source layer that resolves tier-based pricing
+- The sellable catalog layer is:
+  - `catalog_item`
+    - currently `Custom Garment`
+  - `catalog_variation`
+    - sellable things like `Two-piece suit`, `Jacket`, `Shirt`
+    - owns variation capabilities and fallback amount
+  - `catalog_option_group`
+    - non-priced selections like `fabric`, `buttons`, `lining`, `threads`, `lapel`, `pocket_type`
+  - `catalog_modifier_group`
+    - additive pricing groups like `canvas` and `custom_lining`
+  - `catalog_modifier_option`
+    - additive options like `Half canvas`, `Full canvas`, `Custom printed lining`
+  - `catalog_variation_tier_price`
+    - one row per variation + pricing tier combination
+- The internal fabric-source layer is:
   - `pricing_program`
     - `custom_suiting`
     - `custom_shirting`
@@ -161,21 +181,20 @@ Note:
   - `fabric_sku`
     - belongs to exactly one mill book
     - can optionally carry QR lookup metadata
-  - `garment_base_price`
-    - one row per garment + tier combination
-  - `garment_surcharge_rule`
-    - one row per applicable garment + surcharge option combination
 
 Pricing resolution rule:
-- selected garment -> selected fabric SKU -> mill book -> pricing tier -> garment base price -> surcharge rules
+- selected catalog variation -> selected fabric SKU -> mill book -> pricing tier -> catalog variation tier price -> selected modifier options
 
 Important prototype rules:
 - QR values are stored exactly as scanned when available.
 - QR metadata is a lookup bridge, not the canonical pricing record.
 - Three-piece garments are standalone garments, not vest add-ons.
-- Jacket construction applies only to jacket-bearing garments.
-- Custom printed lining is a jacket-only surcharge.
+- Variation capability flags are canonical:
+  - jacket construction applies only where the variation supports canvas
+  - custom printed lining applies only where the variation supports custom lining
 - Representative books and representative SKUs are enough for the prototype; the catalog does not need to be exhaustive yet.
+
+For a visual relational view of this pricing model, see [CUSTOM_PRICING_RELATIONAL_SCHEMA.md](/Users/daniel/Dev%20Work/maximus/docs/CUSTOM_PRICING_RELATIONAL_SCHEMA.md).
 
 ### `payment_record`
 - Local mirror of payment state

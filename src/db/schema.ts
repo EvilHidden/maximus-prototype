@@ -13,7 +13,7 @@ import type {
   WorkflowMode,
   OrderWorkflowState,
 } from "../types";
-import type { FabricLookupType, GarmentSurchargeKind, PricingProgramKey } from "./customPricingCatalog";
+import type { FabricLookupType, PricingProgramKey } from "./customPricingCatalog";
 
 export type DbLocation = {
   id: string;
@@ -42,7 +42,6 @@ export type DbCustomGarmentDefinition = {
   id: string;
   gender: CustomGarmentGender;
   label: string;
-  jacketBased: boolean;
 };
 
 export type DbStyleOptionDefinition = {
@@ -113,26 +112,6 @@ export type DbFabricCatalogItem = {
   externalReference: string | null;
   swatch: string;
   swatchImage?: string;
-  isActive: boolean;
-};
-
-export type DbGarmentBasePrice = {
-  id: string;
-  programKey: PricingProgramKey;
-  tierKey: string;
-  garmentLabel: string;
-  amount: number;
-  isActive: boolean;
-};
-
-export type DbGarmentSurchargeRule = {
-  id: string;
-  programKey: PricingProgramKey;
-  garmentLabel: string;
-  kind: GarmentSurchargeKind;
-  optionValue: string;
-  label: string;
-  amount: number;
   isActive: boolean;
 };
 
@@ -384,8 +363,6 @@ export type PrototypeDatabase = {
   pricingTiers: DbPricingTier[];
   millBooks: DbMillBook[];
   fabricCatalogItems: DbFabricCatalogItem[];
-  garmentBasePrices: DbGarmentBasePrice[];
-  garmentSurchargeRules: DbGarmentSurchargeRule[];
   customGarmentDefinitions: DbCustomGarmentDefinition[];
   styleOptionDefinitions: DbStyleOptionDefinition[];
   measurementFieldDefinitions: DbMeasurementFieldDefinition[];

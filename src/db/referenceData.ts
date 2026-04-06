@@ -8,14 +8,10 @@ import {
   createDefaultCatalogVariationTierPrices,
   createDefaultCatalogVariations,
   createDefaultFabricCatalogItems,
-  createDefaultGarmentBasePrices,
-  createDefaultGarmentSurchargeRules,
   createDefaultMillBooks,
   createDefaultPricingPrograms,
   createDefaultPricingTiers,
-  customLiningEligibleGarments,
   customPricingGarments,
-  jacketConstructionGarments,
   type CustomPricingGarment,
   type CustomPricingTierDefinition,
   type FabricLookupType,
@@ -91,8 +87,6 @@ export type AppReferenceData = {
   customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
   customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
   inHouseTailors: StaffMember[];
-  jacketBasedCustomGarments: Set<string>;
-  customLiningEligibleGarments: Set<string>;
   jacketCanvasSurcharges: Record<JacketCanvas, number>;
   customLiningSurchargeAmount: number;
   lapelOptions: string[];
@@ -119,8 +113,6 @@ const seedPricingPrograms = createDefaultPricingPrograms();
 const seedPricingTiers = createDefaultPricingTiers();
 const seedMillBooks = createDefaultMillBooks();
 const seedFabricCatalogItems = createDefaultFabricCatalogItems();
-const seedGarmentBasePrices = createDefaultGarmentBasePrices();
-const seedGarmentSurchargeRules = createDefaultGarmentSurchargeRules();
 const seedCustomGarmentDefinitions = createCustomGarmentDefinitions();
 const seedStyleOptionDefinitions = createStyleOptionDefinitions();
 const seedMeasurementFieldDefinitions = createMeasurementFieldDefinitions();
@@ -221,14 +213,6 @@ function buildCustomPricingTiers(database: PrototypeDatabase): CustomPricingTier
           return accumulator;
         }, {});
 
-      if (!Object.keys(basePrices).length) {
-        database.garmentBasePrices
-          .filter((price) => price.isActive && price.tierKey === tier.key)
-          .forEach((price) => {
-            basePrices[price.garmentLabel as CustomPricingGarment] = price.amount;
-          });
-      }
-
       return {
         key: tier.key,
         programKey: tier.programKey,
@@ -304,16 +288,27 @@ function buildCatalogVariationMatrix(database: PrototypeDatabase): CatalogVariat
     }));
 }
 
-function getJacketCanvasSurcharges(rules: PrototypeDatabase["garmentSurchargeRules"]) {
+function getCatalogVariation<TVariation extends { label: string }>(
+  catalogVariations: TVariation[],
+  garment: string | null | undefined,
+) {
+  if (!garment) {
+    return null;
+  }
+
+  return catalogVariations.find((variation) => variation.label === garment) ?? null;
+}
+
+function getJacketCanvasSurcharges(modifierOptions: PrototypeDatabase["catalogModifierOptions"]) {
   return {
-    Fused: rules.find((rule) => rule.kind === "canvas" && rule.optionValue === "Fused" && rule.isActive)?.amount ?? 0,
-    Half: rules.find((rule) => rule.kind === "canvas" && rule.optionValue === "Half" && rule.isActive)?.amount ?? 100,
-    Full: rules.find((rule) => rule.kind === "canvas" && rule.optionValue === "Full" && rule.isActive)?.amount ?? 200,
+    Fused: modifierOptions.find((option) => option.optionValue === "Fused" && option.isActive)?.amount ?? 0,
+    Half: modifierOptions.find((option) => option.optionValue === "Half" && option.isActive)?.amount ?? 100,
+    Full: modifierOptions.find((option) => option.optionValue === "Full" && option.isActive)?.amount ?? 200,
   } satisfies Record<JacketCanvas, number>;
 }
 
-function getCustomLiningSurchargeAmount(rules: PrototypeDatabase["garmentSurchargeRules"]) {
-  return rules.find((rule) => rule.kind === "lining" && rule.optionValue === "custom_printed" && rule.isActive)?.amount ?? 200;
+function getCustomLiningSurchargeAmount(modifierOptions: PrototypeDatabase["catalogModifierOptions"]) {
+  return modifierOptions.find((option) => option.optionValue === "custom_printed" && option.isActive)?.amount ?? 200;
 }
 
 export function getMeasurementFieldLabels(database: Pick<PrototypeDatabase, "measurementFieldDefinitions">) {
@@ -333,9 +328,16 @@ export function createSeedMeasurementValueMap() {
 
 export function isJacketBasedCustomGarment(
   garment: string | null,
-  jacketBasedCustomGarments: Iterable<string>,
+  catalogVariations: Array<Pick<PrototypeDatabase["catalogVariations"][number], "label" | "supportsCanvas">>,
 ) {
-  return Boolean(garment && new Set(jacketBasedCustomGarments).has(garment));
+  return Boolean(getCatalogVariation(catalogVariations, garment)?.supportsCanvas);
+}
+
+export function supportsCatalogCustomLining(
+  garment: string | null,
+  catalogVariations: Array<Pick<PrototypeDatabase["catalogVariations"][number], "label" | "supportsCustomLining">>,
+) {
+  return Boolean(getCatalogVariation(catalogVariations, garment)?.supportsCustomLining);
 }
 
 export function getPickupLocationNameById(
@@ -443,10 +445,8 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
         name: staffMember.name,
         primaryLocation: getPickupLocationNameById(database.locations, staffMember.primaryLocationId) as PickupLocation,
       })),
-    jacketBasedCustomGarments: new Set(jacketConstructionGarments),
-    customLiningEligibleGarments: new Set(customLiningEligibleGarments),
-    jacketCanvasSurcharges: getJacketCanvasSurcharges(database.garmentSurchargeRules),
-    customLiningSurchargeAmount: getCustomLiningSurchargeAmount(database.garmentSurchargeRules),
+    jacketCanvasSurcharges: getJacketCanvasSurcharges(database.catalogModifierOptions),
+    customLiningSurchargeAmount: getCustomLiningSurchargeAmount(database.catalogModifierOptions),
     lapelOptions: getStyleOptions(database.styleOptionDefinitions, "lapel"),
     pocketTypeOptions: getStyleOptions(database.styleOptionDefinitions, "pocket_type"),
     canvasOptions: getStyleOptions(database.styleOptionDefinitions, "canvas"),
@@ -490,8 +490,6 @@ const seedReferenceData = createReferenceData({
   pricingTiers: seedPricingTiers,
   millBooks: seedMillBooks,
   fabricCatalogItems: seedFabricCatalogItems,
-  garmentBasePrices: seedGarmentBasePrices,
-  garmentSurchargeRules: seedGarmentSurchargeRules,
   customGarmentDefinitions: seedCustomGarmentDefinitions,
   styleOptionDefinitions: seedStyleOptionDefinitions,
   measurementFieldDefinitions: seedMeasurementFieldDefinitions,
