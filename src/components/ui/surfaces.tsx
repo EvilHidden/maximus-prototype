@@ -56,17 +56,17 @@ export function Card({ children, className = "" }: CardProps) {
 
 export function SectionHeader({ icon: Icon, title, subtitle, action }: SectionHeaderProps) {
   return (
-    <div className="mb-4 flex items-start justify-between gap-4">
-      <div className="flex items-start gap-3">
-        <div className="app-icon-chip">
+    <div className="mb-4 flex flex-col gap-3 md:flex-row md:items-start md:justify-between md:gap-4">
+      <div className="flex min-w-0 items-start gap-3">
+        <div className="app-icon-chip shrink-0">
           <Icon className="h-4 w-4" />
         </div>
-        <div>
+        <div className="min-w-0">
           <h2 className="app-section-title">{title}</h2>
           {subtitle ? <p className="app-section-copy">{subtitle}</p> : null}
         </div>
       </div>
-      {action ?? null}
+      <div className="self-start md:self-auto">{action ?? null}</div>
     </div>
   );
 }
