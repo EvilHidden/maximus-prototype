@@ -1,6 +1,6 @@
 import type {
   DbAlterationServiceDefinition,
-  DbCustomPricingBook,
+  DbCustomPricingTier,
   DbMeasurementFieldDefinition,
   PrototypeDatabase,
 } from "../schema";
@@ -27,7 +27,7 @@ type UpdateLocationPatch = {
   isActive?: boolean;
 };
 
-type UpdateCustomPricingBookPatch = Partial<Pick<DbCustomPricingBook, "label" | "manufacturer" | "bookType" | "vestPrice" | "isActive">>;
+type UpdateCustomPricingTierPatch = Partial<Pick<DbCustomPricingTier, "label" | "isActive">>;
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
@@ -339,67 +339,43 @@ export function updateAlterationServiceDefinition(
   };
 }
 
-export function updateCustomPricingBook(
+export function updateCustomPricingTier(
   database: PrototypeDatabase,
-  bookKey: string,
-  patch: UpdateCustomPricingBookPatch,
+  tierKey: string,
+  patch: UpdateCustomPricingTierPatch,
 ): PrototypeDatabase {
   return {
     ...database,
-    customPricingBooks: database.customPricingBooks.map((book) => (
-      book.key === bookKey
+    customPricingTiers: database.customPricingTiers.map((tier) => (
+      tier.key === tierKey
         ? {
-            ...book,
+            ...tier,
             ...patch,
-            label: patch.label?.trim() || book.label,
-            manufacturer: patch.manufacturer?.trim() || book.manufacturer,
-            bookType: patch.bookType?.trim() || book.bookType,
+            label: patch.label?.trim() || tier.label,
           }
-        : book
+        : tier
     )),
   };
 }
 
-export function updateCustomPricingBookGarmentPrice(
+export function updateCustomPricingTierGarmentPrice(
   database: PrototypeDatabase,
-  bookKey: string,
-  garment: keyof DbCustomPricingBook["basePrices"],
+  tierKey: string,
+  garment: keyof DbCustomPricingTier["basePrices"],
   price: number,
 ): PrototypeDatabase {
   return {
     ...database,
-    customPricingBooks: database.customPricingBooks.map((book) => (
-      book.key === bookKey
+    customPricingTiers: database.customPricingTiers.map((tier) => (
+      tier.key === tierKey
         ? {
-            ...book,
+            ...tier,
             basePrices: {
-              ...book.basePrices,
+              ...tier.basePrices,
               [garment]: price,
             },
           }
-        : book
-    )),
-  };
-}
-
-export function updateCustomPricingBookCanvasSurcharge(
-  database: PrototypeDatabase,
-  bookKey: string,
-  canvas: keyof DbCustomPricingBook["canvasSurcharges"],
-  price: number,
-): PrototypeDatabase {
-  return {
-    ...database,
-    customPricingBooks: database.customPricingBooks.map((book) => (
-      book.key === bookKey
-        ? {
-            ...book,
-            canvasSurcharges: {
-              ...book.canvasSurcharges,
-              [canvas]: price,
-            },
-          }
-        : book
+        : tier
     )),
   };
 }

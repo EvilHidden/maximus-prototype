@@ -12,8 +12,8 @@ import type {
   OrderWorkflowState,
   WorkflowMode,
 } from "../../types";
-import type { CustomPricingBookEntry } from "../../db/customPricingCatalog";
-import { getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
+import type { CustomPricingTierDefinition, JacketCanvasSurcharges } from "../../db/customPricingCatalog";
+import { defaultMaterialOptionsByKind, getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
 import { getDraftPaymentSummary, getOpenOrderPickupBalanceDue } from "./paymentSummary";
@@ -334,7 +334,10 @@ export function getCustomConfigured(order: OrderWorkflowState) {
 export function getOrderBagLineItems(
   order: OrderWorkflowState,
   customers: Customer[],
-  customPricingBooks?: CustomPricingBookEntry[],
+  pricingConfig?: {
+    customPricingTiers?: CustomPricingTierDefinition[];
+    jacketCanvasSurcharges?: JacketCanvasSurcharges;
+  },
 ): OrderBagLineItem[] {
   const items: OrderBagLineItem[] = order.alteration.items.map((item, index) => ({
     id: `alteration-${item.id}`,
@@ -382,7 +385,11 @@ export function getOrderBagLineItems(
       kind: "custom",
       title: `${order.alteration.items.length + index + 1}. ${createLineTitle("custom", selectedGarment)}`,
       subtitle,
-      amount: getCustomGarmentPrice(item, customPricingBooks),
+      amount: getCustomGarmentPrice(item, {
+        pricingTiers: pricingConfig?.customPricingTiers,
+        fabricOptions: defaultMaterialOptionsByKind.fabric,
+        jacketCanvasSurcharges: pricingConfig?.jacketCanvasSurcharges,
+      }),
       isRush: item.isRush,
       sourceLabel: selectedGarment,
       garmentLabel: selectedGarment,

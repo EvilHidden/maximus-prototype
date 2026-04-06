@@ -47,6 +47,7 @@ export function createInitialCustomDraft(measurementFields?: string[]): CustomGa
     wearerCustomerId: null,
     isRush: false,
     selectedGarment: null,
+    pricingTierKey: null,
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(measurementFields),
     fabricSku: null,

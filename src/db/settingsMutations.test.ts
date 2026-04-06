@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { createPrototypeDatabase } from "./runtime";
 import {
   addMeasurementFieldDefinition,
-  updateCustomPricingBookGarmentPrice,
+  updateCustomPricingTierGarmentPrice,
   updateLocationRecord,
   updateMeasurementFieldDefinition,
 } from "./mutations";
@@ -35,14 +35,16 @@ describe("settings mutations", () => {
     );
   });
 
-  it("uses updated custom pricing book values for garment pricing", () => {
+  it("uses updated custom pricing tier values for garment pricing", () => {
     const database = createPrototypeDatabase(new Date("2026-04-05T12:00:00.000Z"));
-    const targetBook = database.customPricingBooks[0];
-    const updatedDatabase = updateCustomPricingBookGarmentPrice(database, targetBook.key, "Two-piece suit", 1777);
+    const targetTier = database.customPricingTiers[0];
+    const updatedDatabase = updateCustomPricingTierGarmentPrice(database, targetTier.key, "Two-piece suit", 1777);
 
     expect(getCustomGarmentPrice({
       selectedGarment: "Two-piece suit",
-      pricingMatchKey: targetBook.key,
-    }, updatedDatabase.customPricingBooks)).toBe(1777);
+      pricingTierKey: targetTier.key,
+    }, {
+      pricingTiers: updatedDatabase.customPricingTiers,
+    })).toBe(1777);
   });
 });

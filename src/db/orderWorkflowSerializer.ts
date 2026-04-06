@@ -47,7 +47,7 @@ type SerializeOrderWorkflowArgs = {
   order: OrderWorkflowState;
   customers: Customer[];
   locations: DbLocation[];
-  customPricingBooks: PrototypeDatabase["customPricingBooks"];
+  customPricingTiers: PrototypeDatabase["customPricingTiers"];
   organizationSettings: PrototypeDatabase["organizationSettings"];
   paymentMode: CheckoutPaymentMode;
   orderSequence: number;
@@ -284,7 +284,7 @@ export function serializeOrderWorkflowToRecords({
   order,
   customers,
   locations,
-  customPricingBooks,
+  customPricingTiers,
   organizationSettings,
   paymentMode,
   orderSequence,
@@ -404,7 +404,10 @@ export function serializeOrderWorkflowToRecords({
         label: garmentLabel,
         garmentLabel,
         quantity: 1,
-        unitPrice: getCustomGarmentPrice(item, customPricingBooks),
+        unitPrice: getCustomGarmentPrice(item, {
+          pricingTiers: customPricingTiers,
+          jacketCanvasSurcharges: organizationSettings.jacketCanvasSurcharges,
+        }),
         isRush: item.isRush,
         wearerCustomerId: item.wearerCustomerId,
         wearerName: getWearerName(item.wearerCustomerId, customers, item.wearerName),
@@ -418,20 +421,30 @@ export function serializeOrderWorkflowToRecords({
         item.linkedMeasurementLabel
           ? createLineComponent(lineId, "measurement_set", "Measurements", item.linkedMeasurementLabel, 2)
           : null,
-        item.fabricSku ? createLineComponent(lineId, "fabric_sku", "Fabric SKU", item.fabricSku, 3) : null,
-        item.buttonsSku ? createLineComponent(lineId, "buttons_sku", "Buttons SKU", item.buttonsSku, 5) : null,
-        item.liningSku ? createLineComponent(lineId, "lining_sku", "Lining SKU", item.liningSku, 7) : null,
-        item.threadsSku ? createLineComponent(lineId, "threads_sku", "Threads SKU", item.threadsSku, 9) : null,
-        item.canvas ? createLineComponent(lineId, "canvas", "Canvas", item.canvas, 10) : null,
-        item.lapel ? createLineComponent(lineId, "lapel", "Lapel", item.lapel, 11) : null,
-        item.pocketType ? createLineComponent(lineId, "pocket_type", "Pockets", item.pocketType, 12) : null,
-        item.monogramLeft ? createLineComponent(lineId, "monogram", "Monogram left", item.monogramLeft, 13) : null,
-        item.monogramCenter ? createLineComponent(lineId, "monogram", "Monogram center", item.monogramCenter, 14) : null,
-        item.monogramRight ? createLineComponent(lineId, "monogram", "Monogram right", item.monogramRight, 15) : null,
+        item.pricingTierKey
+          ? createLineComponent(
+              lineId,
+              "pricing_tier",
+              "Pricing tier",
+              customPricingTiers.find((tier) => tier.key === item.pricingTierKey)?.label ?? item.pricingTierKey,
+              3,
+              { referenceId: item.pricingTierKey },
+            )
+          : null,
+        item.fabricSku ? createLineComponent(lineId, "fabric_sku", "Fabric SKU", item.fabricSku, 4) : null,
+        item.buttonsSku ? createLineComponent(lineId, "buttons_sku", "Buttons SKU", item.buttonsSku, 6) : null,
+        item.liningSku ? createLineComponent(lineId, "lining_sku", "Lining SKU", item.liningSku, 8) : null,
+        item.threadsSku ? createLineComponent(lineId, "threads_sku", "Threads SKU", item.threadsSku, 10) : null,
+        item.canvas ? createLineComponent(lineId, "canvas", "Canvas", item.canvas, 11) : null,
+        item.lapel ? createLineComponent(lineId, "lapel", "Lapel", item.lapel, 12) : null,
+        item.pocketType ? createLineComponent(lineId, "pocket_type", "Pockets", item.pocketType, 13) : null,
+        item.monogramLeft ? createLineComponent(lineId, "monogram", "Monogram left", item.monogramLeft, 14) : null,
+        item.monogramCenter ? createLineComponent(lineId, "monogram", "Monogram center", item.monogramCenter, 15) : null,
+        item.monogramRight ? createLineComponent(lineId, "monogram", "Monogram right", item.monogramRight, 16) : null,
       ].filter(Boolean) as DbOrderScopeLineComponent[];
 
       item.referencePhotoIds.forEach((photoId, photoIndex) => {
-        components.push(createLineComponent(lineId, "reference_photo", "Reference photo", photoId, 16 + photoIndex));
+        components.push(createLineComponent(lineId, "reference_photo", "Reference photo", photoId, 17 + photoIndex));
       });
 
       lineComponents.push(...components);
@@ -463,9 +476,10 @@ export function serializeOrderWorkflowToRecords({
   });
 
   const pricingConfig = {
-    pricingBooks: customPricingBooks,
+    pricingTiers: customPricingTiers,
     taxRate: organizationSettings.taxRate,
     customDepositRate: organizationSettings.customDepositRate,
+    jacketCanvasSurcharges: organizationSettings.jacketCanvasSurcharges,
   };
   const checkoutCollectionAmount = getCheckoutCollectionAmount(order, pricingConfig);
   const pricingSummary = getPricingSummary(order, pricingConfig);
@@ -487,7 +501,10 @@ export function serializeOrderWorkflowToRecords({
         ? pricingSummary.depositDue + pricingSummary.alterationsSubtotal + pricingSummary.taxAmount
         : checkoutCollectionAmount,
       pricingSummary.total,
-      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item, customPricingBooks), 0),
+      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item, {
+        pricingTiers: customPricingTiers,
+        jacketCanvasSurcharges: organizationSettings.jacketCanvasSurcharges,
+      }), 0),
       organizationSettings.customDepositRate,
       now,
     ),
@@ -504,6 +521,7 @@ function createEmptyCustomDraft(): CustomGarmentDraft {
     wearerCustomerId: null,
     isRush: false,
     selectedGarment: null,
+    pricingTierKey: null,
     linkedMeasurementSetId: null,
     measurements: createEmptyMeasurements(),
     fabricSku: null,
@@ -633,6 +651,7 @@ export function deserializeOrderWorkflowFromRecords(
           wearerCustomerId: line.wearerCustomerId,
           isRush: line.isRush,
           selectedGarment: line.garmentLabel,
+          pricingTierKey: components.find((component) => component.kind === "pricing_tier")?.referenceId ?? null,
           linkedMeasurementSetId: line.measurementSetId,
           measurements: {
             ...createEmptyMeasurements(),

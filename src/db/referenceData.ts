@@ -1,6 +1,6 @@
 import type { AlterationCategory, AlterationServiceDefinition, CustomGarmentGender, PickupLocation, StaffMember } from "../types";
 import type { PrototypeDatabase } from "./schema";
-import { createDefaultCustomPricingBooks } from "./customPricingCatalog";
+import { createDefaultCustomPricingTiers, defaultJacketCanvasSurcharges } from "./customPricingCatalog";
 import {
   createAlterationServiceDefinitions,
   createCustomGarmentDefinitions,
@@ -13,8 +13,9 @@ export type AppReferenceData = {
   defaultLocationId: string;
   taxRate: number;
   customDepositRate: number;
+  jacketCanvasSurcharges: PrototypeDatabase["organizationSettings"]["jacketCanvasSurcharges"];
   alterationCatalog: AlterationCategory[];
-  customPricingBooks: PrototypeDatabase["customPricingBooks"];
+  customPricingTiers: PrototypeDatabase["customPricingTiers"];
   customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
   customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
   inHouseTailors: StaffMember[];
@@ -32,6 +33,11 @@ export type MaterialOption = {
   composition?: string;
   yarn?: string;
   weight?: string;
+  millLabel?: string;
+  manufacturer?: string;
+  bookType?: string;
+  pricingTierKey?: string;
+  pricingTierLabel?: string;
   swatch: string;
   swatchImage?: string;
 };
@@ -43,11 +49,11 @@ const seedLocations: PrototypeDatabase["locations"] = [
 ];
 
 const seedAlterationServiceDefinitions = createAlterationServiceDefinitions();
-const seedCustomPricingBooks = createDefaultCustomPricingBooks();
+const seedCustomPricingTiers = createDefaultCustomPricingTiers();
 const seedCustomGarmentDefinitions = createCustomGarmentDefinitions();
 const seedStyleOptionDefinitions = createStyleOptionDefinitions();
 const seedMeasurementFieldDefinitions = createMeasurementFieldDefinitions();
-const seedMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]> = {
+export const defaultMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]> = {
   fabric: [
     {
       sku: "DBM562A",
@@ -55,6 +61,11 @@ const seedMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threa
       composition: "100%Wool",
       yarn: "super110s",
       weight: "240g/m",
+      millLabel: "Marzoni Core",
+      manufacturer: "Marzoni",
+      bookType: "Core",
+      pricingTierKey: "basic",
+      pricingTierLabel: "Basic",
       swatch: "#556070",
       swatchImage: "/material-swatches/dbm562a.webp",
     },
@@ -64,6 +75,11 @@ const seedMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threa
       composition: "98% wool, 2% elastane",
       yarn: "Super 130s",
       weight: "280 g/m",
+      millLabel: "Loro Piana Ceremony",
+      manufacturer: "Loro Piana",
+      bookType: "Ceremony",
+      pricingTierKey: "standard",
+      pricingTierLabel: "Standard",
       swatch: "#1f3657",
     },
     {
@@ -72,6 +88,11 @@ const seedMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threa
       composition: "96% wool, 4% elastane",
       yarn: "Super 120s",
       weight: "270 g/m",
+      millLabel: "Dormeuil Luxury",
+      manufacturer: "Dormeuil",
+      bookType: "Luxury",
+      pricingTierKey: "luxury",
+      pricingTierLabel: "Luxury",
       swatch: "#e9dfcb",
     },
   ],
@@ -213,10 +234,14 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
     defaultLocationId: database.organizationSettings.defaultLocationId,
     taxRate: database.organizationSettings.taxRate,
     customDepositRate: database.organizationSettings.customDepositRate,
+    jacketCanvasSurcharges: database.organizationSettings.jacketCanvasSurcharges,
     alterationCatalog,
-    customPricingBooks: database.customPricingBooks.filter((book) => book.isActive),
+    customPricingTiers: database.customPricingTiers
+      .filter((tier) => tier.isActive)
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder),
     customGarmentOptionsByGender,
-    customMaterialOptionsByKind: seedMaterialOptionsByKind,
+    customMaterialOptionsByKind: defaultMaterialOptionsByKind,
     inHouseTailors: database.staffMembers
       .filter((staffMember) => staffMember.role === "tailor")
       .map((staffMember) => ({
@@ -243,6 +268,7 @@ const seedReferenceData = createReferenceData({
     defaultLocationId: "loc_fifth_avenue",
     taxRate: 0.08875,
     customDepositRate: 0.5,
+    jacketCanvasSurcharges: defaultJacketCanvasSurcharges,
   },
   locations: seedLocations,
   staffMembers: [
@@ -260,7 +286,7 @@ const seedReferenceData = createReferenceData({
     },
   ],
   alterationServiceDefinitions: seedAlterationServiceDefinitions,
-  customPricingBooks: seedCustomPricingBooks,
+  customPricingTiers: seedCustomPricingTiers,
   customGarmentDefinitions: seedCustomGarmentDefinitions,
   styleOptionDefinitions: seedStyleOptionDefinitions,
   measurementFieldDefinitions: seedMeasurementFieldDefinitions,
