@@ -13,7 +13,7 @@ import type {
   WorkflowMode,
   OrderWorkflowState,
 } from "../types";
-import type { CustomPricingBookEntry } from "./customPricingCatalog";
+import type { CustomPricingTierDefinition, JacketCanvasSurcharges } from "./customPricingCatalog";
 
 export type DbLocation = {
   id: string;
@@ -64,9 +64,10 @@ export type DbOrganizationSettings = {
   defaultLocationId: string;
   taxRate: number;
   customDepositRate: number;
+  jacketCanvasSurcharges: JacketCanvasSurcharges;
 };
 
-export type DbCustomPricingBook = CustomPricingBookEntry & {
+export type DbCustomPricingTier = CustomPricingTierDefinition & {
   isActive: boolean;
 };
 
@@ -251,7 +252,7 @@ export type PrototypeDatabase = {
   locations: DbLocation[];
   staffMembers: DbStaffMember[];
   alterationServiceDefinitions: DbAlterationServiceDefinition[];
-  customPricingBooks: DbCustomPricingBook[];
+  customPricingTiers: DbCustomPricingTier[];
   customGarmentDefinitions: DbCustomGarmentDefinition[];
   styleOptionDefinitions: DbStyleOptionDefinition[];
   measurementFieldDefinitions: DbMeasurementFieldDefinition[];

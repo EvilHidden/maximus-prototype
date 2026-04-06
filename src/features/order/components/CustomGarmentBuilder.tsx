@@ -3,13 +3,14 @@ import { useMemo, useState } from "react";
 import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
 import type { MaterialOption } from "../../../db/referenceData";
-import type { CustomPricingBookEntry } from "../../../db/customPricingCatalog";
+import type { CustomPricingTierDefinition, JacketCanvasSurcharges } from "../../../db/customPricingCatalog";
 import { getCustomGarmentPrice } from "../selectors";
 
 type CustomGarmentBuilderProps = {
   garmentOptionsByGender: Record<CustomGarmentGender, string[]>;
   customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
-  customPricingBooks: CustomPricingBookEntry[];
+  customPricingTiers: CustomPricingTierDefinition[];
+  jacketCanvasSurcharges: JacketCanvasSurcharges;
   jacketBasedCustomGarments: Set<string>;
   lapelOptions: string[];
   pocketTypeOptions: string[];
@@ -214,8 +215,20 @@ function MaterialField({
                 <div className="app-custom-builder__material-sku mt-0.5">{match.sku}</div>
               </div>
             </div>
-            {match.composition || match.yarn || match.weight ? (
+            {match.composition || match.yarn || match.weight || match.millLabel || match.pricingTierLabel ? (
                 <div className="app-custom-builder__material-meta grid gap-2.5 sm:grid-cols-3">
+                {match.pricingTierLabel ? (
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Pricing tier</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.pricingTierLabel}</div>
+                  </div>
+                ) : null}
+                {match.millLabel ? (
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Mill</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.millLabel}</div>
+                  </div>
+                ) : null}
                 {match.composition ? (
                   <div className="app-custom-builder__material-meta-item min-w-0">
                     <div className="app-custom-builder__material-meta-label app-text-overline">Composition</div>
@@ -333,7 +346,8 @@ function VerticalOptionList({
 export function CustomGarmentBuilder({
   garmentOptionsByGender,
   customMaterialOptionsByKind,
-  customPricingBooks,
+  customPricingTiers,
+  jacketCanvasSurcharges,
   jacketBasedCustomGarments,
   lapelOptions,
   pocketTypeOptions,
@@ -373,20 +387,30 @@ export function CustomGarmentBuilder({
   const garmentOptions = selectedGender ? garmentOptionsByGender[selectedGender] : [];
   const showConfiguration = Boolean(selectedGarment);
   const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
-  const currentSubtotal = getCustomGarmentPrice(selectedGarment, customPricingBooks);
+  const fabricMatch = getMaterialMatch("fabric", fabricSku);
+  const currentSubtotal = getCustomGarmentPrice({
+    selectedGarment,
+    fabricSku,
+    pricingTierKey: fabricMatch?.pricingTierKey ?? null,
+    canvas,
+  }, {
+    pricingTiers: customPricingTiers,
+    fabricOptions: customMaterialOptionsByKind.fabric,
+    jacketCanvasSurcharges,
+  });
   const summaryParts = [wearerName, measurementVersionLabel, selectedGarment].filter(Boolean) as string[];
   const showValidationBanner =
     showValidation &&
     (missingGender || missingGarment || missingWearer || missingMeasurements || missingBuildDetails || missingStyleDetails);
   const stageShellClassName =
     "app-custom-builder__stage rounded-[var(--app-radius-md)] border border-[var(--app-border)]/56 bg-[color-mix(in_srgb,var(--app-surface-muted)_38%,var(--app-surface))] px-5 py-5";
-  const getMaterialMatch = (kind: "fabric" | "buttons" | "lining" | "threads", sku: string | null) => {
+  function getMaterialMatch(kind: "fabric" | "buttons" | "lining" | "threads", sku: string | null) {
     if (!sku) {
       return null;
     }
 
     return customMaterialOptionsByKind[kind].find((option) => option.sku.toLowerCase() === sku.toLowerCase()) ?? null;
-  };
+  }
 
   return (
     <>

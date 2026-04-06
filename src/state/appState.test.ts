@@ -237,6 +237,7 @@ describe("app state", () => {
             wearerCustomerId: null,
             isRush: false,
             selectedGarment: null,
+            pricingTierKey: null,
             linkedMeasurementSetId: null,
             measurements: { Chest: "" },
             fabricSku: null,

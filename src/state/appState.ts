@@ -16,9 +16,8 @@ import {
   updateAlterationServiceDefinition,
   updateAppointmentRecord,
   updateCustomerRecord,
-  updateCustomPricingBook,
-  updateCustomPricingBookCanvasSurcharge,
-  updateCustomPricingBookGarmentPrice,
+  updateCustomPricingTier,
+  updateCustomPricingTierGarmentPrice,
   updateLocationRecord,
   updateMeasurementFieldDefinition,
   updateOrganizationSettings,
@@ -276,20 +275,15 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         database: updateAlterationServiceDefinition(state.database, action.payload.serviceId, action.payload.patch),
       });
-    case "updateCustomPricingBook":
+    case "updateCustomPricingTier":
       return syncDraftOrderRecord({
         ...state,
-        database: updateCustomPricingBook(state.database, action.payload.bookKey, action.payload.patch),
+        database: updateCustomPricingTier(state.database, action.payload.tierKey, action.payload.patch),
       });
-    case "updateCustomPricingGarmentPrice":
+    case "updateCustomPricingTierGarmentPrice":
       return syncDraftOrderRecord({
         ...state,
-        database: updateCustomPricingBookGarmentPrice(state.database, action.bookKey, action.garment, action.price),
-      });
-    case "updateCustomPricingCanvasSurcharge":
-      return syncDraftOrderRecord({
-        ...state,
-        database: updateCustomPricingBookCanvasSurcharge(state.database, action.bookKey, action.canvas, action.price),
+        database: updateCustomPricingTierGarmentPrice(state.database, action.tierKey, action.garment, action.price),
       });
     case "createAppointment":
       return syncDraftOrderRecord({

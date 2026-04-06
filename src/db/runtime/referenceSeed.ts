@@ -4,6 +4,7 @@ import type {
   DbMeasurementFieldDefinition,
   DbStyleOptionDefinition,
 } from "../schema";
+import { supportsJacketConstruction } from "../customPricingCatalog";
 
 function slugify(value: string) {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
@@ -138,31 +139,31 @@ export function createAlterationServiceDefinitions(): DbAlterationServiceDefinit
 }
 
 export function createCustomGarmentDefinitions(): DbCustomGarmentDefinition[] {
-  const definitions: Array<["male" | "female", string, boolean]> = [
-    ["male", "Two-piece suit", true],
-    ["male", "Three-piece suit", true],
-    ["male", "Jacket", true],
-    ["male", "Pants", false],
-    ["male", "Vest", false],
-    ["male", "Shirt", false],
-    ["male", "Overcoat", true],
-    ["male", "Tuxedo jacket", true],
-    ["male", "Three-piece tuxedo", true],
-    ["female", "Two-piece suit", true],
-    ["female", "Three-piece suit", true],
-    ["female", "Jacket", true],
-    ["female", "Pants", false],
-    ["female", "Vest", false],
-    ["female", "Shirt", false],
-    ["female", "Overcoat", true],
-    ["female", "Skirt", false],
+  const definitions: Array<["male" | "female", string]> = [
+    ["male", "Two-piece suit"],
+    ["male", "Three-piece suit"],
+    ["male", "Jacket"],
+    ["male", "Pants"],
+    ["male", "Vest"],
+    ["male", "Shirt"],
+    ["male", "Overcoat"],
+    ["male", "Tuxedo jacket"],
+    ["male", "Three-piece tuxedo"],
+    ["female", "Two-piece suit"],
+    ["female", "Three-piece suit"],
+    ["female", "Jacket"],
+    ["female", "Pants"],
+    ["female", "Vest"],
+    ["female", "Shirt"],
+    ["female", "Overcoat"],
+    ["female", "Skirt"],
   ];
 
-  return definitions.map(([gender, label, jacketBased]) => ({
+  return definitions.map(([gender, label]) => ({
     id: `custom_garment_${gender}_${slugify(label)}`,
     gender,
     label,
-    jacketBased,
+    jacketBased: supportsJacketConstruction(label),
   }));
 }
 

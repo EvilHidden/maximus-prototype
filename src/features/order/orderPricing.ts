@@ -13,7 +13,7 @@ function formatCurrency(value: number) {
 export function getPricingSummary(order: OrderWorkflowState, config: PricingComputationConfig = {}): PricingSummary {
   const alterationsSubtotal = order.alteration.items.reduce((sum, item) => sum + item.subtotal, 0);
   const customSubtotal = order.custom.items.reduce(
-    (sum, item) => sum + getCustomGarmentPrice(item, config.pricingBooks),
+    (sum, item) => sum + getCustomGarmentPrice(item, config),
     0,
   );
   const subtotal = alterationsSubtotal + customSubtotal;

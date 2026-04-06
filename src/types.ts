@@ -119,6 +119,7 @@ export type OrderLineComponentKind =
   | "alteration_service"
   | "wearer"
   | "measurement_set"
+  | "pricing_tier"
   | "fabric_sku"
   | "fabric"
   | "buttons_sku"
@@ -213,6 +214,7 @@ export type CustomGarmentDraft = {
   wearerCustomerId: string | null;
   isRush: boolean;
   selectedGarment: string | null;
+  pricingTierKey: string | null;
   linkedMeasurementSetId: string | null;
   measurements: Record<string, string>;
   fabricSku: string | null;

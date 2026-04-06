@@ -18,6 +18,7 @@ import {
 } from "./orderState";
 import { hasMissingRequiredAlterationAdjustments, normalizeAlterationAdjustment } from "../features/order/alterationAdjustments";
 import { getMeasurementFieldLabels } from "../db/referenceData";
+import { resolvePricingTierKeyForFabricSku } from "../db/pricing";
 
 export type OrderReducerOptions = {
   now?: Date;
@@ -457,6 +458,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
             draft: {
               ...state.order.custom.draft,
               selectedGarment: action.garment,
+              pricingTierKey: null,
               fabricSku: null,
               buttonsSku: null,
               liningSku: null,
@@ -473,6 +475,12 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
         },
       };
     case "setCustomConfiguration":
+      {
+        const nextPricingTierKey =
+          Object.prototype.hasOwnProperty.call(action.patch, "fabricSku")
+            ? resolvePricingTierKeyForFabricSku(action.patch.fabricSku ?? null)
+            : state.order.custom.draft.pricingTierKey;
+
       return {
         ...state,
         order: {
@@ -482,10 +490,12 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
             draft: {
               ...state.order.custom.draft,
               ...action.patch,
+              pricingTierKey: nextPricingTierKey,
             },
           },
         },
       };
+      }
     case "addCustomItem": {
       const draft = state.order.custom.draft;
       if (!draft.selectedGarment || !draft.wearerCustomerId) {

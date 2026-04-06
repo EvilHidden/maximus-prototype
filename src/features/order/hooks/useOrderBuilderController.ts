@@ -67,11 +67,16 @@ export function useOrderBuilderController({
   const orderType = getOrderType(order);
   const pickupRequired = getPickupRequired(order);
   const pricing = getPricingSummary(order, {
-    pricingBooks: referenceData.customPricingBooks,
+    pricingTiers: referenceData.customPricingTiers,
+    fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
     taxRate: referenceData.taxRate,
     customDepositRate: referenceData.customDepositRate,
+    jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
   });
-  const lineItems = getOrderBagLineItems(order, customers, referenceData.customPricingBooks);
+  const lineItems = getOrderBagLineItems(order, customers, {
+    customPricingTiers: referenceData.customPricingTiers,
+    jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+  });
   const canAddCustomDraftToOrder = getCanAddCustomDraftToOrder(order);
   const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
   const wearerCustomer = useMemo(
@@ -133,7 +138,7 @@ export function useOrderBuilderController({
             : order.custom.draft.selectedGarment &&
                 referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
                 (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
-              ? "Choose the canvas, lapel, and pocket details before adding this jacket-based garment to the cart."
+              ? "Choose the canvas, lapel, and pocket details before adding this jacket garment to the cart."
               : undefined;
   const missingCustomGender = !order.custom.draft.gender;
   const missingCustomGarment = Boolean(order.custom.draft.gender) && !order.custom.draft.selectedGarment;

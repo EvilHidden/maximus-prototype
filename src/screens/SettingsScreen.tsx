@@ -3,7 +3,7 @@ import { useMemo, useState } from "react";
 import type { PrototypeDatabase } from "../db";
 import type { AppAction } from "../state/appState";
 import { ActionButton, Callout, FieldStack, SectionHeader, SelectField, Surface, SurfaceHeader } from "../components/ui/primitives";
-import { getCustomPricingGarments, getSortedAlterationServices, getSortedLocations, getSortedMeasurementFields } from "../features/settings/selectors";
+import { getCustomPricingGarments, getSortedAlterationServices, getSortedCustomPricingTiers, getSortedLocations, getSortedMeasurementFields } from "../features/settings/selectors";
 
 type SettingsScreenProps = {
   database: PrototypeDatabase;
@@ -65,6 +65,7 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
   const measurementFields = useMemo(() => getSortedMeasurementFields(database), [database]);
   const alterationServices = useMemo(() => getSortedAlterationServices(database), [database]);
   const locations = useMemo(() => getSortedLocations(database), [database]);
+  const customPricingTiers = useMemo(() => getSortedCustomPricingTiers(database), [database]);
   const customPricingGarments = useMemo(() => getCustomPricingGarments(database), [database]);
   const [newMeasurementLabel, setNewMeasurementLabel] = useState("");
   const [newLocationName, setNewLocationName] = useState("");
@@ -314,65 +315,71 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
         <Surface tone="work" className="p-4">
           <SurfaceHeader
             title="Custom pricing"
-            subtitle="Tune custom pricing books, garment prices, and canvas surcharges."
+            subtitle="Fabric SKU lookup resolves to a pricing tier. Tier base prices live here, and jacket construction surcharges stay global."
           />
+          <Callout
+            tone="default"
+            className="mt-4"
+            title="Pricing model"
+          >
+            Fabric determines the pricing tier. Three-piece garments are priced directly as their own garments, and jacket construction uses one global surcharge table instead of per-tier overrides.
+          </Callout>
           <div className="mt-4 space-y-3">
-            {database.customPricingBooks.map((book) => (
-              <div key={book.key} className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
-                <div className="grid gap-3 lg:grid-cols-5">
+            {customPricingTiers.map((tier) => (
+              <div key={tier.key} className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
                   <TextField
-                    label="Book label"
-                    value={book.label}
-                    onChange={(value) => dispatch({ type: "updateCustomPricingBook", payload: { bookKey: book.key, patch: { label: value } } })}
-                  />
-                  <TextField
-                    label="Manufacturer"
-                    value={book.manufacturer}
-                    onChange={(value) => dispatch({ type: "updateCustomPricingBook", payload: { bookKey: book.key, patch: { manufacturer: value } } })}
-                  />
-                  <TextField
-                    label="Book type"
-                    value={book.bookType}
-                    onChange={(value) => dispatch({ type: "updateCustomPricingBook", payload: { bookKey: book.key, patch: { bookType: value } } })}
-                  />
-                  <NumberField
-                    label="Vest add-on"
-                    value={book.vestPrice}
-                    onChange={(value) => dispatch({ type: "updateCustomPricingBook", payload: { bookKey: book.key, patch: { vestPrice: value } } })}
+                    label="Tier label"
+                    value={tier.label}
+                    onChange={(value) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { label: value } } })}
                   />
                   <label className="app-text-caption inline-flex items-center gap-2 rounded-[12px] border border-[var(--app-border)]/60 px-3 py-3">
                     <input
                       type="checkbox"
-                      checked={book.isActive}
-                      onChange={(event) => dispatch({ type: "updateCustomPricingBook", payload: { bookKey: book.key, patch: { isActive: event.target.checked } } })}
+                      checked={tier.isActive}
+                      onChange={(event) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { isActive: event.target.checked } } })}
                     />
-                    <span>{book.isActive ? "Active" : "Inactive"}</span>
+                    <span>{tier.isActive ? "Active" : "Inactive"}</span>
                   </label>
                 </div>
 
                 <div className="mt-4 grid gap-2 xl:grid-cols-3">
                   {customPricingGarments.map((garment) => (
                     <NumberField
-                      key={`${book.key}-${garment}`}
+                      key={`${tier.key}-${garment}`}
                       label={String(garment)}
-                      value={book.basePrices[garment] ?? 0}
-                      onChange={(value) => dispatch({ type: "updateCustomPricingGarmentPrice", bookKey: book.key, garment, price: value })}
-                    />
-                  ))}
-                </div>
-
-                <div className="mt-4 grid gap-2 md:grid-cols-3">
-                  {(["Fused", "Half", "Full"] as const).map((canvas) => (
-                    <NumberField
-                      key={`${book.key}-${canvas}`}
-                      label={`${canvas} canvas`}
-                      value={book.canvasSurcharges[canvas]}
-                      onChange={(value) => dispatch({ type: "updateCustomPricingCanvasSurcharge", bookKey: book.key, canvas, price: value })}
+                      value={tier.basePrices[garment] ?? 0}
+                      onChange={(value) => dispatch({ type: "updateCustomPricingTierGarmentPrice", tierKey: tier.key, garment, price: value })}
                     />
                   ))}
                 </div>
               </div>
             ))}
+          </div>
+
+          <div className="mt-4 rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+            <SurfaceHeader
+              title="Jacket construction surcharges"
+              subtitle="Applied only to Two-piece suit, Three-piece suit, Jacket, Tuxedo jacket, and Three-piece tuxedo. Fused is the baseline, then half and full canvas add on top."
+            />
+            <div className="mt-4 grid gap-2 md:grid-cols-3">
+              {(["Fused", "Half", "Full"] as const).map((canvas) => (
+                <NumberField
+                  key={canvas}
+                  label={`${canvas} canvas`}
+                  value={database.organizationSettings.jacketCanvasSurcharges[canvas]}
+                  onChange={(value) => dispatch({
+                    type: "updateOrganizationSettings",
+                    payload: {
+                      jacketCanvasSurcharges: {
+                        ...database.organizationSettings.jacketCanvasSurcharges,
+                        [canvas]: value,
+                      },
+                    },
+                  })}
+                />
+              ))}
+            </div>
           </div>
         </Surface>
 

@@ -276,14 +276,18 @@ function getOrderReceiptItems({
 
 function getDraftReceiptItems(order: OrderWorkflowState, referenceData: AppReferenceData) {
   const pricing = getPricingSummary(order, {
-    pricingBooks: referenceData.customPricingBooks,
+    pricingTiers: referenceData.customPricingTiers,
+    fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
     taxRate: referenceData.taxRate,
     customDepositRate: referenceData.customDepositRate,
+    jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
   });
   const paymentPolicy = getDraftPaymentPolicy(order, {
-    pricingBooks: referenceData.customPricingBooks,
+    pricingTiers: referenceData.customPricingTiers,
+    fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
     taxRate: referenceData.taxRate,
     customDepositRate: referenceData.customDepositRate,
+    jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
   });
 
   return [
@@ -346,17 +350,22 @@ export function OrderDetailsScreen({
   const isClosedDetail = Boolean(closedOrder && !openOrder);
   const activeDraftOrder = isDraftDetail ? draftOrder : null;
   const draftLineItems = useMemo(
-    () => (activeDraftOrder ? getOrderBagLineItems(activeDraftOrder, customers, referenceData.customPricingBooks) : []),
-    [activeDraftOrder, customers, referenceData.customPricingBooks],
+    () => (activeDraftOrder ? getOrderBagLineItems(activeDraftOrder, customers, {
+      customPricingTiers: referenceData.customPricingTiers,
+      jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    }) : []),
+    [activeDraftOrder, customers, referenceData.customPricingTiers, referenceData.jacketCanvasSurcharges],
   );
   const draftOrderType = activeDraftOrder ? getOrderType(activeDraftOrder) : null;
   const draftPickupRequired = activeDraftOrder ? getPickupRequired(activeDraftOrder) : false;
   const draftSummaryGuardrail = activeDraftOrder ? getSummaryGuardrail(activeDraftOrder, payerCustomer) : null;
   const draftPaymentPolicy = activeDraftOrder
     ? getDraftPaymentPolicy(activeDraftOrder, {
-        pricingBooks: referenceData.customPricingBooks,
+        pricingTiers: referenceData.customPricingTiers,
+        fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
         taxRate: referenceData.taxRate,
         customDepositRate: referenceData.customDepositRate,
+        jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
       })
     : null;
   const draftPickupSummary = activeDraftOrder ? getDraftPickupSummary(activeDraftOrder) : "";

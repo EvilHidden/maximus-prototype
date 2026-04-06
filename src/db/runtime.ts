@@ -1,5 +1,5 @@
 import type { PrototypeDatabase } from "./schema";
-import { createDefaultCustomPricingBooks } from "./customPricingCatalog";
+import { createDefaultCustomPricingTiers, defaultJacketCanvasSurcharges } from "./customPricingCatalog";
 import {
   createCustomerEvents,
   createCustomers,
@@ -61,7 +61,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const locations = createLocations();
   const staffMembers = createStaffMembers();
   const alterationServiceDefinitions = createAlterationServiceDefinitions();
-  const customPricingBooks = createDefaultCustomPricingBooks();
+  const customPricingTiers = createDefaultCustomPricingTiers();
   const customGarmentDefinitions = createCustomGarmentDefinitions();
   const styleOptionDefinitions = createStyleOptionDefinitions();
   const measurementFieldDefinitions = createMeasurementFieldDefinitions();
@@ -89,11 +89,12 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
       defaultLocationId: locations[0]?.id ?? "loc_fifth_avenue",
       taxRate: 0.08875,
       customDepositRate: 0.5,
+      jacketCanvasSurcharges: defaultJacketCanvasSurcharges,
     },
     locations,
     staffMembers,
     alterationServiceDefinitions,
-    customPricingBooks,
+    customPricingTiers,
     customGarmentDefinitions,
     styleOptionDefinitions,
     measurementFieldDefinitions,

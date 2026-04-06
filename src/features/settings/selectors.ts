@@ -1,4 +1,5 @@
 import type { PrototypeDatabase } from "../../db/schema";
+import { customPricingGarments } from "../../db/customPricingCatalog";
 
 export function getSortedMeasurementFields(database: PrototypeDatabase) {
   return database.measurementFieldDefinitions
@@ -26,6 +27,12 @@ export function getSortedLocations(database: PrototypeDatabase) {
 }
 
 export function getCustomPricingGarments(database: PrototypeDatabase) {
-  const firstBook = database.customPricingBooks[0];
-  return firstBook ? (Object.keys(firstBook.basePrices) as Array<keyof typeof firstBook.basePrices>) : [];
+  void database;
+  return [...customPricingGarments];
+}
+
+export function getSortedCustomPricingTiers(database: PrototypeDatabase) {
+  return database.customPricingTiers
+    .slice()
+    .sort((left, right) => left.sortOrder - right.sortOrder);
 }
