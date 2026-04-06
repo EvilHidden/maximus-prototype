@@ -311,40 +311,54 @@ export function OrderDetailsScreen({
     `Created ${getOrderHeaderTimestamp(detailOrder.createdAt)}`,
     isClosedDetail && closedOrder?.closedAt ? `Closed ${getOrderHeaderTimestamp(closedOrder.closedAt)}` : null,
   ].filter(Boolean).join(" • ");
+  const orderStatusPill = isClosedDetail ? (
+    <StatusPill tone={closedOrder!.status === "Canceled" ? "danger" : "success"}>{closedOrder!.status}</StatusPill>
+  ) : detailOrder.balanceDue > 0 ? (
+    <StatusPill tone="warn">Balance due</StatusPill>
+  ) : (
+    <StatusPill tone="success">Paid</StatusPill>
+  );
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 app-order-details-screen">
       <SectionHeader
         icon={ClipboardList}
         title="Order details"
         subtitle={checkoutSubtitle}
         action={(
-          <ActionButton tone="secondary" className="px-3 py-2 text-xs" onClick={() => onScreenChange("openOrders")}>
-            Back to orders
+          <ActionButton tone="secondary" className="app-order-details-screen__back-button px-3 py-2 text-xs" onClick={() => onScreenChange("openOrders")}>
+            <span className="app-hide-at-desktop">Back</span>
+            <span className="app-desktop-only">Back to orders</span>
           </ActionButton>
         )}
       />
 
       <div className="app-page-with-support-rail app-review-layout">
-        <Surface tone="work" className="overflow-hidden">
-          <div className="px-4 py-4">
+        <Surface tone="work" className="overflow-hidden app-order-details-screen__main">
+          <div className="px-3.5 py-3 md:px-4 md:py-4 app-order-details-screen__hero-shell">
             <SurfaceHeader
+              className="app-detail-hero app-order-details-screen__hero"
               title={`Order #${detailOrder.id}`}
               subtitle={headerSubtitle}
               meta={(
-                <div className="app-detail-hero__meta text-left md:text-right">
-                  <div className="app-text-overline">
-                    {isClosedDetail
-                      ? closedOrder!.status
-                      : hasReadyScopesToPickup && dueNow > 0
-                      ? "Due today"
-                      : detailOrder.balanceDue <= 0
-                        ? "No balance due"
-                        : dueNow <= 0 && detailOrder.balanceDue > 0
-                        ? "Open balance"
-                        : "Balance due"}
+                <div className="app-detail-hero__meta app-order-details-screen__hero-meta text-left md:text-right">
+                  <div className="app-order-details-screen__hero-topline">
+                    <div className="app-text-overline">
+                      {isClosedDetail
+                        ? closedOrder!.status
+                        : hasReadyScopesToPickup && dueNow > 0
+                        ? "Due today"
+                        : detailOrder.balanceDue <= 0
+                          ? "No balance due"
+                          : dueNow <= 0 && detailOrder.balanceDue > 0
+                          ? "Open balance"
+                          : "Balance due"}
+                    </div>
+                    <div className="app-hide-at-desktop">
+                      {orderStatusPill}
+                    </div>
                   </div>
-                  <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)]">
+                  <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)] app-order-details-screen__hero-amount">
                     {displayAmountNow > 0 ? formatCheckoutCurrency(displayAmountNow) : "Paid"}
                   </div>
                 </div>
@@ -362,7 +376,7 @@ export function OrderDetailsScreen({
           ) : null}
 
           {!isClosedDetail && hasReadyScopesToPickup && dueNow > 0 && remainingLater > 0 ? (
-            <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
+            <div className="border-t border-[var(--app-border)]/45 px-3.5 py-3 md:px-4 md:py-4">
               <Callout
                 tone="warn"
                 title="Only the ready pieces are due today"
@@ -372,7 +386,7 @@ export function OrderDetailsScreen({
             </div>
           ) : null}
 
-          <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
+          <div className="border-t border-[var(--app-border)]/45 px-3.5 py-3 md:px-4 md:py-4 app-order-details-screen__overview-shell">
             <div className="app-order-details-overview">
               <div className="min-w-0 app-order-details-overview__customer">
                 <div className="app-text-overline">Customer</div>
@@ -384,22 +398,16 @@ export function OrderDetailsScreen({
                   {detailOrder.payerCustomerId === null ? <div className="app-text-caption">Walk-in customer</div> : null}
                 </div>
               </div>
-              <div className="min-w-0 app-order-details-overview__status app-order-details-overview__status--flat">
+              <div className="min-w-0 app-order-details-overview__status app-order-details-overview__status--flat app-desktop-only">
                 <div className="app-text-overline">Order status</div>
                 <div className="mt-2 flex flex-wrap items-center gap-2">
-                  {isClosedDetail ? (
-                    <StatusPill tone={closedOrder!.status === "Canceled" ? "danger" : "success"}>{closedOrder!.status}</StatusPill>
-                  ) : detailOrder.balanceDue > 0 ? (
-                    <StatusPill tone="warn">Balance due</StatusPill>
-                  ) : (
-                    <StatusPill tone="success">Paid</StatusPill>
-                  )}
+                  {orderStatusPill}
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="border-t border-[var(--app-border)]/45 px-4 py-4">
+          <div className="border-t border-[var(--app-border)]/45 px-3.5 py-3 md:px-4 md:py-4">
             <div className="app-order-details-section-heading">
               <div className="app-text-overline">Order items</div>
             </div>
@@ -418,7 +426,7 @@ export function OrderDetailsScreen({
                   <div
                     key={group.key}
                     className={cx(
-                      "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-4 py-3 app-order-details-scope",
+                      "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-3.5 py-2.5 md:px-4 md:py-3 app-order-details-scope",
                       index > 0 && "mt-3",
                     )}
                   >
@@ -542,7 +550,7 @@ export function OrderDetailsScreen({
           </div>
         </Surface>
 
-        <div className="space-y-4">
+        <div className="space-y-4 app-order-details-screen__support">
           <CheckoutSummaryRail
             title="Order receipt"
             subtitle=""
@@ -590,7 +598,7 @@ export function OrderDetailsScreen({
             ) : null}
           </CheckoutSummaryRail>
 
-          <div className="border-t border-[var(--app-border)]/35 pt-3">
+          <div className="border-t border-[var(--app-border)]/35 pt-3 app-order-details-screen__history">
             <div className="space-y-2.5 px-1">
               <div className="app-text-overline text-[var(--app-text-soft)]">Order history</div>
               {timeline.length ? (
