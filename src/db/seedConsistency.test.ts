@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { adaptOpenOrders } from "./adapters";
+import { adaptClosedOrderHistory, adaptOpenOrders } from "./adapters";
 import { getCustomGarmentPrice } from "./pricing";
 import { createPrototypeDatabase } from "./runtime";
 import { getOperatorQueueStageCounts } from "../features/order/operatorQueue";
@@ -149,5 +149,13 @@ describe("seed consistency", () => {
     expect(queueCounts.ready_to_start).toBeGreaterThan(0);
     expect(queueCounts.in_progress).toBeGreaterThan(0);
     expect(queueCounts.ready).toBeGreaterThan(0);
+  });
+
+  it("includes seeded archive and payment edge stories used in the operator flow", () => {
+    const openOrders = adaptOpenOrders(database);
+    const closedOrders = adaptClosedOrderHistory(database);
+
+    expect(openOrders.some((order) => order.paymentStatus === "pending")).toBe(true);
+    expect(closedOrders.some((order) => order.status === "Canceled")).toBe(true);
   });
 });

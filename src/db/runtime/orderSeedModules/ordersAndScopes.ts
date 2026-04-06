@@ -6,6 +6,42 @@ import {
   withOffset,
 } from "../support";
 
+function withTimestampMinutes(timestamp: string, minutes: number) {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) {
+    return timestamp;
+  }
+
+  date.setMinutes(date.getMinutes() + minutes);
+  return toDateTimeString(date);
+}
+
+function getSeedLifecycleTimestamps(order: {
+  id: string;
+  createdAt: string;
+  status: DbOrder["status"];
+  operationalStatus?: DbOrder["operationalStatus"];
+}) {
+  if (order.id === "order-9023") {
+    return {
+      acceptedAt: null,
+      startedAt: null,
+      completedAt: null,
+      canceledAt: withTimestampMinutes(order.createdAt, 185),
+    };
+  }
+
+  const acceptedAt = withTimestampMinutes(order.createdAt, order.operationalStatus === "accepted" ? 20 : 15);
+  const startedAt = order.operationalStatus === "accepted" ? null : withTimestampMinutes(acceptedAt, 60);
+
+  return {
+    acceptedAt,
+    startedAt,
+    completedAt: null,
+    canceledAt: null,
+  };
+}
+
 function getSeedAlterationAssignee(scopeId: string) {
   if (!scopeId.includes("alteration")) {
     return null;
@@ -334,7 +370,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Benjamin Lee",
       orderType: "custom",
       createdAt: toDateTimeString(withOffset(baseDate, -5, 14, 10)),
-      status: "open",
+      status: "canceled",
       holdUntilAllScopesReady: false,
     },
     {
@@ -361,10 +397,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
 
   return orders.map((order) => ({
     ...order,
-    acceptedAt: order.createdAt,
-    startedAt: null,
-    completedAt: null,
-    canceledAt: null,
+    ...getSeedLifecycleTimestamps(order),
   }));
 }
 
@@ -374,12 +407,8 @@ export function applySeedOrderLifecycleTimestamps(
 ): DbOrder[] {
   return orders.map((order) => {
     const scopes = orderScopes.filter((scope) => scope.orderId === order.id);
-    const startedAt = scopes
-      .flatMap((scope) => [scope.readyAt, scope.pickedUpAt])
-      .filter((value): value is string => Boolean(value))
-      .sort((left, right) => new Date(left).getTime() - new Date(right).getTime())[0] ?? null;
     const completedAt = order.status === "complete"
-      ? scopes
+      ? order.completedAt ?? scopes
         .map((scope) => scope.pickedUpAt)
         .filter((value): value is string => Boolean(value))
         .sort((left, right) => new Date(right).getTime() - new Date(left).getTime())[0] ?? null
@@ -387,7 +416,6 @@ export function applySeedOrderLifecycleTimestamps(
 
     return {
       ...order,
-      startedAt,
       completedAt,
       canceledAt: order.status === "canceled" ? order.canceledAt ?? order.createdAt : null,
     };
