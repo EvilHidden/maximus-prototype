@@ -18,6 +18,7 @@ import {
   updateCustomerRecord,
   updateCustomPricingTier,
   updateCustomPricingTierGarmentPrice,
+  updateGarmentSurchargeRule,
   updateLocationRecord,
   updateMeasurementFieldDefinition,
   updateOrganizationSettings,
@@ -284,6 +285,17 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
       return syncDraftOrderRecord({
         ...state,
         database: updateCustomPricingTierGarmentPrice(state.database, action.tierKey, action.garment, action.price),
+      });
+    case "updateGarmentSurchargeRule":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateGarmentSurchargeRule(
+          state.database,
+          action.payload.programKey,
+          action.payload.kind,
+          action.payload.optionValue,
+          action.payload.patch,
+        ),
       });
     case "createAppointment":
       return syncDraftOrderRecord({

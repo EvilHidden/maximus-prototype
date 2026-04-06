@@ -69,13 +69,20 @@ export function useOrderBuilderController({
   const pricing = getPricingSummary(order, {
     pricingTiers: referenceData.customPricingTiers,
     fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: referenceData.catalogVariations,
+    catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
     taxRate: referenceData.taxRate,
     customDepositRate: referenceData.customDepositRate,
     jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
   });
   const lineItems = getOrderBagLineItems(order, customers, {
     customPricingTiers: referenceData.customPricingTiers,
     jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
+    fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: referenceData.catalogVariations,
+    catalogVariationTierPrices: referenceData.catalogVariationTierPrices,
   });
   const canAddCustomDraftToOrder = getCanAddCustomDraftToOrder(order);
   const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);

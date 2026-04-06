@@ -37,14 +37,15 @@ describe("settings mutations", () => {
 
   it("uses updated custom pricing tier values for garment pricing", () => {
     const database = createPrototypeDatabase(new Date("2026-04-05T12:00:00.000Z"));
-    const targetTier = database.customPricingTiers[0];
+    const targetTier = database.pricingTiers[0];
     const updatedDatabase = updateCustomPricingTierGarmentPrice(database, targetTier.key, "Two-piece suit", 1777);
+    const referenceData = createReferenceData(updatedDatabase);
 
     expect(getCustomGarmentPrice({
       selectedGarment: "Two-piece suit",
       pricingTierKey: targetTier.key,
     }, {
-      pricingTiers: updatedDatabase.customPricingTiers,
+      pricingTiers: referenceData.customPricingTiers,
     })).toBe(1777);
   });
 });

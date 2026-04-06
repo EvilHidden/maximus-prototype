@@ -13,7 +13,7 @@ import type {
   WorkflowMode,
 } from "../../types";
 import type { CustomPricingTierDefinition, JacketCanvasSurcharges } from "../../db/customPricingCatalog";
-import { defaultMaterialOptionsByKind, getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
+import { getSeedReferenceData, isJacketBasedCustomGarment, type MaterialOption } from "../../db/referenceData";
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
 import { getDraftPaymentSummary, getOpenOrderPickupBalanceDue } from "./paymentSummary";
@@ -30,13 +30,13 @@ export type BuildOpenOrderOptions = OrderTimeOptions & {
 };
 
 function getCustomDraftStarted(draft: CustomGarmentDraft) {
-  return Boolean(draft.selectedGarment);
+  return Boolean(draft.variationLabel ?? draft.selectedGarment);
 }
 
 function getCustomDraftReady(order: OrderWorkflowState) {
   const draft = order.custom.draft;
   if (
-    !draft.selectedGarment ||
+    !(draft.variationLabel ?? draft.selectedGarment) ||
     !draft.linkedMeasurementSetId ||
     !draft.wearerCustomerId ||
     !draft.gender ||
@@ -48,7 +48,7 @@ function getCustomDraftReady(order: OrderWorkflowState) {
     return false;
   }
 
-  if (isJacketBasedCustomGarment(draft.selectedGarment, seedReferenceData.jacketBasedCustomGarments)) {
+  if (isJacketBasedCustomGarment(draft.variationLabel ?? draft.selectedGarment, seedReferenceData.jacketBasedCustomGarments)) {
     return Boolean(draft.pocketType && draft.lapel && draft.canvas);
   }
 
@@ -72,6 +72,7 @@ function getCustomBuildSummary(item: OrderWorkflowState["custom"]["items"][numbe
     item.fabricSku ? `Fab ${item.fabricSku}` : null,
     item.buttonsSku ? `Btn ${item.buttonsSku}` : null,
     item.liningSku ? `Lin ${item.liningSku}` : null,
+    item.customLiningRequested ? "Custom lining" : null,
     item.threadsSku ? `Thr ${item.threadsSku}` : null,
   ].filter(Boolean) as string[];
 }
@@ -122,6 +123,21 @@ function createAlterationComponents(itemId: number, modifiers: OrderWorkflowStat
 function createCustomComponents(item: OrderWorkflowState["custom"]["items"][number], customers: Customer[]): OrderLineComponent[] {
   const components: OrderLineComponent[] = [];
   const wearerName = getWearerName(item.wearerCustomerId, customers, item.wearerName);
+  const variationLabel = item.variationLabel ?? item.selectedGarment;
+  const matchedFabric = item.fabricSku
+    ? seedReferenceData.customMaterialOptionsByKind.fabric.find((option) => option.sku === item.fabricSku) ?? null
+    : null;
+
+  if (variationLabel) {
+    components.push({
+      id: `custom-${item.id}-variation`,
+      kind: "catalog_variation",
+      label: "Variation",
+      value: variationLabel,
+      sortOrder: 0,
+      referenceId: item.variationId ?? null,
+    });
+  }
 
   components.push({
     id: `custom-${item.id}-wearer`,
@@ -151,6 +167,26 @@ function createCustomComponents(item: OrderWorkflowState["custom"]["items"][numb
     });
   }
 
+  if (matchedFabric?.millLabel) {
+    components.push({
+      id: `custom-${item.id}-fabric-book`,
+      kind: "fabric_book",
+      label: "Book",
+      value: matchedFabric.millLabel,
+      sortOrder: 4,
+    });
+  }
+
+  if (matchedFabric?.manufacturer) {
+    components.push({
+      id: `custom-${item.id}-fabric-mill`,
+      kind: "fabric_mill",
+      label: "Mill",
+      value: matchedFabric.manufacturer,
+      sortOrder: 5,
+    });
+  }
+
   if (item.buttonsSku) {
     components.push({
       id: `custom-${item.id}-buttons-sku`,
@@ -171,6 +207,17 @@ function createCustomComponents(item: OrderWorkflowState["custom"]["items"][numb
     });
   }
 
+  if (item.customLiningRequested) {
+    components.push({
+      id: `custom-${item.id}-lining-option`,
+      kind: "catalog_modifier",
+      label: "Modifier",
+      value: "Custom printed lining",
+      sortOrder: 9,
+      referenceId: "custom_printed",
+    });
+  }
+
   if (item.threadsSku) {
     components.push({
       id: `custom-${item.id}-threads-sku`,
@@ -183,31 +230,55 @@ function createCustomComponents(item: OrderWorkflowState["custom"]["items"][numb
 
   if (item.canvas) {
     components.push({
+      id: `custom-${item.id}-canvas-modifier`,
+      kind: "catalog_modifier",
+      label: "Modifier",
+      value: `${item.canvas} canvas`,
+      sortOrder: 11,
+      referenceId: item.canvas,
+    });
+    components.push({
       id: `custom-${item.id}-canvas`,
       kind: "canvas",
       label: "Canvas",
       value: item.canvas,
-      sortOrder: 7,
+      sortOrder: 12,
     });
   }
 
   if (item.lapel) {
     components.push({
+      id: `custom-${item.id}-lapel-option`,
+      kind: "catalog_option",
+      label: "Option",
+      value: `Lapel: ${item.lapel}`,
+      sortOrder: 13,
+      referenceId: item.lapel,
+    });
+    components.push({
       id: `custom-${item.id}-lapel`,
       kind: "lapel",
       label: "Lapel",
       value: item.lapel,
-      sortOrder: 8,
+      sortOrder: 14,
     });
   }
 
   if (item.pocketType) {
     components.push({
+      id: `custom-${item.id}-pocket-option`,
+      kind: "catalog_option",
+      label: "Option",
+      value: `Pockets: ${item.pocketType}`,
+      sortOrder: 15,
+      referenceId: item.pocketType,
+    });
+    components.push({
       id: `custom-${item.id}-pocket`,
       kind: "pocket_type",
       label: "Pockets",
       value: item.pocketType,
-      sortOrder: 9,
+      sortOrder: 16,
     });
   }
 
@@ -337,6 +408,10 @@ export function getOrderBagLineItems(
   pricingConfig?: {
     customPricingTiers?: CustomPricingTierDefinition[];
     jacketCanvasSurcharges?: JacketCanvasSurcharges;
+    customLiningSurchargeAmount?: number;
+    fabricOptions?: MaterialOption[];
+    catalogVariations?: Array<{ id: string; label: string; fallbackAmount: number }>;
+    catalogVariationTierPrices?: Array<{ variationId: string; tierKey: string; amount: number; isActive?: boolean }>;
   },
 ): OrderBagLineItem[] {
   const items: OrderBagLineItem[] = order.alteration.items.map((item, index) => ({
@@ -360,7 +435,7 @@ export function getOrderBagLineItems(
   }));
 
   order.custom.items.forEach((item, index) => {
-    const selectedGarment = item.selectedGarment;
+    const selectedGarment = item.variationLabel ?? item.selectedGarment;
     if (!selectedGarment) {
       return;
     }
@@ -387,8 +462,11 @@ export function getOrderBagLineItems(
       subtitle,
       amount: getCustomGarmentPrice(item, {
         pricingTiers: pricingConfig?.customPricingTiers,
-        fabricOptions: defaultMaterialOptionsByKind.fabric,
+        fabricOptions: pricingConfig?.fabricOptions,
+        catalogVariations: pricingConfig?.catalogVariations,
+        catalogVariationTierPrices: pricingConfig?.catalogVariationTierPrices,
         jacketCanvasSurcharges: pricingConfig?.jacketCanvasSurcharges,
+        customLiningSurchargeAmount: pricingConfig?.customLiningSurchargeAmount,
       }),
       isRush: item.isRush,
       sourceLabel: selectedGarment,

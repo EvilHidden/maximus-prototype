@@ -11,6 +11,7 @@ import {
 } from "../../features/order/paymentSummary";
 import { buildOrderTimelineEvents, replaceOrderTimelineEvents } from "../orderTimeline";
 import { deserializeOrderWorkflowFromRecords, serializeOrderWorkflowToRecords } from "../orderWorkflowSerializer";
+import { createReferenceData } from "../referenceData";
 import type { DbOrder, DbOrderScope, DbOrderTimelineEvent, DbPaymentRecord, PrototypeDatabase } from "../schema";
 import type { OrderMutationOptions } from "./shared";
 import {
@@ -278,12 +279,18 @@ export function saveOrderWorkflowToDatabase(
   const nextSequence = existingOrder
     ? Number.parseInt(existingOrder.displayId.replace(/\D/g, ""), 10)
     : options.idFactory?.() ?? getNextOrderSequence(database);
+  const referenceData = createReferenceData(database);
   const serialized = serializeOrderWorkflowToRecords({
     order,
     customers,
     locations: database.locations,
-    customPricingTiers: database.customPricingTiers.filter((tier) => tier.isActive),
+    customPricingTiers: referenceData.customPricingTiers,
+    fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: database.catalogVariations,
+    catalogVariationTierPrices: database.catalogVariationTierPrices,
     organizationSettings: database.organizationSettings,
+    jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
     paymentMode: editingOpenOrderId ? "none" : paymentMode,
     orderSequence: nextSequence,
     now,

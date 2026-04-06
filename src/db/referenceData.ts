@@ -1,6 +1,27 @@
 import type { AlterationCategory, AlterationServiceDefinition, CustomGarmentGender, PickupLocation, StaffMember } from "../types";
 import type { PrototypeDatabase } from "./schema";
-import { createDefaultCustomPricingTiers, defaultJacketCanvasSurcharges } from "./customPricingCatalog";
+import {
+  createDefaultCatalogItems,
+  createDefaultCatalogModifierGroups,
+  createDefaultCatalogModifierOptions,
+  createDefaultCatalogOptionGroups,
+  createDefaultCatalogVariationTierPrices,
+  createDefaultCatalogVariations,
+  createDefaultFabricCatalogItems,
+  createDefaultGarmentBasePrices,
+  createDefaultGarmentSurchargeRules,
+  createDefaultMillBooks,
+  createDefaultPricingPrograms,
+  createDefaultPricingTiers,
+  customLiningEligibleGarments,
+  customPricingGarments,
+  jacketConstructionGarments,
+  type CustomPricingGarment,
+  type CustomPricingTierDefinition,
+  type FabricLookupType,
+  type JacketCanvas,
+  type PricingProgramKey,
+} from "./customPricingCatalog";
 import {
   createAlterationServiceDefinitions,
   createCustomGarmentDefinitions,
@@ -8,38 +29,77 @@ import {
   createStyleOptionDefinitions,
 } from "./runtime/referenceSeed";
 
-export type AppReferenceData = {
-  organizationName: string;
-  defaultLocationId: string;
-  taxRate: number;
-  customDepositRate: number;
-  jacketCanvasSurcharges: PrototypeDatabase["organizationSettings"]["jacketCanvasSurcharges"];
-  alterationCatalog: AlterationCategory[];
-  customPricingTiers: PrototypeDatabase["customPricingTiers"];
-  customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
-  customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
-  inHouseTailors: StaffMember[];
-  jacketBasedCustomGarments: Set<string>;
-  lapelOptions: string[];
-  pocketTypeOptions: string[];
-  canvasOptions: string[];
-  measurementFields: string[];
-  pickupLocations: PickupLocation[];
-};
-
 export type MaterialOption = {
   sku: string;
   label: string;
   composition?: string;
   yarn?: string;
   weight?: string;
+  programKey?: PricingProgramKey;
   millLabel?: string;
   manufacturer?: string;
+  bookId?: string;
   bookType?: string;
   pricingTierKey?: string;
   pricingTierLabel?: string;
+  lookupType?: FabricLookupType;
+  hasQrCode?: boolean;
+  qrCodeRawValue?: string | null;
+  qrResolvedUrl?: string | null;
+  externalReference?: string | null;
   swatch: string;
   swatchImage?: string;
+};
+
+export type PricingProgramView = PrototypeDatabase["pricingPrograms"][number];
+export type PricingTierView = PrototypeDatabase["pricingTiers"][number];
+export type MillBookView = PrototypeDatabase["millBooks"][number];
+export type FabricCatalogView = PrototypeDatabase["fabricCatalogItems"][number];
+export type CatalogItemView = PrototypeDatabase["catalogItems"][number];
+export type CatalogVariationView = PrototypeDatabase["catalogVariations"][number];
+export type CatalogOptionGroupView = PrototypeDatabase["catalogOptionGroups"][number];
+export type CatalogModifierGroupView = PrototypeDatabase["catalogModifierGroups"][number];
+export type CatalogModifierOptionView = PrototypeDatabase["catalogModifierOptions"][number];
+export type CatalogVariationTierPriceView = PrototypeDatabase["catalogVariationTierPrices"][number];
+
+export type CatalogVariationMatrixRow = CatalogVariationView & {
+  tierAmounts: Array<{
+    tierKey: string;
+    tierLabel: string;
+    amount: number;
+  }>;
+};
+
+export type AppReferenceData = {
+  organizationName: string;
+  defaultLocationId: string;
+  taxRate: number;
+  customDepositRate: number;
+  catalogItems: CatalogItemView[];
+  catalogVariations: CatalogVariationView[];
+  catalogOptionGroups: CatalogOptionGroupView[];
+  catalogModifierGroups: CatalogModifierGroupView[];
+  catalogModifierOptions: CatalogModifierOptionView[];
+  catalogVariationTierPrices: CatalogVariationTierPriceView[];
+  catalogVariationMatrix: CatalogVariationMatrixRow[];
+  pricingPrograms: PricingProgramView[];
+  pricingTiers: PricingTierView[];
+  millBooks: MillBookView[];
+  fabricCatalogItems: FabricCatalogView[];
+  alterationCatalog: AlterationCategory[];
+  customPricingTiers: CustomPricingTierDefinition[];
+  customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
+  customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
+  inHouseTailors: StaffMember[];
+  jacketBasedCustomGarments: Set<string>;
+  customLiningEligibleGarments: Set<string>;
+  jacketCanvasSurcharges: Record<JacketCanvas, number>;
+  customLiningSurchargeAmount: number;
+  lapelOptions: string[];
+  pocketTypeOptions: string[];
+  canvasOptions: string[];
+  measurementFields: string[];
+  pickupLocations: PickupLocation[];
 };
 
 const seedLocations: PrototypeDatabase["locations"] = [
@@ -49,53 +109,23 @@ const seedLocations: PrototypeDatabase["locations"] = [
 ];
 
 const seedAlterationServiceDefinitions = createAlterationServiceDefinitions();
-const seedCustomPricingTiers = createDefaultCustomPricingTiers();
+const seedCatalogItems = createDefaultCatalogItems();
+const seedCatalogVariations = createDefaultCatalogVariations();
+const seedCatalogOptionGroups = createDefaultCatalogOptionGroups();
+const seedCatalogModifierGroups = createDefaultCatalogModifierGroups();
+const seedCatalogModifierOptions = createDefaultCatalogModifierOptions();
+const seedCatalogVariationTierPrices = createDefaultCatalogVariationTierPrices();
+const seedPricingPrograms = createDefaultPricingPrograms();
+const seedPricingTiers = createDefaultPricingTiers();
+const seedMillBooks = createDefaultMillBooks();
+const seedFabricCatalogItems = createDefaultFabricCatalogItems();
+const seedGarmentBasePrices = createDefaultGarmentBasePrices();
+const seedGarmentSurchargeRules = createDefaultGarmentSurchargeRules();
 const seedCustomGarmentDefinitions = createCustomGarmentDefinitions();
 const seedStyleOptionDefinitions = createStyleOptionDefinitions();
 const seedMeasurementFieldDefinitions = createMeasurementFieldDefinitions();
-export const defaultMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]> = {
-  fabric: [
-    {
-      sku: "DBM562A",
-      label: "No. 11",
-      composition: "100%Wool",
-      yarn: "super110s",
-      weight: "240g/m",
-      millLabel: "Marzoni Core",
-      manufacturer: "Marzoni",
-      bookType: "Core",
-      pricingTierKey: "basic",
-      pricingTierLabel: "Basic",
-      swatch: "#556070",
-      swatchImage: "/material-swatches/dbm562a.webp",
-    },
-    {
-      sku: "FAB-MID-001",
-      label: "Midnight Navy Stretch Wool",
-      composition: "98% wool, 2% elastane",
-      yarn: "Super 130s",
-      weight: "280 g/m",
-      millLabel: "Loro Piana Ceremony",
-      manufacturer: "Loro Piana",
-      bookType: "Ceremony",
-      pricingTierKey: "standard",
-      pricingTierLabel: "Standard",
-      swatch: "#1f3657",
-    },
-    {
-      sku: "FAB-IVR-001",
-      label: "Ivory Stretch Wool",
-      composition: "96% wool, 4% elastane",
-      yarn: "Super 120s",
-      weight: "270 g/m",
-      millLabel: "Dormeuil Luxury",
-      manufacturer: "Dormeuil",
-      bookType: "Luxury",
-      pricingTierKey: "luxury",
-      pricingTierLabel: "Luxury",
-      swatch: "#e9dfcb",
-    },
-  ],
+
+const defaultNonFabricOptionsByKind: Record<"buttons" | "lining" | "threads", MaterialOption[]> = {
   buttons: [
     {
       sku: "BTN-HORN-001",
@@ -150,12 +180,144 @@ export const defaultMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining
   ],
 };
 
-export function getMeasurementFieldLabels(database: Pick<PrototypeDatabase, "measurementFieldDefinitions">) {
-  return database.measurementFieldDefinitions
+function getProgramLabel(programs: PrototypeDatabase["pricingPrograms"], programKey: PricingProgramKey) {
+  return programs.find((program) => program.key === programKey)?.label ?? programKey;
+}
+
+function getMeasurementFieldLabelsFromDefinitions(measurementFieldDefinitions: PrototypeDatabase["measurementFieldDefinitions"]) {
+  return measurementFieldDefinitions
     .filter((field) => field.isActive)
     .slice()
     .sort((left, right) => left.sortOrder - right.sortOrder)
     .map((field) => field.label);
+}
+
+function getStyleOptions(
+  styleOptions: PrototypeDatabase["styleOptionDefinitions"],
+  kind: "lapel" | "pocket_type" | "canvas",
+) {
+  return styleOptions.filter((option) => option.kind === kind).map((option) => option.label);
+}
+
+function buildCustomPricingTiers(database: PrototypeDatabase): CustomPricingTierDefinition[] {
+  return database.pricingTiers
+    .filter((tier) => tier.isActive)
+    .slice()
+    .sort((left, right) => {
+      if (left.programKey !== right.programKey) {
+        return left.programKey.localeCompare(right.programKey);
+      }
+
+      return left.sortOrder - right.sortOrder;
+    })
+    .map((tier) => {
+      const basePrices = database.catalogVariationTierPrices
+        .filter((price) => price.isActive && price.tierKey === tier.key)
+        .reduce<Partial<Record<CustomPricingGarment, number>>>((accumulator, price) => {
+          const variationLabel = database.catalogVariations.find((variation) => variation.id === price.variationId)?.label;
+          if (variationLabel) {
+            accumulator[variationLabel as CustomPricingGarment] = price.amount;
+          }
+          return accumulator;
+        }, {});
+
+      if (!Object.keys(basePrices).length) {
+        database.garmentBasePrices
+          .filter((price) => price.isActive && price.tierKey === tier.key)
+          .forEach((price) => {
+            basePrices[price.garmentLabel as CustomPricingGarment] = price.amount;
+          });
+      }
+
+      return {
+        key: tier.key,
+        programKey: tier.programKey,
+        programLabel: getProgramLabel(database.pricingPrograms, tier.programKey),
+        label: tier.label,
+        sortOrder: tier.sortOrder,
+        floorPrice: tier.floorPrice,
+        basePrices,
+      };
+    });
+}
+
+function buildFabricMaterialOptions(database: PrototypeDatabase): MaterialOption[] {
+  return database.fabricCatalogItems
+    .filter((item) => item.isActive)
+    .slice()
+    .sort((left, right) => left.label.localeCompare(right.label))
+    .map((item) => {
+      const tier = database.pricingTiers.find((candidate) => candidate.key === item.tierKey);
+      const book = database.millBooks.find((candidate) => candidate.id === item.bookId);
+
+      return {
+        sku: item.sku,
+        label: item.label,
+        composition: item.composition,
+        yarn: item.yarn,
+        weight: item.weight,
+        programKey: item.programKey,
+        millLabel: book?.label ?? "",
+        manufacturer: book?.manufacturer ?? "",
+        bookId: book?.id,
+        bookType: book?.label ?? "",
+        pricingTierKey: tier?.key,
+        pricingTierLabel: tier?.label,
+        lookupType: item.lookupType,
+        hasQrCode: item.hasQrCode,
+        qrCodeRawValue: item.qrCodeRawValue,
+        qrResolvedUrl: item.qrResolvedUrl,
+        externalReference: item.externalReference,
+        swatch: item.swatch,
+        swatchImage: item.swatchImage,
+      };
+    });
+}
+
+function buildCatalogVariationMatrix(database: PrototypeDatabase): CatalogVariationMatrixRow[] {
+  const activeTiers = database.pricingTiers
+    .filter((tier) => tier.isActive)
+    .slice()
+    .sort((left, right) => {
+      if (left.programKey !== right.programKey) {
+        return left.programKey.localeCompare(right.programKey);
+      }
+
+      return left.sortOrder - right.sortOrder;
+    });
+
+  return database.catalogVariations
+    .filter((variation) => variation.isActive)
+    .slice()
+    .sort((left, right) => left.label.localeCompare(right.label))
+    .map((variation) => ({
+      ...variation,
+      tierAmounts: activeTiers
+        .filter((tier) => tier.programKey === variation.programKey)
+        .map((tier) => ({
+          tierKey: tier.key,
+          tierLabel: tier.label,
+          amount: database.catalogVariationTierPrices.find((price) => (
+            price.isActive && price.variationId === variation.id && price.tierKey === tier.key
+          ))?.amount ?? variation.fallbackAmount,
+        })),
+    }));
+}
+
+function getJacketCanvasSurcharges(rules: PrototypeDatabase["garmentSurchargeRules"]) {
+  return {
+    Fused: rules.find((rule) => rule.kind === "canvas" && rule.optionValue === "Fused" && rule.isActive)?.amount ?? 0,
+    Half: rules.find((rule) => rule.kind === "canvas" && rule.optionValue === "Half" && rule.isActive)?.amount ?? 100,
+    Full: rules.find((rule) => rule.kind === "canvas" && rule.optionValue === "Full" && rule.isActive)?.amount ?? 200,
+  } satisfies Record<JacketCanvas, number>;
+}
+
+function getCustomLiningSurchargeAmount(rules: PrototypeDatabase["garmentSurchargeRules"]) {
+  return rules.find((rule) => rule.kind === "lining" && rule.optionValue === "custom_printed" && rule.isActive)?.amount ?? 200;
+}
+
+export function getMeasurementFieldLabels(database: Pick<PrototypeDatabase, "measurementFieldDefinitions">) {
+  return getMeasurementFieldLabelsFromDefinitions(database.measurementFieldDefinitions);
 }
 
 export function createMeasurementValueMap(measurementFields: string[]) {
@@ -183,41 +345,34 @@ export function getPickupLocationNameById(
   return locations.find((location) => location.id === locationId)?.name ?? "";
 }
 
-function getStyleOptions(
-  styleOptions: PrototypeDatabase["styleOptionDefinitions"],
-  kind: "lapel" | "pocket_type" | "canvas",
-) {
-  return styleOptions.filter((option) => option.kind === kind).map((option) => option.label);
-}
-
 export function createReferenceData(database: PrototypeDatabase): AppReferenceData {
   const alterationCatalog = Array.from(
     database.alterationServiceDefinitions
       .filter((service) => service.isActive)
       .reduce<Map<string, AlterationCategory>>((categories, service) => {
-      const existing = categories.get(service.category);
-      if (existing) {
-        existing.services.push({
-          id: service.id,
-          name: service.name,
-          price: service.price,
-          supportsAdjustment: service.supportsAdjustment,
-          requiresAdjustment: service.requiresAdjustment,
+        const existing = categories.get(service.category);
+        if (existing) {
+          existing.services.push({
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            supportsAdjustment: service.supportsAdjustment,
+            requiresAdjustment: service.requiresAdjustment,
+          });
+          return categories;
+        }
+
+        categories.set(service.category, {
+          category: service.category,
+          services: [{
+            id: service.id,
+            name: service.name,
+            price: service.price,
+            supportsAdjustment: service.supportsAdjustment,
+            requiresAdjustment: service.requiresAdjustment,
+          }],
         });
         return categories;
-      }
-
-      categories.set(service.category, {
-        category: service.category,
-        services: [{
-          id: service.id,
-          name: service.name,
-          price: service.price,
-          supportsAdjustment: service.supportsAdjustment,
-          requiresAdjustment: service.requiresAdjustment,
-        }],
-      });
-      return categories;
       }, new Map()).values(),
   );
 
@@ -234,14 +389,53 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
     defaultLocationId: database.organizationSettings.defaultLocationId,
     taxRate: database.organizationSettings.taxRate,
     customDepositRate: database.organizationSettings.customDepositRate,
-    jacketCanvasSurcharges: database.organizationSettings.jacketCanvasSurcharges,
-    alterationCatalog,
-    customPricingTiers: database.customPricingTiers
+    catalogItems: database.catalogItems
+      .filter((item) => item.isActive)
+      .slice(),
+    catalogVariations: database.catalogVariations
+      .filter((variation) => variation.isActive)
+      .slice()
+      .sort((left, right) => left.label.localeCompare(right.label)),
+    catalogOptionGroups: database.catalogOptionGroups
+      .filter((group) => group.isActive)
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder),
+    catalogModifierGroups: database.catalogModifierGroups
+      .filter((group) => group.isActive)
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder),
+    catalogModifierOptions: database.catalogModifierOptions
+      .filter((option) => option.isActive)
+      .slice()
+      .sort((left, right) => left.label.localeCompare(right.label)),
+    catalogVariationTierPrices: database.catalogVariationTierPrices
+      .filter((price) => price.isActive)
+      .slice(),
+    catalogVariationMatrix: buildCatalogVariationMatrix(database),
+    pricingPrograms: database.pricingPrograms
+      .filter((program) => program.isActive)
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder),
+    pricingTiers: database.pricingTiers
       .filter((tier) => tier.isActive)
       .slice()
       .sort((left, right) => left.sortOrder - right.sortOrder),
+    millBooks: database.millBooks
+      .filter((book) => book.isActive)
+      .slice()
+      .sort((left, right) => left.sortOrder - right.sortOrder),
+    fabricCatalogItems: database.fabricCatalogItems
+      .filter((item) => item.isActive)
+      .slice(),
+    alterationCatalog,
+    customPricingTiers: buildCustomPricingTiers(database),
     customGarmentOptionsByGender,
-    customMaterialOptionsByKind: defaultMaterialOptionsByKind,
+    customMaterialOptionsByKind: {
+      fabric: buildFabricMaterialOptions(database),
+      buttons: defaultNonFabricOptionsByKind.buttons,
+      lining: defaultNonFabricOptionsByKind.lining,
+      threads: defaultNonFabricOptionsByKind.threads,
+    },
     inHouseTailors: database.staffMembers
       .filter((staffMember) => staffMember.role === "tailor")
       .map((staffMember) => ({
@@ -249,13 +443,14 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
         name: staffMember.name,
         primaryLocation: getPickupLocationNameById(database.locations, staffMember.primaryLocationId) as PickupLocation,
       })),
-    jacketBasedCustomGarments: new Set(
-      database.customGarmentDefinitions.filter((definition) => definition.jacketBased).map((definition) => definition.label),
-    ),
+    jacketBasedCustomGarments: new Set(jacketConstructionGarments),
+    customLiningEligibleGarments: new Set(customLiningEligibleGarments),
+    jacketCanvasSurcharges: getJacketCanvasSurcharges(database.garmentSurchargeRules),
+    customLiningSurchargeAmount: getCustomLiningSurchargeAmount(database.garmentSurchargeRules),
     lapelOptions: getStyleOptions(database.styleOptionDefinitions, "lapel"),
     pocketTypeOptions: getStyleOptions(database.styleOptionDefinitions, "pocket_type"),
     canvasOptions: getStyleOptions(database.styleOptionDefinitions, "canvas"),
-    measurementFields: getMeasurementFieldLabels(database),
+    measurementFields: getMeasurementFieldLabelsFromDefinitions(database.measurementFieldDefinitions),
     pickupLocations: database.locations.filter((location) => location.isActive).map((location) => location.name),
   };
 }
@@ -268,7 +463,6 @@ const seedReferenceData = createReferenceData({
     defaultLocationId: "loc_fifth_avenue",
     taxRate: 0.08875,
     customDepositRate: 0.5,
-    jacketCanvasSurcharges: defaultJacketCanvasSurcharges,
   },
   locations: seedLocations,
   staffMembers: [
@@ -286,7 +480,18 @@ const seedReferenceData = createReferenceData({
     },
   ],
   alterationServiceDefinitions: seedAlterationServiceDefinitions,
-  customPricingTiers: seedCustomPricingTiers,
+  catalogItems: seedCatalogItems,
+  catalogVariations: seedCatalogVariations,
+  catalogOptionGroups: seedCatalogOptionGroups,
+  catalogModifierGroups: seedCatalogModifierGroups,
+  catalogModifierOptions: seedCatalogModifierOptions,
+  catalogVariationTierPrices: seedCatalogVariationTierPrices,
+  pricingPrograms: seedPricingPrograms,
+  pricingTiers: seedPricingTiers,
+  millBooks: seedMillBooks,
+  fabricCatalogItems: seedFabricCatalogItems,
+  garmentBasePrices: seedGarmentBasePrices,
+  garmentSurchargeRules: seedGarmentSurchargeRules,
   customGarmentDefinitions: seedCustomGarmentDefinitions,
   styleOptionDefinitions: seedStyleOptionDefinitions,
   measurementFieldDefinitions: seedMeasurementFieldDefinitions,
@@ -332,3 +537,5 @@ export function findAlterationServiceDefinition(
     requiresAdjustment: match.requiresAdjustment,
   };
 }
+
+export { customPricingGarments };

@@ -1,9 +1,10 @@
 import { Plus, Settings2, ArrowDown, ArrowUp } from "lucide-react";
 import { useMemo, useState } from "react";
 import type { PrototypeDatabase } from "../db";
+import { createReferenceData } from "../db";
 import type { AppAction } from "../state/appState";
 import { ActionButton, Callout, FieldStack, SectionHeader, SelectField, Surface, SurfaceHeader } from "../components/ui/primitives";
-import { getCustomPricingGarments, getSortedAlterationServices, getSortedCustomPricingTiers, getSortedLocations, getSortedMeasurementFields } from "../features/settings/selectors";
+import { getSortedAlterationServices, getSortedCustomPricingTiers, getSortedLocations, getSortedMeasurementFields } from "../features/settings/selectors";
 
 type SettingsScreenProps = {
   database: PrototypeDatabase;
@@ -61,12 +62,52 @@ function TextField({
   );
 }
 
+function CapabilityBadge({ label, active }: { label: string; active: boolean }) {
+  return (
+    <span
+      className={active
+        ? "rounded-full border border-emerald-300/60 bg-emerald-500/10 px-2.5 py-1 app-text-caption text-emerald-700"
+        : "rounded-full border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/25 px-2.5 py-1 app-text-caption text-[var(--app-text-muted)]"}
+    >
+      {label}
+    </span>
+  );
+}
+
 export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
+  const referenceData = useMemo(() => createReferenceData(database), [database]);
   const measurementFields = useMemo(() => getSortedMeasurementFields(database), [database]);
   const alterationServices = useMemo(() => getSortedAlterationServices(database), [database]);
   const locations = useMemo(() => getSortedLocations(database), [database]);
   const customPricingTiers = useMemo(() => getSortedCustomPricingTiers(database), [database]);
-  const customPricingGarments = useMemo(() => getCustomPricingGarments(database), [database]);
+  const catalogItem = referenceData.catalogItems[0] ?? null;
+  const catalogVariations = referenceData.catalogVariations;
+  const catalogVariationMatrix = referenceData.catalogVariationMatrix;
+  const catalogModifierOptions = referenceData.catalogModifierOptions;
+  const pricingPrograms = referenceData.pricingPrograms;
+  const millBooksByTier = useMemo(() => {
+    return referenceData.millBooks.reduce<Record<string, typeof referenceData.millBooks>>((accumulator, book) => {
+      (accumulator[book.tierKey] ||= []).push(book);
+      return accumulator;
+    }, {});
+  }, [referenceData.millBooks]);
+  const fabricsByBook = useMemo(() => {
+    return referenceData.fabricCatalogItems.reduce<Record<string, typeof referenceData.fabricCatalogItems>>((accumulator, fabric) => {
+      (accumulator[fabric.bookId] ||= []).push(fabric);
+      return accumulator;
+    }, {});
+  }, [referenceData.fabricCatalogItems]);
+  const surchargeOptions = useMemo(() => {
+    return database.garmentSurchargeRules
+      .filter((rule) => rule.programKey === "custom_suiting")
+      .reduce<Record<string, PrototypeDatabase["garmentSurchargeRules"][number]>>((accumulator, rule) => {
+        const key = `${rule.kind}:${rule.optionValue}`;
+        if (!accumulator[key]) {
+          accumulator[key] = rule;
+        }
+        return accumulator;
+      }, {});
+  }, [database.garmentSurchargeRules]);
   const [newMeasurementLabel, setNewMeasurementLabel] = useState("");
   const [newLocationName, setNewLocationName] = useState("");
   const [newService, setNewService] = useState({
@@ -315,70 +356,280 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
         <Surface tone="work" className="p-4">
           <SurfaceHeader
             title="Custom pricing"
-            subtitle="Fabric SKU lookup resolves to a pricing tier. Tier base prices live here, and jacket construction surcharges stay global."
+            subtitle="Catalog-first view of what is sellable, what resolves pricing, and what adds price."
           />
           <Callout
             tone="default"
             className="mt-4"
-            title="Pricing model"
+            title="Catalog model"
           >
-            Fabric determines the pricing tier. Three-piece garments are priced directly as their own garments, and jacket construction uses one global surcharge table instead of per-tier overrides.
+            The sellable thing is the catalog variation, not the tier. Fabric source data resolves a variation into a tier, and only modifier groups add price on top. QR values are stored exactly as scanned when available, but the internal SKU catalog remains the canonical lookup layer.
           </Callout>
-          <div className="mt-4 space-y-3">
-            {customPricingTiers.map((tier) => (
-              <div key={tier.key} className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
-                <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto]">
-                  <TextField
-                    label="Tier label"
-                    value={tier.label}
-                    onChange={(value) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { label: value } } })}
-                  />
-                  <label className="app-text-caption inline-flex items-center gap-2 rounded-[12px] border border-[var(--app-border)]/60 px-3 py-3">
-                    <input
-                      type="checkbox"
-                      checked={tier.isActive}
-                      onChange={(event) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { isActive: event.target.checked } } })}
-                    />
-                    <span>{tier.isActive ? "Active" : "Inactive"}</span>
-                  </label>
+          <div className="mt-4 space-y-4">
+            <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+              <SurfaceHeader
+                title="Catalog item"
+                subtitle="One top-level sellable product currently owns all custom garment variations."
+              />
+              {catalogItem ? (
+                <div className="mt-3 rounded-[10px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
+                  <div className="app-text-body font-medium">{catalogItem.label}</div>
+                  <div className="app-text-caption mt-1">Key: {catalogItem.key}</div>
                 </div>
+              ) : null}
+            </div>
 
-                <div className="mt-4 grid gap-2 xl:grid-cols-3">
-                  {customPricingGarments.map((garment) => (
-                    <NumberField
-                      key={`${tier.key}-${garment}`}
-                      label={String(garment)}
-                      value={tier.basePrices[garment] ?? 0}
-                      onChange={(value) => dispatch({ type: "updateCustomPricingTierGarmentPrice", tierKey: tier.key, garment, price: value })}
+            <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+              <SurfaceHeader
+                title="Sellable variations"
+                subtitle="These are the products the operator actually sells. Tiers and books only influence their pricing."
+              />
+              <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                {catalogVariations.map((variation) => (
+                  <div key={variation.id} className="rounded-[12px] border border-[var(--app-border)]/50 bg-[var(--app-surface)]/36 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <div className="app-text-body font-medium">{variation.label}</div>
+                        <div className="app-text-caption mt-1">
+                          {pricingPrograms.find((program) => program.key === variation.programKey)?.label ?? variation.programKey}
+                        </div>
+                      </div>
+                      <div className="app-text-value [font-variant-numeric:tabular-nums]">${variation.fallbackAmount.toFixed(2)}</div>
+                    </div>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <CapabilityBadge label="Canvas" active={variation.supportsCanvas} />
+                      <CapabilityBadge label="Custom lining" active={variation.supportsCustomLining} />
+                      <CapabilityBadge label="Lapel" active={variation.supportsLapel} />
+                      <CapabilityBadge label="Pockets" active={variation.supportsPocketType} />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+              <SurfaceHeader
+                title="Fabric source"
+                subtitle="Reference data only: pricing programs, tiers, books, and representative SKUs resolve a variation into a price tier."
+              />
+              <div className="mt-4 space-y-3">
+                {pricingPrograms.map((program) => (
+                  <div key={program.id} className="rounded-[12px] border border-[var(--app-border)]/50 bg-[var(--app-surface)]/36 p-4">
+                    <SurfaceHeader
+                      title={program.label}
+                      subtitle={program.key === "custom_suiting" ? "Suiting fabric source hierarchy." : "Shirting fabric source hierarchy."}
                     />
-                  ))}
+                    <div className="mt-4 space-y-3">
+                      {customPricingTiers
+                        .filter((tier) => tier.programKey === program.key)
+                        .map((tier) => {
+                          const books = (millBooksByTier[tier.key] ?? []).slice().sort((left, right) => left.sortOrder - right.sortOrder);
+                          return (
+                            <div key={tier.key} className="rounded-[12px] border border-[var(--app-border)]/50 bg-[var(--app-surface-muted)]/20 p-3">
+                              <div className="grid gap-3 lg:grid-cols-[minmax(0,1fr)_160px_auto]">
+                                <TextField
+                                  label="Tier label"
+                                  value={tier.label}
+                                  onChange={(value) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { label: value } } })}
+                                />
+                                <NumberField
+                                  label="Starting price"
+                                  value={tier.floorPrice ?? 0}
+                                  min={0}
+                                  onChange={(value) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { floorPrice: value } } })}
+                                />
+                                <label className="app-text-caption inline-flex items-center gap-2 rounded-[12px] border border-[var(--app-border)]/60 px-3 py-3">
+                                  <input
+                                    type="checkbox"
+                                    checked={database.pricingTiers.find((candidate) => candidate.key === tier.key)?.isActive ?? true}
+                                    onChange={(event) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { isActive: event.target.checked } } })}
+                                  />
+                                  <span>{database.pricingTiers.find((candidate) => candidate.key === tier.key)?.isActive ? "Active" : "Inactive"}</span>
+                                </label>
+                              </div>
+                              <div className="mt-4 grid gap-3 xl:grid-cols-2">
+                                <div className="rounded-[12px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
+                                  <div className="app-text-overline">Representative books</div>
+                                  <div className="mt-2 space-y-2">
+                                    {books.map((book) => (
+                                      <div key={book.id} className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 p-2.5">
+                                        <div className="app-text-body font-medium">{book.label}</div>
+                                        <div className="app-text-caption mt-1">{book.manufacturer}</div>
+                                        {book.notes ? <div className="app-text-caption mt-1">{book.notes}</div> : null}
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                                <div className="rounded-[12px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
+                                  <div className="app-text-overline">Representative SKUs</div>
+                                  <div className="mt-2 space-y-2">
+                                    {books.flatMap((book) => (fabricsByBook[book.id] ?? []).slice(0, 2)).map((fabric) => (
+                                      <div key={fabric.id} className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 p-2.5">
+                                        <div className="app-text-body font-medium">{fabric.label}</div>
+                                        <div className="app-text-caption mt-1">{fabric.sku}</div>
+                                        <div className="app-text-caption mt-1">
+                                          {fabric.hasQrCode && fabric.qrCodeRawValue ? `QR: ${fabric.qrCodeRawValue}` : "QR not available"}
+                                        </div>
+                                      </div>
+                                    ))}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+              <SurfaceHeader
+                title="Variation pricing by fabric tier"
+                subtitle="Rows are sellable variations. Columns are internal pricing tiers resolved from fabric source data."
+              />
+              <div className="mt-4 space-y-3">
+                {pricingPrograms.map((program) => {
+                  const programTiers = customPricingTiers.filter((tier) => tier.programKey === program.key);
+                  const programRows = catalogVariationMatrix.filter((row) => row.programKey === program.key);
+                  return (
+                    <div key={program.id} className="rounded-[12px] border border-[var(--app-border)]/50 bg-[var(--app-surface)]/36 p-4">
+                      <div className="app-text-body font-medium">{program.label}</div>
+                      <div className="mt-3 grid gap-3" style={{ gridTemplateColumns: `minmax(200px, 1.4fr) repeat(${programTiers.length}, minmax(120px, 1fr))` }}>
+                        <div className="app-text-overline">Variation</div>
+                        {programTiers.map((tier) => (
+                          <div key={tier.key} className="app-text-overline">{tier.label}</div>
+                        ))}
+                        {programRows.map((variation) => (
+                          <div key={variation.id} className="contents">
+                            <div key={`${variation.id}-label`} className="rounded-[10px] border border-[var(--app-border)]/35 bg-[var(--app-surface-muted)]/18 px-3 py-2 app-text-body font-medium">
+                              {variation.label}
+                            </div>
+                            {variation.tierAmounts.map((tierAmount) => (
+                              <div key={`${variation.id}-${tierAmount.tierKey}`} className="rounded-[10px] border border-[var(--app-border)]/35 bg-[var(--app-surface)]/45 px-3 py-2">
+                                <NumberField
+                                  label=""
+                                  value={tierAmount.amount}
+                                  min={0}
+                                  onChange={(value) => dispatch({ type: "updateCustomPricingTierGarmentPrice", tierKey: tierAmount.tierKey, garment: variation.label, price: value })}
+                                />
+                              </div>
+                            ))}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+              <SurfaceHeader
+                title="Modifiers"
+                subtitle="Only these groups add price on top of the variation base amount."
+              />
+              <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
+                {catalogModifierOptions.map((option) => {
+                  const rule = option.optionValue === "custom_printed"
+                    ? surchargeOptions["lining:custom_printed"]
+                    : surchargeOptions[`canvas:${option.optionValue}`];
+                  return (
+                    <div key={option.id} className="rounded-[12px] border border-[var(--app-border)]/50 bg-[var(--app-surface)]/36 p-3">
+                      <TextField
+                        label="Modifier label"
+                        value={option.label}
+                        onChange={(value) => {
+                          if (!rule) {
+                            return;
+                          }
+                          dispatch({
+                            type: "updateGarmentSurchargeRule",
+                            payload: {
+                              programKey: rule.programKey,
+                              kind: rule.kind,
+                              optionValue: rule.optionValue,
+                              patch: { label: value },
+                            },
+                          });
+                        }}
+                      />
+                      <div className="mt-3">
+                        <NumberField
+                          label="Amount"
+                          value={option.amount}
+                          min={0}
+                          onChange={(value) => {
+                            if (!rule) {
+                              return;
+                            }
+                            dispatch({
+                              type: "updateGarmentSurchargeRule",
+                              payload: {
+                                programKey: rule.programKey,
+                                kind: rule.kind,
+                                optionValue: rule.optionValue,
+                                patch: { amount: value },
+                              },
+                            });
+                          }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
+              <SurfaceHeader
+                title="Non-priced options"
+                subtitle="These affect the build but do not independently change price in this prototype."
+              />
+              <div className="mt-4 grid gap-3 xl:grid-cols-3">
+                <div className="rounded-[12px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
+                  <div className="app-text-overline">Option groups</div>
+                  <div className="mt-2 space-y-2">
+                    {referenceData.catalogOptionGroups.map((group) => (
+                      <div key={group.id} className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
+                        <div className="app-text-body font-medium">{group.label}</div>
+                        <div className="app-text-caption mt-1">{group.key}</div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                <div className="rounded-[12px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
+                  <div className="app-text-overline">Style options</div>
+                  <div className="mt-2 space-y-2">
+                    <div className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
+                      <div className="app-text-body font-medium">Lapels</div>
+                      <div className="app-text-caption mt-1">{referenceData.lapelOptions.join(", ")}</div>
+                    </div>
+                    <div className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
+                      <div className="app-text-body font-medium">Pockets</div>
+                      <div className="app-text-caption mt-1">{referenceData.pocketTypeOptions.join(", ")}</div>
+                    </div>
+                  </div>
+                </div>
+                <div className="rounded-[12px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
+                  <div className="app-text-overline">Material component catalogs</div>
+                  <div className="mt-2 space-y-2">
+                    <div className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
+                      <div className="app-text-body font-medium">Buttons</div>
+                      <div className="app-text-caption mt-1">{referenceData.customMaterialOptionsByKind.buttons.map((option) => option.label).join(", ")}</div>
+                    </div>
+                    <div className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
+                      <div className="app-text-body font-medium">Standard lining</div>
+                      <div className="app-text-caption mt-1">{referenceData.customMaterialOptionsByKind.lining.map((option) => option.label).join(", ")}</div>
+                    </div>
+                    <div className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
+                      <div className="app-text-body font-medium">Threads</div>
+                      <div className="app-text-caption mt-1">{referenceData.customMaterialOptionsByKind.threads.map((option) => option.label).join(", ")}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-            ))}
-          </div>
-
-          <div className="mt-4 rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
-            <SurfaceHeader
-              title="Jacket construction surcharges"
-              subtitle="Applied only to Two-piece suit, Three-piece suit, Jacket, Tuxedo jacket, and Three-piece tuxedo. Fused is the baseline, then half and full canvas add on top."
-            />
-            <div className="mt-4 grid gap-2 md:grid-cols-3">
-              {(["Fused", "Half", "Full"] as const).map((canvas) => (
-                <NumberField
-                  key={canvas}
-                  label={`${canvas} canvas`}
-                  value={database.organizationSettings.jacketCanvasSurcharges[canvas]}
-                  onChange={(value) => dispatch({
-                    type: "updateOrganizationSettings",
-                    payload: {
-                      jacketCanvasSurcharges: {
-                        ...database.organizationSettings.jacketCanvasSurcharges,
-                        [canvas]: value,
-                      },
-                    },
-                  })}
-                />
-              ))}
             </div>
           </div>
         </Surface>

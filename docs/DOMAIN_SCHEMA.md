@@ -133,12 +133,49 @@ They should also remain expressive enough to carry normalized scheduling metadat
   - custom garment definitions
   - style options
   - measurement field definitions
+  - pricing programs
+  - pricing tiers
+  - mill books
+  - fabric SKU catalog items
+  - garment base prices
+  - garment surcharge rules
 
 These now live under `src/db/` so operational lookup data is sourced from the same canonical layer as business records.
 
 Note:
 - these tables are canonical reference data for the prototype
 - they are still intentionally static/seed-backed, not operator-editable CRUD entities yet
+
+### Pricing catalog hierarchy
+- Custom pricing is now modeled as a normalized catalog instead of a flat tier list.
+- The prototype hierarchy is:
+  - `pricing_program`
+    - `custom_suiting`
+    - `custom_shirting`
+  - `pricing_tier`
+    - tier label and price floor
+    - belongs to exactly one pricing program
+  - `mill_book`
+    - belongs to exactly one pricing tier
+    - represents the merchant-facing book / collection name
+  - `fabric_sku`
+    - belongs to exactly one mill book
+    - can optionally carry QR lookup metadata
+  - `garment_base_price`
+    - one row per garment + tier combination
+  - `garment_surcharge_rule`
+    - one row per applicable garment + surcharge option combination
+
+Pricing resolution rule:
+- selected garment -> selected fabric SKU -> mill book -> pricing tier -> garment base price -> surcharge rules
+
+Important prototype rules:
+- QR values are stored exactly as scanned when available.
+- QR metadata is a lookup bridge, not the canonical pricing record.
+- Three-piece garments are standalone garments, not vest add-ons.
+- Jacket construction applies only to jacket-bearing garments.
+- Custom printed lining is a jacket-only surcharge.
+- Representative books and representative SKUs are enough for the prototype; the catalog does not need to be exhaustive yet.
 
 ### `payment_record`
 - Local mirror of payment state

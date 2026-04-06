@@ -13,7 +13,7 @@ import type {
   WorkflowMode,
   OrderWorkflowState,
 } from "../types";
-import type { CustomPricingTierDefinition, JacketCanvasSurcharges } from "./customPricingCatalog";
+import type { FabricLookupType, GarmentSurchargeKind, PricingProgramKey } from "./customPricingCatalog";
 
 export type DbLocation = {
   id: string;
@@ -64,10 +64,132 @@ export type DbOrganizationSettings = {
   defaultLocationId: string;
   taxRate: number;
   customDepositRate: number;
-  jacketCanvasSurcharges: JacketCanvasSurcharges;
 };
 
-export type DbCustomPricingTier = CustomPricingTierDefinition & {
+export type DbPricingProgram = {
+  id: string;
+  key: PricingProgramKey;
+  label: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type DbPricingTier = {
+  id: string;
+  key: string;
+  programKey: PricingProgramKey;
+  label: string;
+  sortOrder: number;
+  floorPrice: number | null;
+  isActive: boolean;
+};
+
+export type DbMillBook = {
+  id: string;
+  key: string;
+  programKey: PricingProgramKey;
+  tierKey: string;
+  label: string;
+  manufacturer: string;
+  notes: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type DbFabricCatalogItem = {
+  id: string;
+  programKey: PricingProgramKey;
+  tierKey: string;
+  bookId: string;
+  sku: string;
+  label: string;
+  composition?: string;
+  yarn?: string;
+  weight?: string;
+  lookupType: FabricLookupType;
+  hasQrCode: boolean;
+  qrCodeRawValue: string | null;
+  qrResolvedUrl: string | null;
+  externalReference: string | null;
+  swatch: string;
+  swatchImage?: string;
+  isActive: boolean;
+};
+
+export type DbGarmentBasePrice = {
+  id: string;
+  programKey: PricingProgramKey;
+  tierKey: string;
+  garmentLabel: string;
+  amount: number;
+  isActive: boolean;
+};
+
+export type DbGarmentSurchargeRule = {
+  id: string;
+  programKey: PricingProgramKey;
+  garmentLabel: string;
+  kind: GarmentSurchargeKind;
+  optionValue: string;
+  label: string;
+  amount: number;
+  isActive: boolean;
+};
+
+export type DbCatalogItem = {
+  id: string;
+  key: string;
+  label: string;
+  kind: "product";
+  isActive: boolean;
+};
+
+export type DbCatalogVariation = {
+  id: string;
+  itemId: string;
+  key: string;
+  label: string;
+  programKey: PricingProgramKey;
+  fallbackAmount: number;
+  supportsCanvas: boolean;
+  supportsCustomLining: boolean;
+  supportsLapel: boolean;
+  supportsPocketType: boolean;
+  isActive: boolean;
+};
+
+export type DbCatalogOptionGroup = {
+  id: string;
+  itemId: string;
+  key: "fabric" | "buttons" | "lining" | "threads" | "lapel" | "pocket_type";
+  label: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type DbCatalogModifierGroup = {
+  id: string;
+  itemId: string;
+  key: "canvas" | "custom_lining";
+  label: string;
+  sortOrder: number;
+  isActive: boolean;
+};
+
+export type DbCatalogModifierOption = {
+  id: string;
+  groupId: string;
+  optionValue: string;
+  label: string;
+  amount: number;
+  isActive: boolean;
+};
+
+export type DbCatalogVariationTierPrice = {
+  id: string;
+  variationId: string;
+  tierKey: string;
+  amount: number;
   isActive: boolean;
 };
 
@@ -252,7 +374,18 @@ export type PrototypeDatabase = {
   locations: DbLocation[];
   staffMembers: DbStaffMember[];
   alterationServiceDefinitions: DbAlterationServiceDefinition[];
-  customPricingTiers: DbCustomPricingTier[];
+  catalogItems: DbCatalogItem[];
+  catalogVariations: DbCatalogVariation[];
+  catalogOptionGroups: DbCatalogOptionGroup[];
+  catalogModifierGroups: DbCatalogModifierGroup[];
+  catalogModifierOptions: DbCatalogModifierOption[];
+  catalogVariationTierPrices: DbCatalogVariationTierPrice[];
+  pricingPrograms: DbPricingProgram[];
+  pricingTiers: DbPricingTier[];
+  millBooks: DbMillBook[];
+  fabricCatalogItems: DbFabricCatalogItem[];
+  garmentBasePrices: DbGarmentBasePrice[];
+  garmentSurchargeRules: DbGarmentSurchargeRule[];
   customGarmentDefinitions: DbCustomGarmentDefinition[];
   styleOptionDefinitions: DbStyleOptionDefinition[];
   measurementFieldDefinitions: DbMeasurementFieldDefinition[];

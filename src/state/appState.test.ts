@@ -243,6 +243,7 @@ describe("app state", () => {
             fabricSku: null,
             buttonsSku: null,
             liningSku: null,
+            customLiningRequested: false,
             threadsSku: null,
             monogramLeft: "",
             monogramCenter: "",

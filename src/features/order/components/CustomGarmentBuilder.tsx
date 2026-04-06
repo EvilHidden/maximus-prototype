@@ -3,24 +3,38 @@ import { useMemo, useState } from "react";
 import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
 import type { MaterialOption } from "../../../db/referenceData";
-import type { CustomPricingTierDefinition, JacketCanvasSurcharges } from "../../../db/customPricingCatalog";
+import {
+  getPricingProgramKeyForGarment,
+  type CustomPricingTierDefinition,
+  type JacketCanvas,
+} from "../../../db/customPricingCatalog";
+import type {
+  CatalogVariationTierPriceView,
+  CatalogVariationView,
+} from "../../../db/referenceData";
 import { getCustomGarmentPrice } from "../selectors";
 
 type CustomGarmentBuilderProps = {
   garmentOptionsByGender: Record<CustomGarmentGender, string[]>;
   customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
   customPricingTiers: CustomPricingTierDefinition[];
-  jacketCanvasSurcharges: JacketCanvasSurcharges;
+  catalogVariations: CatalogVariationView[];
+  catalogVariationTierPrices: CatalogVariationTierPriceView[];
+  jacketCanvasSurcharges: Record<JacketCanvas, number>;
   jacketBasedCustomGarments: Set<string>;
+  customLiningEligibleGarments: Set<string>;
+  customLiningSurchargeAmount: number;
   lapelOptions: string[];
   pocketTypeOptions: string[];
   canvasOptions: string[];
   selectedGender: CustomGarmentGender | null;
   selectedGarment: string | null;
+  pricingTierKey: string | null;
   isRush: boolean;
   fabricSku: string | null;
   buttonsSku: string | null;
   liningSku: string | null;
+  customLiningRequested: boolean;
   threadsSku: string | null;
   monogramLeft: string;
   monogramCenter: string;
@@ -49,6 +63,7 @@ type CustomGarmentBuilderProps = {
     fabricSku?: string | null;
     buttonsSku?: string | null;
     liningSku?: string | null;
+    customLiningRequested?: boolean;
     threadsSku?: string | null;
     monogramLeft?: string;
     monogramCenter?: string;
@@ -59,6 +74,14 @@ type CustomGarmentBuilderProps = {
     isRush?: boolean;
   }) => void;
 };
+
+function formatCanvasSurchargeLabel(
+  option: string,
+  surcharges: Record<JacketCanvas, number>,
+) {
+  const amount = surcharges[option as JacketCanvas] ?? 0;
+  return amount > 0 ? `${option} (+$${amount})` : `${option} (included)`;
+}
 
 const genderLabels: Record<CustomGarmentGender, string> = {
   male: "Male",
@@ -114,6 +137,9 @@ function MaterialField({
       const searchBody = [
         option.sku,
         option.label,
+        option.millLabel,
+        option.manufacturer,
+        option.bookType,
         option.composition,
         option.yarn,
         option.weight,
@@ -225,8 +251,14 @@ function MaterialField({
                 ) : null}
                 {match.millLabel ? (
                   <div className="app-custom-builder__material-meta-item min-w-0">
-                    <div className="app-custom-builder__material-meta-label app-text-overline">Mill</div>
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Book</div>
                     <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.millLabel}</div>
+                  </div>
+                ) : null}
+                {match.manufacturer ? (
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">Mill</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.manufacturer}</div>
                   </div>
                 ) : null}
                 {match.composition ? (
@@ -245,6 +277,14 @@ function MaterialField({
                   <div className="app-custom-builder__material-meta-item min-w-0">
                     <div className="app-custom-builder__material-meta-label app-text-overline">Weight</div>
                     <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">{match.weight}</div>
+                  </div>
+                ) : null}
+                {match.hasQrCode !== undefined ? (
+                  <div className="app-custom-builder__material-meta-item min-w-0">
+                    <div className="app-custom-builder__material-meta-label app-text-overline">QR lookup</div>
+                    <div className="app-custom-builder__material-meta-value app-text-caption mt-0.5">
+                      {match.hasQrCode ? "Available" : "Not available"}
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -347,17 +387,23 @@ export function CustomGarmentBuilder({
   garmentOptionsByGender,
   customMaterialOptionsByKind,
   customPricingTiers,
+  catalogVariations,
+  catalogVariationTierPrices,
   jacketCanvasSurcharges,
   jacketBasedCustomGarments,
+  customLiningEligibleGarments,
+  customLiningSurchargeAmount,
   lapelOptions,
   pocketTypeOptions,
   canvasOptions,
   selectedGender,
   selectedGarment,
+  pricingTierKey,
   isRush,
   fabricSku,
   buttonsSku,
   liningSku,
+  customLiningRequested,
   threadsSku,
   monogramLeft,
   monogramCenter,
@@ -387,16 +433,40 @@ export function CustomGarmentBuilder({
   const garmentOptions = selectedGender ? garmentOptionsByGender[selectedGender] : [];
   const showConfiguration = Boolean(selectedGarment);
   const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
+  const showCustomLiningOption = selectedGarment ? customLiningEligibleGarments.has(selectedGarment) : false;
+  const selectedProgramKey = getPricingProgramKeyForGarment(selectedGarment);
+  const compatibleFabricOptions = useMemo(() => {
+    if (!selectedProgramKey) {
+      return customMaterialOptionsByKind.fabric;
+    }
+
+    return customMaterialOptionsByKind.fabric.filter((option) => !option.programKey || option.programKey === selectedProgramKey);
+  }, [customMaterialOptionsByKind.fabric, selectedProgramKey]);
+  const incompatibleFabricMatch = useMemo(() => {
+    if (!fabricSku || !selectedProgramKey) {
+      return null;
+    }
+
+    const normalizedSku = fabricSku.trim().toLowerCase();
+    return customMaterialOptionsByKind.fabric.find((option) => (
+      option.sku.toLowerCase() === normalizedSku && option.programKey && option.programKey !== selectedProgramKey
+    )) ?? null;
+  }, [customMaterialOptionsByKind.fabric, fabricSku, selectedProgramKey]);
   const fabricMatch = getMaterialMatch("fabric", fabricSku);
   const currentSubtotal = getCustomGarmentPrice({
     selectedGarment,
+    variationLabel: selectedGarment,
     fabricSku,
-    pricingTierKey: fabricMatch?.pricingTierKey ?? null,
+    pricingTierKey: pricingTierKey ?? fabricMatch?.pricingTierKey ?? null,
     canvas,
+    customLiningRequested,
   }, {
     pricingTiers: customPricingTiers,
     fabricOptions: customMaterialOptionsByKind.fabric,
+    catalogVariations,
+    catalogVariationTierPrices,
     jacketCanvasSurcharges,
+    customLiningSurchargeAmount,
   });
   const summaryParts = [wearerName, measurementVersionLabel, selectedGarment].filter(Boolean) as string[];
   const showValidationBanner =
@@ -409,7 +479,8 @@ export function CustomGarmentBuilder({
       return null;
     }
 
-    return customMaterialOptionsByKind[kind].find((option) => option.sku.toLowerCase() === sku.toLowerCase()) ?? null;
+    const options = kind === "fabric" ? compatibleFabricOptions : customMaterialOptionsByKind[kind];
+    return options.find((option) => option.sku.toLowerCase() === sku.toLowerCase()) ?? null;
   }
 
   return (
@@ -522,10 +593,19 @@ export function CustomGarmentBuilder({
                       <MaterialField
                         label="Fabric"
                         skuValue={fabricSku}
-                        match={getMaterialMatch("fabric", fabricSku)}
-                        options={customMaterialOptionsByKind.fabric}
+                        match={fabricMatch}
+                        options={compatibleFabricOptions}
                         onSkuChange={(value) => onSetConfiguration({ fabricSku: value })}
                       />
+                      {incompatibleFabricMatch ? (
+                        <Callout tone="warn">
+                          <div className="app-text-caption">
+                            {incompatibleFabricMatch.sku} is a{" "}
+                            {incompatibleFabricMatch.programKey === "custom_shirting" ? "shirting" : "suiting"} fabric and cannot be used for{" "}
+                            {selectedGarment ?? "this garment"}.
+                          </div>
+                        </Callout>
+                      ) : null}
                       <MaterialField
                         label="Buttons"
                         skuValue={buttonsSku}
@@ -553,15 +633,29 @@ export function CustomGarmentBuilder({
                   <div className="app-custom-builder__style-shell border-t border-[var(--app-border-strong)]/44 pt-5">
                     <div className="app-custom-builder__style-grid grid gap-5 xl:grid-cols-[0.76fr_1fr]">
                       <div className="app-custom-builder__style-primary space-y-5">
+                        {showCustomLiningOption ? (
+                          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-border)]/48 bg-[var(--app-surface)]/46 p-3.5">
+                            <GroupLabel title="Lining surcharge" subtitle="Standard lining is included. Use custom printed lining only when needed." />
+                            <label className="app-text-caption mt-3 inline-flex items-center gap-2 rounded-[12px] border border-[var(--app-border)]/60 px-3 py-3">
+                              <input
+                                type="checkbox"
+                                checked={customLiningRequested}
+                                onChange={(event) => onSetConfiguration({ customLiningRequested: event.target.checked })}
+                              />
+                              <span>{customLiningRequested ? `Custom printed lining (+$${customLiningSurchargeAmount})` : "Standard lining included"}</span>
+                            </label>
+                          </div>
+                        ) : null}
+
                         {showJacketStyleOptions ? (
                           <>
                             <div>
                               <GroupLabel title="Construction" subtitle="Pick structure." />
                               <div className="mt-3">
                                 <VerticalOptionList
-                                  options={canvasOptions}
-                                  selectedValue={canvas}
-                                  onSelect={(value) => onSetConfiguration({ canvas: value })}
+                                  options={canvasOptions.map((option) => formatCanvasSurchargeLabel(option, jacketCanvasSurcharges))}
+                                  selectedValue={canvas ? formatCanvasSurchargeLabel(canvas, jacketCanvasSurcharges) : null}
+                                  onSelect={(value) => onSetConfiguration({ canvas: value.split(" (")[0] })}
                                 />
                               </div>
                             </div>

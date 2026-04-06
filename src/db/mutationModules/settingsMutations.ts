@@ -1,6 +1,5 @@
 import type {
   DbAlterationServiceDefinition,
-  DbCustomPricingTier,
   DbMeasurementFieldDefinition,
   PrototypeDatabase,
 } from "../schema";
@@ -27,7 +26,8 @@ type UpdateLocationPatch = {
   isActive?: boolean;
 };
 
-type UpdateCustomPricingTierPatch = Partial<Pick<DbCustomPricingTier, "label" | "isActive">>;
+type UpdateCustomPricingTierPatch = Partial<Pick<PrototypeDatabase["pricingTiers"][number], "label" | "isActive" | "floorPrice">>;
+type UpdateGarmentSurchargeRulePatch = Partial<Pick<PrototypeDatabase["garmentSurchargeRules"][number], "label" | "amount" | "isActive">>;
 
 function slugify(value: string) {
   return value.toLowerCase().trim().replace(/[^a-z0-9]+/g, "_").replace(/^_+|_+$/g, "");
@@ -346,7 +346,7 @@ export function updateCustomPricingTier(
 ): PrototypeDatabase {
   return {
     ...database,
-    customPricingTiers: database.customPricingTiers.map((tier) => (
+    pricingTiers: database.pricingTiers.map((tier) => (
       tier.key === tierKey
         ? {
             ...tier,
@@ -361,21 +361,98 @@ export function updateCustomPricingTier(
 export function updateCustomPricingTierGarmentPrice(
   database: PrototypeDatabase,
   tierKey: string,
-  garment: keyof DbCustomPricingTier["basePrices"],
+  garment: PrototypeDatabase["garmentBasePrices"][number]["garmentLabel"],
   price: number,
 ): PrototypeDatabase {
+  const variationId = database.catalogVariations.find((variation) => variation.label === garment)?.id ?? null;
+  const existingPrice = database.garmentBasePrices.find((entry) => entry.tierKey === tierKey && entry.garmentLabel === garment);
+  const tier = database.pricingTiers.find((entry) => entry.key === tierKey);
+  if (!tier) {
+    return database;
+  }
+
+  const nextGarmentBasePrices = existingPrice
+    ? database.garmentBasePrices.map((entry) => (
+      entry.tierKey === tierKey && entry.garmentLabel === garment
+        ? {
+            ...entry,
+            amount: price,
+          }
+        : entry
+    ))
+    : [
+      ...database.garmentBasePrices,
+      {
+        id: `garment_price_${tierKey}_${garment.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
+        programKey: tier.programKey,
+        tierKey,
+        garmentLabel: garment,
+        amount: price,
+        isActive: true,
+      },
+    ];
+
+  const existingCatalogPrice = variationId
+    ? database.catalogVariationTierPrices.find((entry) => entry.variationId === variationId && entry.tierKey === tierKey)
+    : null;
+
+  const nextCatalogVariationTierPrices = !variationId
+    ? database.catalogVariationTierPrices
+    : existingCatalogPrice
+      ? database.catalogVariationTierPrices.map((entry) => (
+        entry.variationId === variationId && entry.tierKey === tierKey
+          ? {
+              ...entry,
+              amount: price,
+            }
+          : entry
+      ))
+      : [
+        ...database.catalogVariationTierPrices,
+        {
+          id: `catalog_variation_tier_price_${variationId}_${tierKey}`,
+          variationId,
+          tierKey,
+          amount: price,
+          isActive: true,
+        },
+      ];
+
   return {
     ...database,
-    customPricingTiers: database.customPricingTiers.map((tier) => (
-      tier.key === tierKey
+    garmentBasePrices: nextGarmentBasePrices,
+    catalogVariationTierPrices: nextCatalogVariationTierPrices,
+  };
+}
+
+export function updateGarmentSurchargeRule(
+  database: PrototypeDatabase,
+  programKey: PrototypeDatabase["garmentSurchargeRules"][number]["programKey"],
+  kind: PrototypeDatabase["garmentSurchargeRules"][number]["kind"],
+  optionValue: PrototypeDatabase["garmentSurchargeRules"][number]["optionValue"],
+  patch: UpdateGarmentSurchargeRulePatch,
+): PrototypeDatabase {
+  const matchingModifierOptionValue = kind === "lining" ? "custom_printed" : optionValue;
+  return {
+    ...database,
+    garmentSurchargeRules: database.garmentSurchargeRules.map((rule) => (
+      rule.programKey === programKey && rule.kind === kind && rule.optionValue === optionValue
         ? {
-            ...tier,
-            basePrices: {
-              ...tier.basePrices,
-              [garment]: price,
-            },
+            ...rule,
+            ...patch,
+            label: patch.label?.trim() || rule.label,
           }
-        : tier
+        : rule
+    )),
+    catalogModifierOptions: database.catalogModifierOptions.map((option) => (
+      option.optionValue === matchingModifierOptionValue
+        ? {
+            ...option,
+            ...("amount" in patch ? { amount: patch.amount ?? option.amount } : {}),
+            ...("isActive" in patch ? { isActive: patch.isActive ?? option.isActive } : {}),
+            ...("label" in patch ? { label: patch.label?.trim() || option.label } : {}),
+          }
+        : option
     )),
   };
 }

@@ -17,8 +17,9 @@ import {
   createInitialOrderState,
 } from "./orderState";
 import { hasMissingRequiredAlterationAdjustments, normalizeAlterationAdjustment } from "../features/order/alterationAdjustments";
-import { getMeasurementFieldLabels } from "../db/referenceData";
+import { createReferenceData, getMeasurementFieldLabels } from "../db/referenceData";
 import { resolvePricingTierKeyForFabricSku } from "../db/pricing";
+import { getCatalogVariationKeyForGarment } from "../db/customPricingCatalog";
 
 export type OrderReducerOptions = {
   now?: Date;
@@ -457,11 +458,14 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
             ...state.order.custom,
             draft: {
               ...state.order.custom.draft,
+              variationId: getCatalogVariationKeyForGarment(action.garment),
+              variationLabel: action.garment,
               selectedGarment: action.garment,
               pricingTierKey: null,
               fabricSku: null,
               buttonsSku: null,
               liningSku: null,
+              customLiningRequested: false,
               threadsSku: null,
               monogramLeft: "",
               monogramCenter: "",
@@ -478,7 +482,11 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
       {
         const nextPricingTierKey =
           Object.prototype.hasOwnProperty.call(action.patch, "fabricSku")
-            ? resolvePricingTierKeyForFabricSku(action.patch.fabricSku ?? null)
+            ? resolvePricingTierKeyForFabricSku(
+                action.patch.fabricSku ?? null,
+                createReferenceData(state.database).customMaterialOptionsByKind.fabric,
+                action.patch.selectedGarment ?? action.patch.variationLabel ?? state.order.custom.draft.variationLabel ?? state.order.custom.draft.selectedGarment,
+              )
             : state.order.custom.draft.pricingTierKey;
 
       return {
@@ -490,6 +498,10 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
             draft: {
               ...state.order.custom.draft,
               ...action.patch,
+              variationId: Object.prototype.hasOwnProperty.call(action.patch, "variationLabel")
+                ? getCatalogVariationKeyForGarment(action.patch.variationLabel ?? null)
+                : state.order.custom.draft.variationId,
+              variationLabel: action.patch.variationLabel ?? state.order.custom.draft.variationLabel,
               pricingTierKey: nextPricingTierKey,
             },
           },

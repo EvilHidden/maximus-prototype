@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { adaptCustomers } from "./adapters";
 import { createPrototypeDatabase } from "./runtime";
+import { createReferenceData } from "./referenceData";
 import {
   deserializeOrderWorkflowFromRecords,
   serializeOrderWorkflowToRecords,
@@ -22,12 +23,18 @@ function createAlterationSelection(overrides?: Partial<OrderWorkflowState["alter
 
 function serializeOrder(order: OrderWorkflowState, orderSequence: number) {
   const database = createPrototypeDatabase(new Date("2026-03-22T12:00:00.000Z"));
+  const referenceData = createReferenceData(database);
   const serialized = serializeOrderWorkflowToRecords({
     order,
     customers: adaptCustomers(database),
     locations: database.locations,
-    customPricingTiers: database.customPricingTiers,
+    customPricingTiers: referenceData.customPricingTiers,
+    fabricOptions: referenceData.customMaterialOptionsByKind.fabric,
+    catalogVariations: database.catalogVariations,
+    catalogVariationTierPrices: database.catalogVariationTierPrices,
     organizationSettings: database.organizationSettings,
+    jacketCanvasSurcharges: referenceData.jacketCanvasSurcharges,
+    customLiningSurchargeAmount: referenceData.customLiningSurchargeAmount,
     paymentMode: "none",
     orderSequence,
     now: new Date("2026-03-22T12:00:00.000Z"),
@@ -65,13 +72,16 @@ function createCustomOnlyOrder(monogram: { left: string; center: string; right: 
     gender: "male",
     wearerCustomerId: "C-1001",
     isRush: false,
-    selectedGarment: "Dinner jacket",
-    pricingTierKey: "standard",
+    selectedGarment: "Jacket",
+    variationId: "catalog_variation_jacket",
+    variationLabel: "Jacket",
+    pricingTierKey: "suiting_standard",
     linkedMeasurementSetId: "SET-C-1001-V1",
     measurements,
-    fabricSku: "FAB-MID-001",
+    fabricSku: "2501-ELITE-NAVY-001",
     buttonsSku: "BTN-HORN-001",
     liningSku: "LIN-BEMB-001",
+    customLiningRequested: false,
     threadsSku: "THR-TONAL-001",
     monogramLeft: monogram.left,
     monogramCenter: monogram.center,
@@ -101,7 +111,7 @@ describe("order workflow serializer", () => {
       monogramLeft: monogram.left,
       monogramCenter: monogram.center,
       monogramRight: monogram.right,
-      fabricSku: "FAB-MID-001",
+      fabricSku: "2501-ELITE-NAVY-001",
       buttonsSku: "BTN-HORN-001",
       liningSku: "LIN-BEMB-001",
       threadsSku: "THR-TONAL-001",
@@ -131,13 +141,16 @@ describe("order workflow serializer", () => {
       gender: "male",
       wearerCustomerId: "C-1001",
       isRush: false,
-      selectedGarment: "Dinner jacket",
-      pricingTierKey: "standard",
+      selectedGarment: "Jacket",
+      variationId: "catalog_variation_jacket",
+      variationLabel: "Jacket",
+      pricingTierKey: "suiting_standard",
       linkedMeasurementSetId: "SET-C-1001-V1",
       measurements,
-      fabricSku: "FAB-MID-001",
+      fabricSku: "2501-ELITE-NAVY-001",
       buttonsSku: "BTN-HORN-001",
       liningSku: "LIN-BEMB-001",
+      customLiningRequested: true,
       threadsSku: "THR-TONAL-001",
       monogramLeft: "",
       monogramCenter: "",
@@ -165,6 +178,10 @@ describe("order workflow serializer", () => {
     expect(restored?.alteration.items[0]?.id).toBe(9601001);
     expect(restored?.custom.items[0]?.id).toBe(9601501);
     expect(restored?.alteration.items[0]?.id).not.toBe(restored?.custom.items[0]?.id);
+    expect(serialized.lineComponents.some((component) => (
+      component.kind === "catalog_modifier" && component.referenceId === "custom_printed"
+    ))).toBe(true);
+    expect(restored?.custom.items[0]?.customLiningRequested).toBe(true);
   });
 
   it("round-trips alteration service adjustments through saved records", () => {
