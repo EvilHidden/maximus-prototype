@@ -22,7 +22,7 @@ function getSeedLifecycleTimestamps(order: {
   status: DbOrder["status"];
   operationalStatus?: DbOrder["operationalStatus"];
 }) {
-  if (order.id === "order-9005") {
+  if (order.id === "order-9023") {
     return {
       acceptedAt: null,
       startedAt: null,
@@ -119,7 +119,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Maria Ellis",
       orderType: "alteration",
       createdAt: toDateTimeString(withOffset(baseDate, -1, 10, 20)),
-      status: "canceled",
+      status: "open",
       holdUntilAllScopesReady: false,
     },
     {
@@ -370,7 +370,7 @@ export function createOrders({ baseDate }: RuntimeSeedDates): DbOrder[] {
       payerName: "Benjamin Lee",
       orderType: "custom",
       createdAt: toDateTimeString(withOffset(baseDate, -5, 14, 10)),
-      status: "open",
+      status: "canceled",
       holdUntilAllScopesReady: false,
     },
     {
