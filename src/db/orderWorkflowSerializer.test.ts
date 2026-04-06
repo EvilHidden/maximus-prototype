@@ -26,6 +26,8 @@ function serializeOrder(order: OrderWorkflowState, orderSequence: number) {
     order,
     customers: adaptCustomers(database),
     locations: database.locations,
+    customPricingBooks: database.customPricingBooks,
+    organizationSettings: database.organizationSettings,
     paymentMode: "none",
     orderSequence,
     now: new Date("2026-03-22T12:00:00.000Z"),

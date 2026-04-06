@@ -106,3 +106,10 @@ export const customPricingCatalog: CustomPricingBookEntry[] = [
     },
   },
 ];
+
+export function createDefaultCustomPricingBooks() {
+  return customPricingCatalog.map((entry) => ({
+    ...entry,
+    isActive: true,
+  }));
+}

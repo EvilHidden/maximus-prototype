@@ -21,6 +21,7 @@ import type {
   DbOrderScopeLineComponent,
   DbPaymentRecord,
   DbPickupAppointment,
+  PrototypeDatabase,
 } from "./schema";
 import { createLocationId, toDateTimeString } from "./runtime/support";
 import {
@@ -46,6 +47,8 @@ type SerializeOrderWorkflowArgs = {
   order: OrderWorkflowState;
   customers: Customer[];
   locations: DbLocation[];
+  customPricingBooks: PrototypeDatabase["customPricingBooks"];
+  organizationSettings: PrototypeDatabase["organizationSettings"];
   paymentMode: CheckoutPaymentMode;
   orderSequence: number;
   now: Date;
@@ -142,6 +145,7 @@ function createInitialPaymentRecords(
   depositAndAlterationAmount: number,
   fullBalanceAmount: number,
   customSubtotal: number,
+  customDepositRate: number,
   now: Date,
 ): DbPaymentRecord[] {
   if (paymentMode === "none") {
@@ -158,7 +162,7 @@ function createInitialPaymentRecords(
   }
 
   if ((paymentMode === "minimum_due" || paymentMode === "deposit_and_alterations") && orderType === "mixed" && customSubtotal > 0) {
-      const depositAmount = Math.round(customSubtotal * 0.5 * 100) / 100;
+      const depositAmount = Math.round(customSubtotal * customDepositRate * 100) / 100;
       const alterationAmount = Math.max(amount - depositAmount, 0);
       const records: DbPaymentRecord[] = [];
 
@@ -280,6 +284,8 @@ export function serializeOrderWorkflowToRecords({
   order,
   customers,
   locations,
+  customPricingBooks,
+  organizationSettings,
   paymentMode,
   orderSequence,
   now,
@@ -398,7 +404,7 @@ export function serializeOrderWorkflowToRecords({
         label: garmentLabel,
         garmentLabel,
         quantity: 1,
-        unitPrice: getCustomGarmentPrice(item.selectedGarment),
+        unitPrice: getCustomGarmentPrice(item, customPricingBooks),
         isRush: item.isRush,
         wearerCustomerId: item.wearerCustomerId,
         wearerName: getWearerName(item.wearerCustomerId, customers, item.wearerName),
@@ -445,7 +451,7 @@ export function serializeOrderWorkflowToRecords({
         scopeLineId: null,
         customerId: order.payerCustomerId,
         scheduledFor: createDateTimeString(pickupDate, alterationPickup.pickupTime || "12:00"),
-        locationId: createLocationId(alterationPickup.pickupLocation),
+        locationId: locations.find((location) => location.name === alterationPickup.pickupLocation)?.id ?? createLocationId(alterationPickup.pickupLocation),
         source: existingPickupAppointment?.source ?? "prototype",
         durationMinutes: existingPickupAppointment?.durationMinutes ?? 15,
         typeKey: "pickup",
@@ -456,8 +462,13 @@ export function serializeOrderWorkflowToRecords({
     }
   });
 
-  const checkoutCollectionAmount = getCheckoutCollectionAmount(order);
-  const pricingSummary = getPricingSummary(order);
+  const pricingConfig = {
+    pricingBooks: customPricingBooks,
+    taxRate: organizationSettings.taxRate,
+    customDepositRate: organizationSettings.customDepositRate,
+  };
+  const checkoutCollectionAmount = getCheckoutCollectionAmount(order, pricingConfig);
+  const pricingSummary = getPricingSummary(order, pricingConfig);
 
   return {
     openOrderId: Number.parseInt(displayId.replace(/\D/g, ""), 10) || orderSequence,
@@ -476,7 +487,8 @@ export function serializeOrderWorkflowToRecords({
         ? pricingSummary.depositDue + pricingSummary.alterationsSubtotal + pricingSummary.taxAmount
         : checkoutCollectionAmount,
       pricingSummary.total,
-      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item), 0),
+      order.custom.items.reduce((sum, item) => sum + getCustomGarmentPrice(item, customPricingBooks), 0),
+      organizationSettings.customDepositRate,
       now,
     ),
   };
@@ -549,6 +561,7 @@ export function deserializeOrderWorkflowFromRecords(
     orderScopeLines: DbOrderScopeLine[];
     orderScopeLineComponents: DbOrderScopeLineComponent[];
     pickupAppointments: DbPickupAppointment[];
+    locations: DbLocation[];
   },
   openOrderId: number,
 ): OrderWorkflowState | null {
@@ -654,7 +667,7 @@ export function deserializeOrderWorkflowFromRecords(
       : "";
     const pickupLocation = pickupAppointment
       ? getPickupLocationNameById(
-          seedReferenceData.pickupLocations.map((location) => ({ id: createLocationId(location), name: location })),
+          database.locations,
           pickupAppointment.locationId,
         )
       : "";

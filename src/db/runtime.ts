@@ -1,4 +1,5 @@
 import type { PrototypeDatabase } from "./schema";
+import { createDefaultCustomPricingBooks } from "./customPricingCatalog";
 import {
   createCustomerEvents,
   createCustomers,
@@ -60,6 +61,7 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const locations = createLocations();
   const staffMembers = createStaffMembers();
   const alterationServiceDefinitions = createAlterationServiceDefinitions();
+  const customPricingBooks = createDefaultCustomPricingBooks();
   const customGarmentDefinitions = createCustomGarmentDefinitions();
   const styleOptionDefinitions = createStyleOptionDefinitions();
   const measurementFieldDefinitions = createMeasurementFieldDefinitions();
@@ -81,9 +83,17 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
 
   return {
     generatedAt: toDateTimeString(seedDates.baseDate),
+    organizationSettings: {
+      id: "organization_settings_default",
+      organizationName: "SAMEpage Tailor OS",
+      defaultLocationId: locations[0]?.id ?? "loc_fifth_avenue",
+      taxRate: 0.08875,
+      customDepositRate: 0.5,
+    },
     locations,
     staffMembers,
     alterationServiceDefinitions,
+    customPricingBooks,
     customGarmentDefinitions,
     styleOptionDefinitions,
     measurementFieldDefinitions,

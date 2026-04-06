@@ -1,10 +1,10 @@
 export type ThemeMode = "light" | "dark";
-export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders" | "orderDetails" | "appointments";
+export type Screen = "home" | "customer" | "order" | "measurements" | "checkout" | "openOrders" | "orderDetails" | "appointments" | "settings";
 export type WorkflowMode = "alteration" | "custom";
 export type OrderType = WorkflowMode | "mixed";
 export type StatusTone = "default" | "dark" | "warn" | "success" | "danger";
 export type MeasurementStatus = "on_file" | "missing";
-export type PickupLocation = "Fifth Avenue" | "Queens" | "Long Island";
+export type PickupLocation = string;
 export type CustomGarmentGender = "male" | "female";
 export type CustomSkuSource = "qr" | "photo_extract" | "manual";
 export type CustomPricingMatchStatus = "matched" | "suggested" | "unmatched";

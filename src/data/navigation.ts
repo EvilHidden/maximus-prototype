@@ -7,4 +7,5 @@ export const navItems: NavItem[] = [
   { key: "appointments", label: "Appointments" },
   { key: "order", label: "Order Builder" },
   { key: "measurements", label: "Measurements" },
+  { key: "settings", label: "Settings" },
 ];

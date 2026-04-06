@@ -7,6 +7,7 @@ import type {
   PricingSummary,
 } from "../../types";
 import type { DbPaymentRecord } from "../../db/schema";
+import type { PricingComputationConfig } from "../../db/pricing";
 import { getPricingSummary } from "./orderPricing";
 
 export type PaymentSummary = {
@@ -378,12 +379,12 @@ export function getCheckoutCollectionAmountForPricing(
   return getPaymentPolicyFromDraftPricing(pricing, orderType).minimumDueNow;
 }
 
-export function getCheckoutCollectionAmount(order: OrderWorkflowState) {
-  return getCheckoutCollectionAmountForPricing(getPricingSummary(order), getDraftOrderType(order));
+export function getCheckoutCollectionAmount(order: OrderWorkflowState, config: PricingComputationConfig = {}) {
+  return getCheckoutCollectionAmountForPricing(getPricingSummary(order, config), getDraftOrderType(order));
 }
 
-export function getDraftPaymentPolicy(order: OrderWorkflowState): PaymentPolicy {
-  return getPaymentPolicyFromDraftPricing(getPricingSummary(order), getDraftOrderType(order));
+export function getDraftPaymentPolicy(order: OrderWorkflowState, config: PricingComputationConfig = {}): PaymentPolicy {
+  return getPaymentPolicyFromDraftPricing(getPricingSummary(order, config), getDraftOrderType(order));
 }
 
 export function getRecordedPaymentPolicy(args: {
@@ -399,9 +400,10 @@ export function getRecordedPaymentPolicy(args: {
 export function getDraftPaymentSummary(
   order: OrderWorkflowState,
   paymentStatus: OpenOrderPaymentStatus,
+  config: PricingComputationConfig = {},
 ): PaymentSummary {
-  const pricing = getPricingSummary(order);
-  const policy = getDraftPaymentPolicy(order);
+  const pricing = getPricingSummary(order, config);
+  const policy = getDraftPaymentPolicy(order, config);
   const totalCollected = paymentStatus === "captured"
     ? (policy.allowFullPrepay ? policy.collectibleNow : policy.minimumDueNow)
     : 0;

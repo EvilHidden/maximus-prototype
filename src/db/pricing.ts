@@ -27,34 +27,52 @@ export type CustomPricingResult = {
   match: CustomPricingMatch;
 };
 
+export type PricingComputationConfig = {
+  pricingBooks?: CustomPricingBookEntry[];
+  taxRate?: number;
+  customDepositRate?: number;
+};
+
+export const DEFAULT_TAX_RATE = 0.08875;
+export const DEFAULT_CUSTOM_DEPOSIT_RATE = 0.5;
+
 function normalizeSku(value: string | null | undefined) {
   return value?.trim().toUpperCase().replace(/[^A-Z0-9]/g, "") ?? "";
 }
 
-function getCatalogEntryByKey(key: string | null | undefined) {
+function getCatalogEntryByKey(
+  key: string | null | undefined,
+  pricingBooks: CustomPricingBookEntry[] = customPricingCatalog,
+) {
   if (!key) {
     return null;
   }
 
-  return customPricingCatalog.find((entry) => entry.key === key) ?? null;
+  return pricingBooks.find((entry) => entry.key === key) ?? null;
 }
 
-function getCatalogEntryByExactSku(sku: string | null | undefined) {
+function getCatalogEntryByExactSku(
+  sku: string | null | undefined,
+  pricingBooks: CustomPricingBookEntry[] = customPricingCatalog,
+) {
   const normalized = normalizeSku(sku);
   if (!normalized) {
     return null;
   }
 
-  return customPricingCatalog.find((entry) => entry.exactSkus.some((candidate) => normalizeSku(candidate) === normalized)) ?? null;
+  return pricingBooks.find((entry) => entry.exactSkus.some((candidate) => normalizeSku(candidate) === normalized)) ?? null;
 }
 
-function getSuggestedCatalogEntryBySkuPrefix(sku: string | null | undefined) {
+function getSuggestedCatalogEntryBySkuPrefix(
+  sku: string | null | undefined,
+  pricingBooks: CustomPricingBookEntry[] = customPricingCatalog,
+) {
   const normalizedSku = normalizeSku(sku);
   if (!normalizedSku) {
     return null;
   }
 
-  const matchingEntries = customPricingCatalog.filter((entry) => (
+  const matchingEntries = pricingBooks.filter((entry) => (
     entry.skuPrefixes.some((prefix) => normalizedSku.startsWith(normalizeSku(prefix)))
   ));
 
@@ -72,18 +90,21 @@ function createMatch(status: CustomPricingMatchStatus, entry: CustomPricingBookE
   };
 }
 
-export function resolveCustomPricingMatch(input: CustomPricingInput): CustomPricingMatch {
-  const pricingKeyEntry = getCatalogEntryByKey(input.pricingMatchKey);
+export function resolveCustomPricingMatch(
+  input: CustomPricingInput,
+  pricingBooks: CustomPricingBookEntry[] = customPricingCatalog,
+): CustomPricingMatch {
+  const pricingKeyEntry = getCatalogEntryByKey(input.pricingMatchKey, pricingBooks);
   if (pricingKeyEntry) {
     return createMatch("matched", pricingKeyEntry, "pricing_key");
   }
 
-  const exactSkuEntry = getCatalogEntryByExactSku(input.sku);
+  const exactSkuEntry = getCatalogEntryByExactSku(input.sku, pricingBooks);
   if (exactSkuEntry) {
     return createMatch("matched", exactSkuEntry, "exact_sku");
   }
 
-  const suggestedSkuEntry = getSuggestedCatalogEntryBySkuPrefix(input.sku);
+  const suggestedSkuEntry = getSuggestedCatalogEntryBySkuPrefix(input.sku, pricingBooks);
   if (suggestedSkuEntry) {
     return createMatch("suggested", suggestedSkuEntry, "prefix_sku");
   }
@@ -132,7 +153,10 @@ export function roundCurrency(value: number) {
   return Math.round(value * 100) / 100;
 }
 
-export function getCustomGarmentPricingResult(input: string | null | CustomPricingInput): CustomPricingResult {
+export function getCustomGarmentPricingResult(
+  input: string | null | CustomPricingInput,
+  pricingBooks: CustomPricingBookEntry[] = customPricingCatalog,
+): CustomPricingResult {
   let normalizedInput: CustomPricingInput;
   if (typeof input === "string" || input === null) {
     normalizedInput = { selectedGarment: input as string | null };
@@ -140,8 +164,8 @@ export function getCustomGarmentPricingResult(input: string | null | CustomPrici
     normalizedInput = input;
   }
 
-  const match = resolveCustomPricingMatch(normalizedInput);
-  const entry = match.key ? getCatalogEntryByKey(match.key) : null;
+  const match = resolveCustomPricingMatch(normalizedInput, pricingBooks);
+  const entry = match.key ? getCatalogEntryByKey(match.key, pricingBooks) : null;
 
   if (!entry) {
     return {
@@ -160,8 +184,11 @@ export function getCustomGarmentPricingResult(input: string | null | CustomPrici
   };
 }
 
-export function getCustomGarmentPrice(input: string | null | CustomPricingInput) {
-  return getCustomGarmentPricingResult(input).price;
+export function getCustomGarmentPrice(
+  input: string | null | CustomPricingInput,
+  pricingBooks: CustomPricingBookEntry[] = customPricingCatalog,
+) {
+  return getCustomGarmentPricingResult(input, pricingBooks).price;
 }
 
 export function getAlterationServicePrice(

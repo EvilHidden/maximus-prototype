@@ -8,6 +8,7 @@ import {
   adaptMeasurementSets,
   adaptOpenOrders,
 } from "../../db/adapters";
+import { createReferenceData } from "../../db";
 import { filterActiveAppointments, filterServiceAppointments } from "../appointments/selectors";
 import { appReducer, createInitialAppState } from "../../state/appState";
 import type { Customer } from "../../types";
@@ -17,16 +18,15 @@ import { useAppWorkflowActions } from "./useAppWorkflowActions";
 
 export function useAppController() {
   const appRuntime = useAppRuntimeData();
-  const {
-    referenceData,
-    database,
-  } = appRuntime;
+  const { database } = appRuntime;
 
   const [state, dispatch] = useReducer(
     appReducer,
     { database },
     createInitialAppState,
   );
+
+  const referenceData = useMemo(() => createReferenceData(state.database), [state.database]);
 
   const customers = useMemo(() => adaptCustomers(state.database), [state.database]);
   const customerOrders = useMemo(() => adaptCustomerOrders(state.database), [state.database]);

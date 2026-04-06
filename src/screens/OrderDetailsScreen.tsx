@@ -12,6 +12,7 @@ import type {
   StatusTone,
   WorkflowMode,
 } from "../types";
+import type { AppReferenceData } from "../db";
 import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
 import {
   formatPickupSchedule,
@@ -44,6 +45,7 @@ type DetailLineItem = OpenOrder["lineItems"][number] | OrderBagLineItem;
 
 type OrderDetailsScreenProps = {
   customers: Customer[];
+  referenceData: AppReferenceData;
   openOrder: OpenOrder | null;
   closedOrder: ClosedOrderDetail | null;
   draftOrder: OrderWorkflowState | null;
@@ -272,9 +274,17 @@ function getOrderReceiptItems({
   ];
 }
 
-function getDraftReceiptItems(order: OrderWorkflowState) {
-  const pricing = getPricingSummary(order);
-  const paymentPolicy = getDraftPaymentPolicy(order);
+function getDraftReceiptItems(order: OrderWorkflowState, referenceData: AppReferenceData) {
+  const pricing = getPricingSummary(order, {
+    pricingBooks: referenceData.customPricingBooks,
+    taxRate: referenceData.taxRate,
+    customDepositRate: referenceData.customDepositRate,
+  });
+  const paymentPolicy = getDraftPaymentPolicy(order, {
+    pricingBooks: referenceData.customPricingBooks,
+    taxRate: referenceData.taxRate,
+    customDepositRate: referenceData.customDepositRate,
+  });
 
   return [
     { label: "Alterations", value: formatCheckoutCurrency(pricing.alterationsSubtotal) },
@@ -309,6 +319,7 @@ function getOrderHeaderTimestamp(value: string) {
 
 export function OrderDetailsScreen({
   customers,
+  referenceData,
   openOrder,
   closedOrder,
   draftOrder,
@@ -335,13 +346,19 @@ export function OrderDetailsScreen({
   const isClosedDetail = Boolean(closedOrder && !openOrder);
   const activeDraftOrder = isDraftDetail ? draftOrder : null;
   const draftLineItems = useMemo(
-    () => (activeDraftOrder ? getOrderBagLineItems(activeDraftOrder, customers) : []),
-    [activeDraftOrder, customers],
+    () => (activeDraftOrder ? getOrderBagLineItems(activeDraftOrder, customers, referenceData.customPricingBooks) : []),
+    [activeDraftOrder, customers, referenceData.customPricingBooks],
   );
   const draftOrderType = activeDraftOrder ? getOrderType(activeDraftOrder) : null;
   const draftPickupRequired = activeDraftOrder ? getPickupRequired(activeDraftOrder) : false;
   const draftSummaryGuardrail = activeDraftOrder ? getSummaryGuardrail(activeDraftOrder, payerCustomer) : null;
-  const draftPaymentPolicy = activeDraftOrder ? getDraftPaymentPolicy(activeDraftOrder) : null;
+  const draftPaymentPolicy = activeDraftOrder
+    ? getDraftPaymentPolicy(activeDraftOrder, {
+        pricingBooks: referenceData.customPricingBooks,
+        taxRate: referenceData.taxRate,
+        customDepositRate: referenceData.customDepositRate,
+      })
+    : null;
   const draftPickupSummary = activeDraftOrder ? getDraftPickupSummary(activeDraftOrder) : "";
   const draftReadyBySummary = activeDraftOrder ? getReadyBySummary(null, draftPickupSummary) : null;
   const draftShouldCollectNow = Boolean(draftPaymentPolicy && draftPaymentPolicy.minimumDueNow > 0);
@@ -471,7 +488,7 @@ export function OrderDetailsScreen({
     : [];
   const totalsItems = detailOrder
     ? getOrderReceiptItems({ order: detailOrder })
-    : getDraftReceiptItems(activeDraftOrder!);
+    : getDraftReceiptItems(activeDraftOrder!, referenceData);
   const receiptChargeRowCount = detailOrder
     ? [
         detailOrder.lineItems.some((item) => item.kind === "alteration"),

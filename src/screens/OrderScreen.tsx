@@ -243,6 +243,7 @@ export function OrderScreen({
                   <CustomGarmentBuilder
                       garmentOptionsByGender={referenceData.customGarmentOptionsByGender}
                       customMaterialOptionsByKind={referenceData.customMaterialOptionsByKind}
+                      customPricingBooks={referenceData.customPricingBooks}
                       jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
                       pocketTypeOptions={referenceData.pocketTypeOptions}
                       lapelOptions={referenceData.lapelOptions}
