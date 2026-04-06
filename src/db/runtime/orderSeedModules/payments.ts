@@ -124,6 +124,16 @@ export function createPayments(
     customDeposit("order-9015", getOrderPricing(pricingByOrderId, "order-9015").depositDue, toDateTimeString(withOffset(baseDate, -3, 15, 30)), "sq_pay_9015"),
     customDeposit("order-9019", getOrderPricing(pricingByOrderId, "order-9019").depositDue, toDateTimeString(withOffset(baseDate, -2, 16, 35)), "sq_pay_9019"),
     customDeposit("order-9023", getOrderPricing(pricingByOrderId, "order-9023").depositDue, toDateTimeString(withOffset(baseDate, -5, 14, 30)), "sq_pay_9023"),
+    {
+      id: "pay-9014-pending",
+      orderId: "order-9014",
+      source: "prototype",
+      status: "pending",
+      allocation: "full_balance",
+      amount: getOrderPricing(pricingByOrderId, "order-9014").total,
+      collectedAt: null,
+      squarePaymentId: null,
+    },
 
     // Closed orders already fully paid.
     fullBalance("order-9013", getOrderPricing(pricingByOrderId, "order-9013").total, "2026-02-26T15:00:00", "sq_pay_9013"),
