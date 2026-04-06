@@ -247,8 +247,6 @@ export function OrderScreen({
                       catalogVariations={referenceData.catalogVariations}
                       catalogVariationTierPrices={referenceData.catalogVariationTierPrices}
                       jacketCanvasSurcharges={referenceData.jacketCanvasSurcharges}
-                      jacketBasedCustomGarments={referenceData.jacketBasedCustomGarments}
-                      customLiningEligibleGarments={referenceData.customLiningEligibleGarments}
                       customLiningSurchargeAmount={referenceData.customLiningSurchargeAmount}
                       pocketTypeOptions={referenceData.pocketTypeOptions}
                       lapelOptions={referenceData.lapelOptions}

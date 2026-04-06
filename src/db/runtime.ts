@@ -7,8 +7,6 @@ import {
   createDefaultCatalogVariationTierPrices,
   createDefaultCatalogVariations,
   createDefaultFabricCatalogItems,
-  createDefaultGarmentBasePrices,
-  createDefaultGarmentSurchargeRules,
   createDefaultMillBooks,
   createDefaultPricingPrograms,
   createDefaultPricingTiers,
@@ -84,8 +82,6 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
   const pricingTiers = createDefaultPricingTiers();
   const millBooks = createDefaultMillBooks();
   const fabricCatalogItems = createDefaultFabricCatalogItems();
-  const garmentBasePrices = createDefaultGarmentBasePrices();
-  const garmentSurchargeRules = createDefaultGarmentSurchargeRules();
   const customGarmentDefinitions = createCustomGarmentDefinitions();
   const styleOptionDefinitions = createStyleOptionDefinitions();
   const measurementFieldDefinitions = createMeasurementFieldDefinitions();
@@ -127,8 +123,6 @@ export function createPrototypeDatabase(referenceDate = new Date()): PrototypeDa
     pricingTiers,
     millBooks,
     fabricCatalogItems,
-    garmentBasePrices,
-    garmentSurchargeRules,
     customGarmentDefinitions,
     styleOptionDefinitions,
     measurementFieldDefinitions,

@@ -97,17 +97,6 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
       return accumulator;
     }, {});
   }, [referenceData.fabricCatalogItems]);
-  const surchargeOptions = useMemo(() => {
-    return database.garmentSurchargeRules
-      .filter((rule) => rule.programKey === "custom_suiting")
-      .reduce<Record<string, PrototypeDatabase["garmentSurchargeRules"][number]>>((accumulator, rule) => {
-        const key = `${rule.kind}:${rule.optionValue}`;
-        if (!accumulator[key]) {
-          accumulator[key] = rule;
-        }
-        return accumulator;
-      }, {});
-  }, [database.garmentSurchargeRules]);
   const [newMeasurementLabel, setNewMeasurementLabel] = useState("");
   const [newLocationName, setNewLocationName] = useState("");
   const [newService, setNewService] = useState({
@@ -363,7 +352,7 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
             className="mt-4"
             title="Catalog model"
           >
-            The sellable thing is the catalog variation, not the tier. Fabric source data resolves a variation into a tier, and only modifier groups add price on top. QR values are stored exactly as scanned when available, but the internal SKU catalog remains the canonical lookup layer.
+            The sellable thing is the catalog variation, not the tier. Fabric is a price-resolving option: the selected fabric source resolves a variation into a pricing tier, then only modifier groups add on top of that resolved base amount. QR values are stored exactly as scanned when available, but the internal SKU catalog remains the canonical lookup layer.
           </Callout>
           <div className="mt-4 space-y-4">
             <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
@@ -410,7 +399,7 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
             <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
               <SurfaceHeader
                 title="Fabric source"
-                subtitle="Reference data only: pricing programs, tiers, books, and representative SKUs resolve a variation into a price tier."
+                subtitle="Reference data only: pricing programs, tiers, books, and representative SKUs resolve a sellable variation into a pricing tier."
               />
               <div className="mt-4 space-y-3">
                 {pricingPrograms.map((program) => (
@@ -433,7 +422,7 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
                                   onChange={(value) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { label: value } } })}
                                 />
                                 <NumberField
-                                  label="Starting price"
+                                  label="Two-piece suit floor"
                                   value={tier.floorPrice ?? 0}
                                   min={0}
                                   onChange={(value) => dispatch({ type: "updateCustomPricingTier", payload: { tierKey: tier.key, patch: { floorPrice: value } } })}
@@ -532,24 +521,16 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
               />
               <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-5">
                 {catalogModifierOptions.map((option) => {
-                  const rule = option.optionValue === "custom_printed"
-                    ? surchargeOptions["lining:custom_printed"]
-                    : surchargeOptions[`canvas:${option.optionValue}`];
                   return (
                     <div key={option.id} className="rounded-[12px] border border-[var(--app-border)]/50 bg-[var(--app-surface)]/36 p-3">
                       <TextField
                         label="Modifier label"
                         value={option.label}
                         onChange={(value) => {
-                          if (!rule) {
-                            return;
-                          }
                           dispatch({
-                            type: "updateGarmentSurchargeRule",
+                            type: "updateCatalogModifierOption",
                             payload: {
-                              programKey: rule.programKey,
-                              kind: rule.kind,
-                              optionValue: rule.optionValue,
+                              optionId: option.id,
                               patch: { label: value },
                             },
                           });
@@ -561,15 +542,10 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
                           value={option.amount}
                           min={0}
                           onChange={(value) => {
-                            if (!rule) {
-                              return;
-                            }
                             dispatch({
-                              type: "updateGarmentSurchargeRule",
+                              type: "updateCatalogModifierOption",
                               payload: {
-                                programKey: rule.programKey,
-                                kind: rule.kind,
-                                optionValue: rule.optionValue,
+                                optionId: option.id,
                                 patch: { amount: value },
                               },
                             });
@@ -584,8 +560,8 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
 
             <div className="rounded-[12px] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)]/26 p-4">
               <SurfaceHeader
-                title="Non-priced options"
-                subtitle="These affect the build but do not independently change price in this prototype."
+                title="Option groups and build selections"
+                subtitle="Fabric is price-resolving, modifiers add directly, and the remaining selections shape the build without independently changing price."
               />
               <div className="mt-4 grid gap-3 xl:grid-cols-3">
                 <div className="rounded-[12px] border border-[var(--app-border)]/45 bg-[var(--app-surface)]/45 p-3">
@@ -594,7 +570,11 @@ export function SettingsScreen({ database, dispatch }: SettingsScreenProps) {
                     {referenceData.catalogOptionGroups.map((group) => (
                       <div key={group.id} className="rounded-[10px] border border-[var(--app-border)]/40 bg-[var(--app-surface-muted)]/18 px-3 py-2">
                         <div className="app-text-body font-medium">{group.label}</div>
-                        <div className="app-text-caption mt-1">{group.key}</div>
+                        <div className="app-text-caption mt-1">
+                          {group.key === "fabric"
+                            ? "Price-resolving option group"
+                            : "Build option group"}
+                        </div>
                       </div>
                     ))}
                   </div>

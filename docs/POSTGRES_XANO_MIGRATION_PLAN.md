@@ -115,6 +115,16 @@ Before each follow-up pass, review these issue classes repo-wide:
 - `custom_garment_definitions`
 - `style_option_definitions`
 - `measurement_field_definitions`
+- `catalog_items`
+- `catalog_variations`
+- `catalog_option_groups`
+- `catalog_modifier_groups`
+- `catalog_modifier_options`
+- `catalog_variation_tier_prices`
+- `pricing_programs`
+- `pricing_tiers`
+- `mill_books`
+- `fabric_catalog_items`
 
 ## Approved Modeling Decisions
 
@@ -123,10 +133,16 @@ Before each follow-up pass, review these issue classes repo-wide:
 - the canonical Maximus model stays normalized with:
   - `orders`
   - `order_scopes`
-- `order_scope_lines`
-- `order_scope_line_components`
+  - `order_scope_lines`
+  - `order_scope_line_components`
 - practical rule: do not replace the normalized model with the Square shape
 - instead, treat the canonical model as a Maximus fulfillment overlay on top of Square-compatible order and item records
+- custom garments should map to Square-like catalog concepts first:
+  - one catalog item for `Custom Garment`
+  - one variation per sellable garment
+  - non-priced selections modeled as options
+  - additive selections modeled as modifiers
+- internal pricing tiers, books, and SKUs remain reference data that feed price resolution; they are not the primary sellable catalog shape
 - `order_scopes.assignee_staff_id` can remain nullable in the schema as dormant compatibility data during the prototype
 - do not build current workflow behavior, queue gating, or operator UI around that field
 - if future staffing needs return, prefer modeling work allocation explicitly instead of reviving single-assignee semantics by default

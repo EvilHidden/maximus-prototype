@@ -1,8 +1,6 @@
 import type { CustomPricingMatchStatus } from "../types";
 import {
   getPricingProgramKeyForGarment,
-  supportsCustomLiningSurcharge,
-  supportsJacketConstruction,
   type CustomPricingTierDefinition,
   type JacketCanvas,
 } from "./customPricingCatalog";
@@ -40,6 +38,8 @@ export type PricingComputationConfig = {
     id: string;
     label: string;
     fallbackAmount: number;
+    supportsCanvas?: boolean;
+    supportsCustomLining?: boolean;
   }>;
   catalogVariationTierPrices?: Array<{
     variationId: string;
@@ -73,6 +73,16 @@ function getPricingTierByKey(
 
 function getSelectedVariationLabel(input: CustomPricingInput) {
   return input.variationLabel ?? input.selectedGarment ?? null;
+}
+
+function findCatalogVariation(
+  input: CustomPricingInput,
+  catalogVariations: PricingComputationConfig["catalogVariations"] = [],
+) {
+  const variationLabel = getSelectedVariationLabel(input);
+  return catalogVariations.find((candidate) => (
+    (input.variationId && candidate.id === input.variationId) || candidate.label === variationLabel
+  )) ?? null;
 }
 
 export function findFabricMaterialOptionBySku(
@@ -150,9 +160,9 @@ export function resolveCustomPricingMatch(
 function getCanvasPrice(
   surcharges: Record<JacketCanvas, number>,
   canvas: string | null | undefined,
-  garment: string | null,
+  supportsCanvas: boolean,
 ) {
-  if (!garment || !supportsCanvasPricing(garment)) {
+  if (!supportsCanvas) {
     return 0;
   }
 
@@ -160,8 +170,8 @@ function getCanvasPrice(
   return surcharges[normalizedCanvas] ?? 0;
 }
 
-function getCustomLiningPrice(amount: number, requested: boolean | undefined, garment: string | null) {
-  if (!requested || !supportsCustomLiningSurcharge(garment)) {
+function getCustomLiningPrice(amount: number, requested: boolean | undefined, supportsCustomLining: boolean) {
+  if (!requested || !supportsCustomLining) {
     return 0;
   }
 
@@ -182,9 +192,7 @@ function getCatalogVariationBasePrice(
   config: Pick<PricingComputationConfig, "catalogVariations" | "catalogVariationTierPrices">,
 ) {
   const variationLabel = getSelectedVariationLabel(input);
-  const variation = config.catalogVariations?.find((candidate) => (
-    (input.variationId && candidate.id === input.variationId) || candidate.label === variationLabel
-  )) ?? null;
+  const variation = findCatalogVariation(input, config.catalogVariations);
 
   if (!variation) {
     return tier ? getBaseGarmentPrice(tier, variationLabel) : getLegacyCustomGarmentPrice(variationLabel);
@@ -197,10 +205,6 @@ function getCatalogVariationBasePrice(
   return config.catalogVariationTierPrices?.find((price) => (
     (price.isActive ?? true) && price.variationId === variation.id && price.tierKey === tier.key
   ))?.amount ?? variation.fallbackAmount;
-}
-
-export function supportsCanvasPricing(garment: string | null) {
-  return supportsJacketConstruction(garment);
 }
 
 export function getLegacyCustomGarmentPrice(garment: string | null) {
@@ -241,12 +245,14 @@ export function getCustomGarmentPricingResult(
   const customLiningSurchargeAmount = config.customLiningSurchargeAmount ?? 200;
   const match = resolveCustomPricingMatch(normalizedInput, pricingTiers, fabricOptions);
   const tier = match.key ? getPricingTierByKey(match.key, pricingTiers) : null;
-  const selectedVariationLabel = getSelectedVariationLabel(normalizedInput);
-  const canvasPrice = getCanvasPrice(surcharges, normalizedInput.canvas, selectedVariationLabel);
+  const selectedVariation = findCatalogVariation(normalizedInput, config.catalogVariations);
+  const supportsCanvas = selectedVariation?.supportsCanvas ?? false;
+  const supportsCustomLining = selectedVariation?.supportsCustomLining ?? false;
+  const canvasPrice = getCanvasPrice(surcharges, normalizedInput.canvas, supportsCanvas);
   const customLiningPrice = getCustomLiningPrice(
     customLiningSurchargeAmount,
     normalizedInput.customLiningRequested,
-    selectedVariationLabel,
+    supportsCustomLining,
   );
 
   const basePrice = getCatalogVariationBasePrice(normalizedInput, tier, config);

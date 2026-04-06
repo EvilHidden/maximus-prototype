@@ -86,6 +86,10 @@ export function useOrderBuilderController({
   });
   const canAddCustomDraftToOrder = getCanAddCustomDraftToOrder(order);
   const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
+  const selectedCatalogVariation = useMemo(
+    () => referenceData.catalogVariations.find((variation) => variation.label === order.custom.draft.selectedGarment) ?? null,
+    [referenceData.catalogVariations, order.custom.draft.selectedGarment],
+  );
   const wearerCustomer = useMemo(
     () => customers.find((customer) => customer.id === order.custom.draft.wearerCustomerId) ?? null,
     [customers, order.custom.draft.wearerCustomerId],
@@ -138,12 +142,11 @@ export function useOrderBuilderController({
       ? "Choose a garment before adding the custom item to the cart."
       : !order.custom.draft.wearerCustomerId
         ? "Assign a wearer before adding the custom garment to the cart."
-        : !order.custom.draft.linkedMeasurementSetId
-          ? "Choose or create a measurement set before adding the custom garment to the cart."
-          : !order.custom.draft.fabricSku || !order.custom.draft.buttonsSku || !order.custom.draft.liningSku || !order.custom.draft.threadsSku
-            ? "Complete the fabric, buttons, lining, and thread SKUs before adding this garment to the cart."
-            : order.custom.draft.selectedGarment &&
-                referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
+      : !order.custom.draft.linkedMeasurementSetId
+        ? "Choose or create a measurement set before adding the custom garment to the cart."
+        : !order.custom.draft.fabricSku || !order.custom.draft.buttonsSku || !order.custom.draft.liningSku || !order.custom.draft.threadsSku
+          ? "Complete the fabric, buttons, lining, and thread SKUs before adding this garment to the cart."
+            : selectedCatalogVariation?.supportsCanvas &&
                 (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas)
               ? "Choose the canvas, lapel, and pocket details before adding this jacket garment to the cart."
               : undefined;
@@ -156,7 +159,7 @@ export function useOrderBuilderController({
     (!order.custom.draft.fabricSku || !order.custom.draft.buttonsSku || !order.custom.draft.liningSku || !order.custom.draft.threadsSku);
   const missingCustomStyleDetails =
     Boolean(order.custom.draft.selectedGarment) &&
-    referenceData.jacketBasedCustomGarments.has(order.custom.draft.selectedGarment) &&
+    Boolean(selectedCatalogVariation?.supportsCanvas) &&
     (!order.custom.draft.pocketType || !order.custom.draft.lapel || !order.custom.draft.canvas);
   const isEditingAlterationItem = editingItemId !== null;
 

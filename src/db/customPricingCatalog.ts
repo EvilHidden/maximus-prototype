@@ -3,7 +3,6 @@ export type JacketCanvasSurcharges = Record<JacketCanvas, number>;
 export type LiningSelection = "standard" | "custom_printed";
 export type PricingProgramKey = "custom_suiting" | "custom_shirting";
 export type FabricLookupType = "manual" | "qr" | "both";
-export type GarmentSurchargeKind = "canvas" | "lining";
 
 export const customPricingGarments = [
   "Two-piece suit",
@@ -80,22 +79,11 @@ export type FabricCatalogItemSeed = {
   isActive: boolean;
 };
 
-export type GarmentBasePriceSeed = {
+type GarmentBasePriceSeed = {
   id: string;
   programKey: PricingProgramKey;
   tierKey: string;
   garmentLabel: CustomPricingGarment;
-  amount: number;
-  isActive: boolean;
-};
-
-export type GarmentSurchargeRuleSeed = {
-  id: string;
-  programKey: PricingProgramKey;
-  garmentLabel: CustomPricingGarment;
-  kind: GarmentSurchargeKind;
-  optionValue: string;
-  label: string;
   amount: number;
   isActive: boolean;
 };
@@ -160,7 +148,7 @@ export type CatalogVariationTierPriceSeed = {
 export const suitingGarments = customPricingGarments.filter((garment) => garment !== "Shirt");
 export const shirtingGarments = ["Shirt"] as const satisfies readonly CustomPricingGarment[];
 
-export const jacketConstructionGarments = [
+const jacketConstructionGarments = [
   "Two-piece suit",
   "Three-piece suit",
   "Jacket",
@@ -168,13 +156,13 @@ export const jacketConstructionGarments = [
   "Three-piece tuxedo",
 ] as const satisfies readonly CustomPricingGarment[];
 
-export const customLiningEligibleGarments = jacketConstructionGarments;
+const customLiningEligibleGarments = jacketConstructionGarments;
 
-export function supportsJacketConstruction(garment: string | null) {
+function supportsJacketConstruction(garment: string | null) {
   return Boolean(garment && jacketConstructionGarments.includes(garment as (typeof jacketConstructionGarments)[number]));
 }
 
-export function supportsCustomLiningSurcharge(garment: string | null) {
+function supportsCustomLiningSurcharge(garment: string | null) {
   return Boolean(garment && customLiningEligibleGarments.includes(garment as (typeof customLiningEligibleGarments)[number]));
 }
 
@@ -211,66 +199,6 @@ function createGarmentPriceSeeds(
   }));
 }
 
-function createCanvasSurchargeSeeds(garmentLabel: CustomPricingGarment): GarmentSurchargeRuleSeed[] {
-  return [
-    {
-      id: `surcharge_canvas_fused_${garmentLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
-      programKey: "custom_suiting",
-      garmentLabel,
-      kind: "canvas",
-      optionValue: "Fused",
-      label: "Fused canvas",
-      amount: 0,
-      isActive: true,
-    },
-    {
-      id: `surcharge_canvas_half_${garmentLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
-      programKey: "custom_suiting",
-      garmentLabel,
-      kind: "canvas",
-      optionValue: "Half",
-      label: "Half canvas",
-      amount: 100,
-      isActive: true,
-    },
-    {
-      id: `surcharge_canvas_full_${garmentLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
-      programKey: "custom_suiting",
-      garmentLabel,
-      kind: "canvas",
-      optionValue: "Full",
-      label: "Full canvas",
-      amount: 200,
-      isActive: true,
-    },
-  ];
-}
-
-function createLiningSurchargeSeeds(garmentLabel: CustomPricingGarment): GarmentSurchargeRuleSeed[] {
-  return [
-    {
-      id: `surcharge_lining_standard_${garmentLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
-      programKey: "custom_suiting",
-      garmentLabel,
-      kind: "lining",
-      optionValue: "standard",
-      label: "Standard lining",
-      amount: 0,
-      isActive: true,
-    },
-    {
-      id: `surcharge_lining_custom_${garmentLabel.toLowerCase().replace(/[^a-z0-9]+/g, "_")}`,
-      programKey: "custom_suiting",
-      garmentLabel,
-      kind: "lining",
-      optionValue: "custom_printed",
-      label: "Custom printed lining",
-      amount: 200,
-      isActive: true,
-    },
-  ];
-}
-
 export const pricingProgramCatalog: PricingProgramSeed[] = [
   {
     id: "pricing_program_custom_suiting",
@@ -288,9 +216,7 @@ export const pricingProgramCatalog: PricingProgramSeed[] = [
   },
 ];
 
-// The attached pricing doc still shows the mid-tier floor as "$__?", so the prototype keeps
-// this seeded assumption editable in Settings until the shop finalizes the live amount.
-export const ASSUMED_MID_TIER_SUITING_FLOOR = 1800;
+export const MID_TIER_SUITING_FLOOR = 1800;
 
 export const pricingTierCatalog: PricingTierSeed[] = [
   {
@@ -308,7 +234,7 @@ export const pricingTierCatalog: PricingTierSeed[] = [
     programKey: "custom_suiting",
     label: "Mid-Tier Fabric",
     sortOrder: 1,
-    floorPrice: ASSUMED_MID_TIER_SUITING_FLOOR,
+    floorPrice: MID_TIER_SUITING_FLOOR,
     isActive: true,
   },
   {
@@ -844,7 +770,7 @@ export const fabricCatalog: FabricCatalogItemSeed[] = [
   },
 ];
 
-export const garmentBasePriceCatalog: GarmentBasePriceSeed[] = [
+const garmentBasePriceCatalog: GarmentBasePriceSeed[] = [
   ...createGarmentPriceSeeds("custom_suiting", "suiting_standard", {
     "Two-piece suit": 750,
     "Three-piece suit": 1100,
@@ -857,14 +783,14 @@ export const garmentBasePriceCatalog: GarmentBasePriceSeed[] = [
     Skirt: 225,
   }),
   ...createGarmentPriceSeeds("custom_suiting", "suiting_mid", {
-    "Two-piece suit": ASSUMED_MID_TIER_SUITING_FLOOR,
-    "Three-piece suit": ASSUMED_MID_TIER_SUITING_FLOOR + 350,
+    "Two-piece suit": MID_TIER_SUITING_FLOOR,
+    "Three-piece suit": MID_TIER_SUITING_FLOOR + 350,
     Jacket: 1300,
     Pants: 650,
     Vest: 550,
     Overcoat: 2100,
     "Tuxedo jacket": 1450,
-    "Three-piece tuxedo": ASSUMED_MID_TIER_SUITING_FLOOR + 450,
+    "Three-piece tuxedo": MID_TIER_SUITING_FLOOR + 450,
     Skirt: 575,
   }),
   ...createGarmentPriceSeeds("custom_suiting", "suiting_italian", {
@@ -890,11 +816,6 @@ export const garmentBasePriceCatalog: GarmentBasePriceSeed[] = [
   ...createGarmentPriceSeeds("custom_shirting", "shirting_tier_4", {
     Shirt: 550,
   }),
-];
-
-export const garmentSurchargeRuleCatalog: GarmentSurchargeRuleSeed[] = [
-  ...jacketConstructionGarments.flatMap((garment) => createCanvasSurchargeSeeds(garment)),
-  ...customLiningEligibleGarments.flatMap((garment) => createLiningSurchargeSeeds(garment)),
 ];
 
 export const catalogItemCatalog: CatalogItemSeed[] = [
@@ -981,14 +902,6 @@ export function createDefaultMillBooks() {
 
 export function createDefaultFabricCatalogItems() {
   return fabricCatalog.map((fabric) => ({ ...fabric }));
-}
-
-export function createDefaultGarmentBasePrices() {
-  return garmentBasePriceCatalog.map((price) => ({ ...price }));
-}
-
-export function createDefaultGarmentSurchargeRules() {
-  return garmentSurchargeRuleCatalog.map((rule) => ({ ...rule }));
 }
 
 export function createDefaultCatalogItems() {

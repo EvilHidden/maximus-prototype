@@ -111,11 +111,9 @@ export type UpdateCustomPricingTierPayload = {
   patch: Partial<Pick<PrototypeDatabase["pricingTiers"][number], "label" | "isActive" | "floorPrice">>;
 };
 
-export type UpdateGarmentSurchargeRulePayload = {
-  programKey: PrototypeDatabase["garmentSurchargeRules"][number]["programKey"];
-  kind: PrototypeDatabase["garmentSurchargeRules"][number]["kind"];
-  optionValue: PrototypeDatabase["garmentSurchargeRules"][number]["optionValue"];
-  patch: Partial<Pick<PrototypeDatabase["garmentSurchargeRules"][number], "label" | "amount" | "isActive">>;
+export type UpdateCatalogModifierOptionPayload = {
+  optionId: PrototypeDatabase["catalogModifierOptions"][number]["id"];
+  patch: Partial<Pick<PrototypeDatabase["catalogModifierOptions"][number], "label" | "amount" | "isActive">>;
 };
 
 export type AppAction =
@@ -161,10 +159,10 @@ export type AppAction =
   | {
       type: "updateCustomPricingTierGarmentPrice";
       tierKey: string;
-      garment: PrototypeDatabase["garmentBasePrices"][number]["garmentLabel"];
+      garment: PrototypeDatabase["catalogVariations"][number]["label"];
       price: number;
     }
-  | { type: "updateGarmentSurchargeRule"; payload: UpdateGarmentSurchargeRulePayload }
+  | { type: "updateCatalogModifierOption"; payload: UpdateCatalogModifierOptionPayload }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationServiceDefinition }
   | { type: "setAlterationModifierAdjustment"; modifierId: string; deltaInches: number | null }
