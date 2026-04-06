@@ -9,7 +9,6 @@ const OrderScreen = lazy(async () => import("../../screens/OrderScreen").then((m
 const MeasurementsScreen = lazy(async () => import("../../screens/MeasurementsScreen").then((module) => ({ default: module.MeasurementsScreen })));
 const OpenOrdersScreen = lazy(async () => import("../../screens/OpenOrdersScreen").then((module) => ({ default: module.OpenOrdersScreen })));
 const AppointmentsScreen = lazy(async () => import("../../screens/AppointmentsScreen").then((module) => ({ default: module.AppointmentsScreen })));
-const ReviewOrderScreen = lazy(async () => import("../../screens/CheckoutScreen").then((module) => ({ default: module.ReviewOrderScreen })));
 const OrderDetailsScreen = lazy(async () => import("../../screens/OrderDetailsScreen").then((module) => ({ default: module.OrderDetailsScreen })));
 
 export function AppScreenContent({
@@ -131,12 +130,14 @@ export function AppScreenContent({
     );
   }
 
-  if (state.screen === "orderDetails") {
+  if (state.screen === "orderDetails" || state.screen === "checkout") {
     return (
       <OrderDetailsScreen
         customers={customers}
-        openOrder={checkoutOpenOrder}
-        closedOrder={checkoutClosedOrder}
+        openOrder={state.screen === "checkout" ? null : checkoutOpenOrder}
+        closedOrder={state.screen === "checkout" ? null : checkoutClosedOrder}
+        draftOrder={state.screen === "checkout" ? state.order : null}
+        payerCustomer={payerCustomer}
         showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
         showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
         requestedCheckoutPaymentMode={state.checkoutRequestedPaymentMode}
@@ -147,6 +148,7 @@ export function AppScreenContent({
         onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
         onCancelOpenOrder={(openOrderId) => dispatch({ type: "cancelOpenOrder", openOrderId })}
         onCompleteOpenOrderPickup={(openOrderId) => dispatch({ type: "completeOpenOrderPickup", openOrderId })}
+        onSaveDraftOrder={saveDraftOrder}
       />
     );
   }
@@ -165,24 +167,5 @@ export function AppScreenContent({
     );
   }
 
-  return (
-    <ReviewOrderScreen
-      customers={customers}
-      payerCustomer={payerCustomer}
-      openOrder={checkoutOpenOrder}
-      showAcceptedConfirmation={state.checkoutJustSavedOpenOrderId === checkoutOpenOrder?.id}
-      showCheckoutCompletion={state.checkoutJustCompletedOpenOrderId === checkoutOpenOrder?.id}
-      requestedCheckoutPaymentMode={state.checkoutRequestedPaymentMode}
-      order={state.order}
-      onScreenChange={(screen) => dispatch({ type: "setScreen", screen })}
-      onDismissRequestedCheckoutPayment={() => dispatch({ type: "clearCheckoutPaymentRequest" })}
-      onRevertAcceptedOrderSave={(openOrderId) => dispatch({ type: "revertAcceptedOrderSave", openOrderId })}
-      onBackToOpenOrder={(openOrderId) => dispatch({ type: "openOrderDetails", openOrderId })}
-      onSaveDraftOrder={saveDraftOrder}
-      onCompleteOpenOrderCheckout={completeOpenOrderCheckout}
-      onEditOpenOrder={(openOrderId) => dispatch({ type: "openOrderForEdit", openOrderId })}
-      onCancelOpenOrder={(openOrderId) => dispatch({ type: "cancelOpenOrder", openOrderId })}
-      onCompleteOpenOrderPickup={(openOrderId) => dispatch({ type: "completeOpenOrderPickup", openOrderId })}
-    />
-  );
+  return null;
 }

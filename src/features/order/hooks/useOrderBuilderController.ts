@@ -77,7 +77,7 @@ export function useOrderBuilderController({
   const continueLabel =
     order.activeWorkflow === "custom" && order.custom.draft.selectedGarment && !order.custom.draft.linkedMeasurementSetId
       ? "Go to measurements"
-      : "Review order";
+      : "Order details";
   const missingAlterationAdjustments = hasMissingRequiredAlterationAdjustments(order.alteration.selectedModifiers);
   const addToCartDisabledReason = !order.alteration.selectedGarment
     ? "Select a garment before adding anything to the cart."
