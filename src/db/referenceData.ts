@@ -1,5 +1,6 @@
 import type { AlterationCategory, AlterationServiceDefinition, CustomGarmentGender, PickupLocation, StaffMember } from "../types";
 import type { PrototypeDatabase } from "./schema";
+import { createDefaultCustomPricingBooks } from "./customPricingCatalog";
 import {
   createAlterationServiceDefinitions,
   createCustomGarmentDefinitions,
@@ -8,7 +9,12 @@ import {
 } from "./runtime/referenceSeed";
 
 export type AppReferenceData = {
+  organizationName: string;
+  defaultLocationId: string;
+  taxRate: number;
+  customDepositRate: number;
   alterationCatalog: AlterationCategory[];
+  customPricingBooks: PrototypeDatabase["customPricingBooks"];
   customGarmentOptionsByGender: Record<CustomGarmentGender, string[]>;
   customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
   inHouseTailors: StaffMember[];
@@ -31,12 +37,13 @@ export type MaterialOption = {
 };
 
 const seedLocations: PrototypeDatabase["locations"] = [
-  { id: "loc_fifth_avenue", name: "Fifth Avenue" },
-  { id: "loc_queens", name: "Queens" },
-  { id: "loc_long_island", name: "Long Island" },
+  { id: "loc_fifth_avenue", name: "Fifth Avenue", isActive: true },
+  { id: "loc_queens", name: "Queens", isActive: true },
+  { id: "loc_long_island", name: "Long Island", isActive: true },
 ];
 
 const seedAlterationServiceDefinitions = createAlterationServiceDefinitions();
+const seedCustomPricingBooks = createDefaultCustomPricingBooks();
 const seedCustomGarmentDefinitions = createCustomGarmentDefinitions();
 const seedStyleOptionDefinitions = createStyleOptionDefinitions();
 const seedMeasurementFieldDefinitions = createMeasurementFieldDefinitions();
@@ -124,6 +131,7 @@ const seedMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threa
 
 export function getMeasurementFieldLabels(database: Pick<PrototypeDatabase, "measurementFieldDefinitions">) {
   return database.measurementFieldDefinitions
+    .filter((field) => field.isActive)
     .slice()
     .sort((left, right) => left.sortOrder - right.sortOrder)
     .map((field) => field.label);
@@ -163,7 +171,9 @@ function getStyleOptions(
 
 export function createReferenceData(database: PrototypeDatabase): AppReferenceData {
   const alterationCatalog = Array.from(
-    database.alterationServiceDefinitions.reduce<Map<string, AlterationCategory>>((categories, service) => {
+    database.alterationServiceDefinitions
+      .filter((service) => service.isActive)
+      .reduce<Map<string, AlterationCategory>>((categories, service) => {
       const existing = categories.get(service.category);
       if (existing) {
         existing.services.push({
@@ -187,7 +197,7 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
         }],
       });
       return categories;
-    }, new Map()).values(),
+      }, new Map()).values(),
   );
 
   const customGarmentOptionsByGender = database.customGarmentDefinitions.reduce<Record<CustomGarmentGender, string[]>>(
@@ -199,7 +209,12 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
   );
 
   return {
+    organizationName: database.organizationSettings.organizationName,
+    defaultLocationId: database.organizationSettings.defaultLocationId,
+    taxRate: database.organizationSettings.taxRate,
+    customDepositRate: database.organizationSettings.customDepositRate,
     alterationCatalog,
+    customPricingBooks: database.customPricingBooks.filter((book) => book.isActive),
     customGarmentOptionsByGender,
     customMaterialOptionsByKind: seedMaterialOptionsByKind,
     inHouseTailors: database.staffMembers
@@ -216,12 +231,19 @@ export function createReferenceData(database: PrototypeDatabase): AppReferenceDa
     pocketTypeOptions: getStyleOptions(database.styleOptionDefinitions, "pocket_type"),
     canvasOptions: getStyleOptions(database.styleOptionDefinitions, "canvas"),
     measurementFields: getMeasurementFieldLabels(database),
-    pickupLocations: database.locations.map((location) => location.name),
+    pickupLocations: database.locations.filter((location) => location.isActive).map((location) => location.name),
   };
 }
 
 const seedReferenceData = createReferenceData({
   generatedAt: "",
+  organizationSettings: {
+    id: "organization_settings_default",
+    organizationName: "SAMEpage Tailor OS",
+    defaultLocationId: "loc_fifth_avenue",
+    taxRate: 0.08875,
+    customDepositRate: 0.5,
+  },
   locations: seedLocations,
   staffMembers: [
     {
@@ -238,6 +260,7 @@ const seedReferenceData = createReferenceData({
     },
   ],
   alterationServiceDefinitions: seedAlterationServiceDefinitions,
+  customPricingBooks: seedCustomPricingBooks,
   customGarmentDefinitions: seedCustomGarmentDefinitions,
   styleOptionDefinitions: seedStyleOptionDefinitions,
   measurementFieldDefinitions: seedMeasurementFieldDefinitions,

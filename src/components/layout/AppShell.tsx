@@ -8,6 +8,7 @@ import {
   Moon,
   Package,
   Ruler,
+  Settings2,
   Sun,
   Users,
   Wallet,
@@ -33,6 +34,7 @@ const navIcons = {
   appointments: CalendarDays,
   order: ClipboardList,
   measurements: Ruler,
+  settings: Settings2,
   checkout: Wallet,
   orderDetails: Package,
 } satisfies Record<Screen, typeof Home>;

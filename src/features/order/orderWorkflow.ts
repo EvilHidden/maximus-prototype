@@ -12,6 +12,7 @@ import type {
   OrderWorkflowState,
   WorkflowMode,
 } from "../../types";
+import type { CustomPricingBookEntry } from "../../db/customPricingCatalog";
 import { getSeedReferenceData, isJacketBasedCustomGarment } from "../../db/referenceData";
 import { formatDateLabel } from "./orderDateUtils";
 import { getCustomGarmentPrice, getPricingSummary } from "./orderPricing";
@@ -330,7 +331,11 @@ export function getCustomConfigured(order: OrderWorkflowState) {
   return order.custom.items.length > 0;
 }
 
-export function getOrderBagLineItems(order: OrderWorkflowState, customers: Customer[]): OrderBagLineItem[] {
+export function getOrderBagLineItems(
+  order: OrderWorkflowState,
+  customers: Customer[],
+  customPricingBooks?: CustomPricingBookEntry[],
+): OrderBagLineItem[] {
   const items: OrderBagLineItem[] = order.alteration.items.map((item, index) => ({
     id: `alteration-${item.id}`,
     kind: "alteration",
@@ -377,7 +382,7 @@ export function getOrderBagLineItems(order: OrderWorkflowState, customers: Custo
       kind: "custom",
       title: `${order.alteration.items.length + index + 1}. ${createLineTitle("custom", selectedGarment)}`,
       subtitle,
-      amount: getCustomGarmentPrice(item.selectedGarment),
+      amount: getCustomGarmentPrice(item, customPricingBooks),
       isRush: item.isRush,
       sourceLabel: selectedGarment,
       garmentLabel: selectedGarment,

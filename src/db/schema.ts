@@ -13,10 +13,12 @@ import type {
   WorkflowMode,
   OrderWorkflowState,
 } from "../types";
+import type { CustomPricingBookEntry } from "./customPricingCatalog";
 
 export type DbLocation = {
   id: string;
   name: PickupLocation;
+  isActive: boolean;
 };
 
 export type DbStaffMember = {
@@ -33,6 +35,7 @@ export type DbAlterationServiceDefinition = {
   price: number;
   supportsAdjustment: boolean;
   requiresAdjustment: boolean;
+  isActive: boolean;
 };
 
 export type DbCustomGarmentDefinition = {
@@ -52,6 +55,19 @@ export type DbMeasurementFieldDefinition = {
   id: string;
   label: string;
   sortOrder: number;
+  isActive: boolean;
+};
+
+export type DbOrganizationSettings = {
+  id: string;
+  organizationName: string;
+  defaultLocationId: string;
+  taxRate: number;
+  customDepositRate: number;
+};
+
+export type DbCustomPricingBook = CustomPricingBookEntry & {
+  isActive: boolean;
 };
 
 export type DbCustomer = {
@@ -231,9 +247,11 @@ export type DbSquareLink = {
 
 export type PrototypeDatabase = {
   generatedAt: string;
+  organizationSettings: DbOrganizationSettings;
   locations: DbLocation[];
   staffMembers: DbStaffMember[];
   alterationServiceDefinitions: DbAlterationServiceDefinition[];
+  customPricingBooks: DbCustomPricingBook[];
   customGarmentDefinitions: DbCustomGarmentDefinition[];
   styleOptionDefinitions: DbStyleOptionDefinition[];
   measurementFieldDefinitions: DbMeasurementFieldDefinition[];

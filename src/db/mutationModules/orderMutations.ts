@@ -282,6 +282,8 @@ export function saveOrderWorkflowToDatabase(
     order,
     customers,
     locations: database.locations,
+    customPricingBooks: database.customPricingBooks.filter((book) => book.isActive),
+    organizationSettings: database.organizationSettings,
     paymentMode: editingOpenOrderId ? "none" : paymentMode,
     orderSequence: nextSequence,
     now,

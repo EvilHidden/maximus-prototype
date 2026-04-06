@@ -3,11 +3,13 @@ import { useMemo, useState } from "react";
 import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
 import type { MaterialOption } from "../../../db/referenceData";
+import type { CustomPricingBookEntry } from "../../../db/customPricingCatalog";
 import { getCustomGarmentPrice } from "../selectors";
 
 type CustomGarmentBuilderProps = {
   garmentOptionsByGender: Record<CustomGarmentGender, string[]>;
   customMaterialOptionsByKind: Record<"fabric" | "buttons" | "lining" | "threads", MaterialOption[]>;
+  customPricingBooks: CustomPricingBookEntry[];
   jacketBasedCustomGarments: Set<string>;
   lapelOptions: string[];
   pocketTypeOptions: string[];
@@ -331,6 +333,7 @@ function VerticalOptionList({
 export function CustomGarmentBuilder({
   garmentOptionsByGender,
   customMaterialOptionsByKind,
+  customPricingBooks,
   jacketBasedCustomGarments,
   lapelOptions,
   pocketTypeOptions,
@@ -370,7 +373,7 @@ export function CustomGarmentBuilder({
   const garmentOptions = selectedGender ? garmentOptionsByGender[selectedGender] : [];
   const showConfiguration = Boolean(selectedGarment);
   const showJacketStyleOptions = selectedGarment ? jacketBasedCustomGarments.has(selectedGarment) : false;
-  const currentSubtotal = getCustomGarmentPrice(selectedGarment);
+  const currentSubtotal = getCustomGarmentPrice(selectedGarment, customPricingBooks);
   const summaryParts = [wearerName, measurementVersionLabel, selectedGarment].filter(Boolean) as string[];
   const showValidationBanner =
     showValidation &&

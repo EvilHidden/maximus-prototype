@@ -15,7 +15,7 @@ import type {
   Screen,
   WorkflowMode,
 } from "../types";
-import type { PrototypeDatabase } from "../db/schema";
+import type { DbCustomPricingBook, PrototypeDatabase } from "../db/schema";
 
 export type AppState = {
   screen: Screen;
@@ -75,6 +75,42 @@ export type SaveMeasurementSetPayload = {
   title?: string;
 };
 
+export type UpdateOrganizationSettingsPayload = Partial<PrototypeDatabase["organizationSettings"]>;
+
+export type AddAlterationServiceDefinitionPayload = {
+  category: string;
+  name: string;
+  price: number;
+  supportsAdjustment: boolean;
+  requiresAdjustment: boolean;
+};
+
+export type UpdateAlterationServiceDefinitionPayload = {
+  serviceId: string;
+  patch: Partial<Pick<
+    PrototypeDatabase["alterationServiceDefinitions"][number],
+    "category" | "name" | "price" | "supportsAdjustment" | "requiresAdjustment" | "isActive"
+  >>;
+};
+
+export type UpdateLocationPayload = {
+  locationId: string;
+  patch: {
+    name?: string;
+    isActive?: boolean;
+  };
+};
+
+export type UpdateMeasurementFieldPayload = {
+  fieldId: string;
+  patch: Partial<Pick<PrototypeDatabase["measurementFieldDefinitions"][number], "label" | "isActive">>;
+};
+
+export type UpdateCustomPricingBookPayload = {
+  bookKey: string;
+  patch: Partial<Pick<DbCustomPricingBook, "label" | "manufacturer" | "bookType" | "vestPrice" | "isActive">>;
+};
+
 export type AppAction =
   | { type: "setScreen"; screen: Screen }
   | { type: "startOrderForCustomer"; customerId: string }
@@ -106,6 +142,17 @@ export type AppAction =
   | { type: "startNewMeasurementSet" }
   | { type: "saveMeasurementSet"; payload: SaveMeasurementSetPayload }
   | { type: "deleteMeasurementSet"; measurementSetId: string }
+  | { type: "updateOrganizationSettings"; payload: UpdateOrganizationSettingsPayload }
+  | { type: "addLocation"; name: string }
+  | { type: "updateLocation"; payload: UpdateLocationPayload }
+  | { type: "addMeasurementField"; label: string }
+  | { type: "updateMeasurementField"; payload: UpdateMeasurementFieldPayload }
+  | { type: "moveMeasurementField"; fieldId: string; direction: "up" | "down" }
+  | { type: "addAlterationServiceDefinition"; payload: AddAlterationServiceDefinitionPayload }
+  | { type: "updateAlterationServiceDefinition"; payload: UpdateAlterationServiceDefinitionPayload }
+  | { type: "updateCustomPricingBook"; payload: UpdateCustomPricingBookPayload }
+  | { type: "updateCustomPricingGarmentPrice"; bookKey: string; garment: keyof DbCustomPricingBook["basePrices"]; price: number }
+  | { type: "updateCustomPricingCanvasSurcharge"; bookKey: string; canvas: keyof DbCustomPricingBook["canvasSurcharges"]; price: number }
   | { type: "selectAlterationGarment"; garment: string }
   | { type: "toggleAlterationModifier"; modifier: AlterationServiceDefinition }
   | { type: "setAlterationModifierAdjustment"; modifierId: string; deltaInches: number | null }

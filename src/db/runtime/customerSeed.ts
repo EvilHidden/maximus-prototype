@@ -262,9 +262,9 @@ const additionalMeasurementSets: DbMeasurementSet[] = [
 
 export function createLocations(): DbLocation[] {
   return [
-    { id: createLocationId("Fifth Avenue"), name: "Fifth Avenue" },
-    { id: createLocationId("Queens"), name: "Queens" },
-    { id: createLocationId("Long Island"), name: "Long Island" },
+    { id: createLocationId("Fifth Avenue"), name: "Fifth Avenue", isActive: true },
+    { id: createLocationId("Queens"), name: "Queens", isActive: true },
+    { id: createLocationId("Long Island"), name: "Long Island", isActive: true },
   ];
 }
 

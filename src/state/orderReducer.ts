@@ -17,6 +17,7 @@ import {
   createInitialOrderState,
 } from "./orderState";
 import { hasMissingRequiredAlterationAdjustments, normalizeAlterationAdjustment } from "../features/order/alterationAdjustments";
+import { getMeasurementFieldLabels } from "../db/referenceData";
 
 export type OrderReducerOptions = {
   now?: Date;
@@ -29,6 +30,10 @@ function getNow(options?: OrderReducerOptions) {
 
 function getNextId(options?: OrderReducerOptions) {
   return options?.idFactory?.() ?? Date.now();
+}
+
+function getCurrentMeasurementFields(state: AppState) {
+  return getMeasurementFieldLabels(state.database);
 }
 
 function getAlterationSubtotal(modifiers: AppState["order"]["alteration"]["selectedModifiers"]) {
@@ -89,7 +94,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           checkoutRequestedPaymentMode: shouldRequestCheckoutPayment && action.paymentMode !== "none" ? action.paymentMode : null,
           editingOpenOrderId: null,
           database: savedOrder.database,
-          order: createInitialOrderState(),
+          order: createInitialOrderState(getMeasurementFieldLabels(savedOrder.database)),
         };
       }
     case "saveEditedOpenOrder":
@@ -120,7 +125,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           checkoutRequestedPaymentMode: null,
           editingOpenOrderId: null,
           database: savedOrder.database,
-          order: createInitialOrderState(),
+          order: createInitialOrderState(getMeasurementFieldLabels(savedOrder.database)),
         };
       }
     case "startOpenOrderWork":
@@ -417,7 +422,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           custom: {
             ...state.order.custom,
             draft: {
-              ...createInitialCustomDraft(),
+              ...createInitialCustomDraft(getCurrentMeasurementFields(state)),
               gender: action.gender,
               wearerCustomerId: state.order.custom.draft.wearerCustomerId ?? state.order.payerCustomerId ?? state.selectedCustomerId,
             },
@@ -436,7 +441,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
               ...state.order.custom.draft,
               wearerCustomerId: action.customerId,
               linkedMeasurementSetId: null,
-              measurements: createEmptyMeasurements(),
+              measurements: createEmptyMeasurements(getCurrentMeasurementFields(state)),
             },
           },
         },
@@ -505,7 +510,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
               },
             ],
             draft: {
-              ...createInitialCustomDraft(),
+              ...createInitialCustomDraft(getCurrentMeasurementFields(state)),
               gender: draft.gender,
             },
           },
@@ -557,7 +562,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
                 : item,
             ),
             draft: {
-              ...createInitialCustomDraft(),
+              ...createInitialCustomDraft(getCurrentMeasurementFields(state)),
               gender: draft.gender,
             },
           },
@@ -571,7 +576,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
           ...state.order,
           custom: {
             ...state.order.custom,
-            draft: createInitialCustomDraft(),
+            draft: createInitialCustomDraft(getCurrentMeasurementFields(state)),
           },
         },
       };
@@ -614,7 +619,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
               ...state.order.custom.draft,
               linkedMeasurementSetId: action.measurementSetId,
               measurements: {
-                ...createEmptyMeasurements(),
+                ...createEmptyMeasurements(getCurrentMeasurementFields(state)),
                 ...action.values,
               },
             },
@@ -639,7 +644,7 @@ export function tryReduceOrderAction(state: AppState, action: AppAction, options
       return {
         ...state,
         editingOpenOrderId: null,
-        order: createInitialOrderState(),
+        order: createInitialOrderState(getCurrentMeasurementFields(state)),
       };
     default:
       return null;

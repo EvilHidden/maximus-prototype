@@ -10,6 +10,7 @@ const MeasurementsScreen = lazy(async () => import("../../screens/MeasurementsSc
 const OpenOrdersScreen = lazy(async () => import("../../screens/OpenOrdersScreen").then((module) => ({ default: module.OpenOrdersScreen })));
 const AppointmentsScreen = lazy(async () => import("../../screens/AppointmentsScreen").then((module) => ({ default: module.AppointmentsScreen })));
 const OrderDetailsScreen = lazy(async () => import("../../screens/OrderDetailsScreen").then((module) => ({ default: module.OrderDetailsScreen })));
+const SettingsScreen = lazy(async () => import("../../screens/SettingsScreen").then((module) => ({ default: module.SettingsScreen })));
 
 export function AppScreenContent({
   state,
@@ -134,6 +135,7 @@ export function AppScreenContent({
     return (
       <OrderDetailsScreen
         customers={customers}
+        referenceData={referenceData}
         openOrder={state.screen === "checkout" ? null : checkoutOpenOrder}
         closedOrder={state.screen === "checkout" ? null : checkoutClosedOrder}
         draftOrder={state.screen === "checkout" ? state.order : null}
@@ -163,6 +165,15 @@ export function AppScreenContent({
         onUpdateAppointment={(payload) => dispatch({ type: "updateAppointment", payload })}
         onConfirmAppointment={(appointmentId) => dispatch({ type: "confirmAppointment", appointmentId })}
         onCancelAppointment={(appointmentId) => dispatch({ type: "cancelAppointment", appointmentId })}
+      />
+    );
+  }
+
+  if (state.screen === "settings") {
+    return (
+      <SettingsScreen
+        database={state.database}
+        dispatch={dispatch}
       />
     );
   }

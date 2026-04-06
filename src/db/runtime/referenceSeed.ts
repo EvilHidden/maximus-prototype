@@ -133,6 +133,7 @@ export function createAlterationServiceDefinitions(): DbAlterationServiceDefinit
     price,
     supportsAdjustment: ALTERATION_SERVICES_WITH_ADJUSTMENTS.has(`${category}::${name}`),
     requiresAdjustment: ALTERATION_SERVICES_WITH_ADJUSTMENTS.has(`${category}::${name}`),
+    isActive: true,
   }));
 }
 
@@ -208,5 +209,6 @@ export function createMeasurementFieldDefinitions(): DbMeasurementFieldDefinitio
     id: `measurement_field_${slugify(label)}`,
     label,
     sortOrder: index,
+    isActive: true,
   }));
 }

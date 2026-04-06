@@ -1,19 +1,30 @@
 import { createPrototypeDatabase } from "../db/runtime";
 import {
   addCustomerRecord,
+  addAlterationServiceDefinition,
+  addLocationRecord,
+  addMeasurementFieldDefinition,
   archiveCustomerRecord,
   createManualAppointmentRecord,
   deleteMeasurementSetRecord,
+  moveMeasurementFieldDefinition,
   loadOrderWorkflowForEdit,
   revertAcceptedOrderSave,
   replaceDraftOrderRecords,
   rescheduleAppointmentRecord,
   saveMeasurementSetRecord,
+  updateAlterationServiceDefinition,
   updateAppointmentRecord,
   updateCustomerRecord,
+  updateCustomPricingBook,
+  updateCustomPricingBookCanvasSurcharge,
+  updateCustomPricingBookGarmentPrice,
+  updateLocationRecord,
+  updateMeasurementFieldDefinition,
+  updateOrganizationSettings,
 } from "../db/mutations";
-import { createEmptyMeasurements } from "./orderState";
-import { createInitialOrderState } from "./orderState";
+import { createEmptyMeasurements, createInitialOrderState, syncMeasurementFieldsInOrder } from "./orderState";
+import { getMeasurementFieldLabels } from "../db/referenceData";
 import { tryReduceOrderAction, type OrderReducerOptions } from "./orderReducer";
 import type { AppAction, AppState } from "./types";
 import type { DraftOrderRecord } from "../types";
@@ -46,7 +57,10 @@ function syncDraftOrderRecord(state: AppState): AppState {
 
 export function createInitialAppState({ database = createPrototypeDatabase() }: InitialAppStateData = {}): AppState {
   const existingDraft = database.draftOrders[0];
-  const order = existingDraft?.snapshot ?? createInitialOrderState();
+  const measurementFields = getMeasurementFieldLabels(database);
+  const order = existingDraft?.snapshot
+    ? syncMeasurementFieldsInOrder(existingDraft.snapshot, measurementFields)
+    : createInitialOrderState(measurementFields);
   const nextDatabase = existingDraft
     ? database
     : replaceDraftOrderRecords(database, [{
@@ -92,7 +106,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         checkoutRequestedPaymentMode: null,
         editingOpenOrderId: null,
         order: {
-          ...createInitialOrderState(),
+          ...createInitialOrderState(getMeasurementFieldLabels(state.database)),
           payerCustomerId: action.customerId,
         },
       });
@@ -183,6 +197,100 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
         ...state,
         database: updateCustomerRecord(state.database, action.customer),
       });
+    case "updateOrganizationSettings":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateOrganizationSettings(state.database, action.payload),
+      });
+    case "addLocation":
+      return syncDraftOrderRecord({
+        ...state,
+        database: addLocationRecord(state.database, action.name),
+      });
+    case "updateLocation":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateLocationRecord(state.database, action.payload.locationId, action.payload.patch),
+      });
+    case "addMeasurementField": {
+      const nextDatabase = addMeasurementFieldDefinition(state.database, action.label);
+      const measurementFields = getMeasurementFieldLabels(nextDatabase);
+      return syncDraftOrderRecord({
+        ...state,
+        database: nextDatabase,
+        order: syncMeasurementFieldsInOrder(state.order, measurementFields),
+      });
+    }
+    case "updateMeasurementField": {
+      const previousField = state.database.measurementFieldDefinitions.find((field) => field.id === action.payload.fieldId) ?? null;
+      const nextDatabase = updateMeasurementFieldDefinition(state.database, action.payload.fieldId, action.payload.patch);
+      const nextField = nextDatabase.measurementFieldDefinitions.find((field) => field.id === action.payload.fieldId) ?? null;
+      const nextOrder = previousField && nextField && previousField.label !== nextField.label
+        ? syncMeasurementFieldsInOrder(
+            {
+              ...state.order,
+              custom: {
+                ...state.order.custom,
+                draft: {
+                  ...state.order.custom.draft,
+                  measurements: Object.fromEntries(
+                    Object.entries(state.order.custom.draft.measurements).map(([key, value]) => [key === previousField.label ? nextField.label : key, value]),
+                  ),
+                },
+                items: state.order.custom.items.map((item) => ({
+                  ...item,
+                  measurements: Object.fromEntries(
+                    Object.entries(item.measurements).map(([key, value]) => [key === previousField.label ? nextField.label : key, value]),
+                  ),
+                  measurementSnapshot: Object.fromEntries(
+                    Object.entries(item.measurementSnapshot).map(([key, value]) => [key === previousField.label ? nextField.label : key, value]),
+                  ),
+                })),
+              },
+            },
+            getMeasurementFieldLabels(nextDatabase),
+          )
+        : syncMeasurementFieldsInOrder(state.order, getMeasurementFieldLabels(nextDatabase));
+
+      return syncDraftOrderRecord({
+        ...state,
+        database: nextDatabase,
+        order: nextOrder,
+      });
+    }
+    case "moveMeasurementField": {
+      const nextDatabase = moveMeasurementFieldDefinition(state.database, action.fieldId, action.direction);
+      return syncDraftOrderRecord({
+        ...state,
+        database: nextDatabase,
+        order: syncMeasurementFieldsInOrder(state.order, getMeasurementFieldLabels(nextDatabase)),
+      });
+    }
+    case "addAlterationServiceDefinition":
+      return syncDraftOrderRecord({
+        ...state,
+        database: addAlterationServiceDefinition(state.database, action.payload),
+      });
+    case "updateAlterationServiceDefinition":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateAlterationServiceDefinition(state.database, action.payload.serviceId, action.payload.patch),
+      });
+    case "updateCustomPricingBook":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateCustomPricingBook(state.database, action.payload.bookKey, action.payload.patch),
+      });
+    case "updateCustomPricingGarmentPrice":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateCustomPricingBookGarmentPrice(state.database, action.bookKey, action.garment, action.price),
+      });
+    case "updateCustomPricingCanvasSurcharge":
+      return syncDraftOrderRecord({
+        ...state,
+        database: updateCustomPricingBookCanvasSurcharge(state.database, action.bookKey, action.canvas, action.price),
+      });
     case "createAppointment":
       return syncDraftOrderRecord({
         ...state,
@@ -208,7 +316,7 @@ export function appReducer(state: AppState, action: AppAction, options?: OrderRe
             draft: {
               ...state.order.custom.draft,
               linkedMeasurementSetId: null,
-              measurements: createEmptyMeasurements(),
+              measurements: createEmptyMeasurements(getMeasurementFieldLabels(state.database)),
             },
           },
         },

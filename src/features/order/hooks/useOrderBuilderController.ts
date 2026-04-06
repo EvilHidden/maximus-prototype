@@ -66,8 +66,12 @@ export function useOrderBuilderController({
   const hasCustomContent = getHasCustomContent(order);
   const orderType = getOrderType(order);
   const pickupRequired = getPickupRequired(order);
-  const pricing = getPricingSummary(order);
-  const lineItems = getOrderBagLineItems(order, customers);
+  const pricing = getPricingSummary(order, {
+    pricingBooks: referenceData.customPricingBooks,
+    taxRate: referenceData.taxRate,
+    customDepositRate: referenceData.customDepositRate,
+  });
+  const lineItems = getOrderBagLineItems(order, customers, referenceData.customPricingBooks);
   const canAddCustomDraftToOrder = getCanAddCustomDraftToOrder(order);
   const summaryGuardrail = getSummaryGuardrail(order, payerCustomer);
   const wearerCustomer = useMemo(
