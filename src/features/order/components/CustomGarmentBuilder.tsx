@@ -1,4 +1,5 @@
-import { Shirt, TriangleAlert } from "lucide-react";
+import { Search, Shirt, TriangleAlert } from "lucide-react";
+import { useMemo, useState } from "react";
 import { ActionButton, Callout, FieldLabel, InlineEmptyState, SectionHeader, StatusPill, cx } from "../../../components/ui/primitives";
 import type { CustomGarmentGender } from "../../../types";
 import type { MaterialOption } from "../../../db/referenceData";
@@ -84,26 +85,112 @@ function MaterialField({
   label,
   skuValue,
   match,
+  options,
   onSkuChange,
 }: {
   label: string;
   skuValue: string | null;
   match: MaterialOption | null;
+  options: MaterialOption[];
   onSkuChange: (value: string | null) => void;
 }) {
+  const [showSuggestions, setShowSuggestions] = useState(false);
+
+  const filteredOptions = useMemo(() => {
+    const normalizedQuery = (skuValue ?? "").trim().toLowerCase();
+    if (!normalizedQuery) {
+      return options.slice(0, 6);
+    }
+
+    const startsWithMatches = options.filter((option) => option.sku.toLowerCase().startsWith(normalizedQuery));
+    const containsMatches = options.filter((option) => {
+      if (startsWithMatches.some((candidate) => candidate.sku === option.sku)) {
+        return false;
+      }
+
+      const searchBody = [
+        option.sku,
+        option.label,
+        option.composition,
+        option.yarn,
+        option.weight,
+      ].filter(Boolean).join(" ").toLowerCase();
+
+      return searchBody.includes(normalizedQuery);
+    });
+
+    return [...startsWithMatches, ...containsMatches].slice(0, 6);
+  }, [options, skuValue]);
+
+  const showSuggestionList = showSuggestions && filteredOptions.length > 0;
+  const showMissingCatalogMessage = Boolean(skuValue) && !match && filteredOptions.length === 0;
+
   return (
     <div className="app-custom-builder__material-card rounded-[var(--app-radius-md)] border border-[var(--app-border)]/52 bg-[var(--app-surface)]/52 p-3">
       <div className="flex items-baseline justify-between gap-3">
         <FieldLabel>{label}</FieldLabel>
         <span className="app-text-caption text-[var(--app-text-soft)]">SKU required</span>
       </div>
-      <div className="mt-2.5 space-y-2">
-        <input
-          value={skuValue ?? ""}
-          onChange={(event) => onSkuChange(event.target.value.trim() ? event.target.value : null)}
-          placeholder={`Enter ${label.toLowerCase()} SKU`}
-          className="app-input min-h-12 bg-[var(--app-surface)]"
-        />
+      <div className="mt-2.5 space-y-2 app-custom-builder__material-field">
+        <div className="app-custom-builder__material-input-shell">
+          <Search className="app-custom-builder__material-input-icon h-4 w-4" />
+          <input
+            value={skuValue ?? ""}
+            onFocus={() => setShowSuggestions(true)}
+            onBlur={() => {
+              window.setTimeout(() => setShowSuggestions(false), 120);
+            }}
+            onChange={(event) => onSkuChange(event.target.value.trim() ? event.target.value : null)}
+            placeholder={`Search ${label.toLowerCase()} SKU`}
+            className="app-input min-h-12 bg-[var(--app-surface)] app-custom-builder__material-input"
+            aria-label={`${label} SKU`}
+            aria-autocomplete="list"
+            aria-expanded={showSuggestionList}
+          />
+        </div>
+        {showSuggestionList ? (
+          <div className="app-custom-builder__material-suggestions" role="listbox" aria-label={`${label} SKU suggestions`}>
+            {filteredOptions.map((option) => {
+              const isActive = option.sku.toLowerCase() === (skuValue ?? "").trim().toLowerCase();
+
+              return (
+                <button
+                  key={option.sku}
+                  type="button"
+                  role="option"
+                  aria-selected={isActive}
+                  onMouseDown={(event) => {
+                    event.preventDefault();
+                    onSkuChange(option.sku);
+                    setShowSuggestions(false);
+                  }}
+                  className={cx(
+                    "app-custom-builder__material-suggestion",
+                    isActive && "app-custom-builder__material-suggestion--active",
+                  )}
+                >
+                  <div className="min-w-0">
+                    <div className="app-text-body font-medium text-[var(--app-text)]">{option.label}</div>
+                    <div className="app-custom-builder__material-sku mt-0.5">{option.sku}</div>
+                  </div>
+                  <div
+                    className="app-custom-builder__material-suggestion-swatch"
+                    style={option.swatchImage
+                      ? {
+                        backgroundColor: option.swatch,
+                        backgroundImage: `url(${option.swatchImage})`,
+                        backgroundPosition: "center",
+                        backgroundRepeat: "no-repeat",
+                        backgroundSize: "cover",
+                      }
+                      : { backgroundColor: option.swatch }}
+                    aria-hidden="true"
+                  />
+                </button>
+              );
+            })}
+          </div>
+        ) : null}
         {match ? (
           <div className="space-y-3 border-t border-[var(--app-border)]/42 pt-3">
             <div className="flex items-start gap-3">
@@ -122,7 +209,7 @@ function MaterialField({
               />
               <div className="min-w-0 flex-1">
                 <div className="app-text-body font-medium text-[var(--app-text)]">{match.label}</div>
-                <div className="app-text-caption mt-0.5">{match.sku}</div>
+                <div className="app-custom-builder__material-sku mt-0.5">{match.sku}</div>
               </div>
             </div>
             {match.composition || match.yarn || match.weight ? (
@@ -148,7 +235,7 @@ function MaterialField({
               </div>
             ) : null}
           </div>
-        ) : skuValue ? (
+        ) : showMissingCatalogMessage ? (
           <div className="app-text-caption border-t border-dashed border-[var(--app-border)] px-0 pt-3 text-[var(--app-text-muted)]">
             No catalog metadata found for this SKU yet.
           </div>
@@ -409,24 +496,28 @@ export function CustomGarmentBuilder({
                         label="Fabric"
                         skuValue={fabricSku}
                         match={getMaterialMatch("fabric", fabricSku)}
+                        options={customMaterialOptionsByKind.fabric}
                         onSkuChange={(value) => onSetConfiguration({ fabricSku: value })}
                       />
                       <MaterialField
                         label="Buttons"
                         skuValue={buttonsSku}
                         match={getMaterialMatch("buttons", buttonsSku)}
+                        options={customMaterialOptionsByKind.buttons}
                         onSkuChange={(value) => onSetConfiguration({ buttonsSku: value })}
                       />
                       <MaterialField
                         label="Lining"
                         skuValue={liningSku}
                         match={getMaterialMatch("lining", liningSku)}
+                        options={customMaterialOptionsByKind.lining}
                         onSkuChange={(value) => onSetConfiguration({ liningSku: value })}
                       />
                       <MaterialField
                         label="Threads"
                         skuValue={threadsSku}
                         match={getMaterialMatch("threads", threadsSku)}
+                        options={customMaterialOptionsByKind.threads}
                         onSkuChange={(value) => onSetConfiguration({ threadsSku: value })}
                       />
                     </div>
