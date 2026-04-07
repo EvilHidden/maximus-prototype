@@ -139,11 +139,12 @@ export function HomeScreen({
 
         <div className="app-home-dashboard__locations app-home-location-deck">
           <div className="app-home-location-bar">
-            <div className="shrink-0 pt-0.5">
-              <div className="app-text-overline">View locations</div>
-              <div className="app-text-caption mt-1">Choose which locations to show.</div>
+            <div className="app-home-location-bar__intro shrink-0 pt-0.5">
+              <div className="app-text-overline">Operating view</div>
+              <div className="app-text-strong mt-1">Locations in focus</div>
+              <div className="app-text-caption mt-1">Choose which store activity should stay on the board.</div>
             </div>
-            <div className="flex min-w-0 flex-1 flex-wrap gap-1.5">
+            <div className="app-home-location-bar__filters flex min-w-0 flex-1 flex-wrap gap-1.5">
               <SelectionChip
                 selected={allLocationsActive}
                 onClick={() => setActiveLocations(allLocationsActive ? [] : pickupLocations)}

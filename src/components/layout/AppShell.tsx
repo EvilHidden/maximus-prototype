@@ -114,7 +114,7 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
             onClick={() => setMobileNavOpen(false)}
           />
           <aside className="app-mobile-drawer__panel">
-            <div className="flex items-start justify-between gap-3 rounded-[12px] border border-[var(--app-border)]/55 bg-[color:color-mix(in_srgb,var(--app-surface-muted)_72%,var(--app-surface))] px-4 py-4">
+            <div className="app-shell-brand-card flex items-start justify-between gap-3 rounded-[12px] border border-[var(--app-border)]/55 px-4 py-4">
               <div className="min-w-0">
                 <div className="app-text-strong">SAMEpage Tailor OS</div>
                 <div className="app-text-overline mt-1">Touch workspace</div>
@@ -122,14 +122,14 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
               <button
                 type="button"
                 onClick={() => setMobileNavOpen(false)}
-                className="inline-flex h-9 w-9 items-center justify-center rounded-[12px] border border-[var(--app-border)] bg-[var(--app-surface)] text-[var(--app-text-muted)]"
+                className="app-shell-close inline-flex h-9 w-9 items-center justify-center rounded-[12px] border text-[var(--app-text-muted)]"
                 aria-label="Close navigation"
               >
                 <X className="h-4 w-4" />
               </button>
             </div>
 
-            <div className="mt-3 flex-1 rounded-[12px] bg-[color:color-mix(in_srgb,var(--app-surface-muted)_40%,transparent)] p-2">
+            <div className="app-shell-nav mt-3 flex-1 rounded-[12px] p-2">
               <div className="app-text-overline px-2 pb-2 pt-1">All screens</div>
               <div className="space-y-1.5">
                 {navItems.map((item) => {
@@ -140,10 +140,10 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
                       key={item.key}
                       onClick={() => handleScreenChange(item.key)}
                       className={cx(
-                        "flex w-full items-center gap-3 rounded-[12px] px-3.5 py-3 text-left transition",
+                        "app-shell-nav__item flex w-full items-center gap-3 rounded-[12px] px-3.5 py-3 text-left transition",
                         getActiveNavScreen(screen) === item.key
-                          ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                          : "border border-transparent bg-transparent text-[var(--app-text-muted)] hover:border-[var(--app-border)]/55 hover:bg-[var(--app-surface)]/42 hover:text-[var(--app-text)]",
+                          ? "app-shell-nav__item--active"
+                          : "app-shell-nav__item--idle",
                       )}
                     >
                       <Icon className="h-4 w-4 shrink-0" />
@@ -164,12 +164,12 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
 
       <div className="app-shell-grid">
         <aside className="app-sidebar h-full min-h-0 flex-col rounded-[14px] border border-[var(--app-border)]/70 p-3">
-          <div className="rounded-[12px] border border-[var(--app-border)]/55 bg-[color:color-mix(in_srgb,var(--app-surface-muted)_72%,var(--app-surface))] px-4 py-4">
+          <div className="app-shell-brand-card rounded-[12px] border border-[var(--app-border)]/55 px-4 py-4">
             <div className="app-text-strong">SAMEpage Tailor OS</div>
             <div className="app-text-overline mt-1">Operations</div>
           </div>
 
-          <div className="mt-3 flex-1 rounded-[12px] bg-[color:color-mix(in_srgb,var(--app-surface-muted)_40%,transparent)] p-2">
+          <div className="app-shell-nav mt-3 flex-1 rounded-[12px] p-2">
             <div className="app-text-overline px-2 pb-2 pt-1">Workspace</div>
             <div className="space-y-1.5">
             {navItems.map((item) => (
@@ -181,10 +181,10 @@ export function AppShell({ themePreference, onThemeChange, screen, onScreenChang
                     key={item.key}
                     onClick={() => handleScreenChange(item.key)}
                     className={cx(
-                      "flex w-full items-center gap-3 rounded-[12px] px-3.5 py-3 text-left transition",
+                      "app-shell-nav__item flex w-full items-center gap-3 rounded-[12px] px-3.5 py-3 text-left transition",
                       getActiveNavScreen(screen) === item.key
-                        ? "border border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[var(--app-shadow-sm)]"
-                        : "border border-transparent bg-transparent text-[var(--app-text-muted)] hover:border-[var(--app-border)]/55 hover:bg-[var(--app-surface)]/42 hover:text-[var(--app-text)]",
+                        ? "app-shell-nav__item--active"
+                        : "app-shell-nav__item--idle",
                     )}
                   >
                     <Icon className="h-4 w-4 shrink-0" />

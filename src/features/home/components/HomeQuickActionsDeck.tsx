@@ -20,8 +20,15 @@ type HomeQuickActionsDeckProps = {
 
 export function HomeQuickActionsDeck({ actions, className = "" }: HomeQuickActionsDeckProps) {
   return (
-    <div className={cx("px-4 py-4", className)}>
-      <div className="flex gap-2.5 overflow-x-auto pb-1 app-no-scrollbar md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
+    <div className={cx("app-home-quick-actions px-4 py-4", className)}>
+      <div className="app-home-quick-actions__header mb-3 flex items-end justify-between gap-4">
+        <div>
+          <div className="app-text-overline">Start work</div>
+          <div className="app-text-strong mt-1">Common actions</div>
+        </div>
+        <div className="app-text-caption">Built for standing, moving, and checking out quickly.</div>
+      </div>
+      <div className="app-home-quick-actions__grid flex gap-2.5 overflow-x-auto pb-1 app-no-scrollbar md:grid md:grid-cols-4 md:overflow-visible md:pb-0">
         {actions.map((action) => (
           <QuickActionTile
             key={action.label}

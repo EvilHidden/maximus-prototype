@@ -64,7 +64,7 @@ export function OpenOrdersBody({
       {activeView === "all" ? (
         allOrdersTab === "active" ? (
           baseOpenOrders.length === 0 ? (
-            <div className="app-work-surface">
+            <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--all">
               <OrdersSectionHeader
                 icon={ClipboardList}
                 title="All active orders"
@@ -78,7 +78,7 @@ export function OpenOrdersBody({
               </div>
             </div>
           ) : (
-            <div className="app-work-surface">
+            <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--all">
               <OrdersSectionHeader
                 icon={ClipboardList}
                 title="All active orders"
@@ -113,7 +113,7 @@ export function OpenOrdersBody({
         filteredReadyOrders.length === 0 ? (
           <EmptyState>No ready orders match this search and filter set.</EmptyState>
         ) : (
-          <div className="app-work-surface">
+          <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--ready">
             <OrdersSectionHeader
               icon={ClipboardList}
               title="Ready"
@@ -158,7 +158,7 @@ export function OpenOrdersBody({
 
       {activeView === "factory" ? (
         filteredFactoryOrders.length === 0 ? (
-          <div className="app-work-surface">
+          <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--factory">
               <OrdersSectionHeader
                 icon={PackageSearch}
                 title="Custom garments"
@@ -172,7 +172,7 @@ export function OpenOrdersBody({
             </div>
           </div>
         ) : (
-          <div className="app-work-surface">
+          <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--factory">
               <OrdersSectionHeader
                 icon={PackageSearch}
                 title="Custom garments"

@@ -53,7 +53,7 @@ export function AppointmentsRegistry({
   return appointments.length === 0 ? (
     <EmptyState>No appointments match this search and filter set.</EmptyState>
   ) : (
-    <Surface tone="work" className="overflow-hidden">
+    <Surface tone="work" className="overflow-hidden app-console-board app-appointments-workboard">
       <div className="app-table-head grid gap-4 px-4 py-2.5 text-[11px] uppercase tracking-[0.12em] md:grid-cols-[144px_minmax(0,1.35fr)_108px_144px_120px_164px]">
         <div>Date and time</div>
         <div>Customer</div>

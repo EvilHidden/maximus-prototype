@@ -159,7 +159,7 @@ export function QueueSection({
 
   if (!count) {
     return (
-      <div className="app-work-surface">
+      <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--queue">
         <div className="min-h-[4.5rem] px-4 py-4">
           <OpenOrdersPanelHeader
             icon={PackageSearch}
@@ -181,7 +181,7 @@ export function QueueSection({
   }
 
   return (
-    <div className="app-work-surface">
+    <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--queue">
       <div className="min-h-[4.5rem] px-4 py-4">
         <OpenOrdersPanelHeader
           icon={PackageSearch}

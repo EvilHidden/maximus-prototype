@@ -142,36 +142,43 @@ export function CustomerScreen({
   );
 
   return (
-    <div className="relative space-y-4">
-      <div className="space-y-4">
+    <div className="relative space-y-4 app-customer-screen">
+      <div className="space-y-4 app-customer-screen__stack">
         <SectionHeader
           icon={Users}
           title="Customers"
           subtitle="Find people and open their profiles"
         />
 
-        <Surface tone="control" className="p-4">
-          <div className="flex flex-wrap items-end gap-3">
-            <SearchField
-              label="Search customers"
-              value={query}
-              onChange={setQuery}
-              placeholder="Search by name, phone, customer ID, or notes"
-              icon={Search}
-              className="min-w-0 basis-full min-[1000px]:min-w-[320px] min-[1000px]:flex-1"
-            />
-            <ActionButton
-              tone="primary"
-              className="min-h-[3.625rem] w-full px-4 py-2.5 text-sm md:w-auto"
-              onClick={() => setEditorMode("add")}
-            >
-              <Plus className="h-4 w-4" />
-              Add customer
-            </ActionButton>
+        <Surface tone="control" className="p-4 app-console-deck app-customer-screen__controls">
+          <div className="space-y-3">
+            <div className="app-console-intro app-customer-screen__controls-intro">
+              <div className="app-text-overline">Clienteling board</div>
+              <div className="app-text-strong mt-1">Search fast, open a profile, and move straight into action.</div>
+            </div>
+
+            <div className="flex flex-wrap items-end gap-3">
+              <SearchField
+                label="Search customers"
+                value={query}
+                onChange={setQuery}
+                placeholder="Search by name, phone, customer ID, or notes"
+                icon={Search}
+                className="min-w-0 basis-full min-[1000px]:min-w-[320px] min-[1000px]:flex-1"
+              />
+              <ActionButton
+                tone="primary"
+                className="min-h-[3.625rem] w-full px-4 py-2.5 text-sm md:w-auto"
+                onClick={() => setEditorMode("add")}
+              >
+                <Plus className="h-4 w-4" />
+                Add customer
+              </ActionButton>
+            </div>
           </div>
         </Surface>
 
-        <div className="border-t border-[var(--app-border)]/55 pt-4">
+        <div className="border-t border-[var(--app-border)]/55 pt-4 app-customer-screen__directory-shell">
           <div className="flex items-center justify-between gap-3">
             <div>
               <div className="app-text-value">All customers</div>
@@ -180,7 +187,7 @@ export function CustomerScreen({
             <div className="app-text-overline">{filteredCustomers.length} customers</div>
           </div>
 
-          <div className="app-table-shell mt-4 overflow-hidden rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
+          <div className="app-table-shell app-console-board app-customer-workboard mt-4 overflow-hidden rounded-[var(--app-radius-md)] border-[var(--app-border)]/55 shadow-[var(--app-shadow-sm)]">
             <div className="app-table-head app-customer-directory-head">
               <div className="app-text-overline">Customer</div>
               <div className="app-text-overline">Measurements</div>

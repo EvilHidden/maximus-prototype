@@ -582,7 +582,7 @@ export function OrderDetailsScreen({
       />
 
       <div className="app-page-with-support-rail app-review-layout">
-        <Surface tone="work" className="overflow-hidden app-order-details-screen__main">
+        <Surface tone="work" className="overflow-hidden app-console-board app-order-details-screen__main app-order-details-console">
           <div className="px-3.5 py-3 md:px-4 md:py-4 app-order-details-screen__hero-shell">
             <div className="app-detail-hero app-order-details-screen__hero">
               <div className="min-w-0">
@@ -676,7 +676,7 @@ export function OrderDetailsScreen({
                     <div
                       key={group.key}
                       className={cx(
-                        "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-3.5 py-2.5 md:px-4 md:py-3 app-order-details-scope",
+                        "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-3.5 py-2.5 md:px-4 md:py-3 app-order-details-scope app-order-details-scope--draft",
                         index > 0 && "mt-3",
                       )}
                     >
@@ -797,7 +797,7 @@ export function OrderDetailsScreen({
                       <div
                         key={group.key}
                         className={cx(
-                          "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-3.5 py-2.5 md:px-4 md:py-3 app-order-details-scope",
+                          "rounded-[var(--app-radius-md)] border border-[var(--app-border)]/60 bg-[var(--app-surface-muted)] px-3.5 py-2.5 md:px-4 md:py-3 app-order-details-scope app-order-details-scope--live",
                           index > 0 && "mt-3",
                         )}
                       >

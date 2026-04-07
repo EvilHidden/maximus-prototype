@@ -147,7 +147,7 @@ export function AppointmentsScreen({
   );
 
   return (
-    <div className="space-y-3.5">
+    <div className="space-y-3.5 app-appointments-screen">
       <SectionHeader
         icon={CalendarDays}
         title="Appointments"
@@ -167,8 +167,15 @@ export function AppointmentsScreen({
         }
       />
 
-      <div className="hidden app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5 md:block">
+      <div className="hidden app-control-deck app-console-deck app-appointments-screen__controls px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5 md:block">
         <div className="flex flex-wrap items-center gap-3">
+          <div className="app-console-intro app-appointments-screen__controls-intro">
+            <div className="app-text-overline">Scheduling board</div>
+            <div className="app-text-strong mt-1">Switch between calendar planning and active visit follow-through.</div>
+          </div>
+
+          <div className="h-6 w-px bg-[var(--app-border)]/35" />
+
           <div className="flex flex-wrap items-center gap-2">
             <SelectionChip
               selected={viewMode === "calendar"}
@@ -197,7 +204,7 @@ export function AppointmentsScreen({
         </div>
       </div>
 
-      <div className="app-control-deck px-4 py-3 md:hidden">
+      <div className="app-control-deck app-console-deck app-appointments-screen__mobile-controls px-4 py-3 md:hidden">
         <div className="space-y-2.5">
           <div className="app-text-overline px-0.5 text-[var(--app-text-soft)]/62">Filter locations</div>
           <div className="-mx-1 overflow-x-auto px-1 py-1 app-no-scrollbar">
@@ -207,7 +214,7 @@ export function AppointmentsScreen({
       </div>
 
       {viewMode === "list" ? (
-        <div className="hidden app-control-deck px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5 md:block">
+        <div className="hidden app-control-deck app-console-deck app-appointments-screen__filters px-4 py-3 min-[1000px]:px-3.5 min-[1000px]:py-2.5 md:block">
           <div className="pt-1">
             <div className="flex flex-wrap items-end gap-3">
               <SearchField

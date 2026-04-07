@@ -124,7 +124,7 @@ export function AppointmentsScheduleList({
     <Surface
       tone={tone}
       as="aside"
-      className={cx("app-appointments-schedule-rail app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}
+      className={cx("app-appointments-schedule-rail app-console-support-board app-appointments-support-board app-support-rail-fixed flex h-full w-full flex-col p-4 md:p-3.5 min-[1000px]:p-3", className)}
     >
       {content}
     </Surface>

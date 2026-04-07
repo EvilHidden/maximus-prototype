@@ -167,7 +167,7 @@ export function CustomerProfileDrawer({
   return (
     <div className="fixed inset-0 z-40">
       <div className="app-modal-scrim absolute inset-0" onClick={onClose} />
-      <div className="app-customer-rail absolute right-0 top-0 flex h-full w-full max-w-[30rem] flex-col border-l border-[var(--app-border)]/70 shadow-[var(--app-shadow-lg)]">
+      <div className="app-customer-rail app-customer-rail--console absolute right-0 top-0 flex h-full w-full max-w-[30rem] flex-col border-l border-[var(--app-border)]/70 shadow-[var(--app-shadow-lg)]">
       <div className="app-customer-rail__scroll flex-1 overflow-auto p-3.5">
           <div className="space-y-3">
             <div className="app-customer-rail__topbar">

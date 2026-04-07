@@ -77,7 +77,7 @@ export function AppointmentsMonthGrid({
   const dayCells = getMonthDays(anchorDate);
 
   return (
-    <Surface tone="work" className={compactShell ? "app-appointments-calendar-surface p-3.5" : "app-appointments-calendar-surface p-3.5 min-[1000px]:p-3"}>
+    <Surface tone="work" className={compactShell ? "app-appointments-calendar-surface app-console-board app-appointments-workboard p-3.5" : "app-appointments-calendar-surface app-console-board app-appointments-workboard p-3.5 min-[1000px]:p-3"}>
       <div
         className={
           compactShell

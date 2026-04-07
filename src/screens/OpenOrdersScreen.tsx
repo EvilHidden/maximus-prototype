@@ -47,8 +47,8 @@ export function OpenOrdersScreen({
   } = useOpenOrdersView(openOrders, closedOrderHistory);
 
   return (
-    <div className="space-y-4">
-      <div className="space-y-5">
+    <div className="space-y-4 app-open-orders-screen">
+      <div className="space-y-5 app-open-orders-screen__stack">
         <OpenOrdersHeader subtitle={activeSubtitle} onStartNewOrder={onStartNewOrder} />
 
         <OpenOrdersInfoBar stageCounts={operatorQueueCounts} onShowAlterationsView={() => setActiveView("operator")} />

@@ -61,7 +61,7 @@ export function OperatorQueueSummary({
   };
 
   return (
-    <div className="overflow-hidden rounded-[calc(var(--app-radius-md)+0.125rem)] border border-[var(--app-border)]/50 bg-[rgba(246,242,234,0.75)] shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_28px_rgba(15,23,42,0.04)]">
+    <div className="app-orders-stage-summary overflow-hidden rounded-[calc(var(--app-radius-md)+0.125rem)] border border-[var(--app-border)]/50 bg-[rgba(246,242,234,0.75)] shadow-[0_1px_0_rgba(15,23,42,0.03),0_12px_28px_rgba(15,23,42,0.04)]">
       <div
         className="grid gap-px sm:gap-0"
         style={{ gridTemplateColumns: `repeat(${stageMeta.length}, minmax(0, 1fr))` }}
@@ -394,7 +394,7 @@ function OperatorQueueStageSection({
   }
 
   return (
-    <div id={`operator-queue-${stageKey}`} className="app-work-surface scroll-mt-6">
+    <div id={`operator-queue-${stageKey}`} className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--operator scroll-mt-6">
       <div className="px-4 py-4">
         <OpenOrdersPanelHeader
           icon={ClipboardList}
@@ -444,7 +444,7 @@ export function OperatorQueuePanel({
   });
   if (!sortedOrders.length) {
     return (
-      <div className="app-work-surface">
+      <div className="app-work-surface app-console-board app-orders-workboard app-orders-workboard--operator">
         <div className="px-4 py-4">
           <OpenOrdersPanelHeader
             icon={UserRoundCheck}
