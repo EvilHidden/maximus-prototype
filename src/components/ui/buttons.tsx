@@ -95,11 +95,9 @@ export function SelectionChip({
     <button
       onClick={onClick}
       className={cx(
-        "inline-flex items-center gap-2 border transition",
+        "app-selection-chip inline-flex items-center gap-2 border transition",
         sizeClassName,
-        selected
-          ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] text-[var(--app-text)] shadow-[inset_0_0_0_1px_var(--app-border-strong)]"
-          : "border-[var(--app-border)] bg-transparent text-[var(--app-text-muted)] hover:text-[var(--app-text)]",
+        selected ? "app-selection-chip--active" : "app-selection-chip--idle",
         className,
       )}
     >

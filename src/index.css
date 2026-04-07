@@ -511,6 +511,10 @@ textarea:focus-visible {
     min-width: 0;
   }
 
+  .app-custom-measurements-card__panel {
+    padding: 0.9rem 0.85rem;
+  }
+
 }
 
 .app-home-schedule-row__time {
@@ -1365,26 +1369,140 @@ textarea:focus-visible {
 }
 
 .app-order-builder-workspace__footer {
-  border-top: 1px solid color-mix(in srgb, var(--app-border-strong) 24%, var(--app-border));
-  background: color-mix(in srgb, var(--app-surface-muted) 42%, var(--app-surface));
+  border: 1px solid color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 26%, var(--app-surface));
+  border-radius: var(--app-radius-md);
   padding: 1rem;
 }
 
+.app-order-builder-editor {
+  display: grid;
+  gap: 1.25rem;
+}
+
+.app-order-builder-editor__section {
+  min-width: 0;
+  border: 1px solid color-mix(in srgb, var(--app-border) 68%, transparent);
+  border-radius: var(--app-radius-md);
+  background: color-mix(in srgb, var(--app-surface-muted) 18%, var(--app-surface));
+  box-shadow: none;
+  padding: 0.95rem 1rem;
+}
+
+.app-order-builder-editor__section + .app-order-builder-editor__section {
+  border-top: 1px solid color-mix(in srgb, var(--app-border-strong) 22%, transparent);
+  padding-top: 0.95rem;
+}
+
 .app-order-builder-selector {
+  position: relative;
+  overflow: hidden;
   border-color: color-mix(in srgb, var(--app-border) 74%, transparent);
-  background: color-mix(in srgb, var(--app-surface-muted) 58%, var(--app-surface));
+  background: color-mix(in srgb, var(--app-surface-muted) 52%, var(--app-surface));
+  box-shadow: none;
+  transition:
+    border-color 160ms ease,
+    background-color 160ms ease,
+    color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
 }
 
 .app-order-builder-selector__active-label {
-  color: var(--app-text-soft);
+  color: color-mix(in srgb, var(--app-accent) 82%, var(--app-text));
   font-size: 0.72rem;
-  font-weight: 650;
-  letter-spacing: 0.02em;
+  font-weight: 700;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
 }
 
 .app-order-builder-selector__option {
   min-height: 4rem;
+}
+
+.app-order-builder-selector::before,
+.app-selection-chip::before,
+.app-alteration-builder__service-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0.22rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--app-accent) 42%, transparent);
+  opacity: 0;
+  transition: opacity 160ms ease, background-color 160ms ease;
+}
+
+.app-order-builder-selector:hover,
+.app-selection-chip:hover {
+  border-color: color-mix(in srgb, var(--app-border-strong) 78%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 72%, var(--app-surface));
+  transform: translateY(-1px);
+}
+
+.app-order-builder-selector--idle {
+  border-color: color-mix(in srgb, var(--app-border) 74%, transparent);
+  background:
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, white 18%, var(--app-surface)) 0%,
+      color-mix(in srgb, var(--app-surface-muted) 54%, var(--app-surface)) 100%
+    );
+  color: color-mix(in srgb, var(--app-text) 78%, var(--app-text-muted));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, white 12%, transparent),
+    0 1px 0 color-mix(in srgb, white 14%, transparent);
+}
+
+.app-order-builder-selector--active {
+  border-color: color-mix(in srgb, var(--app-accent) 56%, var(--app-border-strong));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--app-accent) 10%, var(--app-surface)) 0%,
+      color-mix(in srgb, var(--app-surface-muted) 78%, var(--app-surface)) 100%
+    );
+  color: var(--app-text);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, white 22%, transparent),
+    0 8px 16px -14px color-mix(in srgb, var(--app-accent) 48%, transparent);
+}
+
+.app-order-builder-selector--active::before,
+.app-selection-chip--active::before,
+.app-alteration-builder__service-card--active::before {
+  opacity: 1;
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--app-accent) 92%, white 8%),
+    color-mix(in srgb, var(--app-accent) 56%, transparent)
+  );
+}
+
+.app-selection-chip {
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.app-selection-chip--idle {
+  border-color: color-mix(in srgb, var(--app-border) 76%, transparent);
+  background: color-mix(in srgb, var(--app-surface-muted) 24%, var(--app-surface));
+  color: var(--app-text-muted);
+}
+
+.app-selection-chip--active {
+  border-color: color-mix(in srgb, var(--app-accent) 64%, var(--app-border-strong));
+  background:
+    linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--app-accent) 11%, var(--app-surface)) 0%,
+      color-mix(in srgb, var(--app-surface-muted) 82%, var(--app-surface)) 100%
+    );
+  color: var(--app-text);
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, white 20%, transparent),
+    0 6px 12px -12px color-mix(in srgb, var(--app-accent) 40%, transparent);
 }
 
 .app-order-bag {
@@ -2986,11 +3104,12 @@ textarea:focus-visible {
   }
 
   .app-custom-builder__gender-section {
-    padding-bottom: 0.85rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid color-mix(in srgb, var(--app-border-strong) 22%, transparent);
   }
 
   .app-custom-builder__stage {
-    padding: 0.9rem 0.85rem;
+    padding: 0;
   }
 
   .app-custom-builder__gender-grid {
@@ -3011,7 +3130,8 @@ textarea:focus-visible {
   }
 
   .app-custom-builder__garment-section {
-    margin-top: 0.65rem;
+    margin-top: 0;
+    padding-top: 0;
   }
 
   .app-custom-builder__garment-grid {
@@ -3020,18 +3140,30 @@ textarea:focus-visible {
 
   .app-custom-builder__garment-option {
     min-height: 2.8rem;
-    border-color: color-mix(in srgb, var(--app-border) 78%, transparent);
-    background: color-mix(in srgb, var(--app-surface) 96%, var(--app-surface-muted));
+    border-color: color-mix(in srgb, var(--app-border) 72%, transparent);
+    background:
+      linear-gradient(
+        180deg,
+        color-mix(in srgb, white 20%, var(--app-surface)) 0%,
+        color-mix(in srgb, var(--app-surface-muted) 60%, var(--app-surface)) 100%
+      );
     padding: 0.7rem 0.9rem;
-    box-shadow: var(--app-shadow-xs);
+    box-shadow:
+      inset 0 0 0 1px color-mix(in srgb, white 10%, transparent),
+      0 1px 0 color-mix(in srgb, white 12%, transparent);
   }
 
   .app-custom-builder__garment-option--active {
     border-color: color-mix(in srgb, var(--app-accent) 56%, var(--app-border-strong));
-    background: color-mix(in srgb, var(--app-accent) 10%, var(--app-surface));
+    background:
+      linear-gradient(
+        135deg,
+        color-mix(in srgb, var(--app-accent) 12%, var(--app-surface)) 0%,
+        color-mix(in srgb, var(--app-surface-muted) 78%, var(--app-surface)) 100%
+      );
     box-shadow:
-      inset 0 0 0 1px color-mix(in srgb, white 30%, transparent),
-      var(--app-shadow-sm);
+      inset 0 0 0 1px color-mix(in srgb, white 24%, transparent),
+      0 8px 16px -14px color-mix(in srgb, var(--app-accent) 44%, transparent);
   }
 
   .app-custom-builder__build-stack {
@@ -3043,11 +3175,13 @@ textarea:focus-visible {
   }
 
   .app-custom-builder__material-card {
-    padding: 0.75rem;
+    gap: 0.55rem;
   }
 
-  .app-custom-builder__material-card .app-input {
-    min-height: 2.7rem;
+  .app-alteration-builder__garments,
+  .app-alteration-builder__services,
+  .app-custom-measurements-card__panel {
+    padding: 0.9rem 0.85rem;
   }
 
   .app-custom-builder__material-meta {
@@ -3151,6 +3285,42 @@ textarea:focus-visible {
   position: relative;
 }
 
+.app-alteration-builder__service-card {
+  position: relative;
+  overflow: hidden;
+  box-shadow: none;
+}
+
+.app-alteration-builder__service-card--idle {
+  border-color: color-mix(in srgb, var(--app-border) 56%, transparent);
+  background: color-mix(in srgb, var(--app-surface) 88%, var(--app-surface-muted));
+}
+
+.app-alteration-builder__service-card--active {
+  border-color: color-mix(in srgb, var(--app-accent) 48%, var(--app-border-strong));
+  background:
+    linear-gradient(
+      145deg,
+      color-mix(in srgb, var(--app-accent) 8%, var(--app-surface)) 0%,
+      color-mix(in srgb, var(--app-surface-muted) 66%, var(--app-surface)) 100%
+    );
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, white 18%, transparent),
+    0 10px 18px -18px color-mix(in srgb, var(--app-accent) 42%, transparent);
+}
+
+[data-theme="dark"] .app-order-builder-selector--idle {
+  background: color-mix(in srgb, var(--app-surface-muted) 42%, var(--app-surface));
+  color: var(--app-text-muted);
+  box-shadow: none;
+}
+
+[data-theme="dark"] .app-custom-builder__garment-option {
+  border-color: color-mix(in srgb, var(--app-border) 72%, transparent);
+  background: color-mix(in srgb, var(--app-surface) 92%, var(--app-surface-muted));
+  box-shadow: none;
+}
+
 .app-custom-builder__material-input-shell {
   position: relative;
 }
@@ -3171,6 +3341,10 @@ textarea:focus-visible {
   font-weight: 500;
   letter-spacing: 0;
   font-variant-numeric: tabular-nums;
+}
+
+.app-custom-builder__material-card .app-input {
+  min-height: 2.7rem;
 }
 
 .app-custom-builder__material-suggestions {
