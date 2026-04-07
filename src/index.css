@@ -606,6 +606,10 @@ textarea:focus-visible {
   min-width: 0;
 }
 
+.app-order-details-screen {
+  --app-order-details-summary-column-width: 8rem;
+}
+
 .app-detail-hero {
   display: grid;
   gap: 1rem;
@@ -1494,21 +1498,41 @@ textarea:focus-visible {
     padding: 0.15rem 0 0;
   }
 
-  .app-order-details-screen__hero {
+  .app-order-details-screen__hero.app-detail-hero {
+    display: grid;
     gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) var(--app-order-details-summary-column-width);
+    align-items: end;
+    margin-inline: 1.0625rem;
   }
 
   .app-order-details-screen__hero-meta {
-    justify-items: end;
+    width: var(--app-order-details-summary-column-width);
+    justify-items: stretch;
+    text-align: right;
+  }
+
+  .app-order-details-screen__hero-topline {
+    width: 100%;
+    justify-content: flex-end;
+    justify-self: stretch;
   }
 
   .app-order-details-screen__hero-amount {
     font-size: 1.9rem;
+    width: 100%;
+    text-align: right;
+    justify-self: stretch;
   }
 
   .app-order-details-scope__header {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
+  }
+
+  .app-order-details-scope__total {
+    width: var(--app-order-details-summary-column-width);
+    justify-self: end;
   }
 
   .app-measurements-layout {
@@ -1753,6 +1777,32 @@ textarea:focus-visible {
     text-align: right;
   }
 
+  .app-order-details-screen__hero.app-detail-hero {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: minmax(0, 1fr) var(--app-order-details-summary-column-width);
+    align-items: end;
+  }
+
+  .app-order-details-screen__hero-meta {
+    width: var(--app-order-details-summary-column-width);
+    justify-items: stretch;
+    text-align: right;
+  }
+
+  .app-order-details-screen__hero-topline {
+    width: 100%;
+    justify-content: flex-end;
+    justify-self: stretch;
+  }
+
+  .app-order-details-screen__hero-amount {
+    font-size: 1.9rem;
+    width: 100%;
+    text-align: right;
+    justify-self: stretch;
+  }
+
   .app-order-details-overview {
     grid-template-columns: minmax(0, 1.25fr) minmax(16rem, 0.75fr);
     gap: 1rem;
@@ -1762,6 +1812,11 @@ textarea:focus-visible {
     grid-template-columns: minmax(0, 1fr) auto;
     align-items: start;
     gap: 1rem;
+  }
+
+  .app-order-details-scope__total {
+    width: var(--app-order-details-summary-column-width);
+    justify-self: end;
   }
 
   .app-measurements-workspace__editor {

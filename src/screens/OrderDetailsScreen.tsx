@@ -13,7 +13,7 @@ import type {
   WorkflowMode,
 } from "../types";
 import type { AppReferenceData } from "../db";
-import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, SurfaceHeader, cx } from "../components/ui/primitives";
+import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill, Surface, cx } from "../components/ui/primitives";
 import {
   formatPickupSchedule,
   getAlterationPickup,
@@ -528,11 +528,13 @@ export function OrderDetailsScreen({
     : 3;
   const timeline = detailOrder?.timeline ?? [];
   const headerSubtitle = detailOrder
-    ? [
-        getOpenOrderTypeLabel(detailOrder.orderType),
-        `Created ${getOrderHeaderTimestamp(detailOrder.createdAt)}`,
-        isClosedDetail && closedOrder?.closedAt ? `Closed ${getOrderHeaderTimestamp(closedOrder.closedAt)}` : null,
-      ].filter(Boolean).join(" • ")
+    ? (
+      <div className="space-y-0.5">
+        <div>{getOpenOrderTypeLabel(detailOrder.orderType)}</div>
+        <div>{`Created ${getOrderHeaderTimestamp(detailOrder.createdAt)}`}</div>
+        {isClosedDetail && closedOrder?.closedAt ? <div>{`Closed ${getOrderHeaderTimestamp(closedOrder.closedAt)}`}</div> : null}
+      </div>
+    )
     : [draftOrderType ? getOpenOrderTypeLabel(draftOrderType) : "Draft order", "Not yet saved"].join(" • ");
   const orderStatusPill = isDraftDetail
     ? null
@@ -582,40 +584,39 @@ export function OrderDetailsScreen({
       <div className="app-page-with-support-rail app-review-layout">
         <Surface tone="work" className="overflow-hidden app-order-details-screen__main">
           <div className="px-3.5 py-3 md:px-4 md:py-4 app-order-details-screen__hero-shell">
-            <SurfaceHeader
-              className="app-detail-hero app-order-details-screen__hero"
-              title={headerTitle}
-              subtitle={headerSubtitle}
-              meta={(
-                <div className="app-detail-hero__meta app-order-details-screen__hero-meta text-left md:text-right">
-                  <div className="app-order-details-screen__hero-topline">
-                    <div className="app-text-overline">
-                      {isClosedDetail
-                        ? closedOrder!.status
-                        : isDraftDetail
-                          ? draftShouldCollectNow
-                            ? "Due today"
-                            : "No payment due"
-                          : hasReadyScopesToPickup && dueNow > 0
-                            ? "Due today"
-                            : detailOrder!.balanceDue <= 0
-                              ? "No balance due"
-                              : dueNow <= 0 && detailOrder!.balanceDue > 0
-                                ? "Open balance"
-                                : "Balance due"}
-                    </div>
-                    {!isDraftDetail ? <div className="app-hide-at-desktop">{orderStatusPill}</div> : null}
+            <div className="app-detail-hero app-order-details-screen__hero">
+              <div className="min-w-0">
+                <div className="app-section-title">{headerTitle}</div>
+                {headerSubtitle ? <div className="mt-1 app-text-caption">{headerSubtitle}</div> : null}
+              </div>
+              <div className="app-detail-hero__meta app-order-details-screen__hero-meta text-left md:text-right">
+                <div className="app-order-details-screen__hero-topline">
+                  <div className="app-text-overline">
+                    {isClosedDetail
+                      ? closedOrder!.status
+                      : isDraftDetail
+                        ? draftShouldCollectNow
+                          ? "Due today"
+                          : "No payment due"
+                        : hasReadyScopesToPickup && dueNow > 0
+                          ? "Due today"
+                          : detailOrder!.balanceDue <= 0
+                            ? "No balance due"
+                            : dueNow <= 0 && detailOrder!.balanceDue > 0
+                              ? "Open balance"
+                              : "Balance due"}
                   </div>
-                  <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)] app-order-details-screen__hero-amount">
-                    {isDraftDetail
-                      ? (draftShouldCollectNow ? formatCheckoutCurrency(displayAmountNow) : "None due")
-                      : displayAmountNow > 0
-                        ? formatCheckoutCurrency(displayAmountNow)
-                        : "Paid"}
-                  </div>
+                  {!isDraftDetail ? <div className="app-hide-at-desktop">{orderStatusPill}</div> : null}
                 </div>
-              )}
-            />
+                <div className="mt-1 text-[1.9rem] font-semibold leading-none tracking-[-0.025em] [font-variant-numeric:tabular-nums] text-[var(--app-text)] app-order-details-screen__hero-amount">
+                  {isDraftDetail
+                    ? (draftShouldCollectNow ? formatCheckoutCurrency(displayAmountNow) : "None due")
+                    : displayAmountNow > 0
+                      ? formatCheckoutCurrency(displayAmountNow)
+                      : "Paid"}
+                </div>
+              </div>
+            </div>
           </div>
 
           {!isDraftDetail && !isClosedDetail && showAcceptedConfirmation ? (
