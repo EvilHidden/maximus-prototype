@@ -1,5 +1,5 @@
 import { Ruler, TriangleAlert } from "lucide-react";
-import { ActionButton, Callout, EmptyState, StatusPill } from "../../../components/ui/primitives";
+import { ActionButton, Callout, EmptyState, SectionHeader, StatusPill } from "../../../components/ui/primitives";
 import { MeasurementVersionPill } from "../../../components/ui/pills";
 import type { CustomMeasurementsCardModel } from "../../measurements/types";
 
@@ -89,15 +89,7 @@ export function MeasurementsCard({
 
   return (
     <section className="app-custom-measurements-card">
-      <div className="app-custom-measurements-card__head mb-3 flex items-start gap-3">
-        <div className="app-icon-chip">
-          <Ruler className="h-4 w-4" />
-        </div>
-        <div>
-          <div className="app-kicker text-[var(--app-text-muted)]">Measurements</div>
-          <div className="app-text-body-muted mt-1">Wearer and linked set</div>
-        </div>
-      </div>
+      <SectionHeader icon={Ruler} title="Measurements" subtitle="Wearer and linked set" />
 
       {showValidationBanner ? (
         <Callout
@@ -128,12 +120,12 @@ export function MeasurementsCard({
           </div>
         </>
       ) : model.kind === "linked" ? (
-        <div className="app-custom-measurements-card__panel divide-y divide-[var(--app-border-strong)]/55 rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)]/70 bg-[var(--app-surface-muted)]/28 px-4">
+        <div className="app-order-builder-editor__section app-custom-measurements-card__panel divide-y divide-[var(--app-border-strong)]/24">
           <div className="app-custom-measurements-card__section py-4">{wearerBlock}</div>
           <div className="app-custom-measurements-card__section py-4">{linkedSetBlock}</div>
         </div>
       ) : (
-        <div className="app-custom-measurements-card__panel divide-y divide-[var(--app-border-strong)]/55 rounded-[var(--app-radius-md)] border border-[var(--app-border-strong)]/70 bg-[var(--app-surface-muted)]/28 px-4">
+        <div className="app-order-builder-editor__section app-custom-measurements-card__panel divide-y divide-[var(--app-border-strong)]/24">
           <div className="app-custom-measurements-card__section py-4">{wearerBlock}</div>
           {showValidation && missingMeasurementSet ? (
             <div className="app-custom-measurements-card__section py-4">

@@ -1,7 +1,7 @@
 import { Scissors, TriangleAlert } from "lucide-react";
 import { useState } from "react";
 import type { AlterationServiceDefinition, AlterationServiceSelection } from "../../../types";
-import { ActionButton, Callout, FieldLabel, InlineEmptyState, ModalShell, SelectionChip, StatusPill, cx } from "../../../components/ui/primitives";
+import { ActionButton, Callout, InlineEmptyState, ModalShell, SectionHeader, SelectionChip, StatusPill, cx } from "../../../components/ui/primitives";
 import { ModalFooterActions } from "../../../components/ui/modalPatterns";
 import { getAlterationGarmentVisual } from "../alterationGarmentVisuals";
 import {
@@ -177,16 +177,15 @@ export function AlterationBuilder({
     activeAdjustmentModifierId === null
       ? null
       : selectedModifiers.find((modifier) => modifier.id === activeAdjustmentModifierId) ?? null;
+  const sectionShellClassName = "app-order-builder-editor__section";
 
   return (
-    <div className="flex min-w-0 flex-col">
-      <div className="mb-4 flex items-start gap-3">
-        <Scissors className="mt-0.5 h-4 w-4 text-[var(--app-text-soft)]" />
-        <div>
-          <h2 className="app-section-title">{isEditing ? "Edit item" : "Alterations"}</h2>
-          <p className="app-section-copy">{isEditing ? "Update the garment and services" : "Choose the garment and services"}</p>
-        </div>
-      </div>
+    <div className="app-order-builder-editor flex min-w-0 flex-col">
+      <SectionHeader
+        icon={Scissors}
+        title={isEditing ? "Edit item" : "Alterations"}
+        subtitle={isEditing ? "Update the garment and services" : "Choose the garment and services"}
+      />
 
       {showValidationBanner ? (
         <Callout
@@ -209,15 +208,13 @@ export function AlterationBuilder({
 
       <div
         className={cx(
-          "app-alteration-builder__garments mb-4 min-w-0 rounded-[var(--app-radius-md)]",
-          showValidation && missingGarment && "border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/30 px-3 py-3",
+          sectionShellClassName,
+          "app-alteration-builder__garments mb-4 min-w-0",
+          showValidation && missingGarment && "rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/24 px-4 py-4",
         )}
       >
-        <div className="mb-2 flex min-w-0 items-end justify-between gap-3">
-          <div className="min-w-0">
-            <div className="app-text-overline">Select garment</div>
-            <div className="app-text-body-muted mt-1">Choose the garment before selecting services.</div>
-          </div>
+        <div className="mb-3 flex min-w-0 items-end justify-between gap-3">
+          <div className="app-text-overline">Garment</div>
         </div>
         <div className="flex flex-wrap gap-2">
           {garmentOptions.map((garment) => {
@@ -259,14 +256,14 @@ export function AlterationBuilder({
       {selectedGarment ? (
         <div
           className={cx(
-            "app-alteration-builder__services mb-3.5 flex min-w-0 flex-col rounded-[var(--app-radius-md)] border border-[var(--app-border)]/56 bg-[var(--app-surface-muted)]/14 p-3.5",
-            showValidation && (missingServices || missingAdjustments) && "border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/26",
+            sectionShellClassName,
+            "app-alteration-builder__services mb-3.5 flex min-w-0 flex-col",
+            showValidation && (missingServices || missingAdjustments) && "rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)] bg-[var(--app-danger-bg)]/20 px-4 py-4",
           )}
         >
-          <div className="app-alteration-builder__services-head mb-3 flex min-w-0 items-end justify-between gap-3 border-b border-[var(--app-border-strong)]/45 pb-3">
+          <div className="app-alteration-builder__services-head mb-3 flex min-w-0 items-end justify-between gap-3 border-b border-[var(--app-border-strong)]/28 pb-3">
             <div className="min-w-0">
               <div className="app-text-overline">Services</div>
-              <div className="app-text-body-muted mt-1">Available work for {selectedGarment.toLowerCase()}.</div>
             </div>
             <div className="app-text-overline shrink-0 text-[var(--app-text)]">{selectedModifiers.length} selected</div>
           </div>
@@ -279,10 +276,8 @@ export function AlterationBuilder({
                 <div
                   key={`${selectedGarment}-${service.name}`}
                   className={cx(
-                    "app-alteration-builder__service-card flex min-h-[5.8rem] min-w-0 flex-col rounded-[var(--app-radius-sm)] border px-3 pt-2.5 pb-0 transition-colors",
-                    isSelected
-                      ? "border-[var(--app-border-strong)] bg-[var(--app-surface)] shadow-[var(--app-shadow-xs)]"
-                      : "border-[var(--app-border)]/58 bg-[var(--app-surface)]/72",
+                    "app-alteration-builder__service-card flex min-h-[5.1rem] min-w-0 flex-col rounded-[var(--app-radius-sm)] border px-3 py-2.5 transition-colors",
+                    isSelected ? "app-alteration-builder__service-card--active" : "app-alteration-builder__service-card--idle",
                   )}
                 >
                   <button
@@ -307,10 +302,10 @@ export function AlterationBuilder({
                   </button>
 
                   {isSelected && service.supportsAdjustment && selectedModifier ? (
-                    <div className="mb-2 flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] bg-[var(--app-surface-muted)]/22 px-2.5 py-1.5">
+                    <div className="mb-2 flex items-center justify-between gap-2 rounded-[var(--app-radius-sm)] border border-[var(--app-border)]/36 bg-[var(--app-surface-muted)]/18 px-2.5 py-1.5">
                       <div className="min-w-0">
                         <div className="app-text-caption text-[var(--app-text)]">
-                          {selectedModifier.deltaInches === null ? "Adjustment not set yet" : formatAlterationAdjustment(selectedModifier.deltaInches)}
+                          {selectedModifier.deltaInches === null ? "Set adjustment" : formatAlterationAdjustment(selectedModifier.deltaInches)}
                         </div>
                       </div>
                       <button
@@ -331,17 +326,9 @@ export function AlterationBuilder({
                     </div>
                   ) : null}
 
-                  <div className="mt-auto grid min-w-0 h-9 grid-cols-[minmax(0,1fr)_3.15rem] items-center gap-2 border-t border-[var(--app-border)]/36 sm:grid-cols-[minmax(0,1fr)_auto]">
+                  <div className="mt-auto grid min-w-0 h-9 grid-cols-[minmax(0,1fr)_3.15rem] items-center gap-2 border-t border-[var(--app-border)]/26 pt-2 sm:grid-cols-[minmax(0,1fr)_auto]">
                     <div className="app-text-caption min-w-0 text-[var(--app-text-soft)]">
-                      {isSelected
-                        ? service.supportsAdjustment
-                          ? selectedModifier?.deltaInches !== null
-                            ? "Adjustment set"
-                            : "Adjustment needed"
-                          : "Added to item"
-                        : service.supportsAdjustment
-                          ? "Set length"
-                          : "Standard charge"}
+                      {isSelected && service.supportsAdjustment && selectedModifier?.deltaInches === null ? "Adjustment needed" : ""}
                     </div>
                     <button
                       type="button"
@@ -372,10 +359,7 @@ export function AlterationBuilder({
       <div className="app-order-builder-workspace__footer app-alteration-builder__footer mt-4 space-y-3">
         <div className="app-alteration-builder__footer-summary flex items-end gap-4">
           <div className="app-alteration-builder__footer-label min-w-[9.5rem] shrink-0">
-            <div className="app-text-body font-medium">Current item</div>
-            <div className="app-text-caption mt-1">
-              {selectedGarment && selectedModifiers.length > 0 ? "Ready to add" : "Choose the garment and services"}
-            </div>
+            <div className="app-text-body font-medium">{isEditing ? "Current item" : "Ready to add"}</div>
           </div>
           <div className="app-alteration-builder__footer-detail app-text-body-muted min-w-[14rem] flex-1 whitespace-normal break-words text-right">
             {selectedGarment ? (
