@@ -1,9 +1,9 @@
 import type { ReactNode } from "react";
-import { CheckSquare2, Square } from "lucide-react";
+import { ChevronDown, Mail, MapPin, Phone } from "lucide-react";
 import { useState } from "react";
 import type { Customer, PickupLocation } from "../../types";
 import { ActionButton, FieldLabel, ModalShell, StatusPill, cx } from "../ui/primitives";
-import { ModalFooterActions } from "../ui/modalPatterns";
+import { ModalFooterActions, ModalMetaRow, ModalPanel, ModalSectionHeading, ModalSummaryCard } from "../ui/modalPatterns";
 import { VipPill } from "../ui/pills";
 
 type CustomerEditorModalProps = {
@@ -35,18 +35,73 @@ const honorificOptions = ["", "Mr.", "Mrs.", "Ms.", "Miss", "Dr.", "Prof."];
 const suffixOptions = ["", "Jr.", "Sr.", "II", "III", "IV", "V"];
 const stateOptions = ["", "NY", "NJ", "CT"];
 const inputClassName =
-  "mt-2 w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-muted)] px-3 py-3 app-text-body";
-const selectClassName = `${inputClassName} appearance-none pr-10 bg-[right_0.9rem_center] bg-[length:0.8rem] bg-no-repeat`;
+  "app-input mt-2 min-h-12 app-text-body";
+const selectClassName = "app-select mt-2 min-h-12 app-text-body appearance-none pr-10";
 const compactSelectClassName =
-  "mt-2 w-full rounded-[var(--app-radius-md)] border border-[var(--app-border)]/85 bg-[var(--app-surface-muted)] px-3 py-2.5 text-[0.82rem] text-[var(--app-text-muted)] appearance-none pr-9 bg-[right_0.8rem_center] bg-[length:0.75rem] bg-no-repeat";
-const selectCaretStyle = {
-  backgroundImage:
-    "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20' fill='none' stroke='%237b8694' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m5 7 5 6 5-6'/%3E%3C/svg%3E\")",
-};
+  "app-select mt-2 min-h-11 px-3 py-2.5 text-[0.82rem] text-[var(--app-text-muted)] appearance-none pr-9";
 const requiredFieldLabels: Record<RequiredField, string> = {
   firstName: "first name",
   lastName: "last name",
 };
+
+function SelectChevron() {
+  return <ChevronDown className="pointer-events-none absolute right-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[var(--app-text-soft)]" />;
+}
+
+function ProfileToggleRow({
+  label,
+  detail,
+  checked,
+  onToggle,
+  compact = false,
+}: {
+  label: string;
+  detail?: string;
+  checked: boolean;
+  onToggle: () => void;
+  compact?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={cx(
+        "flex w-full items-center justify-between gap-3 text-left transition",
+        compact
+          ? "rounded-[var(--app-radius-sm)] px-0 py-0"
+          : "rounded-[var(--app-radius-md)] border px-3 py-3",
+        checked
+          ? compact
+            ? "bg-transparent"
+            : "border-[color-mix(in_srgb,var(--app-accent)_34%,var(--app-border))] bg-[color-mix(in_srgb,var(--app-accent)_7%,var(--app-surface))]"
+          : compact
+            ? "bg-transparent"
+            : "border-[var(--app-border)]/65 bg-[var(--app-surface)]",
+      )}
+      aria-pressed={checked}
+    >
+      <div className="min-w-0">
+        <div className={compact ? "app-text-body font-medium text-[var(--app-text-muted)]" : "app-text-strong"}>{label}</div>
+        {detail ? <div className="mt-1 app-text-caption">{detail}</div> : null}
+      </div>
+      <div
+        className={cx(
+          "relative h-6 w-11 shrink-0 rounded-full border transition",
+          checked
+            ? "border-[color-mix(in_srgb,var(--app-accent)_42%,transparent)] bg-[color-mix(in_srgb,var(--app-accent)_28%,var(--app-surface))]"
+            : "border-[var(--app-border)]/75 bg-[var(--app-surface-muted)]",
+        )}
+      >
+        <span
+          className={cx(
+            "absolute top-1/2 h-4.5 w-4.5 -translate-y-1/2 rounded-full shadow-sm transition",
+            checked ? "right-1 bg-[var(--app-accent)]" : "left-1 bg-[var(--app-text-soft)]/65",
+          )}
+        />
+      </div>
+    </button>
+  );
+}
 
 function formatPhoneNumber(value: string) {
   const digits = value.replace(/\D/g, "").slice(0, 10);
@@ -144,12 +199,28 @@ function formatAddress(address: AddressDraft) {
   return [street, city, [state, zip].filter(Boolean).join(" ")].join(", ");
 }
 
-function SectionBlock({ title, children }: { title: string; children: ReactNode }) {
+function SectionBlock({
+  title,
+  eyebrow,
+  description,
+  children,
+  className = "",
+}: {
+  title: string;
+  eyebrow?: string;
+  description?: string;
+  children: ReactNode;
+  className?: string;
+}) {
   return (
-    <section className="border-t border-[var(--app-border)]/35 pt-5 first:border-t-0 first:pt-0">
-      <div className="app-text-overline">{title}</div>
-      <div className="mt-3">{children}</div>
-    </section>
+    <ModalPanel tone="muted" className={cx("space-y-3 border-[var(--app-border)]/50 px-3.5 py-3.5", className)}>
+      <ModalSectionHeading
+        eyebrow={eyebrow}
+        title={title}
+        description={description}
+      />
+      <div>{children}</div>
+    </ModalPanel>
   );
 }
 
@@ -176,7 +247,9 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
     !formattedName ||
     !draft.preferredLocation;
   const showValidationSummary = isInvalid && (showValidation || missingFields.some((field) => touchedFields[field]));
-
+  const customerLabel = formattedName || (mode === "add" ? "New customer profile" : "Customer");
+  const customerEmail = draft.email.trim() || "No email on file";
+  const customerPhone = draft.phone.trim() || "No phone on file";
   const markFieldTouched = (field: RequiredField) => () =>
     setTouchedFields((current) => (current[field] ? current : { ...current, [field]: true }));
 
@@ -194,23 +267,23 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
       title={mode === "add" ? "Add customer" : "Edit customer"}
       onClose={onClose}
       showCloseButton={false}
-      widthClassName="max-w-[840px]"
+      widthClassName="max-w-[960px]"
       footer={
         <ModalFooterActions
           leading={
             showValidationSummary ? (
               <div className="app-text-caption text-[var(--app-danger-text)]">{validationMessage}</div>
             ) : (
-              <div className="app-text-caption">{mode === "add" ? "Add the basics now. You can fill in the rest later." : "Save when the customer details look right."}</div>
+              <div className="app-text-caption">{mode === "add" ? "Capture the profile basics now. You can fill in the rest later." : "Save when the customer details look right."}</div>
             )
           }
         >
-          <ActionButton tone="secondary" onClick={onClose} className="min-h-12 px-4 py-2.5 text-sm">
+          <ActionButton tone="secondary" onClick={onClose} className="min-h-12 w-full px-4 py-2.5 text-sm sm:w-auto">
             Cancel
           </ActionButton>
           <ActionButton
             tone="primary"
-            className="min-h-12 px-4 py-2.5 text-sm"
+            className="min-h-12 w-full px-4 py-2.5 text-sm sm:w-auto"
             onClick={() => {
               if (isInvalid) {
                 setShowValidation(true);
@@ -225,60 +298,77 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
         </ModalFooterActions>
       }
     >
-      <div className="space-y-5">
-        <div className="border-b border-[var(--app-border)]/35 pb-3">
-          <div className="flex items-center justify-between gap-4">
-            <div className="min-w-0">
-              {mode === "edit" ? <div className="app-text-strong">{formattedName || "Customer"}</div> : null}
+      <div className="flex flex-col gap-3.5 xl:min-h-0 xl:max-h-[calc(100vh-12.75rem)]">
+        <ModalSummaryCard
+          eyebrow={mode === "add" ? "New profile" : "Customer profile"}
+          title={customerLabel}
+          meta={(
+            <ModalMetaRow
+              items={[
+                { icon: Phone, content: customerPhone },
+                { icon: Mail, content: customerEmail },
+                { icon: MapPin, content: draft.preferredLocation || "No preferred location" },
+              ]}
+            />
+          )}
+          aside={(
+            <div className="flex flex-wrap items-center gap-2 sm:justify-end">
+              {draft.isVip ? <VipPill /> : null}
+              {showValidationSummary ? <StatusPill tone="danger">{mode === "add" ? "Missing required details" : "Complete required details"}</StatusPill> : null}
             </div>
-            {draft.isVip ? <VipPill /> : null}
-          </div>
-          {showValidationSummary ? (
-            <div className="mt-3 flex flex-wrap items-center gap-2">
-              <StatusPill tone="danger">{mode === "add" ? "Missing required details" : "Complete required details"}</StatusPill>
-              <div className="app-text-caption text-[var(--app-danger-text)]">{validationMessage}</div>
-            </div>
-          ) : null}
-        </div>
+          )}
+        />
 
-        <div className="grid gap-6 lg:grid-cols-[minmax(0,1fr)_260px]">
-          <div className="space-y-5">
-            <SectionBlock title="Customer">
-              <div className="space-y-5">
-                <div className="grid gap-4 md:grid-cols-[120px_140px]">
+        {showValidationSummary ? (
+          <div className="rounded-[var(--app-radius-md)] border border-[var(--app-danger-border)]/75 bg-[var(--app-danger-bg)]/35 px-3.5 py-2.5">
+            <div className="app-text-caption text-[var(--app-danger-text)]">{validationMessage}</div>
+          </div>
+        ) : null}
+
+        <div className="grid gap-3.5 xl:min-h-0 xl:flex-1 xl:grid-cols-[minmax(0,1fr)_248px]">
+          <div className="space-y-3.5 xl:min-h-0 xl:overflow-y-auto xl:pr-1">
+            <SectionBlock
+              title="Identity and contact"
+            >
+              <div className="space-y-3.5">
+                <div className="grid gap-3 md:grid-cols-[110px_128px]">
                   <label className="block">
                     <FieldLabel>Honorific</FieldLabel>
-                    <select
-                      value={nameDraft.honorific}
-                      onChange={(event) => setNameDraft((current) => ({ ...current, honorific: event.target.value }))}
-                      className={compactSelectClassName}
-                      style={selectCaretStyle}
-                    >
-                      {honorificOptions.map((option) => (
-                        <option key={option || "none"} value={option}>
-                          {option || "None"}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={nameDraft.honorific}
+                        onChange={(event) => setNameDraft((current) => ({ ...current, honorific: event.target.value }))}
+                        className={compactSelectClassName}
+                      >
+                        {honorificOptions.map((option) => (
+                          <option key={option || "none"} value={option}>
+                            {option || "None"}
+                          </option>
+                        ))}
+                      </select>
+                      <SelectChevron />
+                    </div>
                   </label>
                   <label className="block">
                     <FieldLabel>Suffix</FieldLabel>
-                    <select
-                      value={nameDraft.suffix}
-                      onChange={(event) => setNameDraft((current) => ({ ...current, suffix: event.target.value }))}
-                      className={compactSelectClassName}
-                      style={selectCaretStyle}
-                    >
-                      {suffixOptions.map((option) => (
-                        <option key={option || "none"} value={option}>
-                          {option || "None"}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={nameDraft.suffix}
+                        onChange={(event) => setNameDraft((current) => ({ ...current, suffix: event.target.value }))}
+                        className={compactSelectClassName}
+                      >
+                        {suffixOptions.map((option) => (
+                          <option key={option || "none"} value={option}>
+                            {option || "None"}
+                          </option>
+                        ))}
+                      </select>
+                      <SelectChevron />
+                    </div>
                   </label>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <label className="block">
                     <FieldLabel>First name</FieldLabel>
                     <input
@@ -305,7 +395,7 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                   </label>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-2">
+                <div className="grid gap-3 md:grid-cols-2">
                   <label className="block">
                     <FieldLabel>Phone</FieldLabel>
                     <input
@@ -339,9 +429,11 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
               </div>
             </SectionBlock>
 
-            <SectionBlock title="Address">
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_120px]">
+            <SectionBlock
+              title="Mailing details"
+            >
+              <div className="space-y-3">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_110px]">
                   <label className="block">
                     <FieldLabel>Street address</FieldLabel>
                     <input
@@ -364,7 +456,7 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                   </label>
                 </div>
 
-                <div className="grid gap-4 md:grid-cols-[minmax(0,1fr)_110px_140px]">
+                <div className="grid gap-3 md:grid-cols-[minmax(0,1fr)_96px_124px]">
                   <label className="block">
                     <FieldLabel>City</FieldLabel>
                     <input
@@ -377,20 +469,22 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
                   </label>
                   <label className="block">
                     <FieldLabel>State</FieldLabel>
-                    <select
-                      value={addressDraft.state}
-                      onChange={(event) => setAddressDraft((current) => ({ ...current, state: event.target.value }))}
-                      name="customer-address-state"
-                      autoComplete="address-level1"
-                      className={selectClassName}
-                      style={selectCaretStyle}
-                    >
-                      {stateOptions.map((option) => (
-                        <option key={option || "blank"} value={option}>
-                          {option || "Select"}
-                        </option>
-                      ))}
-                    </select>
+                    <div className="relative">
+                      <select
+                        value={addressDraft.state}
+                        onChange={(event) => setAddressDraft((current) => ({ ...current, state: event.target.value }))}
+                        name="customer-address-state"
+                        autoComplete="address-level1"
+                        className={selectClassName}
+                      >
+                        {stateOptions.map((option) => (
+                          <option key={option || "blank"} value={option}>
+                            {option || "Select"}
+                          </option>
+                        ))}
+                      </select>
+                      <SelectChevron />
+                    </div>
                   </label>
                   <label className="block">
                     <FieldLabel>ZIP</FieldLabel>
@@ -406,18 +500,23 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
               </div>
             </SectionBlock>
 
-            <SectionBlock title="Service notes">
+            <SectionBlock
+              title="Service notes"
+            >
               <textarea
                 value={draft.notes}
                 onChange={(event) => setDraft((current) => ({ ...current, notes: event.target.value }))}
-                rows={5}
+                rows={4}
                 className={inputClassName}
               />
             </SectionBlock>
           </div>
 
-          <div className="space-y-5 border-t border-[var(--app-border)]/35 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
-            <SectionBlock title="Profile">
+          <div className="space-y-3.5 border-t border-[var(--app-border)]/35 pt-3.5 xl:min-h-0 xl:overflow-y-auto xl:border-l xl:border-t-0 xl:pl-3.5 xl:pt-0">
+            <SectionBlock
+              eyebrow="Preferences"
+              title="Profile settings"
+            >
               <div className="space-y-4">
                 <div>
                   <FieldLabel>Preferred location</FieldLabel>
@@ -453,42 +552,23 @@ export function CustomerEditorModal({ mode, customer, onClose, onSave }: Custome
 
                 <div className="border-t border-[var(--app-border)]/30 pt-4">
                   <FieldLabel>Marketing</FieldLabel>
-                  <button
-                    onClick={() => setDraft((current) => ({ ...current, marketingOptIn: !current.marketingOptIn }))}
-                    className={cx(
-                      "mt-2 flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border px-3 py-3 text-left transition",
-                      draft.marketingOptIn
-                        ? "border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)]"
-                        : "border-[var(--app-border)]/85 bg-[var(--app-surface-muted)]/75 text-[var(--app-text-muted)]",
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      {draft.marketingOptIn ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
-                      <span className="app-text-body font-medium">Marketing opt-in</span>
-                    </div>
-                    <span className="app-text-caption">{draft.marketingOptIn ? "Permission captured" : "Needs consent"}</span>
-                  </button>
-                </div>
-
-                <div className="border-t border-[var(--app-border)]/30 pt-4">
-                  <FieldLabel>Customer flag</FieldLabel>
-                  <button
-                    onClick={() => setDraft((current) => ({ ...current, isVip: !current.isVip }))}
-                    className={cx(
-                      "mt-2 flex w-full items-center justify-between gap-3 rounded-[var(--app-radius-md)] border px-3 py-3 text-left transition",
-                      draft.isVip
-                        ? "border-[var(--app-accent)] bg-[var(--app-surface)] text-[var(--app-text)]"
-                        : "border-[var(--app-border)]/85 bg-[var(--app-surface-muted)]/75 text-[var(--app-text-muted)]",
-                    )}
-                  >
-                    <div className="flex items-center gap-2">
-                      {draft.isVip ? <CheckSquare2 className="h-4 w-4 shrink-0" /> : <Square className="h-4 w-4 shrink-0" />}
-                      <span className="app-text-body font-medium">VIP customer</span>
-                    </div>
-                    <span className="app-text-caption">{draft.isVip ? "Priority profile" : "Standard profile"}</span>
-                  </button>
+                  <div className="mt-2">
+                    <ProfileToggleRow
+                      label="Opt-in"
+                      checked={draft.marketingOptIn}
+                      onToggle={() => setDraft((current) => ({ ...current, marketingOptIn: !current.marketingOptIn }))}
+                    />
+                  </div>
                 </div>
               </div>
+            </SectionBlock>
+
+            <SectionBlock title="VIP customer">
+              <ProfileToggleRow
+                label={draft.isVip ? "Priority profile" : "Standard profile"}
+                checked={draft.isVip}
+                onToggle={() => setDraft((current) => ({ ...current, isVip: !current.isVip }))}
+              />
             </SectionBlock>
           </div>
         </div>
