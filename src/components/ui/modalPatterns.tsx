@@ -92,14 +92,14 @@ export function ModalSummaryCard({
         className,
       )}
     >
-      <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between sm:gap-4">
         <div className="min-w-0 flex-1">
           {eyebrow ? <div className="app-text-overline">{eyebrow}</div> : null}
           <div className={cx(eyebrow ? "mt-1" : "", "app-text-value")}>{title}</div>
           {description ? <div className="mt-1.5 app-text-body">{description}</div> : null}
           {meta ? <div className="mt-2.5">{meta}</div> : null}
         </div>
-        {aside ? <div className="shrink-0">{aside}</div> : null}
+        {aside ? <div className="min-w-0 sm:shrink-0">{aside}</div> : null}
       </div>
     </div>
   );

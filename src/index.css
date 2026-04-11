@@ -2638,8 +2638,18 @@ textarea:focus-visible {
   background: var(--app-surface-elevated);
   box-shadow: var(--app-shadow-lg);
   padding: 1.125rem 1.125rem 1rem;
-  max-height: calc(100vh - 2rem);
-  overflow-y: auto;
+  min-height: 0;
+  border-bottom-left-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+@media (min-width: 640px) {
+  .app-modal {
+    max-height: calc(100vh - 2rem);
+    overflow: hidden;
+    border-bottom-left-radius: var(--app-radius-lg);
+    border-bottom-right-radius: var(--app-radius-lg);
+  }
 }
 
 .app-modal-panel {
