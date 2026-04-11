@@ -762,6 +762,7 @@ describe("order selectors", () => {
   });
 
   it("derives needs-attention status and action from the same grouped state model", () => {
+    const now = new Date("2026-04-10T09:00:00.000Z");
     const futurePickup = {
       ...createOpenOrder({}).pickupSchedules[0],
       pickupDate: "2026-04-10",
@@ -778,8 +779,16 @@ describe("order selectors", () => {
       pickupSchedules: [{ ...futurePickup, id: "pickup-in-progress" }],
     });
 
-    const readyToStartState = getNeedsAttentionGroupState(readyToStart, getNeedsAttentionPickupGroups(readyToStart)[0]!);
-    const inProgressState = getNeedsAttentionGroupState(inProgress, getNeedsAttentionPickupGroups(inProgress)[0]!);
+    const readyToStartState = getNeedsAttentionGroupState(
+      readyToStart,
+      getNeedsAttentionPickupGroups(readyToStart)[0]!,
+      now,
+    );
+    const inProgressState = getNeedsAttentionGroupState(
+      inProgress,
+      getNeedsAttentionPickupGroups(inProgress)[0]!,
+      now,
+    );
 
     expect(readyToStartState).toMatchObject({
       label: "Ready to start",
